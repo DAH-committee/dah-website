@@ -111,6 +111,7 @@ function ResponseForm({
   locked = false,
   notice,
   onSubmit,
+  uploadContext,
   children,
 }) {
   const [value, setValue] = useState(() => initial ?? {})
@@ -157,6 +158,7 @@ function ResponseForm({
           errors={errors}
           onChange={(id, next) => setValue((prev) => ({ ...prev, [id]: next }))}
           onUploadingChange={setUploading}
+          uploadContext={uploadContext}
         />
 
         {message && (
@@ -178,7 +180,7 @@ function ResponseForm({
  * 제출 내역 확인·수정. 로그인한 계정의 응답만 서버가 돌려주고, 수정 기간과 소유 검증도
  * 서버가 한다. 여기서는 can_edit로 저장 버튼을 잠그기만 한다.
  */
-function EditPanel({ slug, fields, canEdit, editEnd }) {
+function EditPanel({ slug, fields, canEdit, editEnd, uploadContext }) {
   const { data, loading, error } = useApi(`/forms/${slug}/mine`)
   const [selectedId, setSelectedId] = useState(null)
   const [saved, setSaved] = useState(false)
@@ -293,6 +295,7 @@ function EditPanel({ slug, fields, canEdit, editEnd }) {
         await api.put(`/forms/${slug}/responses/${selected.id}`, { data: value })
         setSaved(true)
       }}
+      uploadContext={uploadContext}
     >
       {responses.length > 1 && (
         <button
@@ -380,6 +383,7 @@ function FormPage() {
                 fields={form.fields ?? []}
                 canEdit={win.can_edit}
                 editEnd={editEnd}
+                uploadContext={{ formSlug: slug, driveEnabled: Boolean(form.settings?.drive_enabled) }}
               />
             </div>
           ) : (
@@ -452,6 +456,7 @@ function FormPage() {
               fields={form.fields ?? []}
               submitLabel="제출"
               busyLabel="제출 중"
+              uploadContext={{ formSlug: slug, driveEnabled: Boolean(form.settings?.drive_enabled) }}
               onSubmit={async (value) => {
                 await api.post(`/forms/${slug}/submit`, { data: value })
                 setDone(true)

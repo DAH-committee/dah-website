@@ -92,7 +92,7 @@ function Counter({ length, max }) {
   )
 }
 
-function FormField({ field, value, error, onChange, onUploadingChange }) {
+function FormField({ field, value, error, onChange, onUploadingChange, uploadContext }) {
   const set = (v) => onChange(field.id, v)
   const str = value == null ? '' : String(value)
   const options = Array.isArray(field.options) ? field.options : []
@@ -218,8 +218,12 @@ function FormField({ field, value, error, onChange, onUploadingChange }) {
             onChange={set}
             usage="general"
             preview={false}
+            accept="image/*,.hwp,.hwpx,.pdf,.docx,.xlsx,.pptx,.zip"
             buttonLabel="파일 선택"
             onUploadingChange={onUploadingChange}
+            formSlug={uploadContext?.formSlug}
+            fieldId={field.id}
+            driveEnabled={Boolean(uploadContext?.driveEnabled)}
           />
         </FieldShell>
       )
@@ -248,7 +252,7 @@ function FormField({ field, value, error, onChange, onUploadingChange }) {
  * @param {Function} onChange (fieldId, value) => void
  * @param {Object} errors  { [field.id]: '에러 문구' }
  */
-function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUploadingChange }) {
+function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUploadingChange, uploadContext }) {
   const ordered = [...(Array.isArray(fields) ? fields : [])].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   )
@@ -263,6 +267,7 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
           error={errors[field.id]}
           onChange={onChange}
           onUploadingChange={onUploadingChange}
+          uploadContext={uploadContext}
         />
       ))}
     </div>

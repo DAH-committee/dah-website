@@ -57,8 +57,6 @@ export const ADMIN_ROUTES = [
   { path: 'careers', Component: CareersAdmin, role: 'manager' },
   { path: 'exhibition', Component: ExhibitionAdmin, role: 'manager' },
   { path: 'forms', Component: FormsAdmin, role: 'manager' },
-  { path: 'forms/new', Component: FormEditor, role: 'manager' },
-  { path: 'forms/:id/edit', Component: FormEditor, role: 'manager' },
   { path: 'settings', Component: SettingsAdmin, role: 'manager' },
   { path: 'about', Component: AboutAdmin, role: 'manager' },
   { path: 'users', Component: UsersAdmin, role: 'manager' },
@@ -71,5 +69,7 @@ export const ADMIN_ROUTES = [
  */
 export const ADMIN_FULLSCREEN_ROUTES = [
   { path: 'exhibition-entries/sheet', Component: EntriesSheet, role: 'manager' },
+  { path: 'forms/new', Component: FormEditor, role: 'manager' },
+  { path: 'forms/:id/edit', Component: FormEditor, role: 'manager' },
   { path: 'forms/:id/responses/sheet', Component: FormResponsesSheet, role: 'manager' },
 ]

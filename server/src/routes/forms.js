@@ -136,6 +136,7 @@ function pickData(fields, data) {
 }
 
 function publicForm(row) {
+  const settings = row.settings || {}
   return {
     id: row.id,
     slug: row.slug,
@@ -145,7 +146,12 @@ function publicForm(row) {
     description_en: row.description_en,
     category: row.category,
     fields: row.fields,
-    settings: row.settings,
+    settings: {
+      ...settings,
+      drive_enabled: Boolean(settings.drive_enabled && settings.drive_folder_id),
+      drive_folder_id: undefined,
+      drive_share_mode: undefined,
+    },
     published: row.published,
   }
 }
@@ -414,6 +420,20 @@ router.get(
     )
     // 시트 컬럼은 폼 정의에서 자동 생성한다 — 필드가 바뀌면 시트도 따라간다
     res.json({ form: publicForm(form), items: rows, total: rows.length })
+  })
+)
+
+// 한 행사(폼)의 응답만 초기화한다. 다른 전시·모집 폼의 응답은 form_id가 달라 절대 섞이거나
+// 삭제되지 않는다. 관리자 화면에서 제목과 건수를 다시 확인한 뒤 호출한다.
+router.delete(
+  '/admin/forms/:id/responses',
+  requireAuth,
+  requireRole('manager'),
+  wrap(async (req, res) => {
+    const { rows } = await query('SELECT id, title_ko FROM custom_forms WHERE id = $1', [req.params.id])
+    if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    const result = await query('DELETE FROM custom_form_responses WHERE form_id = $1', [req.params.id])
+    res.json({ ok: true, deleted: result.rowCount ?? 0, form: rows[0] })
   })
 )
 

@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Copy, Download, RefreshCw, Rows3 } from 'lucide-react'
+import { Copy, Download, RefreshCw, Rows3, Trash2 } from 'lucide-react'
 import ColumnFilter from '../../components/common/ColumnFilter'
 import { useToast } from '../../components/common/Toast'
 import { API_BASE, api } from '../../hooks/useApi'
@@ -112,6 +112,18 @@ function FormResponsesSheet() {
       setLoading(false)
     }
   }, [id])
+
+  const resetResponses = async () => {
+    const name = form?.title_ko || '이 폼'
+    if (!window.confirm(`"${name}"의 응답 ${rows.length}건을 모두 지울까요?\n다른 행사·폼의 응답은 바뀌지 않으며, 이 작업은 되돌릴 수 없습니다.`)) return
+    try {
+      const result = await api.del(`/admin/forms/${id}/responses`)
+      showToast(`${result.deleted ?? rows.length}건을 초기화했습니다`)
+      await load()
+    } catch (err) {
+      showToast(err.message || '응답 초기화에 실패했습니다')
+    }
+  }
 
   useEffect(() => {
     load()
@@ -371,6 +383,10 @@ function FormResponsesSheet() {
             <button type="button" onClick={exportCsv} className={BTN}>
               <Download size={16} aria-hidden="true" />
               CSV
+            </button>
+            <button type="button" onClick={resetResponses} disabled={!rows.length} className={`${BTN} text-state-error disabled:cursor-not-allowed disabled:opacity-50`}>
+              <Trash2 size={16} aria-hidden="true" />
+              이 폼 응답 초기화
             </button>
           </div>
         </div>

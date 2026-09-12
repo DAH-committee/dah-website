@@ -24,14 +24,23 @@ function ScrollToTop() {
     prevRef.current = pathname
     // 앵커(hash) 이동은 항상 처리 — 같은 페이지 내 이동 포함
     if (hash) {
-      const el = document.getElementById(hash.slice(1))
-      if (el) {
-        const reduced = window.matchMedia(
-          '(prefers-reduced-motion: reduce)'
-        ).matches
-        el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' })
-        return
+      // 라우트 전환 직후에는 목적 섹션이 아직 마운트되지 않을 수 있다. 한 프레임 뒤에
+      // 찾기 시작해 최대 10프레임 동안 재시도하면 /curriculum#track-* 같은 내부 링크도
+      // 항상 해당 트랙으로 간다. setTimeout 대신 rAF를 써 렌더 순서와 맞춘다.
+      let frame = 0
+      let attempts = 0
+      const moveToAnchor = () => {
+        const el = document.getElementById(hash.slice(1))
+        if (el) {
+          const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          el.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' })
+          return
+        }
+        attempts += 1
+        if (attempts < 10) frame = window.requestAnimationFrame(moveToAnchor)
       }
+      frame = window.requestAnimationFrame(moveToAnchor)
+      return () => window.cancelAnimationFrame(frame)
     }
     // H4.4: KR↔EN 전환(정규화 경로 동일)은 현재 스크롤 위치 유지
     if (normalize(prev) === normalize(pathname)) return

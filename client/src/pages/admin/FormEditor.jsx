@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Eye, FileText, Plus, Save, Trash2 } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -20,7 +20,6 @@ import {
   Field,
   GhostButton,
   Input,
-  PageHead,
   PrimaryButton,
   Select,
   TextArea,
@@ -46,10 +45,9 @@ const TYPE_LABEL = {
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label }))
 const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
-const PANEL =
-  'flex flex-col gap-16 rounded-glass border border-glass-line bg-glass-bg p-24 backdrop-blur-glass-mobile'
+const PANEL = 'form-editor-panel flex flex-col gap-16 rounded-md border p-24 md:p-32'
 const QUESTION_CARD =
-  'flex flex-col gap-16 rounded-glass border border-glass-line border-l-4 border-l-purple-primary bg-bg-elev p-24 shadow-glass'
+  'form-editor-panel flex flex-col gap-16 rounded-md border border-l-4 border-l-[#7157d9] bg-white p-24 shadow-sm'
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
 
@@ -106,6 +104,9 @@ const EMPTY = {
     show_button_in_header: false,
     button_label_ko: '',
     button_label_en: '',
+    drive_enabled: false,
+    drive_folder_id: '',
+    drive_share_mode: 'restricted',
   },
 }
 
@@ -132,6 +133,9 @@ function fromItem(item) {
       show_button_in_header: Boolean(s.show_button_in_header),
       button_label_ko: s.button_label_ko || '',
       button_label_en: s.button_label_en || '',
+      drive_enabled: Boolean(s.drive_enabled),
+      drive_folder_id: s.drive_folder_id || '',
+      drive_share_mode: s.drive_share_mode === 'link' ? 'link' : 'restricted',
     },
   }
 }
@@ -157,6 +161,9 @@ function toPayload(form) {
       show_button_in_header: s.show_button_in_header,
       button_label_ko: s.button_label_ko,
       button_label_en: s.button_label_en,
+      drive_enabled: s.drive_enabled,
+      drive_folder_id: s.drive_folder_id.trim(),
+      drive_share_mode: s.drive_share_mode,
     },
   }
 }
@@ -378,12 +385,27 @@ function FormEditor() {
   }
 
   return (
-    <section className="flex flex-col gap-24">
-      <PageHead
-        title={isNew ? '폼 만들기' : '폼 수정'}
-        desc="질문 카드를 위에서 아래 순서로 구성합니다. 공개 화면은 같은 순서로 표시됩니다."
-        actions={<GhostButton onClick={() => navigate(backTo)}>목록</GhostButton>}
-      />
+    <section className="form-workspace isolate min-h-[100dvh] bg-[#f5f2ff] px-16 py-16 md:px-32 md:py-24">
+      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#ded8ef] bg-[#f5f2ff]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
+        <div className="flex min-w-0 items-center gap-12">
+          <FileText size={22} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
+          <div className="min-w-0">
+            <h1 className="truncate text-body-l-m font-bold text-[#29253a] md:text-body-l-d">{isNew ? '새 신청 폼' : form.title_ko || '폼 편집'}</h1>
+            <p className="hidden text-caption-m text-[#756d88] sm:block">질문 · 설정 · 응답은 각각의 행사 폼에 독립적으로 저장됩니다</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-8">
+          <GhostButton onClick={() => setPreview((v) => !v)} aria-pressed={preview} className="border-[#d8d1ed] text-[#463d5b]">
+            <Eye size={16} aria-hidden="true" />
+            <span className="hidden sm:inline">미리보기</span>
+          </GhostButton>
+          <GhostButton onClick={() => navigate(backTo)} className="border-[#d8d1ed] text-[#463d5b]">목록</GhostButton>
+          <PrimaryButton type="submit" form="form-editor" disabled={busy || !canSaveForm}>
+            <Save size={16} aria-hidden="true" />
+            {busy ? '저장 중' : '저장'}
+          </PrimaryButton>
+        </div>
+      </header>
 
       {!isNew && !hydrated ? (
         <div className="flex flex-col items-start gap-16">
@@ -398,7 +420,7 @@ function FormEditor() {
           )}
         </div>
       ) : (
-        <form onSubmit={save} className="mx-auto flex w-full max-w-5xl flex-col gap-24">
+        <form id="form-editor" onSubmit={save} className="mx-auto flex w-full max-w-5xl flex-col gap-24 pb-40">
           <div className={PANEL}>
             <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">기본 정보</h3>
             <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
@@ -504,19 +526,44 @@ function FormEditor() {
                   onChange={setSettingInput('button_label_en')}
                 />
               </Field>
+              <div className="md:col-span-2 rounded-md border border-border-subtle bg-bg-panel p-16">
+                <div className="flex flex-wrap items-start justify-between gap-16">
+                  <div>
+                    <p className="text-small-m font-semibold text-text-pri">Google Drive 파일 업로드</p>
+                    <p className="mt-4 text-caption-m leading-relaxed text-text-meta">
+                      이 폼의 파일 질문만 지정한 Drive 폴더로 저장합니다. Render에 연결한 Google Drive 계정으로 업로드됩니다.
+                    </p>
+                  </div>
+                  <Toggle checked={form.settings.drive_enabled} onChange={setSetting('drive_enabled')} label="Google Drive 업로드 사용" />
+                </div>
+                {form.settings.drive_enabled && (
+                  <div className="mt-16 grid grid-cols-1 gap-16 md:grid-cols-2">
+                    <Field label="Drive 폴더 URL 또는 ID" hint="이 폼 전용 폴더를 지정하세요">
+                      <Input value={form.settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} />
+                    </Field>
+                    <Field label="파일 공유 범위">
+                      <Select
+                        value={form.settings.drive_share_mode}
+                        options={[
+                          { value: 'restricted', label: '제한됨 — 관리자만 보기' },
+                          { value: 'link', label: '링크가 있는 사용자에게 보기 허용' },
+                        ]}
+                        onChange={(e) => setSetting('drive_share_mode')(e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-16">
-            <div className="flex flex-wrap items-center justify-between gap-16 border-b border-border-subtle pb-16">
+            <div className="flex flex-wrap items-center justify-between gap-16 border-b border-[#ded8ef] pb-16">
               <div>
                 <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">질문</h3>
                 <p className="mt-4 text-small-m text-text-sec">질문마다 카드 한 장으로 편집합니다.</p>
               </div>
               <div className="flex flex-wrap items-center gap-8">
-                <GhostButton onClick={() => setPreview((v) => !v)} aria-pressed={preview}>
-                  {preview ? '미리보기 닫기' : '미리보기'}
-                </GhostButton>
                 <GhostButton onClick={addField}>
                   <Plus size={16} aria-hidden="true" />
                   필드 추가
@@ -570,7 +617,7 @@ function FormEditor() {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-24 border-t border-border-subtle pt-24">
+          <div className="flex flex-wrap items-center gap-24 border-t border-[#ded8ef] pt-24">
             {/* 토글은 화면 상태만 바꾼다. 저장을 눌러야 서버에 반영된다 */}
             <Field label="공개" hint="저장을 눌러야 반영됩니다">
               <Toggle checked={form.published} onChange={set('published')} label="공개 여부" />
@@ -578,12 +625,7 @@ function FormEditor() {
           </div>
 
           <ErrorText>{saveError}</ErrorText>
-          <div className="flex items-center gap-8">
-            <PrimaryButton type="submit" disabled={busy || !canSaveForm}>
-              {busy ? '저장 중' : '저장'}
-            </PrimaryButton>
-            <GhostButton onClick={() => navigate(backTo)}>취소</GhostButton>
-          </div>
+          <div className="flex items-center gap-8"><GhostButton onClick={() => navigate(backTo)}>저장하지 않고 나가기</GhostButton></div>
         </form>
       )}
     </section>

@@ -13,7 +13,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { optionalAuth } from '../middleware/auth.js'
+import { optionalPublicAuth } from '../middleware/publicAuth.js'
 import { anonUploadLimiter } from '../middleware/rateLimit.js'
+import { query } from '../db.js'
+import { uploadToGoogleDrive } from '../lib/googleDrive.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -71,19 +74,63 @@ const upload = multer({
 
 // 비로그인 요청에만 업로드 rate limit 적용
 function anonLimit(req, res, next) {
-  if (req.user) return next()
+  if (req.user || req.publicUser) return next()
   return anonUploadLimiter(req, res, next)
+}
+
+function folderIdFrom(value) {
+  const raw = String(value || '').trim()
+  const match = raw.match(/\/folders\/([A-Za-z0-9_-]+)/)
+  const id = match?.[1] || raw
+  return /^[A-Za-z0-9_-]{10,}$/.test(id) ? id : ''
+}
+
+async function formDriveTarget(req) {
+  const slug = String(req.body?.formSlug || '').trim()
+  const fieldId = String(req.body?.fieldId || '').trim()
+  if (!slug && !fieldId) return null
+  if (!slug || !fieldId) {
+    const err = new Error('formSlug and fieldId are required for form uploads')
+    err.status = 400
+    throw err
+  }
+  if (!req.publicUser) {
+    const err = new Error('google login required')
+    err.status = 401
+    throw err
+  }
+  const { rows } = await query('SELECT fields, settings, published FROM custom_forms WHERE slug = $1', [slug])
+  const form = rows[0]
+  if (!form?.published) {
+    const err = new Error('form not found')
+    err.status = 404
+    throw err
+  }
+  if (!Array.isArray(form.fields) || !form.fields.some((field) => field?.id === fieldId && field?.type === 'file')) {
+    const err = new Error('invalid form file field')
+    err.status = 400
+    throw err
+  }
+  const folderId = folderIdFrom(form.settings?.drive_folder_id)
+  if (!form.settings?.drive_enabled || !folderId) {
+    const err = new Error('이 폼의 Google Drive 업로드가 아직 설정되지 않았습니다.')
+    err.status = 409
+    throw err
+  }
+  return { folderId, shareMode: form.settings?.drive_share_mode === 'link' ? 'link' : 'restricted' }
 }
 
 router.post(
   '/',
   optionalAuth,
+  optionalPublicAuth,
   anonLimit,
   upload.single('file'),
   wrap(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'file field required (multipart/form-data)' })
     const usage = String(req.body?.usage || req.query.usage || 'general')
-    if (!req.user && !PUBLIC_USAGES.includes(usage)) {
+    const driveTarget = await formDriveTarget(req)
+    if (!req.user && !driveTarget && !PUBLIC_USAGES.includes(usage)) {
       return res.status(403).json({ error: 'login required for this upload usage', allowed: PUBLIC_USAGES })
     }
 
@@ -95,7 +142,7 @@ router.post(
       (!DOC_EXTS.includes(srcExt) && req.file.mimetype?.startsWith('image/'))
     if (!isImage) {
       // 문서는 로그인 필요 (비로그인 공개 용도는 이미지 제출 전용)
-      if (!req.user) {
+      if (!req.user && !driveTarget) {
         return res.status(403).json({ error: 'login required for document uploads' })
       }
       const ext = DOC_EXTS.includes(srcExt) ? srcExt : 'bin'
@@ -107,6 +154,11 @@ router.post(
       const buf = req.file.buffer
       const name = `document/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
       const originalName = req.file.originalname || `document.${ext}`
+
+      if (driveTarget) {
+        const saved = await uploadToGoogleDrive({ folderId: driveTarget.folderId, buffer: buf, filename: originalName, mimeType: contentType, shareMode: driveTarget.shareMode })
+        return res.status(201).json({ ...saved, format: ext })
+      }
 
       if (process.env.BLOB_READ_WRITE_TOKEN) {
         const { put } = await import('@vercel/blob')
@@ -140,6 +192,12 @@ router.post(
     const buf = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer()
 
     const name = `${usage}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.webp`
+
+    if (driveTarget) {
+      const original = path.basename(req.file.originalname || 'image').replace(/\.[^.]+$/, '') || 'image'
+      const saved = await uploadToGoogleDrive({ folderId: driveTarget.folderId, buffer: buf, filename: `${original}.webp`, mimeType: 'image/webp', shareMode: driveTarget.shareMode })
+      return res.status(201).json({ ...saved, format: 'webp' })
+    }
 
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const { put } = await import('@vercel/blob')

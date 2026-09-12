@@ -4,12 +4,13 @@ import { useRef, useState } from 'react'
 import { Paperclip, Trash2, Upload } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { ErrorText, GhostButton } from './FormControls'
+import GoogleDriveIcon from '../common/GoogleDriveIcon'
 
 /**
  * @param {{
  *   value: string, onChange: Function, accept?: string,
  *   preview?: boolean, buttonLabel?: string, usage?: string,
- *   onUploadingChange?: Function
+ *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean
  * }} props - preview false면 이미지 미리보기 대신 파일 링크 표시(HWP 등).
  *   usage: 서버 리사이즈 정책(general 1600 | poster 2400 | showcase 1920x1080 | exhibition)
  *   onUploadingChange(active): 업로드 진행 중 여부를 상위에 전파 — 저장 버튼이 업로드 완료를
@@ -23,6 +24,9 @@ function ImageUpload({
   buttonLabel = '파일 선택',
   usage = 'general',
   onUploadingChange,
+  formSlug,
+  fieldId,
+  driveEnabled = false,
 }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
@@ -36,7 +40,10 @@ function ImageUpload({
     setError(null)
     onUploadingChange?.(true)
     try {
-      const res = await api.upload(file, { usage })
+      const res = await api.upload(file, {
+        usage,
+        ...(driveEnabled && formSlug && fieldId ? { formSlug, fieldId } : {}),
+      })
       if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
       onChange(res.url)
     } catch (err) {
@@ -73,8 +80,8 @@ function ImageUpload({
       )}
       <div className="flex flex-wrap items-center gap-8">
         <GhostButton onClick={() => inputRef.current && inputRef.current.click()} disabled={busy}>
-          <Upload size={16} aria-hidden="true" />
-          {busy ? '업로드 중' : buttonLabel}
+          {driveEnabled ? <GoogleDriveIcon /> : <Upload size={16} aria-hidden="true" />}
+          {busy ? '업로드 중' : driveEnabled ? 'Google Drive로 업로드' : buttonLabel}
         </GhostButton>
         {value && (
           <GhostButton onClick={() => onChange('')} aria-label="파일 제거">
@@ -86,6 +93,11 @@ function ImageUpload({
       {busy && (
         <p className="font-mono text-caption-m text-text-meta">
           업로드 중 — 완료된 뒤 저장하세요
+        </p>
+      )}
+      {driveEnabled && !busy && (
+        <p className="font-mono text-caption-m text-text-meta">
+          이 파일은 이 행사에 지정된 Google Drive 폴더에 저장됩니다.
         </p>
       )}
       <ErrorText>{error}</ErrorText>

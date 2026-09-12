@@ -37,7 +37,7 @@
 | 사용자 화면·관리자 화면 | React + Vite | 웹사이트와 CMS 화면 |
 | API 서버 | Node.js + Express, Render | 로그인, 권한, 콘텐츠·접수 처리 |
 | 데이터베이스 | Neon PostgreSQL | 사용자, 콘텐츠, 접수, 공개 상태 저장 |
-| 이미지·첨부파일 | Vercel Blob | 포스터, 사진, 문서 파일 보관 |
+| 이미지·첨부파일 | Vercel Blob / Google Drive | 일반 콘텐츠는 Blob, 행사 폼의 지정 파일은 폼별 Drive 폴더 |
 | 프론트엔드 배포 | Vercel | 공개 웹사이트 배포 |
 | 검색·방문 분석 | Google Search Console, Google Analytics | 색인 현황과 방문 흐름 확인 |
 
@@ -98,6 +98,21 @@ npm run dev
 | `VITE_GA_ID` | Google Analytics 측정 ID. 비어 있어도 사이트 기능에는 영향 없음 |
 
 백엔드의 `DATABASE_URL`, `JWT_SECRET`, `BLOB_READ_WRITE_TOKEN`, 메일·Google OAuth 관련 값은 **프론트엔드 Vercel에 넣지 않습니다.** Render의 서버 환경변수에만 둡니다.
+
+### 행사 파일을 Google Drive에 저장하려면
+
+행사마다 파일이 섞이지 않게, 폼별로 별도 Drive 폴더를 연결할 수 있습니다. 일반 `내 드라이브` 폴더에는 **학교 Google 계정 OAuth**로 업로드합니다. Google 비밀번호를 서버에 저장하지 않으며, 승인 후 발급된 refresh token은 Render 서버 환경변수에만 둡니다.
+
+1. 학교 또는 운영 계정 Drive에 행사별 폴더를 만듭니다. 예: `DAH 운영 / 2026-2 프로젝트 전시 / 제출 파일`.
+2. Google Cloud Console에서 Drive API와 OAuth 동의 화면을 설정하고 웹 애플리케이션 OAuth 클라이언트를 만듭니다.
+3. 파일을 보관할 Google 계정으로 Google Drive 접근을 승인해 refresh token을 발급합니다. 2026-2 전시회는 현호 개인 Drive를 사용합니다.
+4. `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`, `GOOGLE_DRIVE_REFRESH_TOKEN`을 Render 서버 환경변수에만 넣습니다. Vercel이나 GitHub에는 넣지 않습니다.
+5. 관리자 → `폼` → 해당 폼 `편집`에서 `Google Drive 파일 업로드`를 켜고, 폴더 URL 또는 ID를 붙여 넣은 뒤 저장합니다.
+6. 폼에 `파일` 질문을 추가합니다. 제출자는 Google Drive 아이콘이 있는 `Google Drive로 업로드` 버튼을 보며, 업로드된 파일 URL은 그 폼의 응답 시트에 저장됩니다.
+
+학교 Google Workspace의 **공유 드라이브**를 사용하는 경우에는 서비스 계정도 사용할 수 있습니다. 이때 서비스 계정을 공유 드라이브 구성원으로 추가하고 `GOOGLE_DRIVE_AUTH_MODE=service-account`, `GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`을 설정합니다. 개인 Gmail의 `내 드라이브`에는 서비스 계정 모드를 사용하지 않습니다.
+
+기본 공유 범위는 **제한됨**입니다. 제출물 URL을 외부 전시 페이지에서 직접 보여줄 필요가 있을 때만, 해당 폼의 공유 범위를 `링크가 있는 사용자에게 보기 허용`으로 바꿉니다. 학생의 개인정보·원본 파일은 기본값을 유지하세요.
 
 ## 공동 작업과 인수인계
 

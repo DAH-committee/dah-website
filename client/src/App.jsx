@@ -73,6 +73,23 @@ function PageFade({ children }) {
   )
 }
 
+// 시트·폼 편집기는 작업용 캔버스다. 공개 사이트의 헤더/푸터를 같이 렌더하면
+// 100dvh 계산과 하단 탭 고정이 어긋나므로, 이 경로만 앱 크롬 밖에서 연다.
+function AppChrome({ children }) {
+  const { pathname } = useLocation()
+  const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
+
+  return (
+    <>
+      {!workSurface && <Header />}
+      <main className="relative">
+        <PageFade>{children}</PageFade>
+      </main>
+      {!workSurface && <Footer />}
+    </>
+  )
+}
+
 // 공개 콘텐츠 라우트 — ko 원본과 /en 미러 1:1 (14_ROUTES_V2).
 // 접수·제출·로그인 플로우는 국문만(v2 스코프)이라 미러에서 제외.
 const PUBLIC_ROUTES = [
@@ -119,9 +136,7 @@ function App() {
           <Analytics />
           <CosmosBackground />
           <ScrollToTop />
-          <Header />
-          <main className="relative">
-            <PageFade>
+          <AppChrome>
             <Routes>
               {/* 38_VISIBILITY: 비공개 유형은 직접 URL로도 못 들어오게 VisibilityGate로 감싼다.
                   게이트는 제어 대상 경로만 판정하고(그 외 통과), 로그인 관리자는 예외로 통과시킨다. */}
@@ -172,9 +187,7 @@ function App() {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
-            </PageFade>
-          </main>
-          <Footer />
+          </AppChrome>
           <LoginModal />
           </ToastProvider>
           </LoginModalProvider>

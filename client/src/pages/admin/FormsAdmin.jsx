@@ -46,10 +46,10 @@ function FormsAdmin() {
         desc="행사 신청, 부원 모집 등 자체 폼을 만들고 응답을 관리합니다"
         offline={offline}
         actions={
-          <Link to="/admin/forms/new" className={NEW_LINK}>
+          <a href="/admin/forms/new" target="_blank" rel="noopener noreferrer" className={NEW_LINK}>
             <Plus size={16} aria-hidden="true" />
             폼 만들기
-          </Link>
+          </a>
         }
       />
 
