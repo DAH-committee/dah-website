@@ -108,7 +108,7 @@ const EMPTY = {
     drive_folder_id: '',
     drive_auto_folder: false,
     drive_semester: '',
-    drive_course: '',
+    drive_course_field_id: '',
     drive_share_mode: 'restricted',
   },
 }
@@ -140,7 +140,7 @@ function fromItem(item) {
       drive_folder_id: s.drive_folder_id || '',
       drive_auto_folder: Boolean(s.drive_auto_folder),
       drive_semester: s.drive_semester || '',
-      drive_course: s.drive_course || '',
+      drive_course_field_id: s.drive_course_field_id || '',
       drive_share_mode: s.drive_share_mode === 'link' ? 'link' : 'restricted',
     },
   }
@@ -171,7 +171,7 @@ function toPayload(form) {
       drive_folder_id: s.drive_folder_id.trim(),
       drive_auto_folder: Boolean(s.drive_auto_folder),
       drive_semester: s.drive_semester.trim(),
-      drive_course: s.drive_course.trim(),
+      drive_course_field_id: s.drive_course_field_id,
       drive_share_mode: s.drive_share_mode,
     },
   }
@@ -367,6 +367,9 @@ function FormEditor() {
   const setSettingInput = (key) => (e) => setSetting(key)(e.target.value)
 
   const setFields = (fields) => setForm((prev) => ({ ...prev, fields }))
+  const courseFieldOptions = form.fields
+    .filter((field) => ['select', 'radio'].includes(field.type))
+    .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
   const addField = () =>
     setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}` }, form.fields.length)])
 
@@ -440,8 +443,14 @@ function FormEditor() {
         </div>
       ) : (
         <form id="form-editor" onSubmit={save} className="mx-auto flex w-full max-w-5xl flex-col gap-24 pb-40">
-          <div className={PANEL}>
-            <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">폼 정보</h3>
+          <div className={`${PANEL} border-t-4 border-t-[#7157d9]`}>
+            <div className="flex flex-wrap items-start justify-between gap-12 border-b border-[#e8e3f4] pb-16">
+              <div>
+                <p className="font-mono text-caption-m font-semibold tracking-label text-[#7157d9]">01 · 기본 설정</p>
+                <h3 className="mt-4 text-h3-m font-bold text-text-pri md:text-h3-d">폼 정보</h3>
+              </div>
+              <span className="rounded-full bg-[#eee9ff] px-12 py-4 text-caption-m font-semibold text-[#5640b5]">공개 제목은 상단에서 바로 수정</span>
+            </div>
             <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
               <Field label="제목 (영문)">
                 <Input value={form.title_en} onChange={setInput('title_en')} />
@@ -483,7 +492,10 @@ function FormEditor() {
           </div>
 
           <div className={PANEL}>
-            <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">접수 설정</h3>
+            <div className="border-b border-[#e8e3f4] pb-16">
+              <p className="font-mono text-caption-m font-semibold tracking-label text-[#7157d9]">02 · 운영 설정</p>
+              <h3 className="mt-4 text-h3-m font-bold text-text-pri md:text-h3-d">접수 설정</h3>
+            </div>
             <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
               <Field label="접수 시작">
                 <DateInput
@@ -542,19 +554,23 @@ function FormEditor() {
                   onChange={setSettingInput('button_label_en')}
                 />
               </Field>
-              <div className="md:col-span-2 rounded-md border border-border-subtle bg-bg-panel p-16">
+              <div className="md:col-span-2 overflow-hidden rounded-md border border-[#cfc5ed] bg-[#faf9ff] shadow-[0_1px_2px_rgb(57_43_94/0.08)]">
                 <div className="flex flex-wrap items-start justify-between gap-16">
-                  <div>
-                    <p className="text-small-m font-semibold text-text-pri">Google Drive 파일 업로드</p>
-                    <p className="mt-4 text-caption-m leading-relaxed text-text-meta">
-                      이 폼의 파일 질문만 지정한 Drive 폴더로 저장합니다. Render에 연결한 Google Drive 계정으로 업로드됩니다.
+                  <div className="min-w-0 p-20">
+                    <p className="text-body-m font-bold text-[#29253a]">Google Drive 파일 업로드</p>
+                    <p className="mt-4 max-w-2xl text-small-m leading-relaxed text-[#625a77]">
+                      업로드한 원본 파일은 지정한 Drive 루트 안에서 학기 · 선택 과목 · 이 폼 이름 순으로 정리됩니다.
+                      과목을 선택하지 않으면 업로드 버튼이 비활성화되어 잘못된 폴더로 들어가지 않습니다.
                     </p>
                   </div>
-                  <Toggle checked={form.settings.drive_enabled} onChange={setSetting('drive_enabled')} label="Google Drive 업로드 사용" />
+                  <div className="flex items-center gap-8 bg-[#eee9ff] px-16 py-12">
+                    <span className="text-small-m font-semibold text-[#463c65]">Drive 연동</span>
+                    <Toggle checked={form.settings.drive_enabled} onChange={setSetting('drive_enabled')} label="Google Drive 업로드 사용" />
+                  </div>
                 </div>
                 {form.settings.drive_enabled && (
-                  <div className="mt-16 grid grid-cols-1 gap-16 md:grid-cols-2">
-                    <Field label="Drive 폴더 URL 또는 ID" hint="이 폼 전용 폴더를 지정하세요">
+                  <div className="grid grid-cols-1 gap-16 border-t border-[#ded8ef] bg-white p-20 md:grid-cols-2">
+                    <Field label="Drive 루트 폴더 URL 또는 ID" hint="학기별 폴더가 이 위치 아래에 자동 생성됩니다">
                       <Input value={form.settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} />
                     </Field>
                     <Field label="자동 폴더 분류">
@@ -565,8 +581,14 @@ function FormEditor() {
                         <Field label="학기" hint="예: 2026-2">
                           <Input value={form.settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
                         </Field>
-                        <Field label="과목" hint="예: 디지털디자인">
-                          <Input value={form.settings.drive_course} onChange={setSettingInput('drive_course')} placeholder="과목명" />
+                        <Field label="과목 선택 질문" hint="응답자가 고른 과목으로 Drive 폴더를 나눕니다">
+                          <Select
+                            value={form.settings.drive_course_field_id}
+                            options={courseFieldOptions}
+                            placeholder={courseFieldOptions.length ? '과목 질문을 선택하세요' : '먼저 객관식 또는 드롭다운 질문을 추가하세요'}
+                            onChange={(e) => setSetting('drive_course_field_id')(e.target.value)}
+                            disabled={courseFieldOptions.length === 0}
+                          />
                         </Field>
                       </>
                     )}

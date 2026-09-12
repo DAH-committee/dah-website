@@ -383,7 +383,12 @@ function FormPage() {
                 fields={form.fields ?? []}
                 canEdit={win.can_edit}
                 editEnd={editEnd}
-                uploadContext={{ formSlug: slug, driveEnabled: Boolean(form.settings?.drive_enabled) }}
+                uploadContext={{
+                  formSlug: slug,
+                  driveEnabled: Boolean(form.settings?.drive_enabled),
+                  driveAutoFolder: Boolean(form.settings?.drive_auto_folder),
+                  courseFieldId: form.settings?.drive_course_field_id,
+                }}
               />
             </div>
           ) : (
@@ -456,7 +461,12 @@ function FormPage() {
               fields={form.fields ?? []}
               submitLabel="제출"
               busyLabel="제출 중"
-              uploadContext={{ formSlug: slug, driveEnabled: Boolean(form.settings?.drive_enabled) }}
+              uploadContext={{
+                formSlug: slug,
+                driveEnabled: Boolean(form.settings?.drive_enabled),
+                driveAutoFolder: Boolean(form.settings?.drive_auto_folder),
+                courseFieldId: form.settings?.drive_course_field_id,
+              }}
               onSubmit={async (value) => {
                 await api.post(`/forms/${slug}/submit`, { data: value })
                 setDone(true)

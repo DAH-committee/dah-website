@@ -117,7 +117,10 @@ async function formDriveTarget(req) {
   if (auto) {
     try {
       const values = JSON.parse(String(req.body?.formValues || '{}'))
-      const courseField = Array.isArray(form.fields) && form.fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
+      const configuredCourseFieldId = String(form.settings?.drive_course_field_id || '').trim()
+      const courseField = configuredCourseFieldId
+        ? form.fields.find((f) => f?.id === configuredCourseFieldId)
+        : form.fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
       const selected = courseField ? values?.[courseField.id] : ''
       if (Array.isArray(selected)) course = selected.join(', ')
       else if (selected) course = String(selected)

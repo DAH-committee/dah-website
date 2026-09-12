@@ -10,7 +10,8 @@ import GoogleDriveIcon from '../common/GoogleDriveIcon'
  * @param {{
  *   value: string, onChange: Function, accept?: string,
  *   preview?: boolean, buttonLabel?: string, usage?: string,
- *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean, formValues?: object
+ *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean, formValues?: object,
+ *   uploadDisabled?: boolean, disabledMessage?: string
  * }} props - preview false면 이미지 미리보기 대신 파일 링크 표시(HWP 등).
  *   usage: 서버 리사이즈 정책(general 1600 | poster 2400 | showcase 1920x1080 | exhibition)
  *   onUploadingChange(active): 업로드 진행 중 여부를 상위에 전파 — 저장 버튼이 업로드 완료를
@@ -28,6 +29,8 @@ function ImageUpload({
   fieldId,
   driveEnabled = false,
   formValues = {},
+  uploadDisabled = false,
+  disabledMessage = '',
 }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
@@ -81,7 +84,7 @@ function ImageUpload({
         </a>
       )}
       <div className="flex flex-wrap items-center gap-8">
-        <GhostButton onClick={() => inputRef.current && inputRef.current.click()} disabled={busy}>
+        <GhostButton onClick={() => inputRef.current && inputRef.current.click()} disabled={busy || uploadDisabled}>
           {driveEnabled ? <GoogleDriveIcon /> : <Upload size={16} aria-hidden="true" />}
           {busy ? '업로드 중' : driveEnabled ? 'Google Drive로 업로드' : buttonLabel}
         </GhostButton>
@@ -97,9 +100,14 @@ function ImageUpload({
           업로드 중 — 완료된 뒤 저장하세요
         </p>
       )}
-      {driveEnabled && !busy && (
+      {driveEnabled && uploadDisabled && (
+        <p className="font-mono text-caption-m text-[#7a5b1f]">
+          {disabledMessage || '필수 항목을 먼저 선택하세요.'}
+        </p>
+      )}
+      {driveEnabled && !busy && !uploadDisabled && (
         <p className="font-mono text-caption-m text-text-meta">
-          이 파일은 이 행사에 지정된 Google Drive 폴더에 저장됩니다.
+          이 파일은 선택한 과목의 Google Drive 폴더에 바로 저장됩니다. 파일을 올린 뒤에는 과목을 바꿀 수 없습니다.
         </p>
       )}
       <ErrorText>{error}</ErrorText>

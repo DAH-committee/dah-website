@@ -92,7 +92,18 @@ function Counter({ length, max }) {
   )
 }
 
-function FormField({ field, value, error, onChange, onUploadingChange, uploadContext, formValues }) {
+function FormField({
+  field,
+  value,
+  error,
+  onChange,
+  onUploadingChange,
+  uploadContext,
+  formValues,
+  courseFieldId,
+  courseSelected,
+  courseLocked,
+}) {
   const set = (v) => onChange(field.id, v)
   const str = value == null ? '' : String(value)
   const options = Array.isArray(field.options) ? field.options : []
@@ -129,6 +140,7 @@ function FormField({ field, value, error, onChange, onUploadingChange, uploadCon
             aria-label={field.label_ko}
             {...errorProps}
             onChange={(e) => set(e.target.value)}
+            disabled={field.id === courseFieldId && courseLocked}
           />
         </FieldShell>
       )
@@ -142,6 +154,7 @@ function FormField({ field, value, error, onChange, onUploadingChange, uploadCon
             options={options.map((o) => ({ value: o, label: o }))}
             onChange={set}
             columns={options.some((o) => o.length > 24) ? 1 : 2}
+            disabled={field.id === courseFieldId && courseLocked}
             {...errorProps}
           />
         </FieldShell>
@@ -225,6 +238,8 @@ function FormField({ field, value, error, onChange, onUploadingChange, uploadCon
             fieldId={field.id}
             driveEnabled={Boolean(uploadContext?.driveEnabled)}
             formValues={formValues}
+            uploadDisabled={Boolean(uploadContext?.driveAutoFolder && !courseSelected)}
+            disabledMessage="먼저 참가 과목을 선택하면 파일을 업로드할 수 있습니다."
           />
         </FieldShell>
       )
@@ -257,6 +272,15 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
   const ordered = [...(Array.isArray(fields) ? fields : [])].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   )
+  const configuredCourseFieldId = String(uploadContext?.courseFieldId || '').trim()
+  const courseField = configuredCourseFieldId
+    ? ordered.find((field) => field.id === configuredCourseFieldId)
+    : ordered.find((field) => /과목|course|subject/i.test(`${field?.label_ko || ''} ${field?.label_en || ''}`))
+  const courseSelected = courseField ? Boolean(value[courseField.id]) : false
+  const courseLocked = Boolean(
+    uploadContext?.driveAutoFolder &&
+      ordered.some((field) => field.type === 'file' && Boolean(value[field.id]))
+  )
 
   return (
     <div className="flex min-w-0 flex-col gap-24">
@@ -270,6 +294,9 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
           onUploadingChange={onUploadingChange}
           uploadContext={uploadContext}
           formValues={value}
+          courseFieldId={courseField?.id}
+          courseSelected={courseSelected}
+          courseLocked={courseLocked}
         />
       ))}
     </div>
