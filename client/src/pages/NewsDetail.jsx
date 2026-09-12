@@ -14,7 +14,7 @@ import { useLang, KoreanOnlyBadge } from '../i18n/LangContext'
 import { notices } from '../data/notices'
 
 const ATTACH_LINK =
-  'inline-flex items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-6 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri'
+  'inline-flex min-h-11 items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-8 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri md:min-h-0'
 const canPreview = (file) => /\.(pdf|jpe?g|png|webp|gif)(?:[?#].*)?$/i.test(file.name || file.url)
 
 function AttachmentRow({ file, t }) {

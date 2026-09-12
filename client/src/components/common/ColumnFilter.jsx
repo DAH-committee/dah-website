@@ -106,7 +106,7 @@ function ColumnFilter({
           }
           setOpen((v) => !v)
         }}
-        className={`flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center rounded-sm transition-colors duration-fast ease-out ${
+        className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm transition-colors duration-fast ease-out md:h-24 md:w-24 ${
           active || sort
             ? 'bg-reading-accent text-reading-surface'
             : 'text-reading-textMeta hover:bg-reading-subtle hover:text-reading-text'

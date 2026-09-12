@@ -205,7 +205,7 @@ function Select({
                   aria-disabled={opt.disabled || undefined}
                   onPointerEnter={() => !opt.disabled && setActiveIndex(i)}
                   onClick={() => commit(i)}
-                  className={`flex cursor-pointer items-center justify-between gap-8 rounded-sm px-12 py-8 text-body-m transition-colors duration-fast ease-out ${
+                  className={`flex min-h-11 cursor-pointer items-center justify-between gap-8 rounded-sm px-12 py-8 text-body-m transition-colors duration-fast ease-out ${
                     opt.disabled
                       ? 'cursor-default text-text-disabled'
                   : i === activeIndex

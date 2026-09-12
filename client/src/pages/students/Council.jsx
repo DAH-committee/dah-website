@@ -148,7 +148,7 @@ function Council() {
           <div
             role="group"
             aria-label={t('aria.termSelect')}
-            className="flex flex-wrap gap-x-24 gap-y-8"
+            className="flex flex-wrap gap-x-8 gap-y-4 md:gap-x-24 md:gap-y-8"
           >
             {items.map((c) => {
               const isActive = c.id === active?.id
@@ -158,7 +158,7 @@ function Council() {
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => setSelectedId(c.id)}
-                  className={`-mb-px cursor-pointer border-b-2 pb-8 font-mono transition-colors duration-fast ease-out ${
+                  className={`-mb-px inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center border-b-2 px-4 font-mono transition-colors duration-fast ease-out ${
                     c === items[0]
                       ? 'text-body-m font-bold md:text-body-d'
                       : 'text-small-m md:text-small-d'

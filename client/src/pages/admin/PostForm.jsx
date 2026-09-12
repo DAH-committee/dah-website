@@ -31,7 +31,7 @@ import {
 } from '../../data/contestCategory'
 
 const ICON_BTN =
-  'flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
+  'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 md:w-32'
 
 // '' → null 정규화 — PG date·url 컬럼에 빈 문자열 삽입 방지
 const nul = (v) => (v === '' || v === undefined ? null : v)
@@ -259,7 +259,7 @@ function GalleryField({ value = [], onChange, usage = 'exhibition', onUploadingC
                 type="button"
                 onClick={() => onChange(value.filter((_, idx) => idx !== i))}
                 aria-label={`갤러리 이미지 ${i + 1} 제거`}
-                className="absolute -right-8 -top-8 flex h-24 w-24 cursor-pointer items-center justify-center rounded-sm border border-glass-line bg-glass-bg text-text-sec backdrop-blur-glass-mobile transition duration-fast ease-out hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus"
+                className="absolute -right-8 -top-8 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm border border-glass-line bg-glass-bg text-text-sec backdrop-blur-glass-mobile transition duration-fast ease-out hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-24 md:w-24"
               >
                 <Trash2 size={12} />
               </button>

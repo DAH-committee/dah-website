@@ -101,18 +101,21 @@ export function Toggle({ checked = false, onChange, label, disabled = false }) {
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange && onChange(!checked)}
-      // K1-5 알약형: 트랙·노브 rounded-full. 켜짐 = 트랙 화이트 + 어두운 노브, 꺼짐 = 아웃라인 + 회색 노브.
-      // 크기 완전 고정(h-24 w-40, border 두께 상태 무관 1px) — 노브만 translate로 이동, 주변 불변.
-      className={`relative inline-flex h-24 w-40 shrink-0 cursor-pointer items-center rounded-full border transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 ${
-        checked ? 'border-purple-primary bg-purple-primary' : 'border-border-strong bg-transparent'
-      }`}
+      // 모바일 조작 상자는 44px, 실제 트랙은 40×24로 유지해 시각 밀도와 터치 정확도를 분리한다.
+      className="relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-24 md:w-40"
     >
       <span
         aria-hidden="true"
-        className={`absolute left-4 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full transition duration-fast ease-out ${
-          checked ? 'translate-x-16 bg-text-invert' : 'translate-x-0 bg-text-meta'
+        className={`relative h-24 w-40 rounded-full border transition duration-fast ease-out ${
+          checked ? 'border-purple-primary bg-purple-primary' : 'border-border-strong bg-transparent'
         }`}
-      />
+      >
+        <span
+          className={`absolute left-4 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full transition duration-fast ease-out ${
+            checked ? 'translate-x-16 bg-text-invert' : 'translate-x-0 bg-text-meta'
+          }`}
+        />
+      </span>
     </button>
   )
 }
@@ -160,7 +163,7 @@ export function Pagination({ page = 1, pageSize = 10, total = 0, onPage }) {
   for (let n = start; n <= Math.min(totalPages, start + 4); n += 1) nums.push(n)
 
   const btn = (active) =>
-    `flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm font-mono text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 ${
+    `flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm font-mono text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32 ${
       active ? 'bg-glass-strong text-text-pri' : 'text-text-sec hover:text-text-pri'
     }`
 

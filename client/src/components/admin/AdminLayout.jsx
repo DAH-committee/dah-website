@@ -83,7 +83,7 @@ const NAV_GROUPS = [
 ]
 
 const navLinkClass = ({ isActive }) =>
-  `flex items-center rounded-md px-12 py-8 text-body-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus ${
+  `flex min-h-11 items-center rounded-md px-12 py-8 text-body-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus ${
     isActive
       ? 'bg-glass-strong text-text-pri'
       : 'text-text-sec hover:bg-glass-strong hover:text-text-pri'
@@ -159,7 +159,7 @@ function LogoutConfirm({ onCancel, onConfirm }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-confirm-title"
-        className="relative w-full max-w-sm rounded-glass border border-glass-line bg-cosmos-depth1/[0.96] p-32 backdrop-blur-glass"
+        className="relative w-full max-w-sm rounded-glass border border-glass-line bg-cosmos-depth1/[0.96] p-24 backdrop-blur-glass md:p-32"
       >
         <h2 id="logout-confirm-title" className="text-h3-m font-bold text-text-pri md:text-h3-d">
           로그아웃 하시겠습니까?
@@ -203,7 +203,7 @@ function AdminNav() {
             type="button"
             onClick={() => setConfirmOpen(true)}
             aria-label="로그아웃"
-            className="flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 md:w-32"
           >
             <LogOut size={16} />
           </button>

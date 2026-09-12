@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Link, { LangNavLink as NavLink } from '../common/LangLink'
-import { CalendarCheck, ChevronRight, Menu, Settings, X } from 'lucide-react'
+import { CalendarCheck, ChevronLeft, ChevronRight, Settings } from 'lucide-react'
 import { nav } from '../../data/nav'
 import { useLang } from '../../i18n/LangContext'
 import { useAuth } from '../../context/AuthContext'
@@ -19,18 +19,36 @@ import logoUrl from '../../assets/logo.svg'
 // G15: 메뉴·로그인 라벨은 KR/EN 두 라벨을 같은 칸에 겹쳐 렌더(비활성 invisible)해
 //     언어 전환 시 폭이 변하지 않는다(레이아웃 시프트 0).
 // 성능 규칙(11_DESIGN_V2 2절): blur 상한 3 중 헤더 1계층.
-// Y1-2(33_PHASE18): 하단 GlassDock 폐기 → 모바일 내비는 헤더 우측 햄버거 + 유리 시트.
-// 우측 유틸 순서는 [KR/EN 토글(항상)] [설정 아이콘(로그인 관리자만)] [햄버거(lg 미만)].
-// 시트는 최상위 메뉴만 먼저 보여주고(전부 접힘) ChevronRight 탭 시 하위가 아코디언으로 열린다.
+// 모바일 내비는 한 번에 한 계층만 보여주는 전용 드릴다운 메뉴다.
 const SHRINK_Y = 80
+
+// Apple 모바일 내비게이션처럼 두 개의 짧은 선이 닫기 기호로 전환되는 전용 메뉴 표식.
+// 범용 햄버거 아이콘을 가져오지 않고, 현재 색과 모션 토큰만 상속한다.
+function MobileMenuGlyph({ open }) {
+  return (
+    <span aria-hidden="true" className="relative block h-12 w-20">
+      <span
+        className={`absolute left-0 top-[3px] h-px w-20 bg-current transition-transform duration-base ease-out ${
+          open ? 'translate-y-[3px] rotate-45' : ''
+        }`}
+      />
+      <span
+        className={`absolute bottom-[2px] left-0 h-px w-20 bg-current transition-transform duration-base ease-out ${
+          open ? '-translate-y-[3px] -rotate-45' : ''
+        }`}
+      />
+    </span>
+  )
+}
 
 function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [openIndex, setOpenIndex] = useState(null) // 메가메뉴 활성 1차 메뉴 index
-  const [sheetOpen, setSheetOpen] = useState(false) // 모바일 유리 시트
-  const [openGroup, setOpenGroup] = useState(null) // 시트 아코디언 확장 그룹(to)
+  const [sheetOpen, setSheetOpen] = useState(false) // 모바일 전체 메뉴
+  const [openGroup, setOpenGroup] = useState(null) // 드릴다운으로 연 상위 메뉴(to)
   const sheetRef = useRef(null)
   const burgerRef = useRef(null)
+  const mobileBackRef = useRef(null)
   const { lang, t } = useLang()
   // Q7: 활성 언어 라벨만 렌더 — 국문/영문 병기·숨김 span 없음(DOM 트리에도 단일)
   const navLabel = (item) => (lang === 'en' ? item.labelEn : item.label)
@@ -80,6 +98,7 @@ function Header() {
   useEffect(() => {
     setOpenIndex(null)
     setSheetOpen(false)
+    setOpenGroup(null)
   }, [pathname])
 
   // 시트 열림: ESC 닫기 + 포커스 트랩 + body 스크롤 잠금(storage 미사용)
@@ -87,18 +106,26 @@ function Header() {
     if (!sheetOpen) return undefined
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const desktopMedia = window.matchMedia('(min-width: 1024px)')
+    const onDesktop = (event) => {
+      if (!event.matches) return
+      setSheetOpen(false)
+      setOpenGroup(null)
+    }
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
         setSheetOpen(false)
+        setOpenGroup(null)
         burgerRef.current?.focus()
         return
       }
       if (e.key !== 'Tab' || !sheetRef.current) return
-      // 접힌 아코디언(inert) 안의 링크는 포커스 순회에서 제외한다
-      const focusables = Array.from(
+      // 화면 밖으로 보낸 이전 계층(inert) 안의 링크는 포커스 순회에서 제외한다.
+      const sheetFocusables = Array.from(
         sheetRef.current.querySelectorAll('a[href], button:not([disabled])')
       ).filter((el) => !el.closest('[inert]'))
+      const focusables = [burgerRef.current, ...sheetFocusables].filter(Boolean)
       if (!focusables.length) return
       const first = focusables[0]
       const last = focusables[focusables.length - 1]
@@ -111,14 +138,28 @@ function Header() {
       }
     }
     document.addEventListener('keydown', onKeyDown)
+    desktopMedia.addEventListener('change', onDesktop)
     return () => {
       document.removeEventListener('keydown', onKeyDown)
+      desktopMedia.removeEventListener('change', onDesktop)
       document.body.style.overflow = prevOverflow
     }
   }, [sheetOpen])
 
+  // 하위 화면 진입 뒤에는 뒤로 가기로, 복귀 뒤에는 첫 메뉴로 포커스를 이어준다.
+  useEffect(() => {
+    if (!sheetOpen) return
+    window.requestAnimationFrame(() => {
+      if (openGroup) mobileBackRef.current?.focus()
+      else sheetRef.current?.querySelector('[data-mobile-menu-first]')?.focus()
+    })
+  }, [openGroup, sheetOpen])
+
   const close = () => setOpenIndex(null)
-  const closeSheet = () => setSheetOpen(false)
+  const closeSheet = () => {
+    setSheetOpen(false)
+    setOpenGroup(null)
+  }
 
   // 포커스가 헤더 밖으로 나가면 메가메뉴 닫기
   const onBlur = (e) => {
@@ -149,6 +190,7 @@ function Header() {
       }
     })
     .filter((item) => !item.hadChildren || item.children.length > 0)
+  const activeMobileGroup = visibleNav.find((item) => item.to === openGroup) ?? null
 
   const glassed = scrolled || openIndex !== null
   // 35_HEADER_HOVER_WHALE: 헤더 바·모바일 시트 모두 liquidGL 미적용(불변식 = 헤더는 어떤
@@ -180,7 +222,7 @@ function Header() {
         <Link
           to="/"
           onMouseEnter={close}
-          className="group/logo flex shrink-0 items-center"
+          className="group/logo flex min-h-11 shrink-0 items-center lg:min-h-0"
         >
           {/* 높이 28: 11_DESIGN_V2 9절 명시값. hover 시 stroke 미세 글로우 */}
           <img
@@ -313,163 +355,120 @@ function Header() {
             aria-expanded={sheetOpen}
             aria-controls="dah-mobile-sheet"
             aria-label={sheetOpen ? t('aria.closeMenu') : t('aria.openMenu')}
-            onClick={() => setSheetOpen((v) => !v)}
-            className="-mr-8 flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri lg:hidden"
+            onClick={() => (sheetOpen ? closeSheet() : setSheetOpen(true))}
+            className="-mr-8 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri active:bg-glass-strong lg:hidden"
           >
-            {sheetOpen ? (
-              <X size={22} aria-hidden="true" />
-            ) : (
-              <Menu size={22} aria-hidden="true" />
-            )}
+            <MobileMenuGlyph open={sheetOpen} />
           </button>
         </div>
       </Container>
 
       </header>
 
-      {/* Y1-2: 모바일 유리 시트 — 헤더 아래를 덮는다. 최상위 메뉴는 전부 접힌 상태로 시작하고
-          ChevronRight 항목을 탭하면 하위가 아코디언으로 펼쳐진다. 하위 탭 = 이동 + 시트 닫힘. */}
+      {/* 모바일 전체 메뉴 — 작은 아코디언 목록 대신 1차 메뉴와 2차 메뉴를 별도 화면으로 나눈다.
+          한 번에 한 단계만 보여 정보 밀도를 낮추고, 뒤로 가기와 닫기를 모두 제공한다. */}
       {sheetOpen && (
-        <div className="fixed inset-x-0 bottom-0 top-header-s z-40 lg:hidden">
-          <div
-            aria-hidden="true"
-            onClick={closeSheet}
-            className="absolute inset-0 bg-bg-base/70"
-          />
+        <div className="fixed inset-x-0 bottom-0 top-header-s z-40 overflow-hidden lg:hidden">
           <div
             id="dah-mobile-sheet"
             ref={sheetRef}
             role="dialog"
             aria-modal="true"
             aria-label={t('aria.mobileMenu')}
-            className="absolute inset-x-0 top-0 max-h-full overflow-y-auto border-b border-glass-line bg-glass-bg pb-[env(safe-area-inset-bottom)] shadow-glass backdrop-blur-glass-mobile"
+            className="mobile-menu-enter dah-scrollbar absolute inset-0 overflow-y-auto overscroll-contain border-t border-border-subtle bg-cosmos-depth0 pb-[max(24px,env(safe-area-inset-bottom))]"
           >
-            {/* (a) 상단 유틸 — KR/EN 토글 + (관리자만) 설정. 헤더 바에서 여기로 이동 */}
-            <div className="flex items-center justify-between gap-16 border-b border-border-subtle px-gutter-m py-12 md:px-gutter-t">
-              <LangToggle />
-              {user && (
-                <Link
-                  to="/admin"
-                  onClick={closeSheet}
-                  aria-label={`${user.role} ${t('actions.admin')}`}
-                  className="inline-flex h-32 shrink-0 items-center gap-8 rounded-sm px-12 text-small-m text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
-                >
-                  <Settings size={18} aria-hidden="true" />
-                  {t('actions.admin')}
-                </Link>
+            <Container className="relative min-h-full py-24 md:py-32">
+              <div
+                inert={Boolean(activeMobileGroup)}
+                className={`transition duration-base ease-out ${
+                  activeMobileGroup
+                    ? 'pointer-events-none absolute inset-x-gutter-m top-24 -translate-x-24 opacity-0 md:inset-x-gutter-t md:top-32'
+                    : 'translate-x-0 opacity-100'
+                }`}
+              >
+                <nav aria-label={t('aria.mobileMenu')}>
+                  <ul className="flex flex-col">
+                    {visibleNav.map((item, index) => {
+                      const hasChildren = item.children.length > 0
+                      const rowClass =
+                        'group flex min-h-[56px] w-full cursor-pointer items-center justify-between gap-24 border-b border-border-subtle py-12 text-left text-h1-m font-semibold leading-tight tracking-display text-text-pri transition-colors duration-fast ease-out hover:text-purple-light active:text-purple-mid'
+                      return (
+                        <li key={item.to}>
+                          {hasChildren ? (
+                            <button
+                              type="button"
+                              data-mobile-menu-first={index === 0 ? 'true' : undefined}
+                              onClick={() => setOpenGroup(item.to)}
+                              className={rowClass}
+                            >
+                              <span>{navLabel(item)}</span>
+                              <ChevronRight size={22} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-text-meta transition-transform duration-fast ease-out group-hover:translate-x-4 group-hover:text-text-pri" />
+                            </button>
+                          ) : (
+                            <Link to={item.to} onClick={closeSheet} className={rowClass}>
+                              <span>{navLabel(item)}</span>
+                              <ChevronRight size={22} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-text-meta transition-transform duration-fast ease-out group-hover:translate-x-4 group-hover:text-text-pri" />
+                            </Link>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </nav>
+
+                <div className="mt-32 flex flex-col gap-12">
+                  {showSubmit && (
+                    <Link to="/submit" onClick={closeSheet} className="flex min-h-48 w-full items-center justify-center gap-8 rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText transition-colors duration-fast ease-out hover:bg-button-primaryHover active:bg-button-primaryPressed">
+                      <CalendarCheck size={18} aria-hidden="true" />
+                      {t('actions.submitExhibition')}
+                    </Link>
+                  )}
+                  {formCta && (
+                    <Link to={`/forms/${formCta.slug}`} onClick={closeSheet} className="flex min-h-48 w-full items-center justify-center gap-8 rounded-sm border border-border-subtle px-24 text-body-m font-semibold text-text-pri transition-colors duration-fast ease-out hover:border-border-strong active:bg-glass-strong">
+                      <CalendarCheck size={18} aria-hidden="true" />
+                      {lang === 'en' ? formCta.button_label_en : formCta.button_label_ko}
+                    </Link>
+                  )}
+                </div>
+
+                <div className="mt-32 flex min-h-11 items-center justify-between gap-16 border-t border-border-subtle pt-20">
+                  <LangToggle />
+                  {user ? (
+                    <Link to="/admin" onClick={closeSheet} className="inline-flex min-h-11 items-center gap-8 rounded-sm px-12 text-small-m text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri">
+                      <Settings size={18} aria-hidden="true" />
+                      {t('actions.admin')}
+                    </Link>
+                  ) : (
+                    <button type="button" onClick={() => { closeSheet(); openLogin() }} className="min-h-11 cursor-pointer rounded-sm px-12 text-small-m text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri">
+                      {t('actions.login')}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {activeMobileGroup && (
+                <div className="mobile-submenu-enter">
+                  <button ref={mobileBackRef} type="button" onClick={() => setOpenGroup(null)} className="-ml-12 inline-flex min-h-11 cursor-pointer items-center gap-4 rounded-sm px-12 text-small-m font-semibold text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri">
+                    <ChevronLeft size={20} strokeWidth={1.5} aria-hidden="true" />
+                    {lang === 'en' ? 'Back' : '뒤로'}
+                  </button>
+                  <p className="mt-20 text-h1-m font-semibold leading-tight tracking-display text-text-pri">
+                    {navLabel(activeMobileGroup)}
+                  </p>
+                  <nav aria-label={navLabel(activeMobileGroup)} className="mt-24">
+                    <ul className="flex flex-col">
+                      {activeMobileGroup.children.map((child) => (
+                        <li key={child.to}>
+                          <Link to={child.to} onClick={closeSheet} className="flex min-h-[52px] items-center border-b border-border-subtle py-12 text-body-l-m font-medium text-text-sec transition-colors duration-fast ease-out hover:text-text-pri active:text-purple-mid">
+                            {navLabel(child)}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                </div>
               )}
-            </div>
-
-            {/* (b) 전시회 접수 CTA — 접수 노출 스위치(show_button)가 켜진 동안만.
-                Button.jsx primary와 동일한 토큰 조합(보라 채움 + 글로우)으로 크게 강조 */}
-            {showSubmit && (
-              <div className="border-b border-border-subtle px-gutter-m py-16 md:px-gutter-t">
-                <Link
-                  to="/submit"
-                  onClick={closeSheet}
-                  className="flex h-48 w-full cursor-pointer items-center justify-center gap-8 rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText shadow-btn transition duration-fast ease-out hover:bg-button-primaryHover hover:shadow-btn-hover active:bg-button-primaryPressed"
-                >
-                  <CalendarCheck size={18} aria-hidden="true" />
-                  {t('actions.submitExhibition')}
-                </Link>
-              </div>
-            )}
-
-            {formCta && (
-              <div className="border-b border-border-subtle px-gutter-m py-16 md:px-gutter-t">
-                <Link
-                  to={`/forms/${formCta.slug}`}
-                  onClick={closeSheet}
-                  className="flex h-48 w-full cursor-pointer items-center justify-center gap-8 rounded-sm border border-border-subtle px-24 text-body-m font-semibold text-text-pri transition-colors duration-fast ease-out hover:border-border-strong"
-                >
-                  <CalendarCheck size={18} aria-hidden="true" />
-                  {lang === 'en' ? formCta.button_label_en : formCta.button_label_ko}
-                </Link>
-              </div>
-            )}
-
-            {/* (c) 최상위 내비게이션 아코디언 */}
-            <nav aria-label={t('aria.mobileMenu')}>
-              <ul>
-                {visibleNav.map((item) => {
-                  const hasChildren = item.children.length > 0
-                  const expanded = openGroup === item.to
-                  return (
-                    <li key={item.to} className="border-b border-border-subtle">
-                      {hasChildren ? (
-                        <>
-                          <button
-                            type="button"
-                            aria-expanded={expanded}
-                            onClick={() => setOpenGroup(expanded ? null : item.to)}
-                            className="flex w-full cursor-pointer items-center justify-between gap-16 px-gutter-m py-16 text-left transition-colors duration-fast ease-out hover:bg-glass-strong md:px-gutter-t"
-                          >
-                            <span className="text-body-m font-semibold text-text-pri">
-                              {navLabel(item)}
-                            </span>
-                            <ChevronRight
-                              size={20}
-                              aria-hidden="true"
-                              className={`shrink-0 text-icon transition-transform duration-fast ease-out ${
-                                expanded ? 'rotate-90 text-icon-active' : ''
-                              }`}
-                            />
-                          </button>
-                          <div
-                            className={`grid transition-[grid-template-rows] duration-base ease-out ${
-                              expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                            }`}
-                          >
-                            <ul inert={!expanded} className="min-h-0 overflow-hidden">
-                              {item.children.map((child) => (
-                                <li key={child.to}>
-                                  <Link
-                                    to={child.to}
-                                    onClick={closeSheet}
-                                    className="block py-12 pl-32 pr-gutter-m text-small-m text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri md:pl-40 md:pr-gutter-t"
-                                  >
-                                    {navLabel(child)}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </>
-                      ) : (
-                        <Link
-                          to={item.to}
-                          onClick={closeSheet}
-                          className="flex items-center justify-between gap-16 px-gutter-m py-16 transition-colors duration-fast ease-out hover:bg-glass-strong md:px-gutter-t"
-                        >
-                          <span className="text-body-m font-semibold text-text-pri">
-                            {navLabel(item)}
-                          </span>
-                          <ChevronRight
-                            size={20}
-                            aria-hidden="true"
-                            className="shrink-0 text-icon"
-                          />
-                        </Link>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </nav>
-            {!user && (
-              <div className="px-gutter-m py-16 md:px-gutter-t">
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeSheet()
-                    openLogin()
-                  }}
-                  className="cursor-pointer text-small-m text-text-sec transition-colors duration-fast ease-out hover:text-text-pri"
-                >
-                  {t('actions.login')}
-                </button>
-              </div>
-            )}
+            </Container>
           </div>
         </div>
       )}

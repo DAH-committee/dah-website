@@ -80,7 +80,13 @@ function DatePicker({
     const el = btnRef.current
     if (!el) return
     const r = el.getBoundingClientRect()
-    setRect({ top: r.bottom + 4, left: r.left })
+    const viewportGutter = 16
+    const panelWidth = Math.min(300, window.innerWidth - viewportGutter * 2)
+    const left = Math.min(
+      Math.max(viewportGutter, r.left),
+      Math.max(viewportGutter, window.innerWidth - panelWidth - viewportGutter)
+    )
+    setRect({ top: r.bottom + 4, left, width: panelWidth })
   }, [])
 
   useEffect(() => {
@@ -172,14 +178,14 @@ function DatePicker({
     : ''
 
   const navBtn =
-    'flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-icon transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
+    'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-icon transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 md:w-32'
 
   const headBtn =
     'cursor-pointer rounded-sm px-8 py-4 text-body-m font-semibold text-text-pri transition duration-fast ease-out hover:bg-glass-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
 
   // 연·월·일 그리드 셀 공통. 선택된 칸만 보라 채움.
   const cellBtn = (active) =>
-    `flex h-32 cursor-pointer items-center justify-center rounded-sm text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus ${
+    `flex h-40 cursor-pointer items-center justify-center rounded-sm text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 ${
       active
         ? 'bg-purple-primary font-semibold text-text-invert'
         : 'text-text-sec hover:bg-glass-strong hover:text-text-pri'
@@ -218,8 +224,8 @@ function DatePicker({
             ref={panelRef}
             role="dialog"
             aria-label={ariaLabel || '날짜 선택'}
-            style={{ top: rect.top, left: rect.left }}
-            className="fixed z-[110] w-[300px] rounded-md border border-glass-line bg-cosmos-depth1/[0.98] p-16 shadow-glass backdrop-blur-glass"
+            style={{ top: rect.top, left: rect.left, width: rect.width }}
+            className="fixed z-[110] rounded-md border border-glass-line bg-cosmos-depth1/[0.98] p-12 shadow-glass backdrop-blur-glass md:p-16"
           >
             <div className="flex items-center justify-between gap-8">
               {picker === null ? (
@@ -238,7 +244,7 @@ function DatePicker({
                   <ChevronLeft size={16} />
                 </button>
               ) : (
-                <span aria-hidden="true" className="h-32 w-32 shrink-0" />
+                <span aria-hidden="true" className="h-11 w-11 shrink-0 md:h-32 md:w-32" />
               )}
               <div className="flex items-center gap-4">
                 <button
@@ -276,7 +282,7 @@ function DatePicker({
                   <ChevronRight size={16} />
                 </button>
               ) : (
-                <span aria-hidden="true" className="h-32 w-32 shrink-0" />
+                <span aria-hidden="true" className="h-11 w-11 shrink-0 md:h-32 md:w-32" />
               )}
             </div>
 
@@ -365,7 +371,7 @@ function DatePicker({
                     onClick={() => pickDay(d)}
                     disabled={unavailable}
                     aria-pressed={isSelected || undefined}
-                    className={`flex h-32 cursor-pointer items-center justify-center rounded-sm text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus ${
+                    className={`flex h-40 cursor-pointer items-center justify-center rounded-sm text-small-m transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 ${
                       unavailable
                         ? 'cursor-not-allowed text-text-disabled'
                         : isSelected
@@ -418,7 +424,7 @@ function DatePicker({
                     setOpen(false)
                     btnRef.current?.focus()
                   }}
-                  className="ml-auto cursor-pointer rounded-sm px-12 py-4 text-small-m text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
+                  className="ml-auto min-h-11 cursor-pointer rounded-sm px-12 py-4 text-small-m text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri md:min-h-0"
                 >
                   완료
                 </button>
@@ -433,7 +439,7 @@ function DatePicker({
                   setOpen(false)
                   btnRef.current?.focus()
                 }}
-                className="mt-12 w-full cursor-pointer rounded-sm py-8 text-small-m text-text-meta transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
+                className="mt-12 min-h-11 w-full cursor-pointer rounded-sm py-8 text-small-m text-text-meta transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri md:min-h-0"
               >
                 지우기
               </button>

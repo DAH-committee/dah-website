@@ -4,7 +4,7 @@
 function Container({ as: As = 'div', className = '', children, ...rest }) {
   return (
     <As
-      className={`mx-auto w-full max-w-container px-gutter-m md:px-gutter-t lg:px-gutter-d ${className}`}
+      className={`dah-safe-inline mx-auto w-full max-w-container px-gutter-m md:px-gutter-t lg:px-gutter-d ${className}`}
       {...rest}
     >
       {children}

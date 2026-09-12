@@ -81,7 +81,7 @@ function ToolButton({ onClick, active = false, disabled = false, label, children
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 ${
+      className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32 ${
         active
           ? 'bg-glass-strong text-text-pri'
           : 'text-text-sec hover:bg-glass-strong hover:text-text-pri'

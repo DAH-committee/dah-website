@@ -52,7 +52,7 @@ export function DragHandle({ className = '' }) {
   return (
     <span
       aria-hidden="true"
-      className={`flex h-24 w-24 shrink-0 cursor-grab items-center justify-center text-text-meta transition-colors duration-fast ease-out hover:text-text-pri active:cursor-grabbing ${className}`.trim()}
+      className={`flex h-11 w-11 shrink-0 cursor-grab items-center justify-center text-text-meta transition-colors duration-fast ease-out hover:text-text-pri active:cursor-grabbing md:h-24 md:w-24 ${className}`.trim()}
     >
       <GripVertical size={16} />
     </span>

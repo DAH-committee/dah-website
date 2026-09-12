@@ -116,7 +116,7 @@ function LoginModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center px-gutter-m">
+    <div className="dah-safe-inline fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto py-16 md:px-gutter-t">
       {/* 백드롭 — 클릭 시 닫힘 */}
       <button
         type="button"
@@ -130,13 +130,13 @@ function LoginModal() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="login-modal-title"
-        className="relative w-full max-w-sm rounded-glass border border-glass-line bg-cosmos-depth1/[0.96] p-32 backdrop-blur-glass"
+        className="dah-scrollbar relative max-h-[calc(100dvh-32px)] w-full max-w-sm overflow-y-auto rounded-glass border border-glass-line bg-cosmos-depth1/[0.96] p-24 backdrop-blur-glass md:p-32"
       >
         <button
           type="button"
           aria-label="닫기"
           onClick={closeLogin}
-          className="absolute right-16 top-16 flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-text-sec transition-colors duration-fast ease-out hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus"
+          className="absolute right-12 top-12 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:right-16 md:top-16 md:h-32 md:w-32"
         >
           <X size={18} aria-hidden="true" />
         </button>

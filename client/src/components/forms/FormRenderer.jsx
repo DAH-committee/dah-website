@@ -112,7 +112,7 @@ function FormField({ field, value, error, onChange, onUploadingChange }) {
             required={field.required}
             {...errorProps}
             placeholder={field.placeholder_ko || undefined}
-            onChange={(e) => set(e.target.value)}
+            onChange={set}
             className={`${inputCls} resize-y`}
           />
           {Number.isFinite(max) && <Counter length={str.length} max={max} />}

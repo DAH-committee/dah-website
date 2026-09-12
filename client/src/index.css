@@ -251,9 +251,27 @@ html[data-dah-easter-egg='on'] {
     border-color: rgb(var(--dah-state-error));
   }
 
+  /* iOS Safari는 입력 글자가 16px보다 작으면 포커스할 때 화면을 자동 확대한다.
+     작은 화면의 폼은 최소 16px로 유지해 입력 전후의 레이아웃 이동을 막는다. */
+  @media (max-width: 767px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
 }
 
 @layer components {
+  /* 노치가 있는 기기의 가로 화면에서도 콘텐츠가 안전 영역 안에 남는다. */
+  @media (max-width: 767px) {
+    .dah-safe-inline {
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+  }
+
   /* 독립 스크롤 영역 공통 규칙. OS 기본 흰색 스크롤바가 글래스 화면에서
      도드라지지 않도록 트랙·손잡이를 디자인 토큰으로 통일한다.
      .dah-scrollbar를 붙인 영역에만 적용해 브라우저의 페이지 스크롤바는 건드리지 않는다. */
@@ -326,6 +344,36 @@ html[data-dah-easter-egg='on'] {
   to {
     opacity: 1;
   }
+}
+
+@keyframes mobile-menu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mobile-submenu-enter {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mobile-menu-enter {
+  animation: mobile-menu-enter 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mobile-submenu-enter {
+  animation: mobile-submenu-enter 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

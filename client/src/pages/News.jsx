@@ -121,7 +121,7 @@ function News() {
                     setTag(def.value)
                     setPage(1)
                   }}
-                  className={`cursor-pointer rounded-sm border px-12 py-4 font-mono text-caption-m transition-colors duration-fast ease-out ${
+                  className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-sm border px-12 py-4 font-mono text-caption-m transition-colors duration-fast ease-out ${
                     isActive
                       ? 'border-border-strong bg-glass-strong text-text-pri'
                       : 'border-border-subtle text-text-sec hover:border-border-strong hover:text-text-pri'

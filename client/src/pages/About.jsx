@@ -92,6 +92,22 @@ function SectionHeading({ children }) {
   )
 }
 
+// 지정 문구가 있을 때만 데스크톱에서 의도적으로 줄을 나눈다.
+// 모바일·태블릿은 폭에 따라 자연스럽게 흐르고, 관리자가 문구를 바꾸면 강제 개행도 사라진다.
+function DesktopPhraseBreak({ text, phrase }) {
+  const marker = ` ${phrase}`
+  const index = String(text || '').indexOf(marker)
+  if (index < 0) return text
+  return (
+    <>
+      {text.slice(0, index)}
+      <br className="hidden xl:block" />
+      <span className="xl:hidden"> </span>
+      {text.slice(index + 1)}
+    </>
+  )
+}
+
 // 비전 아이콘 3종 — 48×48 공통 그리드에 맞춰 직접 그린 전용 SVG다.
 // 복잡한 교차선과 외부 아이콘 의존성을 없애고, 2px 단선·라운드 마감·정사각 비율을 공유한다.
 const visionIconProps = {
@@ -218,7 +234,7 @@ function About() {
             <div className="min-w-0">
               <SectionHeading>What is DAH</SectionHeading>
             </div>
-            <p className="min-w-0 text-body-l-m leading-[1.8] text-text-sec md:text-body-l-d">
+            <p className="min-w-0 text-body-l-m leading-[1.8] text-text-sec md:text-right md:text-body-l-d">
               <Highlight text={copy.what} keywords={copy.whatKeywords} />
             </p>
           </Reveal>
@@ -231,7 +247,7 @@ function About() {
             </div>
             <div className="flex min-w-0 flex-col gap-24 md:order-1">
               <p className="text-h3-m font-medium leading-snug text-text-pri md:text-h3-d">
-                {copy.whyStatement}
+                <DesktopPhraseBreak text={copy.whyStatement} phrase="다방면의" />
               </p>
               <p className="text-body-l-m leading-[1.8] text-text-sec md:text-body-l-d">
                 <Highlight text={copy.whyLead} keywords={copy.whyKeywords} />
