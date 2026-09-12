@@ -56,6 +56,29 @@ export function isGoogleDriveConfigured() {
     && Boolean(serviceAccount?.client_email && serviceAccount?.private_key)
 }
 
+// 폼별 자동 보관 경로를 만든다. 같은 이름의 폴더가 있으면 재사용한다.
+export async function ensureDriveFolderPath({ rootFolderId, names = [] }) {
+  if (!rootFolderId) throw new Error('Google Drive 루트 폴더가 지정되지 않았습니다.')
+  const auth = createDriveAuth()
+  const drive = google.drive({ version: 'v3', auth })
+  let parentId = rootFolderId
+  for (const rawName of names) {
+    const name = String(rawName || '').trim()
+    if (!name) continue
+    const escaped = name.replace(/'/g, "\\'")
+    const { data } = await drive.files.list({
+      q: `'${parentId}' in parents and name = '${escaped}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+      fields: 'files(id,name)', pageSize: 1, spaces: 'drive', supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+    })
+    parentId = data.files?.[0]?.id || (await drive.files.create({
+      requestBody: { name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] },
+      fields: 'id', supportsAllDrives: true,
+    })).data.id
+  }
+  return parentId
+}
+
 export async function uploadToGoogleDrive({ folderId, buffer, filename, mimeType, shareMode = 'restricted' }) {
   if (!folderId) {
     const err = new Error('이 폼의 Google Drive 폴더가 지정되지 않았습니다.')

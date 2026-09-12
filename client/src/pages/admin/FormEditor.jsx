@@ -106,6 +106,9 @@ const EMPTY = {
     button_label_en: '',
     drive_enabled: false,
     drive_folder_id: '',
+    drive_auto_folder: false,
+    drive_semester: '',
+    drive_course: '',
     drive_share_mode: 'restricted',
   },
 }
@@ -135,6 +138,9 @@ function fromItem(item) {
       button_label_en: s.button_label_en || '',
       drive_enabled: Boolean(s.drive_enabled),
       drive_folder_id: s.drive_folder_id || '',
+      drive_auto_folder: Boolean(s.drive_auto_folder),
+      drive_semester: s.drive_semester || '',
+      drive_course: s.drive_course || '',
       drive_share_mode: s.drive_share_mode === 'link' ? 'link' : 'restricted',
     },
   }
@@ -163,6 +169,9 @@ function toPayload(form) {
       button_label_en: s.button_label_en,
       drive_enabled: s.drive_enabled,
       drive_folder_id: s.drive_folder_id.trim(),
+      drive_auto_folder: Boolean(s.drive_auto_folder),
+      drive_semester: s.drive_semester.trim(),
+      drive_course: s.drive_course.trim(),
       drive_share_mode: s.drive_share_mode,
     },
   }
@@ -548,6 +557,19 @@ function FormEditor() {
                     <Field label="Drive 폴더 URL 또는 ID" hint="이 폼 전용 폴더를 지정하세요">
                       <Input value={form.settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} />
                     </Field>
+                    <Field label="자동 폴더 분류">
+                      <Toggle checked={form.settings.drive_auto_folder} onChange={setSetting('drive_auto_folder')} label="학기·과목·폼명 폴더 자동 생성" />
+                    </Field>
+                    {form.settings.drive_auto_folder && (
+                      <>
+                        <Field label="학기" hint="예: 2026-2">
+                          <Input value={form.settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
+                        </Field>
+                        <Field label="과목" hint="예: 디지털디자인">
+                          <Input value={form.settings.drive_course} onChange={setSettingInput('drive_course')} placeholder="과목명" />
+                        </Field>
+                      </>
+                    )}
                     <Field label="파일 공유 범위">
                       <Select
                         value={form.settings.drive_share_mode}

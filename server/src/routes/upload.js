@@ -16,7 +16,7 @@ import { optionalAuth } from '../middleware/auth.js'
 import { optionalPublicAuth } from '../middleware/publicAuth.js'
 import { anonUploadLimiter } from '../middleware/rateLimit.js'
 import { query } from '../db.js'
-import { uploadToGoogleDrive } from '../lib/googleDrive.js'
+import { uploadToGoogleDrive, ensureDriveFolderPath } from '../lib/googleDrive.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -99,7 +99,7 @@ async function formDriveTarget(req) {
     err.status = 401
     throw err
   }
-  const { rows } = await query('SELECT fields, settings, published FROM custom_forms WHERE slug = $1', [slug])
+  const { rows } = await query('SELECT title_ko, fields, settings, published FROM custom_forms WHERE slug = $1', [slug])
   const form = rows[0]
   if (!form?.published) {
     const err = new Error('form not found')
@@ -111,7 +111,12 @@ async function formDriveTarget(req) {
     err.status = 400
     throw err
   }
-  const folderId = folderIdFrom(form.settings?.drive_folder_id)
+  const rootFolderId = folderIdFrom(form.settings?.drive_folder_id)
+  const auto = form.settings?.drive_auto_folder === true
+  const names = [form.settings?.drive_semester, form.settings?.drive_course, form.title_ko]
+  const folderId = auto && rootFolderId
+    ? await ensureDriveFolderPath({ rootFolderId, names })
+    : rootFolderId
   if (!form.settings?.drive_enabled || !folderId) {
     const err = new Error('이 폼의 Google Drive 업로드가 아직 설정되지 않았습니다.')
     err.status = 409
