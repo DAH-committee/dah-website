@@ -485,8 +485,8 @@ function FormEditor() {
   }, [])
 
   return (
-    <section className="form-workspace isolate min-h-[100dvh] bg-[#eae8f0] px-16 py-16 md:px-32 md:py-24">
-      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#c9c2d4] bg-[#eae8f0]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
+    <section className="form-workspace isolate min-h-[100dvh] bg-[#eee8fb] px-16 py-16 md:px-32 md:py-24">
+      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#c9c2d4] bg-[#eee8fb]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
         <div className="flex min-w-0 items-center gap-12">
           <FileText size={22} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
           <div className="min-w-0">
@@ -564,7 +564,7 @@ function FormEditor() {
               <div className="md:col-span-2">
                 <Field label="안내문 (국문)" hint="줄바꿈은 그대로 유지됩니다">
                   <TextArea
-                    rows={8}
+                    rows={5}
                     value={form.description_ko}
                     onChange={setInput('description_ko')}
                   />
