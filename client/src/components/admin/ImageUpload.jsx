@@ -10,7 +10,7 @@ import GoogleDriveIcon from '../common/GoogleDriveIcon'
  * @param {{
  *   value: string, onChange: Function, accept?: string,
  *   preview?: boolean, buttonLabel?: string, usage?: string,
- *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean
+ *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean, formValues?: object, formFields?: array
  * }} props - preview false면 이미지 미리보기 대신 파일 링크 표시(HWP 등).
  *   usage: 서버 리사이즈 정책(general 1600 | poster 2400 | showcase 1920x1080 | exhibition)
  *   onUploadingChange(active): 업로드 진행 중 여부를 상위에 전파 — 저장 버튼이 업로드 완료를
@@ -27,6 +27,8 @@ function ImageUpload({
   formSlug,
   fieldId,
   driveEnabled = false,
+  formValues = {},
+  formFields = [],
 }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
@@ -43,6 +45,7 @@ function ImageUpload({
       const res = await api.upload(file, {
         usage,
         ...(driveEnabled && formSlug && fieldId ? { formSlug, fieldId } : {}),
+        ...(driveEnabled ? { formValues: JSON.stringify(formValues), formFields: JSON.stringify(formFields) } : {}),
       })
       if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
       onChange(res.url)

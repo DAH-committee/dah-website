@@ -113,7 +113,18 @@ async function formDriveTarget(req) {
   }
   const rootFolderId = folderIdFrom(form.settings?.drive_folder_id)
   const auto = form.settings?.drive_auto_folder === true
-  const names = [form.settings?.drive_semester, form.settings?.drive_course, form.title_ko]
+  let course = form.settings?.drive_course
+  if (auto) {
+    try {
+      const values = JSON.parse(String(req.body?.formValues || '{}'))
+      const fields = JSON.parse(String(req.body?.formFields || '[]'))
+      const courseField = Array.isArray(fields) && fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
+      const selected = courseField ? values?.[courseField.id] : ''
+      if (Array.isArray(selected)) course = selected.join(', ')
+      else if (selected) course = String(selected)
+    } catch { /* 폼 값이 없으면 관리자 설정으로 폴백 */ }
+  }
+  const names = [form.settings?.drive_semester, course, form.title_ko]
   const folderId = auto && rootFolderId
     ? await ensureDriveFolderPath({ rootFolderId, names })
     : rootFolderId

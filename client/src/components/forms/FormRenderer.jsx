@@ -92,7 +92,7 @@ function Counter({ length, max }) {
   )
 }
 
-function FormField({ field, value, error, onChange, onUploadingChange, uploadContext }) {
+function FormField({ field, value, error, onChange, onUploadingChange, uploadContext, formValues, formFields }) {
   const set = (v) => onChange(field.id, v)
   const str = value == null ? '' : String(value)
   const options = Array.isArray(field.options) ? field.options : []
@@ -224,6 +224,8 @@ function FormField({ field, value, error, onChange, onUploadingChange, uploadCon
             formSlug={uploadContext?.formSlug}
             fieldId={field.id}
             driveEnabled={Boolean(uploadContext?.driveEnabled)}
+            formValues={formValues}
+            formFields={fields}
           />
         </FieldShell>
       )
@@ -268,6 +270,8 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
           onChange={onChange}
           onUploadingChange={onUploadingChange}
           uploadContext={uploadContext}
+          formValues={value}
+          formFields={ordered}
         />
       ))}
     </div>
