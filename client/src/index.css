@@ -254,6 +254,42 @@ html[data-dah-easter-egg='on'] {
 }
 
 @layer components {
+  /* 독립 스크롤 영역 공통 규칙. OS 기본 흰색 스크롤바가 글래스 화면에서
+     도드라지지 않도록 트랙·손잡이를 디자인 토큰으로 통일한다.
+     .dah-scrollbar를 붙인 영역에만 적용해 브라우저의 페이지 스크롤바는 건드리지 않는다. */
+  .dah-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--dah-text-meta) / 0.72) rgb(var(--dah-bg-elev) / 0.38);
+    scrollbar-gutter: stable;
+  }
+
+  .dah-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .dah-scrollbar::-webkit-scrollbar-track {
+    margin-block: 8px;
+    border-radius: 999px;
+    background: rgb(var(--dah-bg-elev) / 0.38);
+  }
+
+  .dah-scrollbar::-webkit-scrollbar-thumb {
+    min-height: 40px;
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: rgb(var(--dah-text-meta) / 0.72);
+    background-clip: padding-box;
+  }
+
+  .dah-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--dah-purple-mid) / 0.86);
+  }
+
+  .dah-scrollbar::-webkit-scrollbar-thumb:active {
+    background-color: rgb(var(--dah-purple-primary));
+  }
+
   /* K2-3의 .rich-bright(공지 상세 다크 본문 가독 상향)는 H3-5(37_SHEET_ROADMAP)에서
      공지·자료실 상세가 G4 밝은 읽기 표면 + RichBody tone="light"로 전환되면서
      유일한 사용처가 사라져 제거했다(우리 변경이 만든 고아 코드). */
