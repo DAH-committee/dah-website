@@ -26,6 +26,7 @@ function Select({
   'aria-describedby': ariaDescribedBy,
   'aria-errormessage': ariaErrorMessage,
   className = '',
+  tone = 'dark',
 }) {
   const reactId = useId()
   const listId = `${id || reactId}-listbox`
@@ -38,6 +39,7 @@ function Select({
   const [activeIndex, setActiveIndex] = useState(selectedIndex < 0 ? 0 : selectedIndex)
 
   const selected = selectedIndex >= 0 ? options[selectedIndex] : null
+  const light = tone === 'light'
 
   const place = useCallback(() => {
     const el = btnRef.current
@@ -162,7 +164,9 @@ function Select({
         aria-errormessage={ariaErrorMessage}
         onClick={() => (open ? close() : openList())}
         onKeyDown={onKeyDown}
-        className={`${FIELD} ${className}`.trim()}
+        className={`${light
+          ? 'flex w-full cursor-pointer items-center justify-between gap-8 rounded-md border border-[#d8d1ed] bg-white px-16 py-12 text-left text-body-m text-[#29253a] outline-none transition duration-fast ease-out hover:border-[#8a72db] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9] disabled:cursor-not-allowed disabled:bg-[#f5f2ff] disabled:text-[#8a8298]'
+          : FIELD} ${className}`.trim()}
       >
         <span className={`min-w-0 truncate ${selected ? '' : 'text-text-meta'}`}>
           {selected ? selected.label : placeholder}
@@ -186,7 +190,7 @@ function Select({
             tabIndex={-1}
             aria-activedescendant={`${listId}-${activeIndex}`}
             style={{ top: rect.top, left: rect.left, width: rect.width }}
-            className="fixed z-[110] max-h-[280px] overflow-y-auto rounded-md border border-glass-line bg-cosmos-depth1/[0.98] p-4 shadow-glass backdrop-blur-glass"
+            className={`fixed z-[110] max-h-[280px] overflow-y-auto rounded-md p-4 ${light ? 'border border-[#d8d1ed] bg-white text-[#29253a] shadow-[0_12px_30px_rgb(57_43_94/0.18)]' : 'border border-glass-line bg-cosmos-depth1/[0.98] shadow-glass backdrop-blur-glass'}`}
           >
             {options.length === 0 && (
               <li className="px-12 py-8 font-mono text-caption-m text-text-meta">
@@ -209,13 +213,13 @@ function Select({
                     opt.disabled
                       ? 'cursor-default text-text-disabled'
                   : i === activeIndex
-                    ? 'bg-glass-strong text-text-pri'
-                    : 'text-text-sec hover:bg-glass-strong hover:text-text-pri'
+                    ? light ? 'bg-[#eee9ff] text-[#38277f]' : 'bg-glass-strong text-text-pri'
+                    : light ? 'text-[#51486a] hover:bg-[#f5f2ff] hover:text-[#29253a]' : 'text-text-sec hover:bg-glass-strong hover:text-text-pri'
                   }`}
                 >
                   <span className="min-w-0 truncate">{opt.label}</span>
                   {isSelected && (
-                    <Check size={16} aria-hidden="true" className="shrink-0 text-icon-active" />
+                    <Check size={16} aria-hidden="true" className={`shrink-0 ${light ? 'text-[#6246ce]' : 'text-icon-active'}`} />
                   )}
                 </li>
               )

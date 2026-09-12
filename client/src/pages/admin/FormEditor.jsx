@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Eye, FileText, Plus, Save, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Copy, Eye, FileText, Plus, Save, Trash2 } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -47,7 +47,7 @@ const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
 const PANEL = 'form-editor-panel flex flex-col gap-16 rounded-md border p-24 md:p-32'
 const QUESTION_CARD =
-  'form-editor-panel flex flex-col gap-16 rounded-md border border-l-4 border-l-[#7157d9] bg-white p-24 shadow-sm'
+  'form-editor-panel relative flex flex-col gap-20 rounded-md border border-l-4 border-l-[#7157d9] bg-white p-20 shadow-sm md:p-24'
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
 
@@ -235,7 +235,7 @@ function OptionsEditor({ options, onChange }) {
 }
 
 /** 필드 카드 1장 */
-function FieldCard({ field, index, onChange, onRemove, dragging, over, rowProps, armed, onArm }) {
+function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, over, rowProps, armed, onArm }) {
   const set = (key) => (v) => onChange({ ...field, [key]: v })
   const setInput = (key) => (e) => set(key)(e.target.value)
   const max = field.validation?.maxLength
@@ -254,82 +254,79 @@ function FieldCard({ field, index, onChange, onRemove, dragging, over, rowProps,
         over ? 'border-border-purple' : ''
       }`}
     >
-      <div className="flex items-center gap-8 border-b border-border-subtle pb-16">
+      <div className="flex items-center justify-center text-[#81789a]">
         <span
-          // 터치 기기에서는 useDragSort가 드래그를 아예 걸지 않는다(rp.draggable 없음).
-          // 그때 draggable을 켜면 iOS가 카드 안 탭을 삼키므로 무장 자체를 하지 않는다.
           onPointerDown={() => rp.draggable && onArm(true)}
           onPointerUp={() => onArm(false)}
           onPointerCancel={() => onArm(false)}
-          className="flex items-center"
+          className="flex cursor-grab touch-none active:cursor-grabbing"
+          aria-label={`필드 ${index + 1} 순서 변경`}
         >
           <DragHandle />
         </span>
-        <span className="min-w-0 flex-1 truncate font-mono text-caption-m text-text-meta">
-          필드 {index + 1}
-        </span>
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`필드 ${index + 1} 삭제`}
-          className={ICON_BTN}
-        >
-          <Trash2 size={16} />
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
-        <Field label="라벨 (국문)">
-          <Input value={field.label_ko} onChange={setInput('label_ko')} />
+      <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-[minmax(0,1fr)_240px]">
+        <Input
+          aria-label={`필드 ${index + 1} 질문`}
+          value={field.label_ko}
+          onChange={setInput('label_ko')}
+          placeholder="질문"
+          className="border-0 border-b border-[#cfc7e1] rounded-none px-0 text-body-l-m font-semibold focus:border-[#7157d9] focus:ring-0 md:text-body-l-d"
+        />
+        <Select
+          tone="light"
+          value={field.type}
+          options={TYPE_OPTIONS}
+          onChange={(e) => set('type')(e.target.value)}
+          aria-label={`필드 ${index + 1} 질문 유형`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+        <Field label="설명 (선택)">
+          <Input value={field.hint_ko} onChange={setInput('hint_ko')} placeholder="응답자에게 보여줄 안내" />
         </Field>
-        <Field label="라벨 (영문)">
+        <Field label="영문 질문 (선택)">
           <Input value={field.label_en} onChange={setInput('label_en')} />
         </Field>
-        <Field label="타입">
-          <Select
-            value={field.type}
-            options={TYPE_OPTIONS}
-            onChange={(e) => set('type')(e.target.value)}
-          />
-        </Field>
-        <Field label="필수">
-          <Toggle
-            checked={field.required}
-            onChange={set('required')}
-            label={`필드 ${index + 1} 필수 여부`}
-          />
-        </Field>
-        <Field label="힌트" hint="입력창 아래 안내 문구">
-          <Input value={field.hint_ko} onChange={setInput('hint_ko')} />
-        </Field>
-        <Field label="플레이스홀더">
-          <Input value={field.placeholder_ko} onChange={setInput('placeholder_ko')} />
-        </Field>
+      </div>
 
-        {OPTION_TYPES.includes(field.type) && (
-          <div className="md:col-span-2">
-            <Field label="보기">
-              <OptionsEditor options={field.options} onChange={set('options')} />
-            </Field>
-          </div>
-        )}
-
-        {field.type === 'textarea' && (
-          <Field label="최대 글자 수" hint="비우면 제한 없음">
-            <Input
-              type="number"
-              min="1"
-              value={max ?? ''}
-              onChange={(e) => {
-                const v = e.target.value
-                const next = { ...field.validation }
-                if (v === '') delete next.maxLength
-                else next.maxLength = Number(v)
-                set('validation')(next)
-              }}
-            />
+      {OPTION_TYPES.includes(field.type) && (
+        <div className="border-t border-[#e8e3f4] pt-16">
+          <Field label="보기">
+            <OptionsEditor options={field.options} onChange={set('options')} />
           </Field>
-        )}
+        </div>
+      )}
+
+      {field.type === 'textarea' && (
+        <Field label="최대 글자 수" hint="비우면 제한 없음">
+          <Input
+            type="number"
+            min="1"
+            value={max ?? ''}
+            onChange={(e) => {
+              const v = e.target.value
+              const next = { ...field.validation }
+              if (v === '') delete next.maxLength
+              else next.maxLength = Number(v)
+              set('validation')(next)
+            }}
+          />
+        </Field>
+      )}
+
+      <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8e3f4] pt-12">
+        <button type="button" onClick={onDuplicate} aria-label={`필드 ${index + 1} 복제`} className={ICON_BTN}>
+          <Copy size={17} />
+        </button>
+        <button type="button" onClick={onRemove} aria-label={`필드 ${index + 1} 삭제`} className={ICON_BTN}>
+          <Trash2 size={17} />
+        </button>
+        <span className="mx-8 h-24 w-px bg-[#ddd6eb]" aria-hidden="true" />
+        <span className="text-small-m font-medium text-[#51486a]">필수 입력</span>
+        <Toggle checked={field.required} onChange={set('required')} label={`필드 ${index + 1} 필수 여부`} />
       </div>
     </li>
   )
@@ -494,6 +491,7 @@ function FormEditor() {
               </Field>
               <Field label="분류">
                 <Select
+                  tone="light"
                   value={form.category}
                   options={CATEGORY_OPTIONS}
                   onChange={(e) => set('category')(e.target.value)}
@@ -612,6 +610,7 @@ function FormEditor() {
                         </Field>
                         <Field label="과목 선택 질문" hint="응답자가 고른 과목으로 Drive 폴더를 나눕니다">
                           <Select
+                            tone="light"
                             value={form.settings.drive_course_field_id}
                             options={courseFieldOptions}
                             placeholder={courseFieldOptions.length ? '과목 질문을 선택하세요' : '먼저 객관식 또는 드롭다운 질문을 추가하세요'}
@@ -633,6 +632,7 @@ function FormEditor() {
                     )}
                     <Field label="파일 공유 범위">
                       <Select
+                        tone="light"
                         value={form.settings.drive_share_mode}
                         options={[
                           { value: 'restricted', label: '제한됨 — 관리자만 보기' },
@@ -656,10 +656,11 @@ function FormEditor() {
               <button
                 type="button"
                 onClick={addField}
-                className="inline-flex h-44 items-center justify-center gap-8 rounded-full bg-[#5f43ce] px-20 text-small-m font-semibold text-white shadow-sm transition hover:bg-[#4e35b4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
+                aria-label="질문 추가"
+                title="질문 추가"
+                className="inline-flex h-44 w-44 items-center justify-center rounded-full border border-[#d7cef1] bg-white text-[#5f43ce] shadow-[0_2px_8px_rgb(57_43_94/0.12)] transition hover:border-[#7157d9] hover:bg-[#f4f0ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
               >
-                <Plus size={18} aria-hidden="true" />
-                질문 추가
+                <Plus size={22} aria-hidden="true" />
               </button>
             </div>
 
@@ -697,6 +698,11 @@ function FormEditor() {
                       setFields(form.fields.map((f, idx) => (idx === i ? next : f)))
                     }
                     onRemove={() => setFields(form.fields.filter((_, idx) => idx !== i))}
+                    onDuplicate={() => {
+                      const next = [...form.fields]
+                      next.splice(i + 1, 0, normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1))
+                      setFields(next)
+                    }}
                   />
                 ))}
               </ul>
