@@ -321,27 +321,27 @@ html[data-dah-easter-egg='on'] {
      캔버스 위에 질문 카드를 쌓는다. 범위를 .form-workspace로 제한해 다른 관리자 폼에는 영향 없다. */
   .form-workspace {
     /* 다크 사이트의 공용 text-* 토큰을 그대로 쓰는 내부 컨트롤도 밝은 작업면에서 읽힌다. */
-    --dah-bg-elev: 255 255 255;
-    --dah-bg-panel: 255 255 255;
-    --dah-text-pri: 41 37 58;
-    --dah-text-sec: 78 71 98;
-    --dah-text-meta: 112 103 137;
-    --dah-border-subtle: rgb(99 83 151 / 0.22);
-    color: #29253a;
-    background: #f5f2ff;
+    --dah-bg-elev: 247 246 250;
+    --dah-bg-panel: 250 249 252;
+    --dah-text-pri: 39 35 49;
+    --dah-text-sec: 74 67 87;
+    --dah-text-meta: 94 86 110;
+    --dah-border-subtle: rgb(91 78 122 / 0.34);
+    color: #272331;
+    background: #eae8f0;
   }
   .form-workspace input:not([type='checkbox']):not([type='radio']),
   .form-workspace textarea {
-    border-color: #d8d1ed;
-    background: #fff;
-    color: #29253a;
+    border-color: #bdb5ca;
+    background: #faf9fc;
+    color: #272331;
   }
   .form-workspace input::placeholder,
-  .form-workspace textarea::placeholder { color: #817a98; }
+  .form-workspace textarea::placeholder { color: #776f85; }
   .form-workspace .form-editor-panel {
-    border-color: #ded8ef;
-    background: #fff;
-    box-shadow: 0 1px 3px rgb(57 43 94 / 0.08);
+    border-color: #c9c2d4;
+    background: #f9f8fb;
+    box-shadow: 0 2px 7px rgb(47 39 65 / 0.10);
   }
 
   /* K2-3의 .rich-bright(공지 상세 다크 본문 가독 상향)는 H3-5(37_SHEET_ROADMAP)에서

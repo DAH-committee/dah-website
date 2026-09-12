@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Copy, Eye, FileText, Plus, Save, Settings2, SlidersHorizontal, Trash2, UploadCloud, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Copy, Eye, FileText, Link, ListPlus, Plus, Save, Settings2, SlidersHorizontal, Trash2, UploadCloud, X } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -240,7 +240,7 @@ function FileDriveSettings({ settings, setSetting, setSettingInput, courseFieldO
     <div className="overflow-hidden rounded-md border border-[#d8d1ed] bg-[#faf9ff]">
       <div className="flex flex-wrap items-center justify-between gap-12 border-b border-[#e5dff3] bg-white px-16 py-12">
         <div className="flex items-center gap-8"><UploadCloud size={19} className="text-[#5f43ce]" /><div><p className="text-small-m font-bold text-[#29253a]">Google Drive 원본 파일 저장</p><p className="text-caption-m text-[#6e6680]">이 파일 질문에만 적용됩니다.</p></div></div>
-        <Toggle checked={settings.drive_enabled} onChange={(enabled) => { setSetting('drive_enabled')(enabled); setSetting('drive_auto_folder')(enabled) }} label="Google Drive 업로드 사용" />
+        <Toggle tone="light" checked={settings.drive_enabled} onChange={(enabled) => { setSetting('drive_enabled')(enabled); setSetting('drive_auto_folder')(enabled) }} label="Google Drive 업로드 사용" />
       </div>
       {settings.drive_enabled && <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
         <Field label="Drive 루트 폴더 URL 또는 ID"><Input value={settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} /></Field>
@@ -355,7 +355,7 @@ function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, ov
         </button>
         <span className="mx-8 h-24 w-px bg-[#ddd6eb]" aria-hidden="true" />
         <span className="text-small-m font-medium text-[#51486a]">필수 입력</span>
-        <Toggle checked={field.required} onChange={set('required')} label={`필드 ${index + 1} 필수 여부`} />
+        <Toggle tone="light" checked={field.required} onChange={set('required')} label={`필드 ${index + 1} 필수 여부`} />
       </div>
     </li>
   )
@@ -382,6 +382,7 @@ function FormEditor() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewValue, setPreviewValue] = useState({})
   const [armed, setArmed] = useState(null) // 드래그 준비된 필드 index
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (hydrated || !data?.item) return
@@ -401,6 +402,18 @@ function FormEditor() {
     .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
   const addField = (type = 'text') =>
     setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}`, type }, form.fields.length)])
+
+  const publicUrl = form.slug ? `${window.location.origin}/forms/${form.slug}` : ''
+  const copyPublicUrl = async () => {
+    if (!publicUrl) return
+    try {
+      await navigator.clipboard.writeText(publicUrl)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setSaveError('공개 링크를 복사하지 못했습니다. 주소 입력란의 값을 직접 복사해 주세요.')
+    }
+  }
 
   // 개설 교과목은 학기별 관리 화면의 단일 원본(semester_offerings)을 그대로 읽는다.
   // 따라서 매 학기 전시 폼을 만들 때 과목명을 다시 적거나 이전 학기 목록을 복사하지 않는다.
@@ -455,9 +468,25 @@ function FormEditor() {
     }
   }
 
+  useEffect(() => {
+    const onKey = (event) => {
+      if (!(event.metaKey || event.ctrlKey)) return
+      if (event.key.toLowerCase() === 's') {
+        event.preventDefault()
+        document.getElementById('form-editor')?.requestSubmit()
+      }
+      if (event.shiftKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault()
+        setPreview(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
-    <section className="form-workspace isolate min-h-[100dvh] bg-[#f5f2ff] px-16 py-16 md:px-32 md:py-24">
-      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#ded8ef] bg-[#f5f2ff]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
+    <section className="form-workspace isolate min-h-[100dvh] bg-[#eae8f0] px-16 py-16 md:px-32 md:py-24">
+      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#c9c2d4] bg-[#eae8f0]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
         <div className="flex min-w-0 items-center gap-12">
           <FileText size={22} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
           <div className="min-w-0">
@@ -480,6 +509,10 @@ function FormEditor() {
           <GhostButton onClick={() => setPreview((v) => !v)} aria-pressed={preview} className="border-[#d8d1ed] text-[#463d5b]">
             <Eye size={16} aria-hidden="true" />
             <span className="hidden sm:inline">미리보기</span>
+          </GhostButton>
+          <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-[#bdb5ca] bg-[#f7f6fa] text-[#3f384f]" title="공개 링크 복사">
+            {copied ? <Check size={16} aria-hidden="true" /> : <Link size={16} aria-hidden="true" />}
+            <span className="hidden lg:inline">{copied ? '링크 복사됨' : '링크'}</span>
           </GhostButton>
           <GhostButton onClick={() => navigate(backTo)} className="border-[#d8d1ed] text-[#463d5b]">목록</GhostButton>
           <PrimaryButton type="submit" form="form-editor" disabled={busy || !canSaveForm}>
@@ -547,18 +580,7 @@ function FormEditor() {
                 <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">질문</h3>
                 <p className="mt-4 text-small-m text-text-sec">보라색 버튼을 눌러 질문 카드를 추가합니다.</p>
               </div>
-              <button
-                type="button"
-                onClick={addField}
-                aria-label="질문 추가"
-                title="질문 추가"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d7cef1] bg-white text-[#5f43ce] shadow-[0_2px_8px_rgb(57_43_94/0.12)] transition hover:border-[#7157d9] hover:bg-[#f4f0ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
-              >
-                <Plus size={22} aria-hidden="true" />
-              </button>
-              <button type="button" onClick={() => addField('section')} className="inline-flex h-11 items-center gap-8 rounded-full border border-[#d7cef1] bg-white px-12 text-small-m font-semibold text-[#5f43ce] transition hover:bg-[#f4f0ff]">
-                <Plus size={16} /> 섹션
-              </button>
+              <span className="text-caption-m text-[#625b70]">오른쪽 도구막대에서 질문·파일·섹션을 추가합니다.</span>
             </div>
 
             <p className="font-mono text-caption-m text-text-meta">
@@ -580,7 +602,8 @@ function FormEditor() {
             )}
 
             {form.fields.length > 0 && (
-              <ul className="flex flex-col gap-16">
+              <div className="relative">
+              <ul className="flex flex-col gap-16 md:pr-72">
                 {form.fields.map((field, i) => (
                   <FieldCard
                     key={field.id}
@@ -612,28 +635,20 @@ function FormEditor() {
                   />
                 ))}
               </ul>
+              <aside aria-label="폼 작성 도구" className="mt-16 flex w-fit gap-8 rounded-md border border-[#c5bdd2] bg-[#f8f7fa] p-8 shadow-[0_3px_12px_rgb(47_39_65/0.15)] md:absolute md:right-0 md:top-12 md:mt-0 md:flex-col">
+                <button type="button" onClick={() => addField('text')} title="질문 추가" aria-label="질문 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><Plus size={21} /></button>
+                <button type="button" onClick={() => addField('file')} title="파일 업로드 질문 추가" aria-label="파일 업로드 질문 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><UploadCloud size={19} /></button>
+                <button type="button" onClick={() => addField('section')} title="섹션 추가" aria-label="섹션 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><ListPlus size={20} /></button>
+              </aside>
+              </div>
             )}
           </div>
-
-          {preview && (
-            <div className={PANEL}>
-              <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">미리보기</h3>
-              <p className="font-mono text-caption-m text-text-meta">
-                공개 화면과 같은 렌더러입니다. 여기 입력한 값은 저장되지 않습니다.
-              </p>
-              <FormRenderer
-                fields={form.fields}
-                value={previewValue}
-                onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))}
-              />
-            </div>
-          )}
 
           <div className="flex flex-wrap items-center gap-24 border-t border-[#ded8ef] pt-24">
             {/* 토글은 화면 상태만 바꾼다. 저장을 눌러야 서버에 반영된다 */}
             <div className="flex items-center gap-12 rounded-md border border-[#cfc5ed] bg-white px-16 py-10 shadow-sm">
               <span className="text-small-m font-semibold text-[#3e3556]">공개</span>
-              <Toggle checked={form.published} onChange={set('published')} label="공개 여부" />
+              <Toggle tone="light" checked={form.published} onChange={set('published')} label="공개 여부" />
               <span className="text-caption-m text-[#6e6680]">저장 후 반영</span>
             </div>
           </div>
@@ -643,8 +658,8 @@ function FormEditor() {
         </form>
       )}
       {settingsOpen && (
-        <div role="dialog" aria-modal="true" aria-label="접수 설정" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#211b35]/35 px-16 py-40 backdrop-blur-sm" onMouseDown={() => setSettingsOpen(false)}>
-          <div className="w-full max-w-3xl rounded-md border border-[#d8d1ed] bg-white shadow-[0_24px_64px_rgb(38_28_68/0.3)]" onMouseDown={(e) => e.stopPropagation()}>
+        <div role="dialog" aria-modal="true" aria-label="접수 설정" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#4b435c]/25 px-16 py-40 backdrop-blur-[2px]" onMouseDown={() => setSettingsOpen(false)}>
+          <div className="w-full max-w-3xl rounded-md border border-[#bdb5ca] bg-[#f8f7fa] shadow-[0_24px_64px_rgb(38_28_68/0.22)]" onMouseDown={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-[#e8e3f4] px-24 py-16">
               <div className="flex items-center gap-8"><SlidersHorizontal size={20} className="text-[#5f43ce]" /><div><h2 className="text-body-l-m font-bold text-[#29253a]">접수 설정</h2><p className="text-caption-m text-[#6e6680]">공개·접수 기간·로그인 정책을 한곳에서 관리합니다.</p></div></div>
               <button type="button" onClick={() => setSettingsOpen(false)} aria-label="접수 설정 닫기" className={ICON_BTN}><X size={18} /></button>
@@ -654,11 +669,19 @@ function FormEditor() {
               <Field label="접수 마감"><DateInput withTime value={form.settings.accept_end} viewDate={form.settings.accept_start} onChange={setSettingInput('accept_end')} /></Field>
               <Field label="수정 마감" hint="비우면 접수 마감과 같습니다"><DateInput withTime value={form.settings.edit_end} viewDate={form.settings.accept_end} onChange={setSettingInput('edit_end')} /></Field>
               <Field label="응답 상한" hint="비우면 제한 없음"><Input type="number" min="1" value={form.settings.max_responses} onChange={setSettingInput('max_responses')} /></Field>
-              <div className="flex items-center justify-between rounded-sm border border-[#e2dcef] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">구글 로그인</p><p className="text-caption-m text-[#6e6680]">제출자 본인 확인</p></div><Toggle checked={form.settings.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 인증 요구" /></div>
-              <div className="flex items-center justify-between rounded-sm border border-[#e2dcef] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">헤더 버튼 노출</p><p className="text-caption-m text-[#6e6680]">사이트 상단에 신청 링크 표시</p></div><Toggle checked={form.settings.show_button_in_header} onChange={setSetting('show_button_in_header')} label="헤더 버튼 노출" /></div>
+              <div className="flex items-center justify-between rounded-sm border border-[#bdb5ca] bg-[#fdfcff] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">구글 로그인</p><p className="text-caption-m text-[#6e6680]">제출자 본인 확인</p></div><Toggle tone="light" checked={form.settings.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 인증 요구" /></div>
+              <div className="flex items-center justify-between rounded-sm border border-[#bdb5ca] bg-[#fdfcff] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">헤더 버튼 노출</p><p className="text-caption-m text-[#6e6680]">사이트 상단에 신청 링크 표시</p></div><Toggle tone="light" checked={form.settings.show_button_in_header} onChange={setSetting('show_button_in_header')} label="헤더 버튼 노출" /></div>
               <div className="md:col-span-2"><Field label="신청 버튼 문구"><Input value={form.settings.button_label_ko} onChange={setSettingInput('button_label_ko')} placeholder="신청하기" /></Field></div>
             </div>
             <div className="flex justify-end border-t border-[#e8e3f4] px-24 py-16"><PrimaryButton onClick={() => setSettingsOpen(false)}>완료</PrimaryButton></div>
+          </div>
+        </div>
+      )}
+      {preview && (
+        <div role="dialog" aria-modal="true" aria-label="공개 폼 미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-[#4b435c]/35 p-16 backdrop-blur-[2px] md:p-32" onMouseDown={() => setPreview(false)}>
+          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md border border-[#bdb5ca] bg-[#eeecf3] shadow-[0_24px_64px_rgb(38_28_68/0.25)]" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#c9c2d4] bg-[#f8f7fa]/95 px-20 py-12 backdrop-blur"><div><p className="text-body-m font-bold text-[#29253a]">공개 폼 미리보기</p><p className="text-caption-m text-[#625b70]">{publicUrl || '주소를 입력하면 공개 링크가 생성됩니다.'}</p></div><button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button></div>
+            <div className="p-20 md:p-32"><div className="rounded-md border-t-8 border-[#7157d9] bg-[#faf9fc] p-20 shadow-sm md:p-32"><h2 className="text-h2-m font-bold text-[#29253a]">{form.title_ko || '새 신청 폼'}</h2>{form.description_ko && <p className="mt-12 whitespace-pre-wrap text-body-m leading-relaxed text-[#514a60]">{form.description_ko}</p>}<div className="mt-28"><FormRenderer fields={form.fields} value={previewValue} onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))} /></div></div></div>
           </div>
         </div>
       )}

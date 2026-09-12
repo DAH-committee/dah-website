@@ -458,7 +458,7 @@ router.get(
        WHERE form_id = $1 ORDER BY submitted_at DESC, id DESC`,
       [form.id]
     )
-    const fields = asArray(form.fields)
+    const fields = asArray(form.fields).filter((field) => field?.type !== 'section')
     const header = ['번호', '제출 계정', '제출 시각', ...fields.map((f) => f.label_ko)]
     const lines = [header.map(csvCell).join(',')]
     rows.forEach((r, i) => {

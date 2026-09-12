@@ -92,7 +92,8 @@ export function DateInput({ value, onChange, withTime = false, ...props }) {
 }
 
 /** 스위치 — published 토글 등 */
-export function Toggle({ checked = false, onChange, label, disabled = false }) {
+export function Toggle({ checked = false, onChange, label, disabled = false, tone = 'default' }) {
+  const light = tone === 'light'
   return (
     <button
       type="button"
@@ -102,17 +103,19 @@ export function Toggle({ checked = false, onChange, label, disabled = false }) {
       disabled={disabled}
       onClick={() => onChange && onChange(!checked)}
       // 모바일 조작 상자는 44px, 실제 트랙은 40×24로 유지해 시각 밀도와 터치 정확도를 분리한다.
-      className="relative inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-24 md:w-40"
+      className="relative inline-flex h-[44px] w-[52px] shrink-0 cursor-pointer items-center justify-center rounded-full transition duration-fast ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40"
     >
       <span
         aria-hidden="true"
-        className={`relative h-24 w-40 rounded-full border transition duration-fast ease-out ${
-          checked ? 'border-purple-primary bg-purple-primary' : 'border-border-strong bg-transparent'
+        className={`relative h-[26px] w-[44px] rounded-full border-2 transition duration-fast ease-out ${
+          checked
+            ? (light ? 'border-[#6246c7] bg-[#7457dc]' : 'border-purple-primary bg-purple-primary')
+            : (light ? 'border-[#827993] bg-[#eeebf3]' : 'border-border-strong bg-transparent')
         }`}
       >
         <span
-          className={`absolute left-4 top-1/2 h-16 w-16 -translate-y-1/2 rounded-full transition duration-fast ease-out ${
-            checked ? 'translate-x-16 bg-text-invert' : 'translate-x-0 bg-text-meta'
+          className={`absolute left-[3px] top-1/2 h-[16px] w-[16px] -translate-y-1/2 rounded-full shadow-sm transition duration-fast ease-out ${
+            checked ? 'translate-x-[18px] bg-white' : (light ? 'translate-x-0 bg-[#655d73]' : 'translate-x-0 bg-text-meta')
           }`}
         />
       </span>
