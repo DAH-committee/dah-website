@@ -9,7 +9,8 @@
 //
 // 값 계약: value는 { [field.id]: 값 } 객체. checkbox만 배열, 나머지는 문자열.
 // 검증은 서버가 최종 권한이며 여기서는 인라인 안내만 담당한다.
-import { Check } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import Select from '../common/Select'
 import DatePicker from '../common/DatePicker'
 import RadioCards from '../common/RadioCards'
@@ -244,6 +245,9 @@ function FormField({
         </FieldShell>
       )
 
+    case 'section':
+      return null
+
     default:
       return (
         <FieldShell field={field} error={error} errorId={errorId}>
@@ -281,10 +285,27 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
     uploadContext?.driveAutoFolder &&
       ordered.some((field) => field.type === 'file' && Boolean(value[field.id]))
   )
+  const pages = useMemo(() => {
+    const result = [{ section: null, fields: [] }]
+    for (const field of ordered) {
+      if (field.type === 'section') result.push({ section: field, fields: [] })
+      else result[result.length - 1].fields.push(field)
+    }
+    return result.filter((page) => page.section || page.fields.length)
+  }, [fields])
+  const [pageIndex, setPageIndex] = useState(0)
+  useEffect(() => setPageIndex((current) => Math.min(current, Math.max(0, pages.length - 1))), [pages.length])
+  const page = pages[pageIndex] || { fields: [] }
 
   return (
     <div className="flex min-w-0 flex-col gap-24">
-      {ordered.map((field) => (
+      {page.section && (
+        <div className="border-t-4 border-[#7157d9] bg-[#f5f2ff] px-20 py-16">
+          <p className="text-body-l-m font-bold text-[#29253a] md:text-body-l-d">{page.section.label_ko || '새 섹션'}</p>
+          {page.section.hint_ko && <p className="mt-4 text-small-m text-[#625a77]">{page.section.hint_ko}</p>}
+        </div>
+      )}
+      {page.fields.map((field) => (
         <FormField
           key={field.id}
           field={field}
@@ -299,6 +320,17 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
           courseLocked={courseLocked}
         />
       ))}
+      {pages.length > 1 && (
+        <div className="flex items-center justify-between gap-12 border-t border-border-subtle pt-20">
+          <button type="button" onClick={() => setPageIndex((i) => Math.max(0, i - 1))} disabled={pageIndex === 0} className="inline-flex h-44 items-center gap-4 rounded-sm border border-border-subtle px-12 text-small-m font-semibold disabled:opacity-40">
+            <ChevronLeft size={16} /> 이전
+          </button>
+          <span className="text-caption-m text-text-meta">{pageIndex + 1} / {pages.length}</span>
+          <button type="button" onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))} disabled={pageIndex === pages.length - 1} className="inline-flex h-44 items-center gap-4 rounded-sm bg-purple-primary px-12 text-small-m font-semibold text-text-invert disabled:opacity-40">
+            다음 <ChevronRight size={16} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

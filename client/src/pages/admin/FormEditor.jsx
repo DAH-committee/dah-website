@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, ChevronUp, Copy, Eye, FileText, Plus, Save, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Copy, Eye, FileText, Plus, Save, Settings2, SlidersHorizontal, Trash2, UploadCloud, X } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
@@ -31,8 +31,8 @@ const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABEL).map(([value, label]) => 
 
 // 서버 FIELD_TYPES와 같은 순서, 같은 값 (routes/forms.js)
 const TYPE_LABEL = {
-  text: '한 줄 입력',
-  textarea: '여러 줄 입력',
+  text: '단답형',
+  textarea: '서술형',
   select: '드롭다운',
   radio: '객관식',
   checkbox: '다중 선택',
@@ -41,6 +41,7 @@ const TYPE_LABEL = {
   studentid: '학번',
   file: '파일',
   date: '날짜',
+  section: '섹션',
 }
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label }))
 const OPTION_TYPES = ['select', 'radio', 'checkbox']
@@ -106,7 +107,7 @@ const EMPTY = {
     button_label_en: '',
     drive_enabled: false,
     drive_folder_id: '',
-    drive_auto_folder: false,
+    drive_auto_folder: true,
     drive_semester: '',
     drive_course_field_id: '',
     drive_share_mode: 'restricted',
@@ -234,13 +235,42 @@ function OptionsEditor({ options, onChange }) {
   )
 }
 
+function FileDriveSettings({ settings, setSetting, setSettingInput, courseFieldOptions, loadSemesterCourses, loadingCourses, error }) {
+  return (
+    <div className="overflow-hidden rounded-md border border-[#d8d1ed] bg-[#faf9ff]">
+      <div className="flex flex-wrap items-center justify-between gap-12 border-b border-[#e5dff3] bg-white px-16 py-12">
+        <div className="flex items-center gap-8"><UploadCloud size={19} className="text-[#5f43ce]" /><div><p className="text-small-m font-bold text-[#29253a]">Google Drive 원본 파일 저장</p><p className="text-caption-m text-[#6e6680]">이 파일 질문에만 적용됩니다.</p></div></div>
+        <Toggle checked={settings.drive_enabled} onChange={(enabled) => { setSetting('drive_enabled')(enabled); setSetting('drive_auto_folder')(enabled) }} label="Google Drive 업로드 사용" />
+      </div>
+      {settings.drive_enabled && <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
+        <Field label="Drive 루트 폴더 URL 또는 ID"><Input value={settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} /></Field>
+        <Field label="학기"><Input value={settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" /></Field>
+        <Field label="과목 선택 질문"><Select tone="light" value={settings.drive_course_field_id} options={courseFieldOptions} placeholder="참가 과목을 선택하세요" onChange={(e) => setSetting('drive_course_field_id')(e.target.value)} disabled={!courseFieldOptions.length} /></Field>
+        <Field label="파일 공유 범위"><Select tone="light" value={settings.drive_share_mode} options={[{ value: 'restricted', label: '제한됨 — 관리자만 보기' }, { value: 'link', label: '링크가 있는 사용자에게 보기 허용' }]} onChange={(e) => setSetting('drive_share_mode')(e.target.value)} /></Field>
+        <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-12 rounded-sm bg-[#eee9ff] px-12 py-10"><p className="text-caption-m text-[#51486a]">학기 → 과목 → 폼명 순으로 폴더를 자동 생성합니다.</p><GhostButton type="button" onClick={loadSemesterCourses} disabled={loadingCourses || !settings.drive_course_field_id} className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]">{loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}</GhostButton></div>
+        {error && <p className="md:col-span-2 text-caption-m text-state-error">{error}</p>}
+      </div>}
+    </div>
+  )
+}
+
 /** 필드 카드 1장 */
-function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, over, rowProps, armed, onArm }) {
+function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, over, rowProps, armed, onArm, driveProps }) {
   const set = (key) => (v) => onChange({ ...field, [key]: v })
   const setInput = (key) => (e) => set(key)(e.target.value)
   const max = field.validation?.maxLength
   const rp = rowProps(index)
 
+  if (field.type === 'section') {
+    return (
+      <li {...rp} className={`${QUESTION_CARD} ${dragging ? 'opacity-40' : ''} ${over ? 'border-border-purple' : ''}`}>
+        <div className="flex items-center justify-center text-[#81789a]"><span onPointerDown={() => rp.draggable && onArm(true)} onPointerUp={() => onArm(false)} className="flex cursor-grab"><DragHandle /></span></div>
+        <Input aria-label={`섹션 ${index + 1} 제목`} value={field.label_ko} onChange={setInput('label_ko')} placeholder="섹션 제목" className="border-0 border-b border-[#cfc7e1] rounded-none px-0 text-body-l-m font-semibold focus:border-[#7157d9] focus:ring-0" />
+        <TextArea aria-label={`섹션 ${index + 1} 설명`} value={field.hint_ko} onChange={setInput('hint_ko')} placeholder="섹션 설명 (선택)" rows={3} />
+        <div className="flex justify-end border-t border-[#e8e3f4] pt-12"><button type="button" onClick={onRemove} aria-label={`섹션 ${index + 1} 삭제`} className={ICON_BTN}><Trash2 size={17} /></button></div>
+      </li>
+    )
+  }
   return (
     <li
       {...rp}
@@ -283,12 +313,9 @@ function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, ov
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-12">
         <Field label="설명 (선택)">
           <Input value={field.hint_ko} onChange={setInput('hint_ko')} placeholder="응답자에게 보여줄 안내" />
-        </Field>
-        <Field label="영문 질문 (선택)">
-          <Input value={field.label_en} onChange={setInput('label_en')} />
         </Field>
       </div>
 
@@ -316,6 +343,8 @@ function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, ov
           />
         </Field>
       )}
+
+      {field.type === 'file' && <FileDriveSettings {...driveProps} />}
 
       <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8e3f4] pt-12">
         <button type="button" onClick={onDuplicate} aria-label={`필드 ${index + 1} 복제`} className={ICON_BTN}>
@@ -350,6 +379,7 @@ function FormEditor() {
   const [loadingCourses, setLoadingCourses] = useState(false)
   const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
   const [preview, setPreview] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewValue, setPreviewValue] = useState({})
   const [armed, setArmed] = useState(null) // 드래그 준비된 필드 index
 
@@ -369,8 +399,8 @@ function FormEditor() {
   const courseFieldOptions = form.fields
     .filter((field) => ['select', 'radio'].includes(field.type))
     .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
-  const addField = () =>
-    setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}` }, form.fields.length)])
+  const addField = (type = 'text') =>
+    setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}`, type }, form.fields.length)])
 
   // 개설 교과목은 학기별 관리 화면의 단일 원본(semester_offerings)을 그대로 읽는다.
   // 따라서 매 학기 전시 폼을 만들 때 과목명을 다시 적거나 이전 학기 목록을 복사하지 않는다.
@@ -442,7 +472,11 @@ function FormEditor() {
             <p className="hidden text-caption-m text-[#756d88] sm:block">제목을 바로 고치고, 아래에서 질문을 추가하세요</p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-8">
+          <div className="flex shrink-0 items-center gap-8">
+          <GhostButton onClick={() => setSettingsOpen(true)} aria-haspopup="dialog" className="border-[#d8d1ed] text-[#463d5b]">
+            <Settings2 size={16} aria-hidden="true" />
+            <span className="hidden sm:inline">설정</span>
+          </GhostButton>
           <GhostButton onClick={() => setPreview((v) => !v)} aria-pressed={preview} className="border-[#d8d1ed] text-[#463d5b]">
             <Eye size={16} aria-hidden="true" />
             <span className="hidden sm:inline">미리보기</span>
@@ -478,9 +512,6 @@ function FormEditor() {
               <span className="rounded-full bg-[#eee9ff] px-12 py-4 text-caption-m font-semibold text-[#5640b5]">공개 제목은 상단에서 바로 수정</span>
             </div>
             <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
-              <Field label="제목 (영문)">
-                <Input value={form.title_en} onChange={setInput('title_en')} />
-              </Field>
               <Field label="주소" hint="공개 주소는 /forms/여기에-입력한-값">
                 <Input
                   value={form.slug}
@@ -506,146 +537,9 @@ function FormEditor() {
                   />
                 </Field>
               </div>
-              <div className="md:col-span-2">
-                <Field label="안내문 (영문)">
-                  <TextArea
-                    rows={5}
-                    value={form.description_en}
-                    onChange={setInput('description_en')}
-                  />
-                </Field>
-              </div>
             </div>
           </div>
 
-          <div className={PANEL}>
-            <div className="border-b border-[#e8e3f4] pb-16">
-              <p className="font-mono text-caption-m font-semibold tracking-label text-[#7157d9]">02 · 운영 설정</p>
-              <h3 className="mt-4 text-h3-m font-bold text-text-pri md:text-h3-d">접수 설정</h3>
-            </div>
-            <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
-              <Field label="접수 시작">
-                <DateInput
-                  withTime
-                  value={form.settings.accept_start}
-                  onChange={setSettingInput('accept_start')}
-                />
-              </Field>
-              <Field label="접수 마감">
-                <DateInput
-                  withTime
-                  value={form.settings.accept_end}
-                  viewDate={form.settings.accept_start}
-                  onChange={setSettingInput('accept_end')}
-                />
-              </Field>
-              <Field label="수정 마감" hint="비우면 접수 마감과 같습니다">
-                <DateInput
-                  withTime
-                  value={form.settings.edit_end}
-                  viewDate={form.settings.accept_end}
-                  onChange={setSettingInput('edit_end')}
-                />
-              </Field>
-              <Field label="응답 상한" hint="비우면 제한 없음">
-                <Input
-                  type="number"
-                  min="1"
-                  value={form.settings.max_responses}
-                  onChange={setSettingInput('max_responses')}
-                />
-              </Field>
-              <Field label="구글 인증" hint="제출자 본인 확인에 구글 로그인을 요구합니다">
-                <Toggle
-                  checked={form.settings.require_google_auth}
-                  onChange={setSetting('require_google_auth')}
-                  label="구글 인증 요구"
-                />
-              </Field>
-              <Field label="헤더 버튼 노출">
-                <Toggle
-                  checked={form.settings.show_button_in_header}
-                  onChange={setSetting('show_button_in_header')}
-                  label="헤더 버튼 노출"
-                />
-              </Field>
-              <Field label="버튼 문구 (국문)">
-                <Input
-                  value={form.settings.button_label_ko}
-                  onChange={setSettingInput('button_label_ko')}
-                />
-              </Field>
-              <Field label="버튼 문구 (영문)">
-                <Input
-                  value={form.settings.button_label_en}
-                  onChange={setSettingInput('button_label_en')}
-                />
-              </Field>
-              <div className="md:col-span-2 overflow-hidden rounded-md border border-[#cfc5ed] bg-[#faf9ff] shadow-[0_1px_2px_rgb(57_43_94/0.08)]">
-                <div className="flex flex-wrap items-start justify-between gap-16">
-                  <div className="min-w-0 p-20">
-                    <p className="text-body-m font-bold text-[#29253a]">Google Drive 파일 업로드</p>
-                    <p className="mt-4 max-w-2xl text-small-m leading-relaxed text-[#625a77]">
-                      업로드한 원본 파일은 지정한 Drive 루트 안에서 학기 · 선택 과목 · 이 폼 이름 순으로 정리됩니다.
-                      과목을 선택하지 않으면 업로드 버튼이 비활성화되어 잘못된 폴더로 들어가지 않습니다.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-8 bg-[#eee9ff] px-16 py-12">
-                    <span className="text-small-m font-semibold text-[#463c65]">Drive 연동</span>
-                    <Toggle checked={form.settings.drive_enabled} onChange={setSetting('drive_enabled')} label="Google Drive 업로드 사용" />
-                  </div>
-                </div>
-                {form.settings.drive_enabled && (
-                  <div className="grid grid-cols-1 gap-16 border-t border-[#ded8ef] bg-white p-20 md:grid-cols-2">
-                    <Field label="Drive 루트 폴더 URL 또는 ID" hint="학기별 폴더가 이 위치 아래에 자동 생성됩니다">
-                      <Input value={form.settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} />
-                    </Field>
-                    <Field label="자동 폴더 분류">
-                      <Toggle checked={form.settings.drive_auto_folder} onChange={setSetting('drive_auto_folder')} label="학기·과목·폼명 폴더 자동 생성" />
-                    </Field>
-                    {form.settings.drive_auto_folder && (
-                      <>
-                        <Field label="학기" hint="예: 2026-2">
-                          <Input value={form.settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
-                        </Field>
-                        <Field label="과목 선택 질문" hint="응답자가 고른 과목으로 Drive 폴더를 나눕니다">
-                          <Select
-                            tone="light"
-                            value={form.settings.drive_course_field_id}
-                            options={courseFieldOptions}
-                            placeholder={courseFieldOptions.length ? '과목 질문을 선택하세요' : '먼저 객관식 또는 드롭다운 질문을 추가하세요'}
-                            onChange={(e) => setSetting('drive_course_field_id')(e.target.value)}
-                            disabled={courseFieldOptions.length === 0}
-                          />
-                        </Field>
-                        <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-12 rounded-sm border border-[#dfd7f4] bg-[#faf9ff] px-16 py-12">
-                          <div>
-                            <p className="text-small-m font-semibold text-[#3e3556]">해당 학기 개설 과목 불러오기</p>
-                            <p className="mt-2 text-caption-m text-[#6e6680]">교과목 관리의 학기별 목록을 위 질문의 보기로 덮어씁니다.</p>
-                          </div>
-                          <GhostButton type="button" onClick={loadSemesterCourses} disabled={loadingCourses || !form.settings.drive_course_field_id} className="border-[#cfc5ed] bg-white text-[#513aaf]">
-                            {loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}
-                          </GhostButton>
-                          {courseLoadError && <p className="w-full text-caption-m text-error">{courseLoadError}</p>}
-                        </div>
-                      </>
-                    )}
-                    <Field label="파일 공유 범위">
-                      <Select
-                        tone="light"
-                        value={form.settings.drive_share_mode}
-                        options={[
-                          { value: 'restricted', label: '제한됨 — 관리자만 보기' },
-                          { value: 'link', label: '링크가 있는 사용자에게 보기 허용' },
-                        ]}
-                        onChange={(e) => setSetting('drive_share_mode')(e.target.value)}
-                      />
-                    </Field>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
 
           <div className="flex flex-col gap-16">
             <div className="flex flex-wrap items-center justify-between gap-16 border-b border-[#ded8ef] pb-16">
@@ -658,9 +552,12 @@ function FormEditor() {
                 onClick={addField}
                 aria-label="질문 추가"
                 title="질문 추가"
-                className="inline-flex h-44 w-44 items-center justify-center rounded-full border border-[#d7cef1] bg-white text-[#5f43ce] shadow-[0_2px_8px_rgb(57_43_94/0.12)] transition hover:border-[#7157d9] hover:bg-[#f4f0ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d7cef1] bg-white text-[#5f43ce] shadow-[0_2px_8px_rgb(57_43_94/0.12)] transition hover:border-[#7157d9] hover:bg-[#f4f0ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
               >
                 <Plus size={22} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => addField('section')} className="inline-flex h-11 items-center gap-8 rounded-full border border-[#d7cef1] bg-white px-12 text-small-m font-semibold text-[#5f43ce] transition hover:bg-[#f4f0ff]">
+                <Plus size={16} /> 섹션
               </button>
             </div>
 
@@ -703,6 +600,15 @@ function FormEditor() {
                       next.splice(i + 1, 0, normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1))
                       setFields(next)
                     }}
+                    driveProps={{
+                      settings: form.settings,
+                      setSetting,
+                      setSettingInput,
+                      courseFieldOptions,
+                      loadSemesterCourses,
+                      loadingCourses,
+                      error: courseLoadError,
+                    }}
                   />
                 ))}
               </ul>
@@ -725,14 +631,36 @@ function FormEditor() {
 
           <div className="flex flex-wrap items-center gap-24 border-t border-[#ded8ef] pt-24">
             {/* 토글은 화면 상태만 바꾼다. 저장을 눌러야 서버에 반영된다 */}
-            <Field label="공개" hint="저장을 눌러야 반영됩니다">
+            <div className="flex items-center gap-12 rounded-md border border-[#cfc5ed] bg-white px-16 py-10 shadow-sm">
+              <span className="text-small-m font-semibold text-[#3e3556]">공개</span>
               <Toggle checked={form.published} onChange={set('published')} label="공개 여부" />
-            </Field>
+              <span className="text-caption-m text-[#6e6680]">저장 후 반영</span>
+            </div>
           </div>
 
           <ErrorText>{saveError}</ErrorText>
           <div className="flex items-center gap-8"><GhostButton onClick={() => navigate(backTo)}>저장하지 않고 나가기</GhostButton></div>
         </form>
+      )}
+      {settingsOpen && (
+        <div role="dialog" aria-modal="true" aria-label="접수 설정" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#211b35]/35 px-16 py-40 backdrop-blur-sm" onMouseDown={() => setSettingsOpen(false)}>
+          <div className="w-full max-w-3xl rounded-md border border-[#d8d1ed] bg-white shadow-[0_24px_64px_rgb(38_28_68/0.3)]" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[#e8e3f4] px-24 py-16">
+              <div className="flex items-center gap-8"><SlidersHorizontal size={20} className="text-[#5f43ce]" /><div><h2 className="text-body-l-m font-bold text-[#29253a]">접수 설정</h2><p className="text-caption-m text-[#6e6680]">공개·접수 기간·로그인 정책을 한곳에서 관리합니다.</p></div></div>
+              <button type="button" onClick={() => setSettingsOpen(false)} aria-label="접수 설정 닫기" className={ICON_BTN}><X size={18} /></button>
+            </div>
+            <div className="grid grid-cols-1 gap-16 p-24 md:grid-cols-2">
+              <Field label="접수 시작"><DateInput withTime value={form.settings.accept_start} onChange={setSettingInput('accept_start')} /></Field>
+              <Field label="접수 마감"><DateInput withTime value={form.settings.accept_end} viewDate={form.settings.accept_start} onChange={setSettingInput('accept_end')} /></Field>
+              <Field label="수정 마감" hint="비우면 접수 마감과 같습니다"><DateInput withTime value={form.settings.edit_end} viewDate={form.settings.accept_end} onChange={setSettingInput('edit_end')} /></Field>
+              <Field label="응답 상한" hint="비우면 제한 없음"><Input type="number" min="1" value={form.settings.max_responses} onChange={setSettingInput('max_responses')} /></Field>
+              <div className="flex items-center justify-between rounded-sm border border-[#e2dcef] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">구글 로그인</p><p className="text-caption-m text-[#6e6680]">제출자 본인 확인</p></div><Toggle checked={form.settings.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 인증 요구" /></div>
+              <div className="flex items-center justify-between rounded-sm border border-[#e2dcef] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">헤더 버튼 노출</p><p className="text-caption-m text-[#6e6680]">사이트 상단에 신청 링크 표시</p></div><Toggle checked={form.settings.show_button_in_header} onChange={setSetting('show_button_in_header')} label="헤더 버튼 노출" /></div>
+              <div className="md:col-span-2"><Field label="신청 버튼 문구"><Input value={form.settings.button_label_ko} onChange={setSettingInput('button_label_ko')} placeholder="신청하기" /></Field></div>
+            </div>
+            <div className="flex justify-end border-t border-[#e8e3f4] px-24 py-16"><PrimaryButton onClick={() => setSettingsOpen(false)}>완료</PrimaryButton></div>
+          </div>
+        </div>
       )}
     </section>
   )

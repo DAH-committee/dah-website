@@ -23,7 +23,7 @@ const router = Router()
 
 const FIELD_TYPES = [
   'text', 'textarea', 'select', 'radio', 'checkbox',
-  'phone', 'email', 'studentid', 'file', 'date',
+  'phone', 'email', 'studentid', 'file', 'date', 'section',
 ]
 const CATEGORIES = ['event', 'recruit', 'other']
 
@@ -85,6 +85,7 @@ export function validateResponse(fields, data) {
   const body = data && typeof data === 'object' && !Array.isArray(data) ? data : {}
 
   for (const f of asArray(fields)) {
+    if (f.type === 'section') continue
     const raw = body[f.id]
     const isCheckbox = f.type === 'checkbox'
     const value = isCheckbox ? asArray(raw) : raw == null ? '' : String(raw).trim()
@@ -129,6 +130,7 @@ function pickData(fields, data) {
   const body = data && typeof data === 'object' && !Array.isArray(data) ? data : {}
   const out = {}
   for (const f of asArray(fields)) {
+    if (f.type === 'section') continue
     if (body[f.id] === undefined) continue
     out[f.id] = f.type === 'checkbox' ? asArray(body[f.id]).map(String) : body[f.id]
   }
