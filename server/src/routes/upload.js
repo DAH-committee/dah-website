@@ -113,16 +113,20 @@ async function formDriveTarget(req) {
   }
   const rootFolderId = folderIdFrom(form.settings?.drive_folder_id)
   const auto = form.settings?.drive_auto_folder === true
-  let course = form.settings?.drive_course
+  let course = ''
   if (auto) {
     try {
       const values = JSON.parse(String(req.body?.formValues || '{}'))
-      const fields = JSON.parse(String(req.body?.formFields || '[]'))
-      const courseField = Array.isArray(fields) && fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
+      const courseField = Array.isArray(form.fields) && form.fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
       const selected = courseField ? values?.[courseField.id] : ''
       if (Array.isArray(selected)) course = selected.join(', ')
       else if (selected) course = String(selected)
-    } catch { /* 폼 값이 없으면 관리자 설정으로 폴백 */ }
+    } catch { /* 아래에서 명시적 오류로 처리 */ }
+    if (!form.settings?.drive_semester || !course.trim()) {
+      const err = new Error('학기와 과목을 먼저 선택해야 파일을 업로드할 수 있습니다.')
+      err.status = 422
+      throw err
+    }
   }
   const names = [form.settings?.drive_semester, course, form.title_ko]
   const folderId = auto && rootFolderId
