@@ -13,7 +13,7 @@ import pg from 'pg'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '../..')
-const SOURCE = path.join(ROOT, 'client/docs/council_SOURCE.md')
+const SOURCE = path.join(ROOT, 'docs/client/council_SOURCE.md')
 const OUT = path.join(ROOT, 'client/src/data/council.js')
 
 if (!process.env.DATABASE_URL) {

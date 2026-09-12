@@ -13,7 +13,7 @@ import pg from 'pg'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '../..')
 const DATA = path.join(ROOT, 'client/src/data')
-const SOURCE = path.join(ROOT, 'client/docs/achievements_SOURCE.md')
+const SOURCE = path.join(ROOT, 'docs/client/achievements_SOURCE.md')
 const EN_FILE = path.join(DATA, 'achievementsEn.js')
 const STATIC_OUT = path.join(DATA, 'achievements.js')
 

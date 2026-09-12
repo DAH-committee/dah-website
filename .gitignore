@@ -3,3 +3,7 @@ dist/
 .DS_Store
 .env
 client/scripts/fonts/
+
+# Local planning notes, source materials, and assistant configuration.
+# The school repository publishes only the project README as documentation.
+docs/
