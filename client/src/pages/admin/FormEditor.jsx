@@ -349,6 +349,8 @@ function FormEditor() {
   const [hydrated, setHydrated] = useState(isNew)
   const [busy, setBusy] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  const [courseLoadError, setCourseLoadError] = useState(null)
+  const [loadingCourses, setLoadingCourses] = useState(false)
   const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
   const [preview, setPreview] = useState(false)
   const [previewValue, setPreviewValue] = useState({})
@@ -372,6 +374,33 @@ function FormEditor() {
     .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
   const addField = () =>
     setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}` }, form.fields.length)])
+
+  // 개설 교과목은 학기별 관리 화면의 단일 원본(semester_offerings)을 그대로 읽는다.
+  // 따라서 매 학기 전시 폼을 만들 때 과목명을 다시 적거나 이전 학기 목록을 복사하지 않는다.
+  const loadSemesterCourses = async () => {
+    const match = String(form.settings.drive_semester || '').trim().match(/^(20\d{2})\s*[-/]\s*([12])$/)
+    const fieldId = form.settings.drive_course_field_id
+    if (!match) {
+      setCourseLoadError('학기를 2026-2처럼 입력한 뒤 불러오세요.')
+      return
+    }
+    if (!fieldId) {
+      setCourseLoadError('먼저 위에서 “과목 선택 질문”을 지정하세요.')
+      return
+    }
+    setLoadingCourses(true)
+    setCourseLoadError(null)
+    try {
+      const data = await api.get('/offerings', { year: match[1], term: match[2] })
+      const options = (data.items || []).map((item) => String(item.name_ko || '').trim()).filter(Boolean)
+      if (!options.length) throw new Error(`${form.settings.drive_semester}에 등록된 개설 과목이 없습니다.`)
+      setFields(form.fields.map((field) => field.id === fieldId ? { ...field, options } : field))
+    } catch (err) {
+      setCourseLoadError(err.message || '개설 과목을 불러오지 못했습니다.')
+    } finally {
+      setLoadingCourses(false)
+    }
+  }
 
   const { dragIndex, overIndex, rowProps } = useDragSort((from, to) => {
     const next = [...form.fields]
@@ -590,6 +619,16 @@ function FormEditor() {
                             disabled={courseFieldOptions.length === 0}
                           />
                         </Field>
+                        <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-12 rounded-sm border border-[#dfd7f4] bg-[#faf9ff] px-16 py-12">
+                          <div>
+                            <p className="text-small-m font-semibold text-[#3e3556]">해당 학기 개설 과목 불러오기</p>
+                            <p className="mt-2 text-caption-m text-[#6e6680]">교과목 관리의 학기별 목록을 위 질문의 보기로 덮어씁니다.</p>
+                          </div>
+                          <GhostButton type="button" onClick={loadSemesterCourses} disabled={loadingCourses || !form.settings.drive_course_field_id} className="border-[#cfc5ed] bg-white text-[#513aaf]">
+                            {loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}
+                          </GhostButton>
+                          {courseLoadError && <p className="w-full text-caption-m text-error">{courseLoadError}</p>}
+                        </div>
                       </>
                     )}
                     <Field label="파일 공유 범위">
