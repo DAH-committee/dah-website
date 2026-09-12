@@ -320,6 +320,13 @@ html[data-dah-easter-egg='on'] {
   /* 폼 빌더는 작업 도구다. 공개 사이트의 우주 테마와 분리해 Google Forms처럼 밝은 라벤더
      캔버스 위에 질문 카드를 쌓는다. 범위를 .form-workspace로 제한해 다른 관리자 폼에는 영향 없다. */
   .form-workspace {
+    /* 다크 사이트의 공용 text-* 토큰을 그대로 쓰는 내부 컨트롤도 밝은 작업면에서 읽힌다. */
+    --dah-bg-elev: 255 255 255;
+    --dah-bg-panel: 255 255 255;
+    --dah-text-pri: 41 37 58;
+    --dah-text-sec: 78 71 98;
+    --dah-text-meta: 112 103 137;
+    --dah-border-subtle: rgb(99 83 151 / 0.22);
     color: #29253a;
     background: #f5f2ff;
   }

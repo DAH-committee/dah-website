@@ -333,7 +333,10 @@ function FormEditor() {
   useTitle(isNew ? '폼 만들기' : '폼 수정')
 
   const { data, loading, error, refetch } = useApi(isNew ? null : `/admin/forms/${id}`)
-  const [form, setForm] = useState(EMPTY)
+  // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 상단에서 바로 편집한다.
+  const [form, setForm] = useState(() =>
+    isNew ? { ...EMPTY, slug: `form-${Date.now().toString(36)}` } : EMPTY
+  )
   const [hydrated, setHydrated] = useState(isNew)
   const [busy, setBusy] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -390,8 +393,15 @@ function FormEditor() {
         <div className="flex min-w-0 items-center gap-12">
           <FileText size={22} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
           <div className="min-w-0">
-            <h1 className="truncate text-body-l-m font-bold text-[#29253a] md:text-body-l-d">{isNew ? '새 신청 폼' : form.title_ko || '폼 편집'}</h1>
-            <p className="hidden text-caption-m text-[#756d88] sm:block">질문 · 설정 · 응답은 각각의 행사 폼에 독립적으로 저장됩니다</p>
+            <input
+              aria-label="폼 제목"
+              autoFocus={isNew}
+              value={form.title_ko}
+              onChange={setInput('title_ko')}
+              placeholder="새 신청 폼"
+              className="w-full min-w-0 rounded-sm border border-transparent bg-transparent px-8 py-4 text-body-l-m font-bold text-[#29253a] outline-none transition placeholder:text-[#756d88] hover:border-[#d8d1ed] focus:border-[#7157d9] focus:bg-white focus:ring-2 focus:ring-[#7157d9]/20 md:w-[min(42vw,540px)] md:text-body-l-d"
+            />
+            <p className="hidden text-caption-m text-[#756d88] sm:block">제목을 바로 고치고, 아래에서 질문을 추가하세요</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-8">
@@ -422,11 +432,8 @@ function FormEditor() {
       ) : (
         <form id="form-editor" onSubmit={save} className="mx-auto flex w-full max-w-5xl flex-col gap-24 pb-40">
           <div className={PANEL}>
-            <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">기본 정보</h3>
+            <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">폼 정보</h3>
             <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
-              <Field label="제목 (국문)">
-                <Input value={form.title_ko} onChange={setInput('title_ko')} required />
-              </Field>
               <Field label="제목 (영문)">
                 <Input value={form.title_en} onChange={setInput('title_en')} />
               </Field>
@@ -561,14 +568,16 @@ function FormEditor() {
             <div className="flex flex-wrap items-center justify-between gap-16 border-b border-[#ded8ef] pb-16">
               <div>
                 <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">질문</h3>
-                <p className="mt-4 text-small-m text-text-sec">질문마다 카드 한 장으로 편집합니다.</p>
+                <p className="mt-4 text-small-m text-text-sec">보라색 버튼을 눌러 질문 카드를 추가합니다.</p>
               </div>
-              <div className="flex flex-wrap items-center gap-8">
-                <GhostButton onClick={addField}>
-                  <Plus size={16} aria-hidden="true" />
-                  필드 추가
-                </GhostButton>
-              </div>
+              <button
+                type="button"
+                onClick={addField}
+                className="inline-flex h-44 items-center justify-center gap-8 rounded-full bg-[#5f43ce] px-20 text-small-m font-semibold text-white shadow-sm transition hover:bg-[#4e35b4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5f43ce]"
+              >
+                <Plus size={18} aria-hidden="true" />
+                질문 추가
+              </button>
             </div>
 
             <p className="font-mono text-caption-m text-text-meta">
@@ -576,9 +585,17 @@ function FormEditor() {
             </p>
 
             {form.fields.length === 0 && (
-              <p className="py-32 font-mono text-caption-m text-text-meta">
-                필드가 없습니다. 필드를 추가하세요.
-              </p>
+              <button
+                type="button"
+                onClick={addField}
+                className="flex min-h-160 w-full flex-col items-center justify-center gap-12 rounded-md border-2 border-dashed border-[#cfc6e6] bg-white px-24 text-center text-[#51486a] transition hover:border-[#7157d9] hover:bg-[#faf8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9]"
+              >
+                <span className="flex h-40 w-40 items-center justify-center rounded-full bg-[#eee9ff] text-[#5f43ce]">
+                  <Plus size={20} aria-hidden="true" />
+                </span>
+                <span className="text-body-m font-semibold">첫 질문 추가</span>
+                <span className="text-caption-m text-[#756d88]">객관식, 단답형, 파일 업로드 등 필요한 질문을 만드세요</span>
+              </button>
             )}
 
             {form.fields.length > 0 && (
