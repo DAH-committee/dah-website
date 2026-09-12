@@ -8,7 +8,7 @@ export const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://dah-hallym.ve
 
 export const PAGE_SEO = {
   '/': {
-    title: '한림대학교 디지털인문예술전공 | AI·디자인·인문학 융합 교육',
+    title: SITE_NAME,
     description:
       '한림대학교 디지털인문예술전공은 AI, 디자인, 인문사회학을 융합해 디지털 시대의 새로운 가치를 만드는 교육과정입니다.',
     jsonLd: {
