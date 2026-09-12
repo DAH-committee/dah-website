@@ -272,7 +272,7 @@ function FormField({
  * @param {Function} onChange (fieldId, value) => void
  * @param {Object} errors  { [field.id]: '에러 문구' }
  */
-function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUploadingChange, uploadContext }) {
+function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUploadingChange, uploadContext, onPageChange }) {
   const ordered = [...(Array.isArray(fields) ? fields : [])].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0)
   )
@@ -296,6 +296,9 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
   const [pageIndex, setPageIndex] = useState(0)
   useEffect(() => setPageIndex((current) => Math.min(current, Math.max(0, pages.length - 1))), [pages.length])
   const page = pages[pageIndex] || { fields: [] }
+  useEffect(() => {
+    onPageChange?.({ index: pageIndex, total: pages.length, isLast: pageIndex === pages.length - 1 })
+  }, [onPageChange, pageIndex, pages.length])
 
   return (
     <div className="flex min-w-0 flex-col gap-24">

@@ -88,7 +88,7 @@ function firstValue(fields, data) {
 // 제출 버튼의 기본 상태는 필수값 충족 여부로 결정한다. 형식·기간·정원 등 최종 검증은
 // 계속 서버가 담당하므로, 여기서는 빈 제출만 선제적으로 막는다.
 function hasRequiredValues(fields, value) {
-  return fields.filter((field) => field.required).every((field) => {
+  return fields.filter((field) => field.type !== 'section' && field.required).every((field) => {
     const current = value?.[field.id]
     if (Array.isArray(current)) return current.length > 0
     return String(current ?? '').trim().length > 0
@@ -119,6 +119,7 @@ function ResponseForm({
   const [message, setMessage] = useState(null)
   const [busy, setBusy] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [page, setPage] = useState({ isLast: true })
   const requiredComplete = hasRequiredValues(fields, value)
 
   const handleSubmit = async (event) => {
@@ -159,6 +160,7 @@ function ResponseForm({
           onChange={(id, next) => setValue((prev) => ({ ...prev, [id]: next }))}
           onUploadingChange={setUploading}
           uploadContext={uploadContext}
+          onPageChange={setPage}
         />
 
         {message && (
@@ -166,11 +168,11 @@ function ResponseForm({
             {message}
           </p>
         )}
-        <div>
+        {page.isLast && <div>
           <SubmitButton busy={busy || uploading || locked} disabled={!requiredComplete}>
             {busy ? busyLabel : submitLabel}
           </SubmitButton>
-        </div>
+        </div>}
       </form>
     </GlassCard>
   )
