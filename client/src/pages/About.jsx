@@ -8,7 +8,6 @@ import { EditPencil } from '../components/content/EditControls'
 import { useLang } from '../i18n/LangContext'
 import { history } from '../data/history'
 import { motion } from '../styles/tokens'
-import { Leaf, Network, Sparkles } from 'lucide-react'
 
 // About (10_IA_V2 /about) — 개요 + 미션·비전 + 연혁 타임라인
 // G12: 단조로운 텍스트 나열 → 리드 문단(크게, 행간 1.8, 최대 폭 720) + 소섹션 위계로 재배치.
@@ -93,9 +92,60 @@ function SectionHeading({ children }) {
   )
 }
 
-// 미션·비전 아이콘은 Lucide 한 시스템으로만 쓴다. 직접 그린 복합 SVG는 작은 크기에서
-// 선이 겹쳐 보였으므로, 의미가 명확하고 같은 24px 그리드를 공유하는 아이콘으로 통일했다.
-const VISION_ICONS = [Sparkles, Network, Leaf]
+// 비전 아이콘 3종 — 48×48 공통 그리드에 맞춰 직접 그린 전용 SVG다.
+// 복잡한 교차선과 외부 아이콘 의존성을 없애고, 2px 단선·라운드 마감·정사각 비율을 공유한다.
+const visionIconProps = {
+  viewBox: '0 0 48 48',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: '2',
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': 'true',
+  className: 'h-48 w-48 shrink-0 text-text-sec',
+}
+
+// 창의적 리더 — 한 사람과 위로 열린 세 방향의 발상.
+function IconLeader() {
+  return (
+    <svg {...visionIconProps}>
+      <circle cx="24" cy="16" r="5" />
+      <path d="M13 39c.8-8 4.8-12 11-12s10.2 4 11 12" />
+      <path d="M24 7V3.5" />
+      <path d="m15.5 9.5-2.7-2.7" />
+      <path d="m32.5 9.5 2.7-2.7" />
+    </svg>
+  )
+}
+
+// 융합 지식 — 서로 다른 두 지식의 면이 하나의 중심축에서 합쳐지는 열린 책.
+function IconKnowledge() {
+  return (
+    <svg {...visionIconProps}>
+      <path d="M6 11.5c6.5-1.7 12.4-.2 18 4.2V40c-5.6-4.4-11.5-5.9-18-4.2V11.5Z" />
+      <path d="M42 11.5c-6.5-1.7-12.4-.2-18 4.2V40c5.6-4.4 11.5-5.9 18-4.2V11.5Z" />
+      <path d="M10.5 17c3.4-.4 6.5.4 9.5 2.2" />
+      <path d="M37.5 17c-3.4-.4-6.5.4-9.5 2.2" />
+    </svg>
+  )
+}
+
+// 지속가능한 디지털 생태계 — 세계를 감싸며 이어지는 두 개의 순환 흐름.
+function IconEcosystem() {
+  return (
+    <svg {...visionIconProps}>
+      <circle cx="24" cy="24" r="10.5" />
+      <path d="M13.5 24h21" />
+      <path d="M24 13.5c3.4 3 5.1 6.5 5.1 10.5S27.4 31.5 24 34.5c-3.4-3-5.1-6.5-5.1-10.5S20.6 16.5 24 13.5Z" />
+      <path d="M8.2 18.2A17 17 0 0 1 36.5 9.7" />
+      <path d="m33.4 6.8 3.1 2.9 3.6-2" />
+      <path d="M39.8 29.8A17 17 0 0 1 11.5 38.3" />
+      <path d="m14.6 41.2-3.1-2.9-3.6 2" />
+    </svg>
+  )
+}
+
+const VISION_ICONS = [IconLeader, IconKnowledge, IconEcosystem]
 
 // About 전용 조각 — 연혁 타임라인 (수직: 좌측 헤어라인 세로선 + 좌 mono 날짜 + 우 내용)
 function HistoryTimeline({ items, lang }) {
@@ -222,10 +272,10 @@ function About() {
                 // T2: key는 언어 무관 index — 언어 전환 시 리마운트·재애니메이션 방지
                 <Reveal key={i} delay={i < 6 ? i * motion.stagger : 0}>
                   <div className="border-t border-border-subtle pt-24">
-                    {/* 창의성 · 융합 · 지속가능성. 같은 크기·선 굵기의 아이콘 시스템 */}
+                    {/* 창의성 · 융합 · 지속가능성. 같은 그리드로 직접 그린 전용 아이콘 */}
                     {Icon && (
                       <div className="mb-20">
-                        <Icon size={40} strokeWidth={1.75} aria-hidden="true" className="text-text-sec" />
+                        <Icon />
                       </div>
                     )}
                     <h3 className="text-h3-m font-bold leading-snug text-text-pri md:text-h3-d">
