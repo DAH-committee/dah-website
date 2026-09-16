@@ -77,6 +77,9 @@ function PageFade({ children }) {
 // 100dvh 계산과 하단 탭 고정이 어긋나므로, 이 경로만 앱 크롬 밖에서 연다.
 function AppChrome({ children }) {
   const { pathname } = useLocation()
+  // 자료실에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
+  // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
+  if (/^(?:\/en)?\/resources\/major-compass$/.test(pathname)) return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (

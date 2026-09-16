@@ -90,6 +90,10 @@ function ResourceDetail() {
     ] : null,
   })
 
+  // 전공 나침반은 자료실의 한 상세 주소이되, 자료실 본문 레이아웃을 쓰지 않는다.
+  // 이 주소 자체가 프레젠테이션 캔버스다.
+  if (isMajorCompass) return <MajorCompassPresentation />
+
   return (
     <>
       <PageBanner
@@ -113,16 +117,6 @@ function ResourceDetail() {
               {t('common.backToList')}
             </Button>
           </div>
-        ) : isMajorCompass ? (
-          <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
-            <MajorCompassPresentation />
-            <footer className="flex flex-wrap items-center justify-between gap-16 border-t border-border-subtle pt-32">
-              <Button variant="secondary" href="/resources">
-                {t('common.backToList')}
-              </Button>
-              <ShareButton title={title} />
-            </footer>
-          </article>
         ) : (
           <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
             <div className="flex flex-wrap items-center gap-12">

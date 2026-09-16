@@ -99,7 +99,6 @@ function FacultyCard({ person }) {
 function MajorCompassPresentation() {
   const presentationRef = useRef(null)
   const [index, setIndex] = useState(0)
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const { data: facultyData } = useApi('/content/professors', { params: { pageSize: 100 } })
   const { data: exhibitionData } = useApi('/content/exhibitions', { params: { pageSize: 100 } })
   const { data: contestData } = useApi('/content/contest', { params: { pageSize: 100 } })
@@ -155,7 +154,6 @@ function MajorCompassPresentation() {
   useEffect(() => setIndex((current) => Math.min(current, slides.length - 1)), [slides.length])
 
   useEffect(() => {
-    const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
     const onKeyDown = (event) => {
       const target = event.target
       const editing = target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
@@ -174,14 +172,13 @@ function MajorCompassPresentation() {
         setIndex((current) => Math.max(current - 1, 0))
       }
     }
-    document.addEventListener('fullscreenchange', onFullscreenChange)
     window.addEventListener('keydown', onKeyDown)
-    return () => { document.removeEventListener('fullscreenchange', onFullscreenChange); window.removeEventListener('keydown', onKeyDown) }
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [slides.length])
 
   const activeSlide = slides[index]
   return (
-    <section ref={presentationRef} className={isFullscreen ? 'flex min-h-screen items-center bg-bg-base px-gutter-m py-24 md:px-gutter-t lg:px-gutter-d' : ''} aria-label="디지털인문예술전공 전공 나침반">
+    <main ref={presentationRef} className="flex min-h-screen items-center bg-bg-base px-gutter-m py-24 md:px-gutter-t lg:px-gutter-d" aria-label="디지털인문예술전공 전공 나침반">
       <div className="mx-auto flex w-full min-w-0 max-w-container flex-col gap-16">
         <Slide number={index + 1} label={activeSlide.label}>{activeSlide.content}</Slide>
         <div className="flex flex-wrap items-center justify-between gap-12" aria-live="polite">
@@ -192,7 +189,7 @@ function MajorCompassPresentation() {
           </div>
         </div>
       </div>
-    </section>
+    </main>
   )
 }
 
