@@ -43,6 +43,7 @@ import ResourceDetail from './pages/ResourceDetail'
 import CI from './pages/CI'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
+import MajorCompassExperience from './pages/MajorCompassExperience'
 import NotFound from './pages/NotFound'
 
 // 어드민(Tiptap 포함)은 코드 분할 — 공개 방문자는 다운로드하지 않는다
@@ -79,7 +80,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/resources\/major-compass$/.test(pathname)) return children
+  if (/^(?:\/en)?\/major-compass$/.test(pathname)) return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -123,6 +124,7 @@ const PUBLIC_ROUTES = [
   { path: '/news', element: <News /> },
   { path: '/news/:id', element: <NewsDetail /> },
   { path: '/resources', element: <Resources /> },
+  { path: '/major-compass', element: <MajorCompassExperience /> },
   { path: '/resources/:id', element: <ResourceDetail /> },
   { path: '/privacy', element: <Privacy /> },
   { path: '/terms', element: <Terms /> },
