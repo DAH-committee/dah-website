@@ -11,6 +11,17 @@ import { useLang } from '../i18n/LangContext'
 
 const PAGE_SIZE = 10
 
+const MAJOR_COMPASS = {
+  id: 'major-compass',
+  no: '—',
+  tag: '전공 소개',
+  title: '2026 자유전공학부 전공 나침반 | 디지털인문예술전공',
+  author: '디지털인문예술전공',
+  date: '2026-09-21',
+  pinned: true,
+  to: '/resources/major-compass',
+}
+
 function toRow(post, no, isEn) {
   return {
     id: post.id,
@@ -36,13 +47,17 @@ function Resources() {
     params: { page, q: q || undefined },
   })
 
-  const total = data?.total ?? 0
+  const remoteTotal = data?.total ?? 0
   const pageSize = data?.pageSize ?? PAGE_SIZE
-  const rows = (data?.items ?? []).map((post, idx) =>
-    toRow(post, total - (page - 1) * pageSize - idx, isEn)
+  const remoteRows = (data?.items ?? []).map((post, idx) =>
+    toRow(post, remoteTotal - (page - 1) * pageSize - idx, isEn)
   )
+  const includeCompass = page === 1 && (!q || MAJOR_COMPASS.title.includes(q))
+  const rows = includeCompass ? [MAJOR_COMPASS, ...remoteRows] : remoteRows
+  // CMS 게시물 수와 페이지네이션은 서버 값만 사용한다. 고정 소개 자료는 첫 페이지의 안내 행이다.
+  const total = remoteTotal
 
-  const statusText = loading
+  const statusText = loading && !includeCompass
     ? t('common.loading')
     : rows.length === 0
       ? error && !offline

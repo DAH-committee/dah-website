@@ -8,6 +8,7 @@ import Container from '../components/layout/Container'
 import ShareButton from '../components/common/ShareButton'
 import Button from '../components/common/Button'
 import RichBody from '../components/content/RichBody'
+import MajorCompassPresentation from '../components/content/MajorCompassPresentation'
 import { EditPencil } from '../components/content/EditControls'
 import { useApi, itemOf } from '../hooks/useApi'
 import { useSeo, plainText } from '../hooks/useSeo'
@@ -17,6 +18,15 @@ import { useLang, KoreanOnlyBadge } from '../i18n/LangContext'
 const ATTACH_LINK =
   'inline-flex min-h-11 items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-8 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri md:min-h-0'
 const canPreview = (file) => /\.(pdf|jpe?g|png|webp|gif)(?:[?#].*)?$/i.test(file.name || file.url)
+const MAJOR_COMPASS_ID = 'major-compass'
+const MAJOR_COMPASS_RESOURCE = {
+  id: MAJOR_COMPASS_ID,
+  title_ko: '2026 자유전공학부 전공 나침반 | 디지털인문예술전공',
+  tag: '전공 소개',
+  author: '디지털인문예술전공',
+  date: '2026-09-21',
+  body: '디지털인문예술전공 전공 소개 자료입니다.',
+}
 
 function AttachmentRow({ file, t }) {
   return (
@@ -44,9 +54,10 @@ function AttachmentRow({ file, t }) {
 function ResourceDetail() {
   const { id } = useParams()
   const { lang, t } = useLang()
-  const { data, loading } = useApi(`/content/resource/${id}`)
+  const isMajorCompass = id === MAJOR_COMPASS_ID
+  const { data, loading } = useApi(isMajorCompass ? null : `/content/resource/${id}`)
 
-  const post = itemOf(data)
+  const post = isMajorCompass ? MAJOR_COMPASS_RESOURCE : itemOf(data)
 
   // R1(27_I18N): EN 모드는 영문 본문·제목 우선(자료실은 영문 필수 — 없으면 국문 폴백 뱃지)
   const isEn = lang === 'en'
@@ -106,7 +117,7 @@ function ResourceDetail() {
           <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
             <div className="flex flex-wrap items-center gap-12">
               {koFallback && <KoreanOnlyBadge />}
-              <EditPencil type="resource" to={`/admin/posts/resource/${id}/edit`} />
+              {!isMajorCompass && <EditPencil type="resource" to={`/admin/posts/resource/${id}/edit`} />}
             </div>
 
             <div className="rounded-glass border border-glass-line bg-bg-elev p-24 shadow-glass md:p-40 lg:p-48">
@@ -136,7 +147,9 @@ function ResourceDetail() {
               </header>
 
               {/* 본문 — 밝은 표면 대비(reading.text 15.0:1) */}
-              {body ? (
+              {isMajorCompass ? (
+                <MajorCompassPresentation />
+              ) : body ? (
                 <div className="max-w-4xl pt-32 md:pt-40">
                   <RichBody body={body} />
                 </div>
