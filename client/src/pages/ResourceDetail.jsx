@@ -113,6 +113,16 @@ function ResourceDetail() {
               {t('common.backToList')}
             </Button>
           </div>
+        ) : isMajorCompass ? (
+          <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
+            <MajorCompassPresentation />
+            <footer className="flex flex-wrap items-center justify-between gap-16 border-t border-border-subtle pt-32">
+              <Button variant="secondary" href="/resources">
+                {t('common.backToList')}
+              </Button>
+              <ShareButton title={title} />
+            </footer>
+          </article>
         ) : (
           <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
             <div className="flex flex-wrap items-center gap-12">
@@ -147,9 +157,7 @@ function ResourceDetail() {
               </header>
 
               {/* 본문 — 밝은 표면 대비(reading.text 15.0:1) */}
-              {isMajorCompass ? (
-                <MajorCompassPresentation />
-              ) : body ? (
+              {body ? (
                 <div className="max-w-4xl pt-32 md:pt-40">
                   <RichBody body={body} />
                 </div>

@@ -23,7 +23,7 @@ const variants = {
 
 // arrow: external 링크의 ArrowUpRight 표시 여부(P5 기본 true).
 // 라벨 자체가 목적지를 말하는 버튼(전시 사이트 등)에서만 false로 끈다.
-function Button({ variant = 'primary', href, external = false, arrow = true, children }) {
+function Button({ variant = 'primary', href, external = false, arrow = true, children, ...rest }) {
   const className = `${base} ${variants[variant] || variants.primary}`
 
   if (external) {
@@ -33,6 +33,7 @@ function Button({ variant = 'primary', href, external = false, arrow = true, chi
         target="_blank"
         rel="noopener noreferrer"
         className={className}
+        {...rest}
       >
         {children}
         {arrow && <ArrowUpRight size={16} />}
@@ -40,11 +41,15 @@ function Button({ variant = 'primary', href, external = false, arrow = true, chi
     )
   }
 
-  return (
+  if (href) {
+    return (
     <Link to={href} className={className}>
       {children}
     </Link>
-  )
+    )
+  }
+
+  return <button type="button" className={className} {...rest}>{children}</button>
 }
 
 export default Button
