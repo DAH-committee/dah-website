@@ -43,11 +43,11 @@ import ResourceDetail from './pages/ResourceDetail'
 import CI from './pages/CI'
 import Privacy from './pages/Privacy'
 import Terms from './pages/Terms'
-import MajorCompassExperience from './pages/MajorCompassExperience'
 import NotFound from './pages/NotFound'
 
 // 어드민(Tiptap 포함)은 코드 분할 — 공개 방문자는 다운로드하지 않는다
 const AdminRoutes = lazy(() => import('./pages/AdminRoutes'))
+const MajorCompassExperience = lazy(() => import('./pages/MajorCompassExperience'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
 // .page-fade(opacity 0→1, translate 금지). reduced-motion은 index.css 전역 미디어쿼리가 무효화.
@@ -124,7 +124,14 @@ const PUBLIC_ROUTES = [
   { path: '/news', element: <News /> },
   { path: '/news/:id', element: <NewsDetail /> },
   { path: '/resources', element: <Resources /> },
-  { path: '/major-compass', element: <MajorCompassExperience /> },
+  {
+    path: '/major-compass',
+    element: (
+      <Suspense fallback={<p className="px-gutter-m py-section-m font-mono text-caption-m text-text-meta">로딩 중</p>}>
+        <MajorCompassExperience />
+      </Suspense>
+    ),
+  },
   { path: '/resources/:id', element: <ResourceDetail /> },
   { path: '/privacy', element: <Privacy /> },
   { path: '/terms', element: <Terms /> },
