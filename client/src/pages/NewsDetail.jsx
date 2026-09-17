@@ -12,6 +12,7 @@ import { useSeo, plainText } from '../hooks/useSeo'
 import { breadcrumbJsonLd, SITE_NAME } from '../data/seo'
 import { useLang, KoreanOnlyBadge } from '../i18n/LangContext'
 import { notices } from '../data/notices'
+import { majorCompassNotice } from '../data/majorCompass'
 
 const ATTACH_LINK =
   'inline-flex min-h-11 items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-8 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri md:min-h-0'
@@ -43,10 +44,11 @@ function AttachmentRow({ file, t }) {
 function NewsDetail() {
   const { id } = useParams()
   const { lang, t } = useLang()
-  const { data, loading, offline } = useApi(`/content/notice/${id}`)
+  const isMajorCompass = id === majorCompassNotice.id
+  const { data, loading, offline } = useApi(isMajorCompass ? null : `/content/notice/${id}`)
 
-  const fallback = offline ? notices.find((n) => n.id === id) : null
-  const post = itemOf(data) ?? fallback
+  const fallback = isMajorCompass ? majorCompassNotice : offline ? notices.find((n) => n.id === id) : null
+  const post = isMajorCompass ? majorCompassNotice : itemOf(data) ?? fallback
 
   // R1(27_I18N): EN 모드는 영문 필드 우선(공지는 영문 선택 — 없으면 국문 폴백 + Korean only 뱃지)
   const isEn = lang === 'en'
@@ -95,7 +97,7 @@ function NewsDetail() {
         nebulaY="18%"
       />
       <Container as="section" className="py-section-m lg:py-section-d">
-        {loading ? (
+        {loading && !isMajorCompass ? (
           <p className="py-64 font-mono text-caption-m text-text-meta">{t('common.loading')}</p>
         ) : !post ? (
           <div className="flex flex-col items-start gap-24 py-64">
@@ -108,7 +110,7 @@ function NewsDetail() {
           <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
             <div className="flex flex-wrap items-center gap-12">
               {koFallback && <KoreanOnlyBadge />}
-              <EditPencil type="notice" to={`/admin/posts/notice/${id}/edit`} />
+              {!isMajorCompass && <EditPencil type="notice" to={`/admin/posts/notice/${id}/edit`} />}
             </div>
 
             <div className="rounded-glass border border-glass-line bg-bg-elev p-24 shadow-glass md:p-40 lg:p-48">
@@ -137,9 +139,26 @@ function NewsDetail() {
                 )}
               </header>
 
+              {post.poster_url && (
+                <figure className="mt-32 overflow-hidden rounded-md border border-border-subtle bg-bg-panel md:mt-40">
+                  <img
+                    src={post.poster_url}
+                    alt={post.poster_alt || `${title} 썸네일`}
+                    className="aspect-video w-full object-cover"
+                  />
+                </figure>
+              )}
+
               {body ? (
                 <div className="max-w-4xl pt-32 md:pt-40">
                   <RichBody body={body} />
+                  {isMajorCompass && (
+                    <div className="mt-32">
+                      <Button variant="primary" href="/major-compass">
+                        인터랙티브 전공소개 시작하기
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <p className="pt-32 text-body-l-m leading-relaxed text-text-meta md:text-body-l-d">
