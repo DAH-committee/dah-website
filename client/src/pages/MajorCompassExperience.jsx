@@ -556,7 +556,7 @@ function MajorCompassExperience() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-nebula-soft opacity-80" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-70" style={{ background: `radial-gradient(36rem circle at ${pointer.x}% ${pointer.y}%, rgb(var(--dah-purple-primary) / .08), transparent 62%)` }} />
 
-      <Link to="/news/major-compass" aria-label="전공 나침반 공지 상세로 돌아가기" className="absolute left-16 top-20 z-30 inline-flex h-40 w-40 items-center justify-center border border-border-subtle text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri md:left-24 md:top-24 lg:left-32">
+      <Link to="/resources/major-compass" aria-label="전공 나침반 자료 상세로 돌아가기" className="absolute left-16 top-20 z-30 inline-flex h-40 w-40 items-center justify-center border border-border-subtle text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri md:left-24 md:top-24 lg:left-32">
         <X size={16} aria-hidden="true" />
       </Link>
       <motion.button

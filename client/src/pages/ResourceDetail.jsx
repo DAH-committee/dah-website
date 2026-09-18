@@ -13,19 +13,12 @@ import { useApi, itemOf } from '../hooks/useApi'
 import { useSeo, plainText } from '../hooks/useSeo'
 import { breadcrumbJsonLd, SITE_NAME } from '../data/seo'
 import { useLang, KoreanOnlyBadge } from '../i18n/LangContext'
+import { majorCompassResource } from '../data/majorCompass'
 
 const ATTACH_LINK =
   'inline-flex min-h-11 items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-8 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri md:min-h-0'
 const canPreview = (file) => /\.(pdf|jpe?g|png|webp|gif)(?:[?#].*)?$/i.test(file.name || file.url)
 const MAJOR_COMPASS_ID = 'major-compass'
-const MAJOR_COMPASS_RESOURCE = {
-  id: MAJOR_COMPASS_ID,
-  title_ko: '2026 자유전공학부 전공 나침반 | 디지털인문예술전공',
-  tag: '전공 소개',
-  author: '디지털인문예술전공',
-  date: '2026-09-21',
-  body: '디지털인문예술전공 인터랙티브 전공소개 자료입니다.',
-}
 
 function AttachmentRow({ file, t }) {
   return (
@@ -56,7 +49,7 @@ function ResourceDetail() {
   const isMajorCompass = id === MAJOR_COMPASS_ID
   const { data, loading } = useApi(isMajorCompass ? null : `/content/resource/${id}`)
 
-  const post = isMajorCompass ? MAJOR_COMPASS_RESOURCE : itemOf(data)
+  const post = isMajorCompass ? majorCompassResource : itemOf(data)
 
   // R1(27_I18N): EN 모드는 영문 본문·제목 우선(자료실은 영문 필수 — 없으면 국문 폴백 뱃지)
   const isEn = lang === 'en'

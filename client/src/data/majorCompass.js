@@ -1,9 +1,9 @@
 const text = (value) => ({ type: 'text', text: value })
 const paragraph = (value) => ({ type: 'paragraph', content: [text(value)] })
 
-// 전공 나침반은 CMS 공지와 별개로 발표 당일까지 항상 노출해야 하는 고정 안내다.
-// 공지 목록과 상세에서 같은 객체를 쓰므로 제목·날짜·썸네일이 어긋나지 않는다.
-export const majorCompassNotice = {
+// 전공 나침반은 발표 당일까지 자료실 첫 화면에 고정 노출하는 전공소개 자료다.
+// 목록과 상세가 같은 객체를 쓰므로 제목·날짜·썸네일이 어긋나지 않는다.
+export const majorCompassResource = {
   id: 'major-compass',
   date: '2026-09-21',
   org: '전공',

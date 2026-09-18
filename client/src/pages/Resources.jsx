@@ -8,17 +8,13 @@ import InlineEditBar from '../components/content/InlineEditBar'
 import { useApi } from '../hooks/useApi'
 import { useTitle } from '../hooks/useTitle'
 import { useLang } from '../i18n/LangContext'
+import { majorCompassResource } from '../data/majorCompass'
 
 const PAGE_SIZE = 10
 
 const MAJOR_COMPASS = {
-  id: 'major-compass',
+  ...majorCompassResource,
   no: '—',
-  tag: '전공 소개',
-  title: '2026 자유전공학부 전공 나침반 | 디지털인문예술전공',
-  author: '디지털인문예술전공',
-  date: '2026-09-21',
-  pinned: true,
   to: '/resources/major-compass',
 }
 

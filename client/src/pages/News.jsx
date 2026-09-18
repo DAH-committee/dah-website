@@ -10,7 +10,6 @@ import { useApi } from '../hooks/useApi'
 import { useTitle } from '../hooks/useTitle'
 import { useLang } from '../i18n/LangContext'
 import { notices } from '../data/notices'
-import { majorCompassNotice } from '../data/majorCompass'
 
 // 필터 값(value)은 API 파라미터로 그대로 전송 — 알려진 태그는 표시명만 사전(news.tags.*) 조회,
 // 그 외 서버 태그는 원문 그대로 표시.
@@ -80,7 +79,7 @@ function News() {
 
   const useFallback = offline || (error && !data)
   const contentTotal = useFallback ? fallback.length : data?.total ?? 0
-  const total = contentTotal + 1
+  const total = contentTotal
   const pageSize = useFallback ? PAGE_SIZE : data?.pageSize ?? PAGE_SIZE
   const source = useFallback
     ? fallback.slice((page - 1) * pageSize, page * pageSize)
@@ -88,12 +87,9 @@ function News() {
   const noticeRows = pinnedFirst(source).map((post, idx) =>
     toRow(post, contentTotal - (page - 1) * pageSize - idx, isEn)
   )
-  const includeCompass = page === 1 && tag === '전체' && (!q || majorCompassNotice.title.includes(q))
-  const rows = includeCompass
-    ? [toRow(majorCompassNotice, '—', isEn), ...noticeRows.slice(0, Math.max(pageSize - 1, 0))]
-    : noticeRows
+  const rows = noticeRows
 
-  const statusText = loading && !includeCompass
+  const statusText = loading
     ? t('common.loading')
     : rows.length === 0
       ? error && !useFallback
