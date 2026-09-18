@@ -346,17 +346,8 @@ function Curriculum() {
       />
 
       <div className="pb-section-m md:pb-section-d">
-        {/* 공통기초 → 트랙 3: 학기별 표 (앵커 유지: /curriculum#track-n) */}
-        {LANE_KEYS.map((key) => (
-          <LaneSection
-            key={key}
-            trackKey={key}
-            lang={lang}
-            t={t}
-            offeredNames={semester.offeredNames}
-          />
-        ))}
-
+        {/* 수준별 교육 과정은 페이지의 첫 내용으로 둔다. 전체 구조를 먼저 본 뒤
+            공통기초·트랙별 상세 표로 내려가는 흐름이다. */}
         {/* 4년 로드맵 — 학기 반영 SVG (md 미만은 표가 이미 학기별 정보를 제공해 숨김) */}
         {curriculum.length > 0 && (
           <Container as="section" className="pt-section-m md:pt-section-d">
@@ -497,6 +488,17 @@ function Curriculum() {
             </div>
           </Container>
         )}
+
+        {/* 공통기초 → 트랙 3: 로드맵 다음에 학기별 상세 표 (앵커 유지: /curriculum#track-n) */}
+        {LANE_KEYS.map((key) => (
+          <LaneSection
+            key={key}
+            trackKey={key}
+            lang={lang}
+            t={t}
+            offeredNames={semester.offeredNames}
+          />
+        ))}
       </div>
     </>
   )
