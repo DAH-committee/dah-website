@@ -13,11 +13,21 @@ export const PAGE_SEO = {
       '한림대학교 디지털인문예술전공은 AI, 디자인, 인문사회학을 융합해 디지털 시대의 새로운 가치를 만드는 교육과정입니다.',
     jsonLd: {
       '@context': 'https://schema.org',
-      '@type': 'EducationalOrganization',
-      name: SITE_NAME,
-      alternateName: 'Digital Arts and Humanities',
-      url: SITE_URL,
-      parentOrganization: { '@type': 'CollegeOrUniversity', name: '한림대학교' },
+      '@graph': [
+        {
+          '@type': 'EducationalOrganization',
+          name: SITE_NAME,
+          alternateName: ['한림대 디지털인문예술전공', 'Digital Arts and Humanities, Hallym University', 'DAH'],
+          url: SITE_URL,
+          parentOrganization: { '@type': 'CollegeOrUniversity', name: '한림대학교' },
+        },
+        {
+          '@type': 'WebSite',
+          name: SITE_NAME,
+          alternateName: '디지털인문예술전공',
+          url: SITE_URL,
+        },
+      ],
     },
   },
   '/about': {

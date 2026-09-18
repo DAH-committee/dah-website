@@ -38,14 +38,24 @@
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "한림대학교 디지털인문예술전공",
-      "alternateName": ["한림대 디지털인문예술전공", "Digital Arts and Humanities, Hallym University", "DAH"],
-      "url": "%SITE_URL%/",
-      "parentOrganization": {
-        "@type": "CollegeOrUniversity",
-        "name": "한림대학교"
-      }
+      "@graph": [
+        {
+          "@type": "EducationalOrganization",
+          "name": "한림대학교 디지털인문예술전공",
+          "alternateName": ["한림대 디지털인문예술전공", "Digital Arts and Humanities, Hallym University", "DAH"],
+          "url": "%SITE_URL%/",
+          "parentOrganization": {
+            "@type": "CollegeOrUniversity",
+            "name": "한림대학교"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "한림대학교 디지털인문예술전공",
+          "alternateName": "디지털인문예술전공",
+          "url": "%SITE_URL%/"
+        }
+      ]
     }
   </script>
 
