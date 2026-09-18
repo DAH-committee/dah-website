@@ -59,20 +59,20 @@ const FEATURED_ACHIEVEMENT_IDS = ['ach-12', 'ach-18', 'ach-20']
 const FEATURED_CAREER_IDS = ['career-07', 'career-15', 'career-22', 'career-03']
 
 const slideMotion = {
-  enter: (direction) => ({ opacity: 0.18, x: direction > 0 ? 96 : -96, scale: 0.988, filter: 'blur(5px)' }),
+  enter: (direction) => ({ opacity: 0, x: direction > 0 ? 56 : -56, scale: 0.994, filter: 'blur(2px)' }),
   center: {
     opacity: 1,
     x: 0,
     scale: 1,
     filter: 'blur(0px)',
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+    transition: { duration: 0.54, ease: [0.22, 1, 0.36, 1] },
   },
   exit: (direction) => ({
     opacity: 0,
-    x: direction > 0 ? -44 : 44,
-    scale: 0.996,
-    filter: 'blur(2px)',
-    transition: { duration: 0.16, ease: [0.4, 0, 1, 1] },
+    x: direction > 0 ? -28 : 28,
+    scale: 0.998,
+    filter: 'blur(1px)',
+    transition: { duration: 0.26, ease: [0.4, 0, 1, 1] },
   }),
 }
 
@@ -212,7 +212,7 @@ function MajorCompassExperience() {
 
   const moveWithLock = useCallback((move) => {
     const now = Date.now()
-    if (now - lastInputAt.current < 420) return
+    if (now - lastInputAt.current < 580) return
     lastInputAt.current = now
     move()
   }, [])
@@ -586,8 +586,8 @@ function MajorCompassExperience() {
               <motion.div
                 aria-hidden="true"
                 initial={{ opacity: 0, x: direction > 0 ? '45%' : '-45%' }}
-                animate={{ opacity: [0, 0.14, 0], x: direction > 0 ? '-45%' : '45%' }}
-                transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                animate={{ opacity: [0, 0.09, 0], x: direction > 0 ? '-45%' : '45%' }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                 className="pointer-events-none absolute inset-y-0 z-0 w-1/3 bg-gradient-to-r from-transparent via-purple-primary/30 to-transparent blur-3xl"
               />
             )}
