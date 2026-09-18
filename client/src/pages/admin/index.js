@@ -37,6 +37,7 @@ import FormResponsesSheet from './FormResponsesSheet'
 import SettingsAdmin from './SettingsAdmin'
 import UsersAdmin from './UsersAdmin'
 import AboutAdmin from './AboutAdmin'
+import HyunhoEasterEggAdmin from './HyunhoEasterEggAdmin'
 
 export { AdminLayout }
 
@@ -60,6 +61,7 @@ export const ADMIN_ROUTES = [
   { path: 'settings', Component: SettingsAdmin, role: 'manager' },
   { path: 'about', Component: AboutAdmin, role: 'manager' },
   { path: 'users', Component: UsersAdmin, role: 'manager' },
+  { path: 'easter-egg/hyunho', Component: HyunhoEasterEggAdmin, role: 'owner' },
 ]
 
 /**

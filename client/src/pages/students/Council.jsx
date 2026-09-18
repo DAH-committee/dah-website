@@ -1,13 +1,14 @@
 // /students/council — 운영위원회 (T4 아카이브형: 기수별 아카이브)
 // 기수 탭(최신 기본) → 로고·기수명·소개·구성원 그리드. 기수가 늘어도 동일 템플릿 보존.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import PageBanner from '../../components/layout/PageBanner'
 import ImageFrame from '../../components/common/ImageFrame'
 import StateMessage from '../../components/common/StateMessage'
 import Container from '../../components/layout/Container'
 import { ACCENT } from '../../styles/accents'
 import { AddButton, EditPencil } from '../../components/content/EditControls'
-import { useApi } from '../../hooks/useApi'
+import { api, useApi } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { useLang } from '../../i18n/LangContext'
 import { councils } from '../../data/council'
@@ -93,6 +94,122 @@ const FALLBACK_ITEMS = councils.map((c) => ({
   members: c.members,
 }))
 
+function HyunhoEasterEggModal({ status, onClose, onSubmitted }) {
+  const [form, setForm] = useState({ name: '', student_no: '', phone: '', privacy_agreed: false })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
+  const [result, setResult] = useState(null)
+  // 상태 요청이 아직 끝나지 않아도 입력창은 먼저 열어 둔다. 최종 3명 제한은 서버가
+  // 원자적으로 판정하므로, 네트워크 지연 때문에 축하 모달이 빈 화면이 되지 않는다.
+  const isFull = status?.remaining === 0
+  const expectedPosition = status?.nextPosition ?? 1
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape' && !saving) onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose, saving])
+
+  const submit = async (event) => {
+    event.preventDefault()
+    if (saving || result) return
+    setSaving(true)
+    setError(null)
+    try {
+      const response = await api.post('/easter-eggs/hyunho/discoveries', form)
+      setResult(response.discovery)
+      onSubmitted()
+    } catch (err) {
+      setError(
+        err.status === 409
+          ? '이번 라운드의 3명 발견자가 모두 등록되었습니다.'
+          : '입력 내용을 확인한 뒤 다시 시도해 주세요.'
+      )
+      onSubmitted()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-gutter-m py-24">
+      <button
+        type="button"
+        aria-label="이스터에그 창 닫기"
+        onClick={!saving ? onClose : undefined}
+        className="absolute inset-0 cursor-default bg-cosmos-depth0/80 backdrop-blur-glass-mobile"
+      />
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hyunho-easter-title"
+        className="relative z-10 w-full max-w-[520px] rounded-glass border border-border-strong bg-bg-elev p-24 shadow-glass md:p-32"
+      >
+        {result ? (
+          <div className="flex flex-col items-start gap-16">
+            <p className="font-mono text-label-m uppercase tracking-label text-purple-primary">EASTER EGG FOUND</p>
+            <h2 id="hyunho-easter-title" className="text-h2-m font-bold text-text-pri md:text-h2-d">
+              축하합니다!
+            </h2>
+            <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec md:text-body-d">
+              {result.position}번째로 제작자 주현호의 이스터에그를 발견하셨습니다.\n참여 기록을 저장했습니다.
+            </p>
+            <button type="button" onClick={onClose} className="mt-8 inline-flex h-11 cursor-pointer items-center rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText transition duration-fast ease-out hover:bg-button-primaryHover">
+              확인
+            </button>
+          </div>
+        ) : (
+          <form className="flex flex-col gap-20" onSubmit={submit}>
+            <div className="flex flex-col gap-8">
+              <p className="font-mono text-label-m uppercase tracking-label text-purple-primary">EASTER EGG FOUND</p>
+              <h2 id="hyunho-easter-title" className="text-h2-m font-bold text-text-pri md:text-h2-d">
+                축하합니다!
+              </h2>
+              <p className="text-body-m leading-relaxed text-text-sec md:text-body-d">
+                {isFull
+                  ? '이번 라운드의 3명 발견자가 모두 등록되었습니다. 다음 라운드를 기다려 주세요.'
+                  : `${expectedPosition}번째로 제작자 주현호의 이스터에그를 발견하셨습니다. 3명까지만 기록됩니다.`}
+              </p>
+            </div>
+            {!isFull && (
+              <>
+                <label className="flex flex-col gap-8">
+                  <span className="font-mono text-label-m text-text-meta">이름</span>
+                  <input required value={form.name} maxLength={50} onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))} className="rounded-md border border-border-subtle bg-bg-panel px-16 py-12 text-body-m text-text-pri outline-none transition duration-fast ease-out focus:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus" />
+                </label>
+                <label className="flex flex-col gap-8">
+                  <span className="font-mono text-label-m text-text-meta">학번</span>
+                  <input required inputMode="numeric" pattern="[0-9]{6,16}" value={form.student_no} maxLength={16} onChange={(e) => setForm((v) => ({ ...v, student_no: e.target.value }))} className="rounded-md border border-border-subtle bg-bg-panel px-16 py-12 text-body-m text-text-pri outline-none transition duration-fast ease-out focus:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus" />
+                </label>
+                <label className="flex flex-col gap-8">
+                  <span className="font-mono text-label-m text-text-meta">전화번호</span>
+                  <input required inputMode="tel" placeholder="010-0000-0000" value={form.phone} maxLength={24} onChange={(e) => setForm((v) => ({ ...v, phone: e.target.value }))} className="rounded-md border border-border-subtle bg-bg-panel px-16 py-12 text-body-m text-text-pri outline-none transition duration-fast ease-out placeholder:text-text-meta focus:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus" />
+                </label>
+                <label className="flex cursor-pointer items-start gap-8 text-small-m leading-relaxed text-text-sec">
+                  <input required type="checkbox" checked={form.privacy_agreed} onChange={(e) => setForm((v) => ({ ...v, privacy_agreed: e.target.checked }))} className="mt-4 h-16 w-16 accent-purple-primary" />
+                  <span>이름·학번·전화번호를 이스터에그 참여 기록과 경품 안내 목적으로 수집하는 데 동의합니다.</span>
+                </label>
+              </>
+            )}
+            {error && <p role="alert" className="text-small-m text-state-error">{error}</p>}
+            <div className="flex flex-wrap justify-end gap-8 border-t border-border-subtle pt-16">
+              <button type="button" disabled={saving} onClick={onClose} className="inline-flex h-11 cursor-pointer items-center rounded-sm border border-border-subtle px-16 text-body-m text-text-pri transition duration-fast ease-out hover:border-border-strong disabled:opacity-40">
+                닫기
+              </button>
+              {!isFull && <button type="submit" disabled={saving} className="inline-flex h-11 cursor-pointer items-center rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText transition duration-fast ease-out hover:bg-button-primaryHover disabled:opacity-40">
+                {saving ? '저장 중' : '참여 기록 저장'}
+              </button>}
+            </div>
+          </form>
+        )}
+      </section>
+    </div>,
+    document.body
+  )
+}
+
 function Council() {
   const { lang, t } = useLang()
   useTitle(t('titles.council'))
@@ -100,6 +217,7 @@ function Council() {
   const { data, loading, error, offline, refetch } = useApi('/content/council', {
     params: { pageSize: 100 },
   })
+  const easterStatus = useApi('/easter-eggs/hyunho/status')
   const remote = data?.items ?? []
   // H3: 연도(year_label) 내림차순 — 2026(현 운영위)이 항상 맨 앞
   const items =
@@ -110,6 +228,7 @@ function Council() {
       : FALLBACK_ITEMS
 
   const [selectedId, setSelectedId] = useState(null)
+  const [easterOpen, setEasterOpen] = useState(false)
   const hyunhoClickTimes = useRef([])
   const activateEasterEgg = () => {
     const now = Date.now()
@@ -119,6 +238,8 @@ function Council() {
     // Canvas처럼 CSS 변수·클래스만으로 색을 바꿀 수 없는 렌더러에도 전환을 알린다.
     window.dispatchEvent(new Event('dah-easter-egg'))
     hyunhoClickTimes.current = []
+    easterStatus.refetch()
+    setEasterOpen(true)
   }
   const active = items.find((c) => c.id === selectedId) ?? items[0] ?? null
   const members = Array.isArray(active?.members) ? active.members.map(toMember) : []
@@ -254,6 +375,11 @@ function Council() {
                             key={`${member.name}-${member.majors ?? ''}`}
                             className="text-body-m text-text-pri md:text-body-d"
                             onClick={member.name === '주현호' ? activateEasterEgg : undefined}
+                            role={member.name === '주현호' ? 'button' : undefined}
+                            tabIndex={member.name === '주현호' ? 0 : undefined}
+                            onKeyDown={member.name === '주현호' ? (event) => {
+                              if (event.key === 'Enter' || event.key === ' ') activateEasterEgg()
+                            } : undefined}
                           >
                             {lang === 'en' ? member.nameEn ?? member.name : member.name}
                             {member.majors && (
@@ -272,6 +398,13 @@ function Council() {
           </div>
         )}
       </Container>
+      {easterOpen && (
+        <HyunhoEasterEggModal
+          status={easterStatus.data}
+          onClose={() => setEasterOpen(false)}
+          onSubmitted={easterStatus.refetch}
+        />
+      )}
     </>
   )
 }

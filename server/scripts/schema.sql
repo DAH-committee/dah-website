@@ -23,6 +23,16 @@ CREATE TABLE IF NOT EXISTS public_users (
   last_login_at TIMESTAMPTZ
 );
 
+-- 주현호 이스터에그 발견 기록. 공개 화면은 최대 3명만 수집하며,
+-- 열람·초기화 API는 이름이 주현호인 owner 계정으로 제한된다.
+CREATE TABLE IF NOT EXISTS hyunho_easter_egg_discoveries (
+  id         SERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  student_no TEXT NOT NULL,
+  phone      TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- 사이트 설정 (hero 버튼 텍스트·링크, 접수 버튼 노출 등 key-value)
 CREATE TABLE IF NOT EXISTS site_settings (
   key   TEXT PRIMARY KEY,

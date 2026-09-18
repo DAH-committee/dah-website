@@ -21,6 +21,10 @@ import { RequireRole, useAuth } from '../../context/AuthContext'
 // 시스템·오너 전용(전시회 설정·사이트 설정·상담·사용자)은 IA에 없으므로 별도 그룹으로 둔다.
 const NAV_GROUPS = [
   {
+    label: 'OWNER',
+    items: [{ to: '/admin/easter-egg/hyunho', label: '주현호 이스터에그', role: 'owner', hyunhoOnly: true }],
+  },
+  {
     label: 'USERS',
     items: [{ to: '/admin/users', label: '사용자', role: 'manager' }],
   },
@@ -181,7 +185,7 @@ function AdminNav() {
   // 항목 단위 권한 필터 — 볼 수 있는 항목이 하나도 없는 그룹은 제목까지 감춘다
   const visibleGroups = NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => hasRole(item.role)),
+    items: group.items.filter((item) => hasRole(item.role) && (!item.hyunhoOnly || user?.name === '주현호')),
   })).filter((group) => group.items.length > 0)
 
   return (

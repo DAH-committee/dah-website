@@ -43,6 +43,48 @@ test('(a) 비로그인 POST /admin/content/notice → 401', async () => {
   assert.equal(res.status, 401)
 })
 
+test('(a-보강) 이스터에그 공개 현황은 개인정보 없이 인원만 제공한다', async () => {
+  const app = createApp({
+    db: mockDb((text) => {
+      if (text.includes('COUNT(*)::int AS total FROM hyunho_easter_egg_discoveries')) {
+        return { rows: [{ total: 2 }] }
+      }
+      return { rows: [] }
+    }),
+  })
+
+  const res = await request(app).get('/easter-eggs/hyunho/status')
+  assert.equal(res.status, 200)
+  assert.deepEqual(res.body, { total: 2, limit: 3, remaining: 1, nextPosition: 3 })
+  assert.equal('name' in res.body, false)
+  assert.equal('phone' in res.body, false)
+})
+
+test('(a-보강) 이스터에그 개인정보 목록과 초기화는 주현호 owner만 가능하다', async () => {
+  const app = createApp({
+    db: mockDb((text) => {
+      if (text.includes('FROM hyunho_easter_egg_discoveries') && text.includes('ORDER BY created_at ASC')) {
+        return { rows: [{ id: 1, name: '참여자', student_no: '20221234', phone: '010-1234-5678', created_at: '2026-09-18T00:00:00.000Z' }] }
+      }
+      if (text.startsWith('DELETE FROM hyunho_easter_egg_discoveries')) return { rows: [], rowCount: 1 }
+      return { rows: [] }
+    }),
+  })
+
+  const otherOwner = [accessCookie({ id: 1, email: 'owner@test.dev', name: '다른 관리자', role: 'owner' })]
+  const denied = await request(app).get('/admin/easter-eggs/hyunho').set('Cookie', otherOwner)
+  assert.equal(denied.status, 403)
+
+  const hyunho = [accessCookie({ id: 2, email: 'hyunho@test.dev', name: '주현호', role: 'owner' })]
+  const list = await request(app).get('/admin/easter-eggs/hyunho').set('Cookie', hyunho)
+  assert.equal(list.status, 200)
+  assert.equal(list.body.items[0].student_no, '20221234')
+
+  const reset = await request(app).delete('/admin/easter-eggs/hyunho/discoveries').set('Cookie', hyunho)
+  assert.equal(reset.status, 200)
+  assert.equal(reset.body.deleted, 1)
+})
+
 test('(b) manager 토큰으로 교수진 작성 → 201', async () => {
   const app = createApp({
     db: mockDb((text) => {
