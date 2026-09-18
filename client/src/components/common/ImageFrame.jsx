@@ -5,7 +5,7 @@
 // - bg=false(기본): 사진·포스터 → object-cover로 프레임을 여백 없이 꽉 채움
 // - bg=true: 투명 PNG 로고 → object-contain + bg-bg-frame(중성 배경) 위에 로고 전체 노출
 // - src 없으면(또는 로드 실패 시) placeholder(노드) 또는 기본 캡션. 색·간격은 토큰 클래스만.
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 function ImageFrame({
   src,
@@ -23,14 +23,16 @@ function ImageFrame({
   const isContain = contain || bg
   // 26_CI: 정적 슬롯(/ci/*.png 등) 파일 부재 시 깨진 이미지 대신 placeholder 노출.
   // src별로 실패를 추적해 어드민이 새 src를 넣으면 다시 시도한다.
+  //
+  // 주의: 여기서 useEffect로 loadedSrc를 null로 초기화하면, 브라우저 캐시에 있던
+  // 이미지는 onLoad가 먼저 실행된 뒤 effect가 다시 null을 덮어쓴다. 그러면 이미지는
+  // 실제로 내려받았는데도 opacity-0(로딩 스켈레톤)으로 영구히 남는다. 전시·공모전의
+  // 이관된 정적 포스터가 빈 프레임으로 보이던 원인이었다. src 비교만으로 전환 상태를
+  // 계산하면 effect 없이도 새 src에는 자동으로 로딩 상태가 적용된다.
   const [erroredSrc, setErroredSrc] = useState(null)
   const [loadedSrc, setLoadedSrc] = useState(null)
   const showImg = src && erroredSrc !== src
   const loadingImage = showImg && loadedSrc !== src
-
-  useEffect(() => {
-    setLoadedSrc(null)
-  }, [src])
 
   return (
     <div

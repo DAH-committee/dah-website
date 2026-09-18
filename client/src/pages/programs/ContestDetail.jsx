@@ -7,6 +7,7 @@ import ShareButton from '../../components/common/ShareButton'
 import Button from '../../components/common/Button'
 import ImageFrame from '../../components/common/ImageFrame'
 import Tag from '../../components/common/Tag'
+import StateMessage from '../../components/common/StateMessage'
 import { EditPencil } from '../../components/content/EditControls'
 import { useApi, itemOf } from '../../hooks/useApi'
 import { useSeo, plainText } from '../../hooks/useSeo'
@@ -33,7 +34,7 @@ function hostText(host) {
 function ContestDetail() {
   const { lang, t } = useLang()
   const { id } = useParams()
-  const { data, loading } = useApi(`/content/contest/${id}`)
+  const { data, loading, error, offline, refetch } = useApi(`/content/contest/${id}`)
   const item = itemOf(data)
   // R1(27_I18N): EN 모드는 영문 제목 우선(공모전 영문 필수 — 없으면 국문 폴백 뱃지). 본문은 구조화(주최·회차)라 EN 대역 없음
   const isEn = lang === 'en'
@@ -89,6 +90,10 @@ function ContestDetail() {
       <Container as="section" className="py-section-m lg:py-section-d">
         {loading ? (
           <p className="py-64 font-mono text-caption-m text-text-meta">{t('common.loading')}</p>
+        ) : error && !offline ? (
+          <StateMessage state="error" onRetry={refetch} className="py-64">
+            공모전 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          </StateMessage>
         ) : !item ? (
           <div className="flex flex-col items-start gap-24 py-64">
             <p className="font-mono text-caption-m text-text-meta">{t('notFoundPage.contests')}</p>
