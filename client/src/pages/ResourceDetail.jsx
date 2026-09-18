@@ -155,7 +155,7 @@ function ResourceDetail() {
                   {isMajorCompass && (
                     <div className="mt-32">
                       <Button variant="primary" href="/major-compass">
-                        인터랙티브 전공소개 열기
+                        발표 자료 보기
                       </Button>
                     </div>
                   )}
