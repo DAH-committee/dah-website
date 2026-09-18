@@ -373,12 +373,17 @@ function Council() {
                         {row.members.map((member) => (
                           <span
                             key={`${member.name}-${member.majors ?? ''}`}
-                            className="text-body-m text-text-pri md:text-body-d"
+                            // 발견 전에는 일반 텍스트처럼 보인다. 클릭 가능 손가락 커서는
+                            // 이스터에그의 존재를 너무 쉽게 드러내므로 의도적으로 쓰지 않는다.
+                            className="cursor-text text-body-m text-text-pri md:text-body-d"
                             onClick={member.name === '주현호' ? activateEasterEgg : undefined}
                             role={member.name === '주현호' ? 'button' : undefined}
                             tabIndex={member.name === '주현호' ? 0 : undefined}
                             onKeyDown={member.name === '주현호' ? (event) => {
-                              if (event.key === 'Enter' || event.key === ' ') activateEasterEgg()
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault()
+                                activateEasterEgg()
+                              }
                             } : undefined}
                           >
                             {lang === 'en' ? member.nameEn ?? member.name : member.name}
