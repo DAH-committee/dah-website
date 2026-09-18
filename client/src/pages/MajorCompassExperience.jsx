@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { LayoutGrid, X } from 'lucide-react'
+import { LayoutGrid, Maximize2, X } from 'lucide-react'
 import Link from '../components/common/LangLink'
 import ImageFrame from '../components/common/ImageFrame'
 import { useApi } from '../hooks/useApi'
@@ -157,6 +157,152 @@ function PosterStrip({ items }) {
   )
 }
 
+function MobileSection({ id, label, children }) {
+  return (
+    <section id={id} className="scroll-mt-24 border-t border-border-subtle py-36">
+      <h2 className="text-body-l-m font-bold leading-[1.45] text-text-pri">{label}</h2>
+      <div className="mt-20">{children}</div>
+    </section>
+  )
+}
+
+function MobileReader({ faculty, exhibitions, contests, council, clubs, onPresent }) {
+  const featuredAchievements = FEATURED_ACHIEVEMENT_IDS
+    .map((id) => achievements.find((item) => item.id === id))
+    .filter(Boolean)
+  const featuredCareers = FEATURED_CAREER_IDS
+    .map((id) => careers.find((item) => item.id === id))
+    .filter(Boolean)
+
+  return (
+    <main className="min-h-dvh bg-bg-base text-text-pri" aria-label="디지털인문예술전공 전공 나침반 세로 보기">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border-subtle bg-bg-base/90 px-20 py-14 backdrop-blur-glass">
+        <Link to="/resources/major-compass" className="text-small-m text-text-sec">자료실로 돌아가기</Link>
+        <button
+          type="button"
+          onClick={onPresent}
+          className="inline-flex min-h-11 items-center gap-8 border border-purple-light/60 bg-purple-primary px-12 text-small-m font-bold text-text-pri"
+        >
+          <Maximize2 size={15} aria-hidden="true" />
+          가로 발표 보기
+        </button>
+      </header>
+
+      <div className="mx-auto max-w-xl px-20 pb-56">
+        <section className="py-28">
+          <div className="overflow-hidden border border-border-subtle bg-bg-panel">
+            <img src="/videos/hero-poster.jpg" alt="디지털인문예술전공 전공 나침반 표지" className="aspect-[4/5] w-full object-cover" />
+          </div>
+          <p className="mt-24 font-mono text-caption-m text-text-meta">2026 자유전공학부 전공 나침반 발표 자료</p>
+          <h1 className="mt-12 text-[clamp(34px,11vw,48px)] font-bold leading-[1.16] tracking-normal">디지털인문예술전공</h1>
+          <p className="mt-20 text-body-l-m leading-[1.75] text-text-sec">사람과 사회에 대한 질문을 기술과 디자인의 언어로 풀어냅니다.</p>
+          <button type="button" onClick={onPresent} className="mt-24 inline-flex min-h-11 items-center gap-8 border border-border-strong px-14 text-small-m font-bold text-text-pri">
+            <Maximize2 size={15} aria-hidden="true" />
+            전체화면으로 발표 보기
+          </button>
+        </section>
+
+        <nav aria-label="전공 나침반 목차" className="border-y border-border-subtle py-20">
+          <p className="text-caption-m text-text-meta">목차</p>
+          <div className="mt-12 grid grid-cols-2 gap-x-16 gap-y-10 text-small-m text-text-sec">
+            {SLIDES.slice(1).map((item) => <a key={item.id} href={`#mobile-${item.id}`} className="py-2 hover:text-text-pri">{item.label}</a>)}
+          </div>
+        </nav>
+
+        <MobileSection id="mobile-about" label="전공 소개">
+          <p className="text-deck-body-m font-bold leading-[1.55] text-text-pri">{ABOUT_COPY.ko.whyStatement}</p>
+          <p className="mt-20 text-body-l-m leading-[1.8] text-text-sec">{ABOUT_COPY.ko.what}</p>
+          <ul className="mt-20 space-y-12 border-l border-border-strong pl-16">
+            {ABOUT_COPY.ko.vision.map((item) => <li key={item.title} className="text-body-l-m leading-[1.7] text-text-pri">{item.title}</li>)}
+          </ul>
+        </MobileSection>
+
+        <MobileSection id="mobile-curriculum" label="교육과정">
+          <p className="text-body-l-m leading-[1.75] text-text-sec">세 개의 트랙으로 나만의 전공을 설계합니다.</p>
+          <div className="mt-20 divide-y divide-border-subtle border-y border-border-subtle">
+            {tracks.map((track, index) => (
+              <article key={track.id} className="py-20">
+                <p className="text-caption-m text-text-meta">트랙 {String(index + 1).padStart(2, '0')}</p>
+                <h3 className="mt-8 text-body-l-m font-bold leading-[1.45]">{track.name}</h3>
+                <p className="mt-10 text-small-m leading-[1.7] text-text-sec">{track.summary}</p>
+                <p className="mt-12 text-small-m leading-[1.7] text-text-meta">{track.courses.slice(0, 6).join(' · ')}</p>
+              </article>
+            ))}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-codesharing" label="코드쉐어링">
+          <p className="text-body-l-m leading-[1.75] text-text-sec">{codeSharing.definition}</p>
+          <div className="mt-20 divide-y divide-border-subtle border-y border-border-subtle">
+            {codeSharing.types.map((item) => <div key={item.name} className="py-16"><h3 className="text-body-m font-bold">{item.name}</h3><p className="mt-8 text-small-m leading-[1.7] text-text-sec">{item.detail}</p></div>)}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-nanodegree" label="나노디그리">
+          <p className="text-body-l-m leading-[1.75] text-text-sec">{nanodegree.intro}</p>
+          <div className="mt-20 divide-y divide-border-subtle border-y border-border-subtle">
+            {nanodegree.programs.map((program) => <article key={program.name} className="py-20"><h3 className="text-body-m font-bold">{program.name}</h3><p className="mt-8 text-small-m leading-[1.7] text-text-sec">{program.criteria} · {program.partner}</p><p className="mt-10 text-small-m leading-[1.7] text-text-meta">{program.courses.map((course) => course.name).join(' · ')}</p></article>)}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-faculty" label="교수진">
+          <div className="grid grid-cols-2 gap-x-16 gap-y-24">
+            {faculty.map((person) => (
+              <figure key={person.id} className="min-w-0">
+                <ImageFrame src={person.photo || undefined} alt={`${person.name} 교수 사진`} ratio="306/427" contain bg={person.hasBg} placeholder={<span className="text-caption-m text-text-meta">{initialsOf(person)}</span>} />
+                <figcaption className="mt-10"><p className="text-body-m font-bold">{person.name}</p><p className="mt-4 text-small-m leading-[1.6] text-text-sec">{person.role}</p></figcaption>
+              </figure>
+            ))}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-exhibitions" label="전시">
+          <p className="text-body-l-m leading-[1.75] text-text-sec">수업의 결과를 전시로 공개합니다.</p>
+          <div className="mt-20 grid grid-cols-2 gap-14"><PosterStrip items={exhibitions} /></div>
+        </MobileSection>
+
+        <MobileSection id="mobile-contests" label="공모전">
+          <p className="text-body-l-m leading-[1.75] text-text-sec">기획과 제작의 결과를 공모전으로 공유합니다.</p>
+          <div className="mt-20"><PosterStrip items={contests} /></div>
+        </MobileSection>
+
+        <MobileSection id="mobile-achievements" label="학생 성과">
+          <div className="divide-y divide-border-subtle border-y border-border-subtle">
+            {featuredAchievements.map((item) => <article key={item.id} className="py-20"><p className="text-caption-m text-text-meta">{item.year}</p><h3 className="mt-8 text-body-m font-bold leading-[1.55]">{item.title}</h3><p className="mt-10 text-small-m leading-[1.7] text-text-sec">{item.desc}</p>{item.awardees && <p className="mt-10 text-small-m font-bold text-text-pri">{item.awardees}</p>}</article>)}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-careers" label="졸업 후 진로">
+          <div className="divide-y divide-border-subtle border-y border-border-subtle">
+            {featuredCareers.map((item) => <article key={item.id} className="py-18"><h3 className="text-body-m font-bold">{item.company}</h3><p className="mt-6 text-small-m text-text-sec">{item.role || item.majors}</p><p className="mt-8 text-small-m font-bold">{item.name}</p></article>)}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-council" label="운영위원회">
+          <h3 className="text-body-l-m font-bold">{council?.title || council?.name || '운영위원회'}</h3>
+          {council?.intro && <p className="mt-12 text-body-l-m leading-[1.75] text-text-sec">{council.intro}</p>}
+          <div className="mt-20 divide-y divide-border-subtle border-y border-border-subtle">{(council?.members ?? []).map((member) => <div key={`${member.role}-${member.name}`} className="flex gap-16 py-14"><p className="w-24 shrink-0 text-small-m text-text-meta">{member.role}</p><p className="text-body-m font-bold">{member.name}</p></div>)}</div>
+        </MobileSection>
+
+        <MobileSection id="mobile-clubs" label="동아리">
+          <div className="divide-y divide-border-subtle border-y border-border-subtle">
+            {clubs.map((club) => {
+              const name = club.title_ko || club.title || club.name
+              const intro = club.intro || club.body?.intro
+              return <article key={club.id} className="py-20"><h3 className="text-body-m font-bold">{name}</h3>{intro && <p className="mt-10 text-small-m leading-[1.7] text-text-sec">{intro}</p>}</article>
+            })}
+          </div>
+        </MobileSection>
+
+        <MobileSection id="mobile-closing" label="마무리">
+          <p className="text-deck-title-m font-bold leading-[1.35]">당신의 질문에서 다음 프로젝트가 시작됩니다.</p>
+          <button type="button" onClick={onPresent} className="mt-24 inline-flex min-h-11 items-center gap-8 border border-purple-light/60 bg-purple-primary px-14 text-small-m font-bold text-text-pri"><Maximize2 size={15} aria-hidden="true" />가로 발표 보기</button>
+        </MobileSection>
+      </div>
+    </main>
+  )
+}
+
 function MajorCompassExperience() {
   const rootRef = useRef(null)
   const lastInputAt = useRef(0)
@@ -168,6 +314,7 @@ function MajorCompassExperience() {
   const [direction, setDirection] = useState(1)
   const [pointer, setPointer] = useState({ x: 50, y: 50 })
   const [mapOpen, setMapOpen] = useState(false)
+  const [mobilePresentation, setMobilePresentation] = useState(false)
 
   const { data: facultyData } = useApi('/content/professors', { params: { pageSize: 100 } })
   const { data: exhibitionData } = useApi('/content/exhibitions', { params: { pageSize: 100 } })
@@ -226,6 +373,16 @@ function MajorCompassExperience() {
     }
   }, [slideIndex])
 
+  const openMobilePresentation = useCallback(async () => {
+    setMobilePresentation(true)
+    try {
+      if (!document.fullscreenElement) await rootRef.current?.requestFullscreen?.()
+      await screen.orientation?.lock?.('landscape')
+    } catch {
+      // 일부 모바일 브라우저는 방향 잠금을 지원하지 않는다. 사용자가 직접 가로로 돌려도 발표 화면은 유지한다.
+    }
+  }, [])
+
   useEffect(() => {
     const suffix = stepIndex > 0 ? `:${stepIndex + 1}` : ''
     window.history.replaceState(null, '', `#${slide.id}${suffix}`)
@@ -260,6 +417,14 @@ function MajorCompassExperience() {
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [mapOpen, moveWithLock, next, previous])
+
+  useEffect(() => {
+    const resetMobilePresentation = () => {
+      if (!document.fullscreenElement) setMobilePresentation(false)
+    }
+    document.addEventListener('fullscreenchange', resetMobilePresentation)
+    return () => document.removeEventListener('fullscreenchange', resetMobilePresentation)
+  }, [])
 
   const renderSlide = () => {
     if (slide.id === 'cover') {
@@ -532,9 +697,20 @@ function MajorCompassExperience() {
   }
 
   return (
+    <>
+      <div className={mobilePresentation ? 'hidden' : 'hidden max-md:portrait:block'}>
+        <MobileReader
+          faculty={faculty}
+          exhibitions={exhibitions}
+          contests={contests}
+          council={council}
+          clubs={clubs}
+          onPresent={openMobilePresentation}
+        />
+      </div>
     <main
       ref={rootRef}
-      className="relative h-dvh w-full touch-none overflow-hidden bg-bg-base"
+      className={`relative h-dvh w-full touch-none overflow-hidden bg-bg-base ${mobilePresentation ? '' : 'max-md:portrait:hidden'}`}
       aria-label="디지털인문예술전공 전공 나침반"
       onWheel={(event) => {
         event.preventDefault()
@@ -637,6 +813,7 @@ function MajorCompassExperience() {
         )}
       </AnimatePresence>
     </main>
+    </>
   )
 }
 
