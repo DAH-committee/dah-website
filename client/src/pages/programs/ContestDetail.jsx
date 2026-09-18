@@ -14,6 +14,7 @@ import { useSeo, plainText } from '../../hooks/useSeo'
 import { breadcrumbJsonLd, SITE_NAME } from '../../data/seo'
 import { useLang, KoreanOnlyBadge } from '../../i18n/LangContext'
 import { semesterLabelOf } from '../../utils/format'
+import { contestSiteLabel, contestSiteUrl } from '../../data/contestLinks'
 
 function MetaRow({ label, children }) {
   return (
@@ -50,6 +51,9 @@ function ContestDetail() {
   // 분리 이전 묶음 post가 남아 있을 경우를 대비해 body.host만 폴백으로 읽는다.
   const host = hostText(item?.host ?? item?.body?.host)
   const posterUrl = item?.poster_url
+  // 이관 전 생성된 회차 행은 external_url이 비어 있다. 공용 아카이브 링크를 보완하되,
+  // CMS에서 저장한 URL이 있으면 contestSiteUrl이 그것을 우선한다.
+  const siteUrl = contestSiteUrl(item)
   // 학기는 목록 카드와 같은 규칙으로 산출한다(저장된 라벨 우선, 없으면 개최일에서)
   const semester = semesterLabelOf(item)
   const description = item
@@ -117,9 +121,9 @@ function ContestDetail() {
                   />
                 </figure>
                 <div className="flex flex-wrap items-center gap-12">
-                  {item.external_url && (
-                    <Button variant="secondary" href={item.external_url} external arrow={false}>
-                      {t('actions.exhibitionSite')}
+                  {siteUrl && (
+                    <Button variant="secondary" href={siteUrl} external arrow={false}>
+                      {contestSiteLabel(item)}
                     </Button>
                   )}
                   <ShareButton title={title} />
