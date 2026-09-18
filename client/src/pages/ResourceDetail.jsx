@@ -138,6 +138,16 @@ function ResourceDetail() {
                 )}
               </header>
 
+              {post.poster_url && (
+                <figure className="mt-32 overflow-hidden rounded-md border border-border-subtle bg-bg-panel md:mt-40">
+                  <img
+                    src={post.poster_url}
+                    alt={post.poster_alt || `${title} 썸네일`}
+                    className="aspect-video w-full object-cover"
+                  />
+                </figure>
+              )}
+
               {/* 본문 — 밝은 표면 대비(reading.text 15.0:1) */}
               {body ? (
                 <div className="max-w-4xl pt-32 md:pt-40">
