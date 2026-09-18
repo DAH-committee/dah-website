@@ -108,9 +108,7 @@ function ContestDetail() {
         ) : (
           <article className="flex min-w-0 flex-col gap-64">
             <div className="grid gap-32 lg:grid-cols-3 lg:gap-48">
-              {/* 액션 버튼은 포스터 바로 아래 고정 — 전시회 상세와 동일 구조.
-                  우측 정보 영역에 두면 본문 길이에 따라 버튼 위치가 글마다 달라진다. */}
-              <div className="flex min-w-0 flex-col gap-16 lg:col-span-1">
+              <div className="min-w-0 lg:col-span-1">
                 <figure className="w-full">
                   <ImageFrame
                     src={posterUrl}
@@ -120,14 +118,6 @@ function ContestDetail() {
                     placeholder={title}
                   />
                 </figure>
-                <div className="flex flex-wrap items-center gap-12">
-                  {siteUrl && (
-                    <Button variant="secondary" href={siteUrl} external arrow={false}>
-                      {contestSiteLabel(item)}
-                    </Button>
-                  )}
-                  <ShareButton title={title} />
-                </div>
               </div>
               <div className="flex min-w-0 flex-col gap-24 lg:col-span-2">
                 <div className="flex flex-wrap items-start justify-between gap-16">
@@ -161,6 +151,16 @@ function ContestDetail() {
                     </MetaRow>
                   )}
                 </dl>
+                {/* 전시회 상세와 같은 우측 정보 영역의 마지막 액션 줄.
+                    포스터 하단에 독립 배치하지 않아 제목·메타·버튼 위계를 통일한다. */}
+                <div className="flex flex-wrap items-center gap-12 pt-4">
+                  {siteUrl && (
+                    <Button variant="secondary" href={siteUrl} external arrow={false}>
+                      {contestSiteLabel(item)}
+                    </Button>
+                  )}
+                  <ShareButton title={title} />
+                </div>
               </div>
             </div>
             {gallery.length > 0 && (
