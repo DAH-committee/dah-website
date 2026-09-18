@@ -40,44 +40,40 @@ const CONTEST_FALLBACKS = [
 
 // 발표 흐름의 단일 원천. steps는 같은 화면 안에서 설명을 한 단계 더 깊게 보여줄 때만 쓴다.
 const SLIDES = [
-  { id: 'cover', label: 'DIGITAL ARTS & HUMANITIES', steps: 1 },
-  { id: 'about', label: 'ABOUT', steps: 3 },
-  { id: 'curriculum', label: 'CURRICULUM', steps: 4 },
-  { id: 'codesharing', label: 'CODE SHARING', steps: 2 },
-  { id: 'nanodegree', label: 'NANODEGREE', steps: 5 },
-  { id: 'faculty', label: 'FACULTY', steps: 2 },
-  { id: 'exhibitions', label: 'EXHIBITIONS', steps: 2 },
-  { id: 'contests', label: 'CONTESTS', steps: 2 },
-  { id: 'achievements', label: 'STUDENT ACHIEVEMENTS', steps: 1 },
-  { id: 'careers', label: 'CAREERS', steps: 1 },
-  { id: 'council', label: 'STUDENT COUNCIL', steps: 1 },
-  { id: 'clubs', label: 'CLUBS', steps: 2 },
-  { id: 'closing', label: 'DIGITAL ARTS & HUMANITIES', steps: 1 },
+  { id: 'cover', label: '표지', steps: 1 },
+  { id: 'about', label: '전공 소개', steps: 3 },
+  { id: 'curriculum', label: '교육과정', steps: 4 },
+  { id: 'codesharing', label: '코드쉐어링', steps: 2 },
+  { id: 'nanodegree', label: '나노디그리', steps: 5 },
+  { id: 'faculty', label: '교수진', steps: 2 },
+  { id: 'exhibitions', label: '전시', steps: 2 },
+  { id: 'contests', label: '공모전', steps: 2 },
+  { id: 'achievements', label: '학생 성과', steps: 1 },
+  { id: 'careers', label: '졸업 후 진로', steps: 1 },
+  { id: 'council', label: '운영위원회', steps: 1 },
+  { id: 'clubs', label: '동아리', steps: 2 },
+  { id: 'closing', label: '마무리', steps: 1 },
 ]
-
-const NAV_LABELS = {
-  cover: '표지',
-  about: '전공 소개',
-  curriculum: '교육과정',
-  codesharing: '코드쉐어링',
-  nanodegree: '나노디그리',
-  faculty: '교수진',
-  exhibitions: '전시',
-  contests: '공모전',
-  achievements: '학생 성과',
-  careers: '졸업 후 진로',
-  council: '운영위원회',
-  clubs: '동아리',
-  closing: '마무리',
-}
 
 const FEATURED_ACHIEVEMENT_IDS = ['ach-12', 'ach-18', 'ach-20']
 const FEATURED_CAREER_IDS = ['career-07', 'career-15', 'career-22', 'career-03']
 
 const slideMotion = {
-  enter: (direction) => ({ opacity: 0, x: direction > 0 ? 36 : -36 }),
-  center: { opacity: 1, x: 0 },
-  exit: (direction) => ({ opacity: 0, x: direction > 0 ? -24 : 24 }),
+  enter: (direction) => ({ opacity: 0.18, x: direction > 0 ? 96 : -96, scale: 0.988, filter: 'blur(5px)' }),
+  center: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] },
+  },
+  exit: (direction) => ({
+    opacity: 0,
+    x: direction > 0 ? -44 : 44,
+    scale: 0.996,
+    filter: 'blur(2px)',
+    transition: { duration: 0.16, ease: [0.4, 0, 1, 1] },
+  }),
 }
 
 function readLocation() {
@@ -143,7 +139,7 @@ function PosterStrip({ items }) {
           key={item.id}
           initial={false}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: index * 0.05, ease: 'easeOut' }}
+          transition={{ duration: 0.32, delay: index * 0.025, ease: [0.16, 1, 0.3, 1] }}
           className="min-w-0"
         >
           <ImageFrame
@@ -216,7 +212,7 @@ function MajorCompassExperience() {
 
   const moveWithLock = useCallback((move) => {
     const now = Date.now()
-    if (now - lastInputAt.current < 700) return
+    if (now - lastInputAt.current < 420) return
     lastInputAt.current = now
     move()
   }, [])
@@ -279,8 +275,8 @@ function MajorCompassExperience() {
           <motion.div
             initial={reducedMotion ? false : { opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reducedMotion ? 0 : 0.75, ease: 'easeOut' }}
-            className="relative z-10 max-w-6xl pb-40 md:pb-56"
+            transition={{ duration: reducedMotion ? 0 : 0.36, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 w-full px-[clamp(24px,6.7vw,128px)] pb-[clamp(48px,8dvh,88px)]"
           >
             <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-sec md:text-deck-meta-d">2026 자유전공학부 전공 나침반</p>
             <h1 className="mt-28 text-deck-display-m font-bold leading-[1.12] tracking-normal text-text-pri md:mt-36 md:text-[clamp(48px,8.9dvh,96px)]">
@@ -295,14 +291,14 @@ function MajorCompassExperience() {
     }
 
     if (slide.id === 'about') {
-      const mode = ['QUESTION', 'DEFINITION', 'VISION'][stepIndex]
+      const mode = ['핵심 질문', '전공의 정의', '전공의 비전'][stepIndex]
       return (
         <div className="grid h-full items-center gap-64 lg:grid-cols-[minmax(0,.82fr)_minmax(0,1.18fr)]">
           <SlideTitle label={slide.label} title="인문학의 질문을 디지털로 확장합니다." />
           <motion.div
             initial={false}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
             className="border-l border-border-strong pl-28 md:pl-48"
           >
             <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{mode}</p>
@@ -332,8 +328,8 @@ function MajorCompassExperience() {
           {!focusedTrack ? (
             <div className="mt-40 grid border-y border-border-subtle lg:grid-cols-3">
               {tracks.map((track, index) => (
-                <motion.article key={track.id} initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07 }} className="border-b border-border-subtle py-28 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
-                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{track.no}</p>
+                <motion.article key={track.id} initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="border-b border-border-subtle py-28 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
+                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">트랙 {String(index + 1).padStart(2, '0')}</p>
                   <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{track.name}</h2>
                   <p className="mt-20 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{track.keywords.join(' · ')}</p>
                 </motion.article>
@@ -342,14 +338,14 @@ function MajorCompassExperience() {
           ) : (
             <div className="mt-36 grid gap-56 border-y border-border-subtle py-32 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,.92fr)]">
               <div>
-                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{focusedTrack.no}</p>
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">트랙 {String(tracks.findIndex((track) => track.id === focusedTrack.id) + 1).padStart(2, '0')}</p>
                 <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{focusedTrack.name}</h2>
                 <p className="mt-24 text-deck-body-m leading-[1.75] text-text-sec md:text-deck-body-d">{focusedTrack.summary}</p>
               </div>
               <div className="border-l border-border-subtle pl-28 md:pl-40">
-                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">KEYWORDS</p>
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">핵심 키워드</p>
                 <p className="mt-16 text-deck-body-m font-bold leading-[1.7] text-text-pri md:text-deck-body-d">{focusedTrack.keywords.join(' · ')}</p>
-                <p className="mt-28 font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">COURSES</p>
+                <p className="mt-28 font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">주요 교과목</p>
                 <p className="mt-16 text-body-l-m leading-[1.8] text-text-sec md:text-body-l-d">{focusedTrack.courses.slice(0, 7).join(' / ')}</p>
               </div>
             </div>
@@ -393,7 +389,7 @@ function MajorCompassExperience() {
             {nanodegree.programs.map((program, index) => {
               const active = !selected || selected.name === program.name
               return (
-                <motion.article key={program.name} initial={false} animate={{ opacity: active ? 1 : 0.34 }} transition={{ duration: 0.35 }} className="border-b border-border-subtle px-0 py-24 last:border-b-0 lg:border-b-0 lg:border-r lg:px-28 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
+                <motion.article key={program.name} initial={false} animate={{ opacity: active ? 1 : 0.34 }} transition={{ duration: reducedMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }} className="border-b border-border-subtle px-0 py-24 last:border-b-0 lg:border-b-0 lg:border-r lg:px-28 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
                   <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
                   <h2 className="mt-12 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{program.name}</h2>
                   <p className="mt-12 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{program.criteria} · {program.partner}</p>
@@ -413,7 +409,7 @@ function MajorCompassExperience() {
           <SlideTitle label={slide.label} title="서로 다른 전문성이 하나의 융합 교육을 만듭니다." />
           <div className="mt-[clamp(20px,3dvh,32px)] grid gap-x-56 gap-y-[clamp(12px,2.2dvh,24px)] border-y border-border-subtle py-[clamp(16px,2.6dvh,28px)] lg:grid-cols-2">
             {current.map((person, index) => (
-              <motion.figure key={person.id} initial={reducedMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.45, delay: reducedMotion ? 0 : index * 0.055 }} className="grid min-w-0 items-center gap-20 md:gap-28" style={{ gridTemplateColumns: 'clamp(72px, 11dvh, 120px) minmax(0, 1fr)' }}>
+              <motion.figure key={person.id} initial={reducedMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="grid min-w-0 items-center gap-20 md:gap-28" style={{ gridTemplateColumns: 'clamp(72px, 11dvh, 120px) minmax(0, 1fr)' }}>
                 <ImageFrame src={person.photo || undefined} alt={`${person.name} 교수 사진`} ratio="306/427" contain bg={person.hasBg} placeholder={<span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{initialsOf(person)}</span>} />
                 <figcaption className="min-w-0">
                   <p className="text-deck-body-m font-bold leading-[1.45] text-text-pri md:text-deck-body-d">{person.name}</p>
@@ -528,7 +524,7 @@ function MajorCompassExperience() {
 
     return (
       <div className="flex h-full flex-col justify-center">
-        <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">DIGITAL ARTS & HUMANITIES</p>
+        <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">디지털인문예술전공</p>
         <h1 className="mt-28 max-w-6xl text-deck-display-m font-bold leading-[1.2] tracking-normal text-text-pri md:text-deck-display-d">당신의 질문에서<br />다음 프로젝트가 시작됩니다.</h1>
         <p className="mt-32 max-w-3xl text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">한림대학교 디지털인문예술전공</p>
       </div>
@@ -563,23 +559,39 @@ function MajorCompassExperience() {
       <Link to="/news/major-compass" aria-label="전공 나침반 공지 상세로 돌아가기" className="absolute left-16 top-20 z-30 inline-flex h-40 w-40 items-center justify-center border border-border-subtle text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri md:left-24 md:top-24 lg:left-32">
         <X size={16} aria-hidden="true" />
       </Link>
-      <button type="button" onClick={() => setMapOpen(true)} aria-label="전체 발표 주제 열기" className="absolute right-16 top-20 z-30 inline-flex h-40 w-40 items-center justify-center border border-border-subtle text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri md:right-24 md:top-24 lg:right-32">
-        <LayoutGrid size={17} aria-hidden="true" />
-      </button>
+      <motion.button
+        type="button"
+        onClick={() => setMapOpen(true)}
+        aria-label="전체 발표 주제 열기"
+        whileHover={reducedMotion ? undefined : { scale: 1.06 }}
+        whileTap={reducedMotion ? undefined : { scale: 0.94 }}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed bottom-[max(20px,env(safe-area-inset-bottom))] right-[max(20px,env(safe-area-inset-right))] z-40 inline-flex h-56 w-56 items-center justify-center rounded-full border border-purple-light/50 bg-purple-primary text-text-pri shadow-btn transition-colors duration-fast ease-out hover:bg-purple-light md:bottom-32 md:right-32"
+      >
+        <LayoutGrid size={20} aria-hidden="true" />
+      </motion.button>
 
-      <section className="relative z-10 h-full px-[clamp(24px,6.7vw,128px)] py-[clamp(48px,8dvh,88px)]">
-        <AnimatePresence mode="wait" custom={direction}>
+      <section className={`relative z-10 h-full ${slide.id === 'cover' ? 'p-0' : 'px-[clamp(24px,6.7vw,128px)] py-[clamp(48px,8dvh,88px)]'}`}>
+        <AnimatePresence mode="sync" custom={direction}>
           <motion.div
             key={`${slide.id}-${stepIndex}`}
             custom={direction}
             variants={slideMotion}
             initial={reducedMotion ? false : 'enter'}
-            animate="center"
+            animate={reducedMotion ? { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' } : 'center'}
             exit={reducedMotion ? undefined : 'exit'}
-            transition={{ duration: reducedMotion ? 0 : 0.48, ease: [0.22, 1, 0.36, 1] }}
-            className="h-full"
+            className="relative h-full overflow-hidden"
           >
-            {renderSlide()}
+            {!reducedMotion && (
+              <motion.div
+                aria-hidden="true"
+                initial={{ opacity: 0, x: direction > 0 ? '45%' : '-45%' }}
+                animate={{ opacity: [0, 0.14, 0], x: direction > 0 ? '-45%' : '45%' }}
+                transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+                className="pointer-events-none absolute inset-y-0 z-0 w-1/3 bg-gradient-to-r from-transparent via-purple-primary/30 to-transparent blur-3xl"
+              />
+            )}
+            <div className="relative z-10 h-full">{renderSlide()}</div>
           </motion.div>
         </AnimatePresence>
       </section>
@@ -590,15 +602,15 @@ function MajorCompassExperience() {
             role="dialog"
             aria-modal="true"
             aria-label="전체 발표 주제"
-            initial={reducedMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={reducedMotion ? undefined : { opacity: 0 }}
-            transition={{ duration: reducedMotion ? 0 : 0.24 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 16, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: 8, scale: 0.994 }}
+            transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-0 z-50 overflow-y-auto bg-bg-base/95 px-[clamp(24px,6.7vw,128px)] py-[clamp(48px,8dvh,88px)] backdrop-blur-glass"
           >
             <div className="flex items-start justify-between gap-24">
               <div>
-                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">PRESENTATION MAP</p>
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">전체 주제</p>
                 <h2 className="mt-16 text-deck-title-m font-bold leading-[1.25] text-text-pri md:text-deck-title-d">원하는 주제로 바로 이동합니다.</h2>
               </div>
               <button type="button" onClick={() => setMapOpen(false)} aria-label="발표 주제 닫기" className="inline-flex h-40 w-40 shrink-0 items-center justify-center border border-border-subtle text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri">
@@ -607,17 +619,18 @@ function MajorCompassExperience() {
             </div>
             <nav aria-label="전체 발표 주제" className="mt-[clamp(32px,6dvh,64px)] grid grid-cols-2 gap-12 sm:grid-cols-3 md:gap-16 lg:grid-cols-4 xl:grid-cols-7">
               {SLIDES.map((item, index) => (
-                <button
+                <motion.button
                   key={item.id}
                   type="button"
                   onClick={() => jumpTo(index)}
                   aria-current={index === slideIndex ? 'page' : undefined}
-                  className={`group aspect-[4/3] min-h-112 border p-16 text-left transition-colors duration-fast ease-out md:p-20 ${index === slideIndex ? 'border-purple-light bg-purple-primary/10' : 'border-border-subtle hover:border-border-strong hover:bg-bg-elev'}`}
+                  initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.3, delay: reducedMotion ? 0 : index * 0.018, ease: [0.16, 1, 0.3, 1] }}
+                  className={`group flex h-[clamp(104px,14dvh,144px)] items-center border px-16 text-left transition-colors duration-fast ease-out md:px-20 ${index === slideIndex ? 'border-purple-light bg-purple-primary/10' : 'border-border-subtle hover:border-border-strong hover:bg-bg-elev'}`}
                 >
-                  <span className="font-mono text-caption-m text-text-meta">{String(index + 1).padStart(2, '0')}</span>
-                  <strong className="mt-12 block text-body-l-m font-bold leading-[1.5] text-text-pri md:text-body-l-d">{NAV_LABELS[item.id]}</strong>
-                  <span className="mt-8 block text-caption-m leading-[1.5] text-text-meta">{item.label}</span>
-                </button>
+                  <strong className="block text-body-l-m font-bold leading-[1.5] text-text-pri md:text-body-l-d">{item.label}</strong>
+                </motion.button>
               ))}
             </nav>
           </motion.div>
