@@ -11,6 +11,8 @@ on:
       - 'client/.env.pdf'
       - 'client/package.json'
       - 'client/package-lock.json'
+  schedule:
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
