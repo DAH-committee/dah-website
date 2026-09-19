@@ -153,9 +153,12 @@ function ResourceDetail() {
                 <div className="max-w-4xl pt-32 md:pt-40">
                   <RichBody body={body} />
                   {isMajorCompass && (
-                    <div className="mt-32">
+                    <div className="mt-32 flex flex-wrap gap-12">
                       <Button variant="primary" href="/major-compass">
                         발표 자료 보기
+                      </Button>
+                      <Button variant="secondary" href="/downloads/2026-major-compass.pdf" external arrow={false} download="2026-자유전공학부-전공-나침반-발표-자료.pdf">
+                        PDF 다운로드
                       </Button>
                     </div>
                   )}
