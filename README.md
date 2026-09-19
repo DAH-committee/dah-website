@@ -87,7 +87,19 @@ npm run dev
 
 ## 배포와 환경변수
 
-프론트엔드는 Vercel, API 서버는 Render에서 각각 배포합니다. 코드가 기본 브랜치에 반영되면 연결된 배포 서비스가 새 버전을 만들 수 있습니다.
+프론트엔드는 Vercel, API 서버는 Render에서 각각 배포합니다. `main`에 반영되면 두 서비스가 각각 새 버전을 만듭니다.
+
+운영 계정과 주소는 다음과 같습니다. 전공 공용 계정(`digitalartshumanities@gmail.com`)이 인프라를 소유하고, Google Drive 저장 공간만 담당자 개인 계정을 씁니다.
+
+| 대상 | 계정 | 주소·이름 |
+| --- | --- | --- |
+| 코드 저장소 | 학교 GitHub 조직 | `DAH-committee/dah-website` (운영 기준) |
+| 프론트엔드 | Vercel (전공 공용) | https://dah-hallym.vercel.app |
+| API 서버 | Render (전공 공용, `인예's workspace`) | 서비스 `dah-website` · https://dah-website-72a4.onrender.com |
+| DB | Neon (전공 공용) | `DATABASE_URL` |
+| 전시회 원본 보관 | 담당자 개인 Google 계정 | Drive 폴더 (용량 사용) |
+
+Render 서비스의 빌드 소스는 `DAH-committee/dah-website`, 브랜치 `main`, Root Directory `server`이고 Auto-Deploy는 On Commit입니다. `hyunho2378/dah-website`는 과거 사본이라 운영 배포 기준이 아닙니다. `.github/workflows/deploy-render.yml`은 Render webhook이 깨졌을 때만 쓰는 백업 트리거입니다.
 
 프론트엔드에서 주로 확인하는 값은 다음과 같습니다.
 
