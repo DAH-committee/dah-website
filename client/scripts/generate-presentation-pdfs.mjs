@@ -5,34 +5,37 @@ import { tmpdir } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { PDFDocument } from 'pdf-lib'
+import { pdfDefaults, presentationPdfJobs } from './presentation-pdfs.config.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const CLIENT_DIR = resolve(__dirname, '..')
-const OUTPUT = resolve(process.env.MAJOR_COMPASS_PDF_OUTPUT || resolve(CLIENT_DIR, 'public/downloads/2026-major-compass.pdf'))
 const HOST = '127.0.0.1'
-const PREVIEW_PORT = Number(process.env.MAJOR_COMPASS_PREVIEW_PORT || 4175)
-const DEBUG_PORT = Number(process.env.MAJOR_COMPASS_DEBUG_PORT || 9333)
+const PREVIEW_PORT = Number(process.env.PRESENTATION_PDF_PREVIEW_PORT || 4175)
+const DEBUG_PORT = Number(process.env.PRESENTATION_PDF_DEBUG_PORT || 9333)
 const BASE_URL = `http://${HOST}:${PREVIEW_PORT}`
+const selectedId = process.argv.find((arg) => arg.startsWith('--id='))?.slice(5)
 
-const slides = [
-  ['cover', 1],
-  ['about', 3],
-  ['curriculum', 4],
-  ['codesharing', 2],
-  ['nanodegree', 5],
-  ['faculty', 2],
-  ['exhibitions', 2],
-  ['contests', 2],
-  ['achievements', 1],
-  ['careers', 1],
-  ['council', 1],
-  ['clubs', 2],
-  ['closing', 1],
-]
+if (process.argv.includes('--list')) {
+  presentationPdfJobs.forEach((job) => process.stdout.write(`${job.id}\t${job.route}\t${job.output}\n`))
+  process.exit(0)
+}
 
-const pages = slides.flatMap(([id, steps]) =>
-  Array.from({ length: steps }, (_, step) => ({ id, step }))
-)
+const jobs = selectedId
+  ? presentationPdfJobs.filter((job) => job.id === selectedId)
+  : presentationPdfJobs
+
+if (jobs.length === 0) {
+  throw new Error(`PDF 등록표에 '${selectedId}' 자료가 없습니다.`)
+}
+
+const ids = new Set()
+for (const job of jobs) {
+  if (!job.id || ids.has(job.id)) throw new Error(`PDF 자료 id가 없거나 중복됩니다: ${job.id || '(비어 있음)'}`)
+  if (!job.route?.startsWith('/')) throw new Error(`${job.id}: route는 /로 시작해야 합니다.`)
+  if (!job.output?.endsWith('.pdf')) throw new Error(`${job.id}: output은 .pdf 경로여야 합니다.`)
+  if (!Array.isArray(job.pages) || job.pages.length === 0) throw new Error(`${job.id}: pages가 비어 있습니다.`)
+  ids.add(job.id)
+}
 
 const chromeCandidates = [
   process.env.CHROME_PATH,
@@ -44,9 +47,7 @@ const chromeCandidates = [
 ].filter(Boolean)
 
 const chromePath = chromeCandidates.find(existsSync)
-if (!chromePath) {
-  throw new Error('Chrome/Chromium을 찾지 못했습니다. CHROME_PATH를 설정해 주세요.')
-}
+if (!chromePath) throw new Error('Chrome/Chromium을 찾지 못했습니다. CHROME_PATH를 설정해 주세요.')
 
 const wait = (ms) => new Promise((resolveWait) => setTimeout(resolveWait, ms))
 
@@ -119,7 +120,7 @@ class CdpClient {
   }
 }
 
-const profileDir = mkdtempSync(resolve(tmpdir(), 'dah-major-compass-pdf-'))
+const profileDir = mkdtempSync(resolve(tmpdir(), 'dah-presentation-pdfs-'))
 const viteBin = resolve(CLIENT_DIR, 'node_modules/vite/bin/vite.js')
 const preview = spawn(process.execPath, [viteBin, 'preview', '--host', HOST, '--port', String(PREVIEW_PORT)], {
   cwd: CLIENT_DIR,
@@ -134,7 +135,7 @@ const chrome = spawn(chromePath, [
   '--no-sandbox',
   `--remote-debugging-port=${DEBUG_PORT}`,
   `--user-data-dir=${profileDir}`,
-  '--window-size=1920,1080',
+  `--window-size=${pdfDefaults.viewport.width},${pdfDefaults.viewport.height}`,
   'about:blank',
 ], { stdio: ['ignore', 'ignore', 'pipe'] })
 
@@ -142,6 +143,75 @@ async function stopChild(child) {
   if (child.exitCode !== null) return
   child.kill('SIGTERM')
   await Promise.race([once(child, 'exit'), wait(3000)])
+}
+
+function pageUrl(job, page, index) {
+  const url = new URL(job.route, BASE_URL)
+  url.searchParams.set('preview', '1')
+  url.searchParams.set('page', String(index + 1))
+  if (page.query) Object.entries(page.query).forEach(([key, value]) => url.searchParams.set(key, String(value)))
+  if (page.hash) url.hash = page.hash
+  return url.href
+}
+
+async function renderJob(cdp, job) {
+  const viewport = job.viewport || pdfDefaults.viewport
+  const pdfPage = job.page || pdfDefaults.page
+  const format = job.imageFormat || pdfDefaults.imageFormat
+  const quality = job.imageQuality || pdfDefaults.imageQuality
+  const settleTime = job.settleTime ?? pdfDefaults.settleTime
+  const outputPath = resolve(CLIENT_DIR, job.output)
+
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: 1,
+    mobile: false,
+  })
+
+  const outputPdf = await PDFDocument.create()
+  outputPdf.setTitle(job.title)
+  outputPdf.setAuthor(job.author)
+  outputPdf.setSubject(job.subject || job.title)
+  outputPdf.setCreator('DAH Website PDF Engine')
+  const fixedDate = new Date(job.documentDate || '2026-09-19T00:00:00Z')
+  outputPdf.setCreationDate(fixedDate)
+  outputPdf.setModificationDate(fixedDate)
+
+  for (const [index, page] of job.pages.entries()) {
+    const loaded = cdp.waitForEvent('Page.loadEventFired')
+    await cdp.send('Page.navigate', { url: pageUrl(job, page, index) })
+    await loaded
+    await cdp.send('Runtime.evaluate', {
+      expression: `new Promise(async (resolve) => {
+        while (document.readyState !== 'complete') await new Promise((next) => setTimeout(next, 50));
+        await document.fonts.ready;
+        await Promise.all(Array.from(document.images).map((image) => image.complete ? null : new Promise((next) => {
+          image.addEventListener('load', next, { once: true });
+          image.addEventListener('error', next, { once: true });
+        })));
+        setTimeout(resolve, ${JSON.stringify(settleTime)});
+      })`,
+      awaitPromise: true,
+    })
+
+    const captured = await cdp.send('Page.captureScreenshot', {
+      format,
+      quality: format === 'png' ? undefined : quality,
+      fromSurface: true,
+      captureBeyondViewport: false,
+    })
+    const bytes = Buffer.from(captured.data, 'base64')
+    const image = format === 'png' ? await outputPdf.embedPng(bytes) : await outputPdf.embedJpg(bytes)
+    const outputPage = outputPdf.addPage([pdfPage.width, pdfPage.height])
+    outputPage.drawImage(image, { x: 0, y: 0, width: pdfPage.width, height: pdfPage.height })
+    process.stdout.write(`\r[${job.id}] PDF 화면 생성 ${index + 1}/${job.pages.length}`)
+  }
+
+  const bytes = await outputPdf.save({ useObjectStreams: true })
+  mkdirSync(dirname(outputPath), { recursive: true })
+  writeFileSync(outputPath, bytes)
+  process.stdout.write(`\n완료: ${outputPath}\n`)
 }
 
 try {
@@ -158,58 +228,10 @@ try {
   await cdp.connect()
   await cdp.send('Page.enable')
   await cdp.send('Runtime.enable')
-  await cdp.send('Emulation.setDeviceMetricsOverride', {
-    width: 1920,
-    height: 1080,
-    deviceScaleFactor: 1,
-    mobile: false,
-  })
   await cdp.send('Emulation.setEmulatedMedia', { media: 'screen' })
 
-  const outputPdf = await PDFDocument.create()
-  outputPdf.setTitle('2026 자유전공학부 전공 나침반 발표 자료')
-  outputPdf.setAuthor('한림대학교 디지털인문예술전공')
-  outputPdf.setSubject('디지털인문예술전공 소개 발표 자료')
-  outputPdf.setCreator('DAH Website')
-  outputPdf.setCreationDate(new Date('2026-09-19T00:00:00Z'))
-  outputPdf.setModificationDate(new Date('2026-09-19T00:00:00Z'))
-
-  for (const [index, page] of pages.entries()) {
-    const suffix = page.step > 0 ? `:${page.step + 1}` : ''
-    const url = `${BASE_URL}/major-compass?preview=1&page=${index + 1}#${page.id}${suffix}`
-    const loaded = cdp.waitForEvent('Page.loadEventFired')
-    await cdp.send('Page.navigate', { url })
-    await loaded
-    await cdp.send('Runtime.evaluate', {
-      expression: `new Promise(async (resolve) => {
-        while (document.readyState !== 'complete') await new Promise((next) => setTimeout(next, 50));
-        await document.fonts.ready;
-        await Promise.all(Array.from(document.images).map((image) => image.complete ? null : new Promise((next) => {
-          image.addEventListener('load', next, { once: true });
-          image.addEventListener('error', next, { once: true });
-        })));
-        setTimeout(resolve, 900);
-      })`,
-      awaitPromise: true,
-    })
-
-    const captured = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg',
-      quality: 93,
-      fromSurface: true,
-      captureBeyondViewport: false,
-    })
-    const image = await outputPdf.embedJpg(Buffer.from(captured.data, 'base64'))
-    const outputPage = outputPdf.addPage([1440, 810])
-    outputPage.drawImage(image, { x: 0, y: 0, width: 1440, height: 810 })
-    process.stdout.write(`\rPDF 화면 생성 ${index + 1}/${pages.length}`)
-  }
-
+  for (const job of jobs) await renderJob(cdp, job)
   cdp.close()
-  const bytes = await outputPdf.save({ useObjectStreams: true })
-  mkdirSync(dirname(OUTPUT), { recursive: true })
-  writeFileSync(OUTPUT, bytes)
-  process.stdout.write(`\n완료: ${OUTPUT}\n`)
 } finally {
   await Promise.all([stopChild(preview), stopChild(chrome)])
   rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })

@@ -1,4 +1,4 @@
-name: Update major compass PDF
+name: Update presentation PDFs
 
 on:
   push:
@@ -6,8 +6,9 @@ on:
     paths:
       - 'client/src/**'
       - 'client/public/images/**'
-      - 'client/public/videos/hero-poster.jpg'
-      - 'client/scripts/generate-major-compass-pdf.mjs'
+      - 'client/public/videos/**'
+      - 'client/scripts/generate-presentation-pdfs.mjs'
+      - 'client/scripts/presentation-pdfs.config.mjs'
       - 'client/.env.pdf'
       - 'client/package.json'
       - 'client/package-lock.json'
@@ -19,7 +20,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: major-compass-pdf-main
+  group: presentation-pdfs-main
   cancel-in-progress: true
 
 jobs:
@@ -43,20 +44,20 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1
 
-      - name: Build website and generate PDF
+      - name: Build website and generate every registered PDF
         working-directory: client
         env:
           CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: npm run pdf
 
-      - name: Commit refreshed PDF
+      - name: Commit refreshed PDFs
         run: |
-          if git diff --quiet -- client/public/downloads/2026-major-compass.pdf; then
+          if git diff --quiet -- 'client/public/downloads/*.pdf'; then
             echo "PDF 내용이 동일합니다."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add client/public/downloads/2026-major-compass.pdf
-          git commit -m "docs: refresh major compass PDF [skip ci]"
+          git add -- 'client/public/downloads/*.pdf'
+          git commit -m "docs: refresh presentation PDFs [skip ci]"
           git push

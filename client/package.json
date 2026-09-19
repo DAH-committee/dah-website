@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/sitemap.mjs && vite build",
-    "pdf": "node scripts/sitemap.mjs && vite build --mode pdf && node scripts/generate-major-compass-pdf.mjs",
+    "pdf": "node scripts/sitemap.mjs && vite build --mode pdf && node scripts/generate-presentation-pdfs.mjs",
+    "pdf:list": "node scripts/generate-presentation-pdfs.mjs --list",
     "lint": "oxlint",
     "preview": "vite preview"
   },
