@@ -35,7 +35,7 @@ jobs:
 
       - name: Install client dependencies
         working-directory: client
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Install Chrome
         id: setup-chrome
