@@ -169,7 +169,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
           <div className="min-w-0">
             <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">{connection.label}</h3>
             <p className="font-mono text-caption-m text-text-meta">
-              {connection.account_email || '계정 이메일 미확인'} · {connection.is_env ? '환경변수' : 'OAuth 연결'}
+              {connection.account_email || '계정 이메일 미확인'} · {connection.mode_label || 'Google OAuth'}
             </p>
           </div>
         </div>
@@ -413,6 +413,108 @@ function PendingUploads({ isOwner }) {
   )
 }
 
+/**
+ * Apps Script 릴레이 연결 등록 카드.
+ * Google Cloud 콘솔 작업 없이 Drive에 저장하는 경로다. 제출자는 계속 사이트 폼을 쓰고,
+ * Apps Script는 화면 없이 파일만 받는다.
+ */
+function AppsScriptConnect({ ready, onDone }) {
+  const [label, setLabel] = useState('')
+  const [url, setUrl] = useState('')
+  const [secret, setSecret] = useState('')
+  const [root, setRoot] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const [result, setResult] = useState(null)
+
+  const submit = async () => {
+    setBusy(true)
+    setError(null)
+    setResult(null)
+    try {
+      const res = await api.post('/admin/drive/connections/apps-script', {
+        label,
+        script_url: url.trim(),
+        secret: secret.trim(),
+        root_folder_id: root.trim(),
+      })
+      setResult(res.check)
+      setSecret('')
+      onDone(
+        res.check?.ok
+          ? `Apps Script 연결을 등록했습니다. 저장 계정: ${res.check?.account?.email || '확인 중'}`
+          : 'Apps Script 연결을 등록했지만 점검이 실패했습니다. 아래 안내를 확인하세요.'
+      )
+    } catch (err) {
+      setError(err.hint ? `${err.message} (${err.hint})` : err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className={CARD}>
+      <header>
+        <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">Apps Script 연결 추가</h3>
+        <p className="text-small-m text-text-sec">
+          Google Cloud 콘솔 설정 없이 Drive에 저장하는 방법입니다. 제출자는 계속 사이트 접수 폼을 사용하고,
+          Apps Script는 화면 없이 파일만 받습니다.
+        </p>
+      </header>
+
+      <ol className="list-decimal pl-20 text-small-m text-text-sec">
+        <li>파일을 보관할 Google 계정으로 script.google.com에서 새 프로젝트를 만듭니다.</li>
+        <li>저장소의 <code className="font-mono">server/scripts/apps-script/drive-relay.gs</code> 내용을 붙여 넣고, 맨 위 비밀키를 임의의 32자 이상 문자열로 바꿉니다.</li>
+        <li>배포 → 새 배포 → 웹 앱 / 실행: 나 / 액세스: <strong>모든 사용자</strong>로 배포합니다.</li>
+        <li>받은 <code className="font-mono">/exec</code> 주소와 2번의 비밀키를 아래에 넣습니다.</li>
+      </ol>
+
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+        <Field label="연결 이름">
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="2026 전시회 Drive (Apps Script)" />
+        </Field>
+        <Field label="루트 폴더 URL 또는 ID" hint="비워두면 등록 후 지정">
+          <Input value={root} onChange={(e) => setRoot(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />
+        </Field>
+        <Field label="웹앱 주소" hint="https://script.google.com/macros/s/.../exec">
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/AKfy.../exec" />
+        </Field>
+        <Field label="공유 비밀키" hint="스크립트의 SHARED_SECRET과 같은 값. 저장 후 다시 표시되지 않습니다">
+          <Input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} autoComplete="off" />
+        </Field>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-8">
+        <PrimaryButton onClick={submit} disabled={busy || !ready || !url.trim() || secret.trim().length < 16}>
+          <Link2 size={16} aria-hidden="true" />
+          {busy ? '확인 중' : 'Apps Script 연결 등록'}
+        </PrimaryButton>
+        {!ready && (
+          <span className="text-small-m text-state-error">
+            서버에 DRIVE_TOKEN_ENC_KEY가 설정되어야 비밀키를 안전하게 저장할 수 있습니다.
+          </span>
+        )}
+      </div>
+
+      {result && (
+        <div className="rounded-sm border border-border-subtle bg-bg-elev p-12 text-small-m text-text-sec">
+          <p className="font-semibold text-text-pri">{result.ok ? '점검 정상' : '점검 실패'}</p>
+          {result.account?.email && <p className="mt-4">저장 계정: {result.account.email}</p>}
+          {result.root && <p className="mt-4">루트 폴더: {result.root.name || '—'} ({result.root.ok ? '쓰기 가능' : result.root.message})</p>}
+          {!result.ok && (
+            <ul className="mt-8 list-disc pl-20">
+              <li>배포 설정이 "액세스 권한: 모든 사용자"인지 확인하세요.</li>
+              <li>스크립트의 비밀키와 여기 입력한 값이 같은지 확인하세요.</li>
+              <li>코드를 고친 뒤에는 새 배포를 만들어야 반영됩니다.</li>
+            </ul>
+          )}
+        </div>
+      )}
+      <ErrorText>{error}</ErrorText>
+    </section>
+  )
+}
+
 function StorageDriveAdmin() {
   useTitle('저장소 · Google Drive')
   const { user } = useAuth()
@@ -496,7 +598,9 @@ function StorageDriveAdmin() {
 
       {blockers.length > 0 && (
         <div className="rounded-md border border-state-error/40 bg-state-error/5 p-16">
-          <p className="text-body-m font-semibold text-state-error">연결을 시작하기 전에 서버 설정이 필요합니다</p>
+          <p className="text-body-m font-semibold text-state-error">
+            Google OAuth 방식으로 연결하려면 서버 설정이 필요합니다 (Apps Script 방식은 아래 카드로 바로 연결할 수 있습니다)
+          </p>
           <ul className="mt-8 list-disc pl-20 text-small-m text-text-sec">
             {blockers.map((item) => (
               <li key={item}>{item}</li>
@@ -533,12 +637,14 @@ function StorageDriveAdmin() {
         ))}
       </div>
 
+      {isOwner && <AppsScriptConnect ready={Boolean(config.apps_script_ready)} onDone={(msg) => { setMessage(msg); refetch() }} />}
+
       <PendingUploads isOwner={isOwner} />
 
       <section className={CARD}>
         <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">인수인계 순서</h3>
         <ol className="list-decimal pl-20 text-body-m text-text-sec md:text-body-d">
-          <li>owner 계정으로 로그인해 “새 Google 계정 연결”을 누르고 본인 Google 계정으로 동의합니다.</li>
+          <li>owner 계정으로 로그인해 “새 Google 계정 연결”(Google OAuth) 또는 “Apps Script 연결 추가” 중 하나로 계정을 연결합니다. Apps Script 방식은 Google Cloud 콘솔 작업이 필요 없습니다.</li>
           <li>기존 폴더를 계속 쓸 경우: 이전 담당자가 새 계정을 그 폴더의 편집자로 공유한 뒤 “연결 점검”을 누릅니다.</li>
           <li>새로 시작할 경우: “새 루트 폴더 만들기”에서 이름을 적고 구조 미리보기 → 확인 후 생성을 누릅니다.</li>
           <li>“테스트 파일 업로드”로 _DAH_INTEGRATION_TEST 폴더에 파일이 들어오는지 확인합니다.</li>

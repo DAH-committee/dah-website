@@ -13,6 +13,7 @@ export const DRIVE_SCHEMA_STATEMENTS = [
      root_folder_id    TEXT,
      root_folder_name  TEXT,
      refresh_token_enc TEXT,
+     script_url        TEXT,
      active            BOOLEAN NOT NULL DEFAULT TRUE,
      last_check_at     TIMESTAMPTZ,
      last_check_ok     BOOLEAN,
@@ -21,6 +22,8 @@ export const DRIVE_SCHEMA_STATEMENTS = [
      created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
      updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
+  // 기존 배포에 이미 테이블이 있으면 컬럼만 더한다(비파괴).
+  `ALTER TABLE google_drive_connections ADD COLUMN IF NOT EXISTS script_url TEXT`,
   `CREATE TABLE IF NOT EXISTS google_drive_folder_bindings (
      id            SERIAL PRIMARY KEY,
      connection_id INTEGER NOT NULL REFERENCES google_drive_connections(id) ON DELETE CASCADE,

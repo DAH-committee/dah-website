@@ -14,6 +14,7 @@
 // 기본값은 GOOGLE_DRIVE_SCOPE 환경변수로 바꿀 수 있다.
 import { Readable } from 'node:stream'
 import { google } from 'googleapis'
+import { createAppsScriptDriveClient } from './appsScriptDrive.js'
 
 export const DRIVE_SCOPE_FULL = 'https://www.googleapis.com/auth/drive'
 export const DRIVE_SCOPE_FILE = 'https://www.googleapis.com/auth/drive.file'
@@ -79,9 +80,10 @@ export function isGoogleDriveConfigured() {
 }
 
 /**
- * 자격증명 → Drive v3 클라이언트.
+ * 자격증명 → Drive v3 클라이언트(또는 같은 모양의 어댑터).
  * @param {{mode:'oauth', clientId:string, clientSecret:string, refreshToken:string}
- *        |{mode:'service-account', credentials:object}} credentials
+ *        |{mode:'service-account', credentials:object}
+ *        |{mode:'apps-script', url:string, secret:string}} credentials
  */
 export async function createDriveClient(credentials) {
   if (clientFactory) return clientFactory(credentials)
@@ -90,6 +92,10 @@ export async function createDriveClient(credentials) {
     err.status = 503
     err.code = 'drive_not_configured'
     throw err
+  }
+  // Apps Script 웹앱 릴레이 — GCP OAuth 클라이언트 없이 배포자 Drive에 저장한다.
+  if (credentials.mode === 'apps-script') {
+    return createAppsScriptDriveClient({ url: credentials.url, secret: credentials.secret })
   }
   if (credentials.mode === 'service-account') {
     const auth = new google.auth.GoogleAuth({

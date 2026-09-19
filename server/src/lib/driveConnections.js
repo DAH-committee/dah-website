@@ -22,7 +22,7 @@ import {
 export const ENV_CONNECTION_ID = 0 // 환경변수 레거시 연결의 가상 ID (DB에는 저장하지 않는다)
 
 const CONNECTION_COLUMNS = `id, label, account_email, auth_mode, scope, root_folder_id,
-  root_folder_name, active, last_check_at, last_check_ok, last_error, created_at, updated_at,
+  root_folder_name, script_url, active, last_check_at, last_check_ok, last_error, created_at, updated_at,
   (refresh_token_enc IS NOT NULL) AS has_token`
 
 /** API로 내보내도 되는 모양. 토큰·암호문은 어떤 경로로도 포함되지 않는다 */
@@ -39,6 +39,8 @@ export function sanitizeConnection(row) {
     root_folder_url: row.root_folder_id
       ? `https://drive.google.com/drive/folders/${row.root_folder_id}`
       : '',
+    // Apps Script 릴레이는 주소만 보여준다. 공유 비밀키는 어떤 응답에도 넣지 않는다.
+    script_url: row.script_url || '',
     active: row.active !== false,
     last_check_at: row.last_check_at ?? null,
     last_check_ok: row.last_check_ok ?? null,
@@ -47,6 +49,15 @@ export function sanitizeConnection(row) {
     updated_at: row.updated_at ?? null,
     has_token: Boolean(row.has_token ?? row.refresh_token_enc),
     is_env: row.auth_mode === 'env',
+    is_apps_script: row.auth_mode === 'apps-script',
+    mode_label:
+      row.auth_mode === 'apps-script'
+        ? 'Apps Script 릴레이'
+        : row.auth_mode === 'env'
+          ? '환경변수(레거시)'
+          : row.auth_mode === 'service-account'
+            ? '서비스 계정'
+            : 'Google OAuth',
   }
 }
 
@@ -61,6 +72,7 @@ export function envConnectionRow() {
     scope: driveScope(),
     root_folder_id: process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID?.trim() || '',
     root_folder_name: '',
+    script_url: '',
     active: true,
     last_check_at: null,
     last_check_ok: null,
@@ -135,8 +147,19 @@ export async function resolveConnection({ connectionId = null, requireActive = t
   throw err
 }
 
-/** 연결 행 → Drive 자격증명(평문 토큰은 이 함수 밖으로 나가지 않는다) */
+/** 연결 행 → Drive 자격증명(평문 토큰·비밀키는 이 함수 밖으로 나가지 않는다) */
 function credentialsFor(row) {
+  // Apps Script 릴레이: GCP OAuth 클라이언트가 필요 없다. 웹앱 URL + 공유 비밀키만 쓴다.
+  if (row.auth_mode === 'apps-script') {
+    const secret = open(row.refresh_token_enc)
+    if (!secret) {
+      const err = new Error('저장된 Apps Script 비밀키를 열 수 없습니다. 연결을 다시 등록하세요.')
+      err.status = 409
+      err.code = 'token_unreadable'
+      throw err
+    }
+    return { mode: 'apps-script', url: row.script_url, secret }
+  }
   if (row.auth_mode === 'env') {
     const credentials = legacyEnvCredentials()
     if (credentials) return credentials
@@ -346,6 +369,45 @@ export async function createConnection({ label, accountEmail, refreshToken, scop
       sealed,
       createdBy,
     ]
+  )
+  return rows[0]
+}
+
+/**
+ * Apps Script 릴레이 연결 등록. 같은 웹앱 URL이면 새 프로필을 만들지 않고 비밀키만 교체한다.
+ * 비밀키는 secretBox로 봉인해 refresh_token_enc에 넣는다(평문 저장·응답 노출 없음).
+ */
+export async function createAppsScriptConnection({ label, scriptUrl, secret, rootFolderId = '', createdBy = null }) {
+  if (!isSecretBoxConfigured()) {
+    const err = new Error('DRIVE_TOKEN_ENC_KEY가 없어 Apps Script 비밀키를 저장할 수 없습니다.')
+    err.status = 503
+    err.code = 'enc_key_missing'
+    err.hint = 'Render 환경변수에 DRIVE_TOKEN_ENC_KEY(32바이트 랜덤값 base64)를 추가한 뒤 재배포하세요.'
+    throw err
+  }
+  const sealed = seal(secret)
+  const url = String(scriptUrl || '').trim()
+  const existing = (
+    await query('SELECT id FROM google_drive_connections WHERE script_url = $1 ORDER BY id ASC LIMIT 1', [url])
+  ).rows[0]
+  if (existing) {
+    const { rows } = await query(
+      `UPDATE google_drive_connections
+          SET label = COALESCE(NULLIF($1, ''), label), refresh_token_enc = $2, auth_mode = 'apps-script',
+              active = TRUE, last_error = '', updated_at = now(),
+              root_folder_id = COALESCE(NULLIF($3, ''), root_folder_id)
+        WHERE id = $4
+        RETURNING ${CONNECTION_COLUMNS}`,
+      [String(label || '').slice(0, 80), sealed, rootFolderId, existing.id]
+    )
+    return rows[0]
+  }
+  const { rows } = await query(
+    `INSERT INTO google_drive_connections
+       (label, account_email, auth_mode, scope, root_folder_id, refresh_token_enc, script_url, created_by)
+     VALUES ($1, '', 'apps-script', 'apps-script-relay', $2, $3, $4, $5)
+     RETURNING ${CONNECTION_COLUMNS}`,
+    [String(label || 'Apps Script Drive 연결').slice(0, 80), rootFolderId, sealed, url, createdBy]
   )
   return rows[0]
 }

@@ -384,7 +384,8 @@ CREATE TABLE IF NOT EXISTS google_drive_connections (
   scope             TEXT,
   root_folder_id    TEXT,
   root_folder_name  TEXT,
-  refresh_token_enc TEXT,
+  refresh_token_enc TEXT,   -- OAuth refresh token 또는 Apps Script 공유 비밀키(봉인 저장)
+  script_url        TEXT,   -- auth_mode='apps-script'일 때 웹앱 /exec 주소
   active            BOOLEAN NOT NULL DEFAULT TRUE,
   last_check_at     TIMESTAMPTZ,
   last_check_ok     BOOLEAN,

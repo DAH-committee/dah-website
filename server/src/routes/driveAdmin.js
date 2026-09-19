@@ -32,6 +32,7 @@ import {
 import {
   ENV_CONNECTION_ID,
   checkConnection,
+  createAppsScriptConnection,
   createConnection,
   disconnectConnection,
   driveFor,
@@ -47,6 +48,7 @@ import {
   updateConnection,
 } from '../lib/driveConnections.js'
 import { isSecretBoxConfigured } from '../lib/secretBox.js'
+import { isAppsScriptUrl } from '../lib/appsScriptDrive.js'
 import { preflightForm } from '../lib/drivePreflight.js'
 import {
   PATH_TEMPLATES,
@@ -120,6 +122,8 @@ router.get(
       config: {
         oauth_app_ready: Boolean(oauthAppCredentials()),
         encryption_ready: isSecretBoxConfigured(),
+        // Apps Script 릴레이는 GCP OAuth 클라이언트가 필요 없다. 암호화 키만 있으면 등록할 수 있다.
+        apps_script_ready: isSecretBoxConfigured(),
         scope: driveScope(),
         redirect_uri: process.env.GOOGLE_DRIVE_REDIRECT_URI?.trim() || '',
       },
@@ -167,6 +171,61 @@ router.post(
       include_granted_scopes: 'true',
     })
     res.json({ url: `${AUTH_ENDPOINT}?${params.toString()}`, redirect_uri: app.redirectUri })
+  })
+)
+
+/**
+ * Apps Script 릴레이 연결 등록 (owner 전용).
+ * GCP 콘솔 작업 없이 Drive에 저장하는 경로다. 배포한 Apps Script 웹앱 주소와 공유 비밀키만 받는다.
+ * 등록 직후 실제로 통신해 계정 이메일과 루트 폴더 접근을 확인한다 — 잘못된 주소가 조용히 저장되지 않는다.
+ */
+router.post(
+  '/admin/drive/connections/apps-script',
+  requireAuth,
+  requireRole('owner'),
+  wrap(async (req, res) => {
+    if (!isSecretBoxConfigured()) {
+      return res.status(503).json({
+        error: 'DRIVE_TOKEN_ENC_KEY가 없어 Apps Script 비밀키를 저장할 수 없습니다.',
+        hint: 'Render 환경변수에 DRIVE_TOKEN_ENC_KEY(32바이트 랜덤값 base64)를 추가한 뒤 재배포하세요.',
+      })
+    }
+    const scriptUrl = String(req.body?.script_url || '').trim()
+    const secret = String(req.body?.secret || '').trim()
+    const rootFolderId = req.body?.root_folder_id ? folderIdFrom(req.body.root_folder_id) : ''
+
+    if (!isAppsScriptUrl(scriptUrl)) {
+      return res.status(400).json({
+        error: 'Apps Script 웹앱 주소 형식이 아닙니다.',
+        hint: '배포 후 받은 https://script.google.com/macros/s/.../exec 주소를 넣으세요.',
+      })
+    }
+    if (secret.length < 16) {
+      return res.status(400).json({ error: '공유 비밀키는 16자 이상이어야 합니다.' })
+    }
+    if (req.body?.root_folder_id && !rootFolderId) {
+      return res.status(400).json({ error: 'Drive 폴더 URL 또는 ID 형식이 아닙니다.' })
+    }
+
+    const row = await createAppsScriptConnection({
+      label: req.body?.label,
+      scriptUrl,
+      secret,
+      rootFolderId,
+      createdBy: req.user.id,
+    })
+    // 등록과 동시에 점검한다. 실패해도 연결은 남기고(수정 가능) 결과를 그대로 알려준다.
+    const check = await checkConnection(await getConnectionRow(row.id), { rootFolderId })
+    const fresh = await getConnectionRow(row.id)
+    res.status(201).json({
+      connection: sanitizeConnection(fresh),
+      check: {
+        ok: check.ok,
+        error: check.error,
+        account: check.account ? { email: check.account.email, quota: check.account.quota } : null,
+        root: check.root,
+      },
+    })
   })
 )
 

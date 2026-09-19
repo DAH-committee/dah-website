@@ -121,7 +121,32 @@ npm run dev
 
 경로 규칙은 폼 편집기의 `폴더 경로 규칙`에서 고릅니다. 이번 학기 폴더를 이미 만들어 두었다면 그 폴더를 루트로 지정하고 `과목 / 원본` 규칙을 쓰면 기존 구조를 그대로 씁니다.
 
-#### 1회 준비 (서버 담당자)
+#### 연결 방식은 두 가지 — 하나만 고르면 된다
+
+| 방식 | Google Cloud 콘솔 작업 | 준비물 | 파일 크기 | 언제 쓰나 |
+| --- | --- | --- | --- | --- |
+| **Apps Script 릴레이** (간단) | **필요 없음** | 스크립트 배포 주소 + 비밀키 | 기본 30MB까지 | 평소 운영. 운영진이 바뀌어도 스크립트만 다시 배포하면 끝 |
+| Drive API + OAuth (정식) | 필요 (1회) | OAuth 클라이언트 ID·시크릿 | 기본 100MB까지 | 아주 큰 인쇄 원본을 받아야 할 때 |
+
+어느 쪽을 골라도 **학생이 보는 화면은 사이트의 접수 폼 그대로**입니다. Apps Script는 화면 없이 파일만 받는 뒷단 수신처로만 쓰입니다.
+
+```
+제출자 브라우저 → dah-website 서버 → (Apps Script 웹앱 또는 Drive API) → Drive 폴더
+```
+
+#### Apps Script 릴레이로 연결하기 (권장)
+
+1. 서버 환경변수 `DRIVE_TOKEN_ENC_KEY`만 Render에 넣습니다(비밀키 암호화용, `openssl rand -base64 32`).
+2. 파일을 보관할 Google 계정으로 <https://script.google.com>에서 새 프로젝트를 만듭니다.
+3. 저장소의 `server/scripts/apps-script/drive-relay.gs` 내용을 전부 붙여 넣고, 맨 위 `SHARED_SECRET`을 임의의 32자 이상 문자열로 바꿉니다. **이 값을 GitHub에 올리지 않습니다.**
+4. `배포 → 새 배포 → 웹 앱`으로 배포합니다. `다음 사용자로 실행: 나`, `액세스 권한이 있는 사용자: 모든 사용자`로 둡니다.
+5. 나온 `.../exec` 주소를 복사합니다.
+6. 사이트 `관리 → 저장소 · Google Drive → Apps Script 연결 추가`에 연결 이름, 루트 폴더 URL, `/exec` 주소, 3번의 비밀키를 넣고 등록합니다. 등록하는 순간 서버가 실제로 통신해 저장 계정과 루트 폴더 접근을 확인합니다.
+7. `테스트 파일 업로드`로 `_DAH_INTEGRATION_TEST` 폴더에 파일이 들어오는지 봅니다.
+
+스크립트 코드를 고친 뒤에는 **새 배포를 만들어야** 반영됩니다. 30MB보다 큰 파일을 받아야 하면 `APPS_SCRIPT_MAX_UPLOAD_MB`를 올리거나 아래 Drive API 방식으로 바꿉니다.
+
+#### Drive API + OAuth로 연결하기 (1회 준비, 서버 담당자)
 
 1. Google Cloud Console에서 **Drive API를 사용 설정**하고, OAuth 동의 화면을 구성한 뒤 **웹 애플리케이션** OAuth 클라이언트를 만듭니다.
 2. 승인된 리디렉션 URI에 API 서버의 콜백 주소를 **문자 단위로 같게** 등록합니다.
@@ -137,6 +162,7 @@ npm run dev
 | `DRIVE_TOKEN_ENC_KEY` | refresh token 암호화 키. 32바이트 랜덤값의 base64 (`openssl rand -base64 32`) |
 | `GOOGLE_DRIVE_SCOPE` | (선택) 기본값 `https://www.googleapis.com/auth/drive` |
 | `GOOGLE_DRIVE_MAX_UPLOAD_MB` | (선택) Drive 원본 업로드 상한. 기본 100 |
+| `APPS_SCRIPT_MAX_UPLOAD_MB` | (선택) Apps Script 릴레이 업로드 상한. 기본 30 |
 
 4. DB에 저장소 테이블을 만듭니다. 서버는 부팅할 때 이 테이블을 스스로 확인·생성하므로 **재배포만으로도 준비됩니다.** 수동으로 돌릴 때는 `server/`에서 `node scripts/migrate-phase53-drive.mjs`를 실행합니다. 기존 폼 설정은 지우지 않고, 파일 질문에 저장소 설정이 없을 때만 폼 전역 Drive 설정을 질문 단위로 복사합니다.
 
