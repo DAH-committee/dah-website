@@ -13,6 +13,7 @@ import { Check, ChevronDown, ChevronUp, Copy, Eye, FileText, Link, ListPlus, Plu
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
+import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import {
   DateInput,
@@ -46,6 +47,74 @@ const TYPE_LABEL = {
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label }))
 const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
+// 53_DRIVE_STORAGE: 파일 질문별 저장소. 값은 서버 lib/formStorage.js와 같은 화이트리스트다.
+const STORAGE_TARGETS = [
+  { value: 'blob', label: 'Vercel Blob (사이트 표시용)' },
+  { value: 'drive', label: 'Google Drive (원본·인쇄용)' },
+]
+const STORAGE_PURPOSES = [
+  { value: 'web', label: '웹 전시용 — 리사이즈·WebP 생성' },
+  { value: 'original', label: '원본·인쇄용 — 변환 없이 원본 보존' },
+  { value: 'attachment', label: '일반 제출 서류 — 변환 없이 보존' },
+]
+const SHARE_MODES = [
+  { value: 'restricted', label: '제한됨 — 폴더 권한을 가진 사람만' },
+  { value: 'link', label: '링킬를 가진 사용자에게 보기 허용' },
+]
+const DEFAULT_TEMPLATES = [
+  { value: 'exhibition_original', label: '전시회 원본 — 학기 / 폼명 / 과목 / 원본', needs_course: true, needs_semester: true },
+  { value: 'course_leaf', label: '과목 / 원본 (학기 폴더를 루트로 사용)', needs_course: true, needs_semester: false },
+  { value: 'semester_course_field', label: '학기 / 과목 / 파일 질문명', needs_course: true, needs_semester: true },
+  { value: 'semester_category_form_field', label: '학기 또는 연도 / 분류 / 폼명 / 파일 질문명', needs_course: false, needs_semester: true },
+  { value: 'semester_form_field', label: '학기 또는 연도 / 폼명 / 파일 질문명', needs_course: false, needs_semester: true },
+  { value: 'form_field', label: '폼명 / 파일 질문명', needs_course: false, needs_semester: false },
+  { value: 'root', label: '루트 폴더에 바로 저장', needs_course: false, needs_semester: false },
+]
+// 서버와 같은 순서로 단계를 조립해 관리자가 저장 전에 경로를 눈으로 토다
+const PATH_PREVIEW = {
+  exhibition_original: (c) => [c.semester, c.formTitle, c.course, c.leaf || '원본'],
+  course_leaf: (c) => [c.course, c.leaf || '원본'],
+  semester_course_field: (c) => [c.semester, c.course, c.fieldLabel],
+  semester_category_form_field: (c) => [c.semester, c.categoryLabel, c.formTitle, c.fieldLabel],
+  semester_form_field: (c) => [c.semester, c.formTitle, c.fieldLabel],
+  form_field: (c) => [c.formTitle, c.fieldLabel],
+  root: () => [],
+}
+const DEFAULT_STORAGE = {
+  target: 'blob',
+  purpose: 'web',
+  accept: [],
+  max_bytes: null,
+  connection_id: null,
+  path_template: 'semester_form_field',
+  folder_label: '',
+  share_mode: 'restricted',
+}
+
+/** 예전 폼(폼 전역 Drive 설정)을 질문 단위 설정으로 읽어오기 — 저장 전에도 화면이 사실을 보이게 한다 */
+function normStorage(raw, formSettings = {}) {
+  if (raw && typeof raw === 'object') {
+    return {
+      ...DEFAULT_STORAGE,
+      ...raw,
+      accept: Array.isArray(raw.accept) ? raw.accept : [],
+      connection_id: raw.connection_id ?? null,
+      max_bytes: raw.max_bytes ?? null,
+    }
+  }
+  if (formSettings?.drive_enabled) {
+    return {
+      ...DEFAULT_STORAGE,
+      target: 'drive',
+      purpose: 'original',
+      path_template: formSettings.drive_auto_folder === false ? 'root' : 'exhibition_original',
+      share_mode: formSettings.drive_share_mode === 'link' ? 'link' : 'restricted',
+      connection_id: formSettings.drive_connection_id ?? null,
+    }
+  }
+  return { ...DEFAULT_STORAGE }
+}
+
 const PANEL = 'form-editor-panel flex flex-col gap-16 rounded-md border p-24 md:p-32'
 const QUESTION_CARD =
   'form-editor-panel relative flex flex-col gap-20 rounded-md border border-l-4 border-l-[#7157d9] bg-white p-20 shadow-sm md:p-24'
@@ -66,8 +135,10 @@ function fromLocalInput(v) {
 }
 
 /** 필드 1개 정규화. 부분 저장된 jsonb가 와도 편집 화면이 깨지지 않게 기본값을 채운다 */
-function normField(f, i) {
+function normField(f, i, formSettings = {}) {
   return {
+    // 파일 질문은 저장소 설정을 자기 카드에 가진다(폼 전역 설정 공유 종료).
+    ...(f?.type === 'file' ? { storage: normStorage(f?.storage, formSettings) } : {}),
     id: String(f?.id ?? `f${i + 1}`),
     label_ko: f?.label_ko ?? '',
     label_en: f?.label_en ?? '',
@@ -111,6 +182,7 @@ const EMPTY = {
     drive_semester: '',
     drive_course_field_id: '',
     drive_share_mode: 'restricted',
+    drive_connection_id: '',
   },
 }
 
@@ -126,7 +198,7 @@ function fromItem(item) {
     fields: (Array.isArray(item.fields) ? item.fields : [])
       .slice()
       .sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0))
-      .map(normField),
+      .map((field, i) => normField(field, i, s)),
     published: Boolean(item.published),
     settings: {
       accept_start: toLocalInput(s.accept_start),
@@ -143,6 +215,7 @@ function fromItem(item) {
       drive_semester: s.drive_semester || '',
       drive_course_field_id: s.drive_course_field_id || '',
       drive_share_mode: s.drive_share_mode === 'link' ? 'link' : 'restricted',
+      drive_connection_id: s.drive_connection_id == null ? '' : String(s.drive_connection_id),
     },
   }
 }
@@ -168,12 +241,16 @@ function toPayload(form) {
       show_button_in_header: s.show_button_in_header,
       button_label_ko: s.button_label_ko,
       button_label_en: s.button_label_en,
-      drive_enabled: s.drive_enabled,
-      drive_folder_id: s.drive_folder_id.trim(),
-      drive_auto_folder: Boolean(s.drive_auto_folder),
-      drive_semester: s.drive_semester.trim(),
+      // 53_DRIVE_STORAGE: 저장 위치는 질문 카드가 결정한다. 폼 전역 플래그는 질문 설정에서 파생시휴다
+      drive_enabled: form.fields.some((f) => f.type === 'file' && f.storage?.target === 'drive'),
+      drive_folder_id: (s.drive_folder_id || '').trim(),
+      drive_auto_folder: form.fields.some(
+        (f) => f.type === 'file' && f.storage?.target === 'drive' && f.storage?.path_template !== 'root'
+      ),
+      drive_semester: (s.drive_semester || '').trim(),
       drive_course_field_id: s.drive_course_field_id,
       drive_share_mode: s.drive_share_mode,
+      drive_connection_id: s.drive_connection_id === '' ? null : Number(s.drive_connection_id),
     },
   }
 }
@@ -235,21 +312,222 @@ function OptionsEditor({ options, onChange }) {
   )
 }
 
-function FileDriveSettings({ settings, setSetting, setSettingInput, courseFieldOptions, loadSemesterCourses, loadingCourses, error }) {
+/**
+ * 파일 질문 1개의 저장소 카드 (53_DRIVE_STORAGE).
+ * 저장 위치·용도·허용 확장자·용량·폴더 경로를 이 질문에만 적용한다. 전시회 한 폼 안에서
+ * "웹 전시용은 Blob, 인쇄용 원본은 Drive"가 동시에 성립해야 하므로 폼 전역 설정을 쓰지 않는다.
+ */
+function FileStorageCard({
+  field,
+  storage,
+  onStorage,
+  settings,
+  setSetting,
+  setSettingInput,
+  courseFieldOptions,
+  loadSemesterCourses,
+  loadingCourses,
+  courseError,
+  connections,
+  templates,
+  formTitle,
+  category,
+  formId,
+  onPrepare,
+  preparing,
+  prepareResult,
+}) {
+  const set = (key) => (value) => onStorage({ ...storage, [key]: value })
+  const isDrive = storage.target === 'drive'
+  const template = templates.find((t) => t.value === storage.path_template) || templates[0]
+  const driveOptions = connections
+    .filter((c) => c.active && c.has_token)
+    .map((c) => ({ value: String(c.id), label: `${c.label}${c.account_email ? ` · ${c.account_email}` : ''}` }))
+  const selected = connections.find((c) => String(c.id) === String(storage.connection_id ?? settings.drive_connection_id))
+  const build = PATH_PREVIEW[storage.path_template] || PATH_PREVIEW.semester_form_field
+  const segments = build({
+    semester: (settings.drive_semester || '').trim() || '(학기)',
+    formTitle: formTitle || '(폼명)',
+    categoryLabel: CATEGORY_LABEL[category] || '기타',
+    fieldLabel: field.label_ko || field.id,
+    course: '(선택한 과목)',
+    leaf: storage.folder_label,
+  }).filter(Boolean)
+  const rootLabel = selected?.root_folder_name || selected?.root_folder_id || '(루트 폴더 미지정)'
+
   return (
     <div className="overflow-hidden rounded-md border border-[#d8d1ed] bg-[#faf9ff]">
       <div className="flex flex-wrap items-center justify-between gap-12 border-b border-[#e5dff3] bg-white px-16 py-12">
-        <div className="flex items-center gap-8"><UploadCloud size={19} className="text-[#5f43ce]" /><div><p className="text-small-m font-bold text-[#29253a]">Google Drive 원본 파일 저장</p><p className="text-caption-m text-[#6e6680]">이 파일 질문에만 적용됩니다.</p></div></div>
-        <Toggle tone="light" checked={settings.drive_enabled} onChange={(enabled) => { setSetting('drive_enabled')(enabled); setSetting('drive_auto_folder')(enabled) }} label="Google Drive 업로드 사용" />
+        <div className="flex items-center gap-8">
+          {isDrive ? <GoogleDriveIcon size={19} /> : <UploadCloud size={19} className="text-[#5f43ce]" />}
+          <div>
+            <p className="text-small-m font-bold text-[#29253a]">이 파일 질문의 저장 위치</p>
+            <p className="text-caption-m text-[#6e6680]">
+              {isDrive ? 'Google Drive — 원본을 변환 없이 보관합니다.' : 'Vercel Blob — 사이트 표시용으로 최적화합니다.'}
+            </p>
+          </div>
+        </div>
       </div>
-      {settings.drive_enabled && <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
-        <Field label="Drive 루트 폴더 URL 또는 ID"><Input value={settings.drive_folder_id} onChange={setSettingInput('drive_folder_id')} /></Field>
-        <Field label="학기"><Input value={settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" /></Field>
-        <Field label="과목 선택 질문"><Select tone="light" value={settings.drive_course_field_id} options={courseFieldOptions} placeholder="참가 과목을 선택하세요" onChange={(e) => setSetting('drive_course_field_id')(e.target.value)} disabled={!courseFieldOptions.length} /></Field>
-        <Field label="파일 공유 범위"><Select tone="light" value={settings.drive_share_mode} options={[{ value: 'restricted', label: '제한됨 — 관리자만 보기' }, { value: 'link', label: '링크가 있는 사용자에게 보기 허용' }]} onChange={(e) => setSetting('drive_share_mode')(e.target.value)} /></Field>
-        <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-12 rounded-sm bg-[#eee9ff] px-12 py-10"><p className="text-caption-m text-[#51486a]">학기 → 과목 → 폼명 순으로 폴더를 자동 생성합니다.</p><GhostButton type="button" onClick={loadSemesterCourses} disabled={loadingCourses || !settings.drive_course_field_id} className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]">{loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}</GhostButton></div>
-        {error && <p className="md:col-span-2 text-caption-m text-state-error">{error}</p>}
-      </div>}
+
+      <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
+        <Field label="저장 위치">
+          <Select
+            tone="light"
+            value={storage.target}
+            options={STORAGE_TARGETS}
+            onChange={(e) => {
+              const target = e.target.value
+              onStorage({
+                ...storage,
+                target,
+                purpose: target === 'drive' ? 'original' : 'web',
+                path_template: target === 'drive' ? (storage.path_template || 'exhibition_original') : storage.path_template,
+              })
+            }}
+          />
+        </Field>
+        <Field label="파일 용도">
+          <Select tone="light" value={storage.purpose} options={STORAGE_PURPOSES} onChange={(e) => set('purpose')(e.target.value)} />
+        </Field>
+        <Field label="허용 확장자" hint="비우면 용도에 맞는 기본값. 쉼표로 구분">
+          <Input
+            value={(storage.accept || []).join(', ')}
+            onChange={(e) =>
+              set('accept')(
+                e.target.value
+                  .split(',')
+                  .map((v) => v.trim().replace(/^\./, '').toLowerCase())
+                  .filter(Boolean)
+              )
+            }
+            placeholder="jpg, png, pdf, ai"
+          />
+        </Field>
+        <Field label="최대 용량 (MB)" hint={isDrive ? '비우면 100MB' : '비우면 20MB'}>
+          <Input
+            type="number"
+            min="1"
+            value={storage.max_bytes ? Math.round(storage.max_bytes / (1024 * 1024)) : ''}
+            onChange={(e) => set('max_bytes')(e.target.value === '' ? null : Number(e.target.value) * 1024 * 1024)}
+          />
+        </Field>
+
+        {isDrive && (
+          <>
+            <Field label="Google Drive 연결" hint={driveOptions.length ? '관리 → 저장소에서 연결한 계정' : '연결된 Drive 계정이 없습니다'}>
+              <Select
+                tone="light"
+                value={storage.connection_id == null ? '' : String(storage.connection_id)}
+                options={driveOptions}
+                placeholder={driveOptions.length ? '연결 선택' : '연결된 Drive 계정이 없습니다'}
+                onChange={(e) => set('connection_id')(e.target.value === '' ? null : Number(e.target.value))}
+                disabled={!driveOptions.length}
+              />
+            </Field>
+            <Field label="폴더 경로 규칙">
+              <Select
+                tone="light"
+                value={storage.path_template}
+                options={templates.map((t) => ({ value: t.value, label: t.label }))}
+                onChange={(e) => set('path_template')(e.target.value)}
+              />
+            </Field>
+            <Field label="마지막 폴더 이름" hint="전시회 원본 규칙에서 마지막 단계 이름. 비우면 “원본”">
+              <Input value={storage.folder_label} onChange={(e) => set('folder_label')(e.target.value)} placeholder="원본" />
+            </Field>
+            <Field label="파일 공개 범위" hint="학생 제출물과 원본은 제한됨을 권장">
+              <Select tone="light" value={storage.share_mode} options={SHARE_MODES} onChange={(e) => set('share_mode')(e.target.value)} />
+            </Field>
+            <Field label="학기 또는 연도" hint="폼 전체 공통. 2026-2 또는 2026">
+              <Input value={settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
+            </Field>
+            <Field label="과목 선택 질문" hint="폼 전체 공통. 과목 폴더 분류에 사용">
+              <Select
+                tone="light"
+                value={settings.drive_course_field_id}
+                options={courseFieldOptions}
+                placeholder={courseFieldOptions.length ? '과목 질문 선택' : '객관식·드롭다운 질문을 먼저 만드세요'}
+                onChange={(e) => setSetting('drive_course_field_id')(e.target.value)}
+                disabled={!courseFieldOptions.length}
+              />
+            </Field>
+
+            <div className="md:col-span-2 flex flex-col gap-8 rounded-sm bg-[#eee9ff] px-12 py-10">
+              <p className="font-mono text-caption-m text-[#51486a]">
+                예상 저장 경로: {rootLabel} / {segments.join(' / ') || '(루트에 바로 저장)'}
+              </p>
+              {!selected && (
+                <p className="text-caption-m text-state-error">연결된 Drive 계정이 없습니다. 관리 → 저장소 → Google Drive에서 먼저 연결하세요.</p>
+              )}
+              {selected && !selected.root_folder_id && (
+                <p className="text-caption-m text-state-error">루트 폴더 접근 권한이 없습니다. 관리 → 저장소에서 루트 폴더를 지정하세요.</p>
+              )}
+              {template?.needs_semester && !(settings.drive_semester || '').trim() && (
+                <p className="text-caption-m text-state-error">학기를 입력해야 폴더가 만들어집니다.</p>
+              )}
+              {template?.needs_course && !settings.drive_course_field_id && (
+                <p className="text-caption-m text-state-error">과목 선택 질문이 지정되지 않았습니다.</p>
+              )}
+              <div className="flex flex-wrap items-center gap-8">
+                <GhostButton
+                  type="button"
+                  onClick={loadSemesterCourses}
+                  disabled={loadingCourses || !settings.drive_course_field_id}
+                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                >
+                  {loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}
+                </GhostButton>
+                <GhostButton
+                  type="button"
+                  onClick={() => onPrepare(field.id, false)}
+                  disabled={preparing || !formId}
+                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  title={formId ? '' : '폼을 먼저 저장하세요'}
+                >
+                  폴더 구조 미리보기
+                </GhostButton>
+                <GhostButton
+                  type="button"
+                  onClick={() => onPrepare(field.id, true)}
+                  disabled={preparing || !formId}
+                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                >
+                  누락 폴더 준비
+                </GhostButton>
+              </div>
+              {prepareResult && (
+                <div className="font-mono text-caption-m text-[#3f3857]">
+                  {prepareResult.error ? (
+                    <p className="text-state-error">{prepareResult.error}</p>
+                  ) : (
+                    <>
+                      {(prepareResult.steps || []).map((step, i) => (
+                        <p key={`${step.name}-${i}`}>
+                          {step.name}{' '}
+                          {step.missing ? '— 폴더가 없습니다' : step.created ? '— 새로 만들었습니다' : '— 이미 있어 재사용'}
+                        </p>
+                      ))}
+                      {prepareResult.folder_url && (
+                        <a href={prepareResult.folder_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                          만들어진 폴더 열기
+                        </a>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+              {courseError && <p className="text-caption-m text-state-error">{courseError}</p>}
+            </div>
+          </>
+        )}
+
+        {!isDrive && (
+          <p className="md:col-span-2 rounded-sm bg-[#eee9ff] px-12 py-10 text-caption-m text-[#51486a]">
+            웹 전시용 이미지는 최장변 2400px WebP로 최적화해 사이트에 바로 쓸 수 있게 저장합니다. 원본이 필요하면 저장 위치를
+            Google Drive로 바꾸세요.
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -344,7 +622,14 @@ function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, ov
         </Field>
       )}
 
-      {field.type === 'file' && <FileDriveSettings {...driveProps} />}
+      {field.type === 'file' && (
+        <FileStorageCard
+          field={field}
+          storage={field.storage || DEFAULT_STORAGE}
+          onStorage={set('storage')}
+          {...driveProps}
+        />
+      )}
 
       <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8e3f4] pt-12">
         <button type="button" onClick={onDuplicate} aria-label={`필드 ${index + 1} 복제`} className={ICON_BTN}>
@@ -383,6 +668,11 @@ function FormEditor() {
   const [previewValue, setPreviewValue] = useState({})
   const [armed, setArmed] = useState(null) // 드래그 준비된 필드 index
   const [copied, setCopied] = useState(false)
+  // 53_DRIVE_STORAGE: 연결 프로필·경로 템플릿은 서버가 단일 원본이다. 화면은 그것을 그린다.
+  const { data: driveStatus } = useApi('/admin/drive/status')
+  const [saveIssues, setSaveIssues] = useState([])
+  const [preparing, setPreparing] = useState(false)
+  const [prepareResults, setPrepareResults] = useState({})
 
   useEffect(() => {
     if (hydrated || !data?.item) return
@@ -401,7 +691,46 @@ function FormEditor() {
     .filter((field) => ['select', 'radio'].includes(field.type))
     .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
   const addField = (type = 'text') =>
-    setFields([...form.fields, normField({ id: `f${Date.now().toString(36)}`, type }, form.fields.length)])
+    setFields([
+      ...form.fields,
+      normField({ id: `f${Date.now().toString(36)}`, type }, form.fields.length, form.settings),
+    ])
+
+  /**
+   * 폴더 구조 미리보기(create=false)와 누락 폴더 준비(create=true).
+   * 같은 경로를 여러 번 눌러도 서버가 find-or-create로 같은 폴더를 돌려준다.
+   */
+  const runPrepare = async (fieldId, create) => {
+    if (!id) {
+      setPrepareResults((prev) => ({ ...prev, [fieldId]: { error: '폼을 한 번 저장한 뒤에 폴더를 점검할 수 있습니다.' } }))
+      return
+    }
+    setPreparing(true)
+    try {
+      if (create) {
+        const res = await api.post('/admin/drive/prepare', { form_id: Number(id), field_id: fieldId })
+        setPrepareResults((prev) => ({ ...prev, [fieldId]: res }))
+      } else {
+        const res = await api.post('/admin/drive/preview', { form_id: Number(id), deep: true })
+        const plan = (res.plans || []).find((p) => p.field_id === fieldId)
+        setPrepareResults((prev) => ({
+          ...prev,
+          [fieldId]: plan
+            ? {
+                steps: plan.steps?.length
+                  ? plan.steps
+                  : (plan.segments || []).map((name) => ({ name, missing: !plan.ready })),
+              }
+            : { error: '이 질문의 경로 정보를 받지 못했습니다.' },
+        }))
+        setSaveIssues(Array.isArray(res.issues) ? res.issues : [])
+      }
+    } catch (err) {
+      setPrepareResults((prev) => ({ ...prev, [fieldId]: { error: err.message } }))
+    } finally {
+      setPreparing(false)
+    }
+  }
 
   const publicUrl = form.slug ? `${window.location.origin}/forms/${form.slug}` : ''
   const copyPublicUrl = async () => {
@@ -456,6 +785,7 @@ function FormEditor() {
     if (!canSaveForm || busy) return
     setBusy(true)
     setSaveError(null)
+    setSaveIssues([])
     try {
       const payload = toPayload(form)
       if (isNew) await api.post('/admin/forms', payload)
@@ -463,6 +793,8 @@ function FormEditor() {
       navigate(backTo)
     } catch (err) {
       setSaveError(err.hint ? `${err.message} (${err.hint})` : err.message)
+      // 공개 사전검사 실패(422)는 해결법이 담긴 목록을 함께 돌려주므로 그대로 보여준다.
+      setSaveIssues(Array.isArray(err.body?.issues) ? err.body.issues : [])
     } finally {
       setBusy(false)
     }
@@ -620,7 +952,7 @@ function FormEditor() {
                     onRemove={() => setFields(form.fields.filter((_, idx) => idx !== i))}
                     onDuplicate={() => {
                       const next = [...form.fields]
-                      next.splice(i + 1, 0, normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1))
+                      next.splice(i + 1, 0, normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1, form.settings))
                       setFields(next)
                     }}
                     driveProps={{
@@ -630,7 +962,15 @@ function FormEditor() {
                       courseFieldOptions,
                       loadSemesterCourses,
                       loadingCourses,
-                      error: courseLoadError,
+                      courseError: courseLoadError,
+                      connections: driveStatus?.connections ?? [],
+                      templates: driveStatus?.templates ?? DEFAULT_TEMPLATES,
+                      formTitle: form.title_ko,
+                      category: form.category,
+                      formId: id ? Number(id) : null,
+                      onPrepare: runPrepare,
+                      preparing,
+                      prepareResult: prepareResults[field.id],
                     }}
                   />
                 ))}
@@ -654,6 +994,13 @@ function FormEditor() {
           </div>
 
           <ErrorText>{saveError}</ErrorText>
+          {saveIssues.length > 0 && (
+            <ul className="flex flex-col gap-4 rounded-sm border border-state-error/40 bg-[#fdf4f4] p-12 text-small-m text-state-error">
+              {saveIssues.map((issue, i) => (
+                <li key={`${issue.code}-${i}`}>{issue.message}</li>
+              ))}
+            </ul>
+          )}
           <div className="flex items-center gap-8"><GhostButton onClick={() => navigate(backTo)}>저장하지 않고 나가기</GhostButton></div>
         </form>
       )}

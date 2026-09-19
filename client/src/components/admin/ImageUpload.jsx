@@ -11,7 +11,7 @@ import GoogleDriveIcon from '../common/GoogleDriveIcon'
  *   value: string, onChange: Function, accept?: string,
  *   preview?: boolean, buttonLabel?: string, usage?: string,
  *   onUploadingChange?: Function, formSlug?: string, fieldId?: string, driveEnabled?: boolean, formValues?: object,
- *   uploadDisabled?: boolean, disabledMessage?: string
+ *   uploadDisabled?: boolean, disabledMessage?: string, noteText?: string
  * }} props - preview false면 이미지 미리보기 대신 파일 링크 표시(HWP 등).
  *   usage: 서버 리사이즈 정책(general 1600 | poster 2400 | showcase 1920x1080 | exhibition)
  *   onUploadingChange(active): 업로드 진행 중 여부를 상위에 전파 — 저장 버튼이 업로드 완료를
@@ -31,6 +31,7 @@ function ImageUpload({
   formValues = {},
   uploadDisabled = false,
   disabledMessage = '',
+  noteText = '',
 }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
@@ -44,10 +45,11 @@ function ImageUpload({
     setError(null)
     onUploadingChange?.(true)
     try {
+      // 폼 업로드는 저장 위치를 서버가 판단한다 — formSlug·fieldId를 항상 보내고,
+      // 과목 폴더 판정에 쓸 현재 입력값도 함께 보낸다(서버가 보기 목록과 대조한다).
       const res = await api.upload(file, {
         usage,
-        ...(driveEnabled && formSlug && fieldId ? { formSlug, fieldId } : {}),
-        ...(driveEnabled ? { formValues: JSON.stringify(formValues) } : {}),
+        ...(formSlug && fieldId ? { formSlug, fieldId, formValues: JSON.stringify(formValues) } : {}),
       })
       if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
       onChange(res.url)
@@ -105,10 +107,8 @@ function ImageUpload({
           {disabledMessage || '필수 항목을 먼저 선택하세요.'}
         </p>
       )}
-      {driveEnabled && !busy && !uploadDisabled && (
-        <p className="font-mono text-caption-m text-text-meta">
-          이 파일은 선택한 과목의 Google Drive 폴더에 바로 저장됩니다. 파일을 올린 뒤에는 과목을 바꿀 수 없습니다.
-        </p>
+      {noteText && !busy && !uploadDisabled && (
+        <p className="font-mono text-caption-m text-text-meta">{noteText}</p>
       )}
       <ErrorText>{error}</ErrorText>
       <input

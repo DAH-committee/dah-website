@@ -1,10 +1,16 @@
-// src/routes/upload.js — 이미지·문서 업로드 (12_BACKEND.md 0·1·6절, Phase 9 K1-2 형식 확대)
-// 이미지: multer 메모리 → sharp WebP 변환(원본 폐기) → Vercel Blob.
-// 문서(hwp·hwpx·pdf·docx·xlsx·pptx·zip): sharp 파이프라인 우회 → 원본 그대로 Blob/로컬 저장.
-// 판정: 확장자+mimetype 병행, 확장자 블록리스트(exe·sh·bat·js·cmd·msi) 우선. 용량 상한 20MB.
-// 리사이즈(이미지): 기본 최장변 1600 / usage=poster 2400 / usage=showcase 1920x1080(16:9 강제).
-// 역할·용도별 제한: 비로그인은 showcase·exhibition 용도(이미지)만 허용 + rate limit. 문서는 로그인 필요.
-// BLOB_READ_WRITE_TOKEN 미설정 시 로컬 폴백: server/uploads/ 저장 (개발용 — 프로덕션에서는 반드시 Blob).
+// src/routes/upload.js — 업로드 단일 진입점 (12_BACKEND 0·1·6절 + 53_DRIVE_STORAGE)
+//
+// 두 갈래가 있다.
+//   1) 폼 업로드 (formSlug + fieldId): 저장 위치·용도·허용 확장자·상한·폴더 경로를 전부 서버가
+//      저장된 폼 정의에서 읽어 결정한다. 클라이언트는 "어떤 폼의 어떤 질문인가"만 말한다.
+//   2) 그 밖의 업로드 (어드민 이미지 등): 기존 동작 유지 — 이미지는 WebP 변환 후 Blob.
+//
+// 핵심 규칙
+//   · 웹 전시용(purpose=web, target=blob) 이미지만 리사이즈·WebP 최적화한다.
+//   · 원본·인쇄용(purpose=original)과 Drive로 가는 모든 파일은 바이트·확장자·MIME을 그대로 보존한다.
+//   · 확장자 블록리스트가 mimetype 판정보다 항상 우선한다.
+//   · 업로드마다 idempotency key를 남겨, 같은 요청을 재시도해도 파일이 두 개 생기지 않는다.
+//   · 업로드 기록은 pending으로 남고 폼 제출 시 attached로 바뀐다(자동 삭제 없음).
 import { Router } from 'express'
 import multer from 'multer'
 import sharp from 'sharp'
@@ -16,20 +22,36 @@ import { optionalAuth } from '../middleware/auth.js'
 import { optionalPublicAuth } from '../middleware/publicAuth.js'
 import { anonUploadLimiter } from '../middleware/rateLimit.js'
 import { query } from '../db.js'
-import { uploadToGoogleDrive, ensureDriveFolderPath } from '../lib/googleDrive.js'
+import {
+  DEFAULT_MAX_BYTES,
+  DRIVE_MAX_BYTES,
+  BLOCKED_EXTS,
+  DOC_EXTS,
+  IMAGE_EXTS,
+  PATH_TEMPLATES,
+  allowedExtsFor,
+  buildFolderSegments,
+  extOf,
+  maxBytesFor,
+  normalizeFileStorage,
+  resolveCourse,
+  shouldOptimize,
+} from '../lib/formStorage.js'
+import {
+  ensurePath,
+  findUploadByKey,
+  insertUpload,
+  resolveConnection,
+  resolveRootFolderId,
+  uploadToConnection,
+} from '../lib/driveConnections.js'
 import { wrap } from './content.js'
 
 const router = Router()
 
-export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+export const MAX_UPLOAD_BYTES = DEFAULT_MAX_BYTES
 const PUBLIC_USAGES = ['showcase', 'exhibition'] // 비로그인 허용 용도 (쇼케이스 제출·전시회 접수)
 const WEBP_QUALITY = 82
-
-// 확장자 화이트리스트 (K1-2). 이미지는 WebP 파이프, 문서는 원본 그대로.
-const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif']
-const DOC_EXTS = ['hwp', 'hwpx', 'pdf', 'docx', 'xlsx', 'pptx', 'zip']
-// 실행 계열 블록리스트 — 화이트리스트·mimetype 판정보다 우선
-const BLOCKED_EXTS = ['exe', 'sh', 'bat', 'js', 'cmd', 'msi']
 
 // 저장 시 Content-Type (브라우저 mimetype이 비거나 octet-stream일 때 폴백)
 const DOC_CONTENT_TYPES = {
@@ -40,35 +62,33 @@ const DOC_CONTENT_TYPES = {
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   zip: 'application/zip',
-}
-
-function extOf(filename) {
-  const m = /\.([A-Za-z0-9]+)$/.exec(String(filename || ''))
-  return m ? m[1].toLowerCase() : ''
+  ai: 'application/postscript',
+  eps: 'application/postscript',
+  psd: 'image/vnd.adobe.photoshop',
+  tif: 'image/tiff',
+  tiff: 'image/tiff',
+  svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  wav: 'audio/wav',
+  mp3: 'audio/mpeg',
 }
 
 export const UPLOADS_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../uploads')
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_UPLOAD_BYTES },
+  // 상한은 질문별 설정에서 다시 좁힌다. multer 단계는 Drive 원본 상한(가장 큰 값)까지 허용한다.
+  limits: { fileSize: Math.max(DRIVE_MAX_BYTES, DEFAULT_MAX_BYTES) },
   fileFilter: (req, file, cb) => {
     const ext = extOf(file.originalname)
-    // 1) 블록리스트 우선 — mimetype이 무엇이든 차단
+    // 실행 계열은 mimetype이 무엇이든 즉시 차단
     if (BLOCKED_EXTS.includes(ext)) {
       const err = new Error(`blocked file type: .${ext}`)
       err.status = 400
       return cb(err)
     }
-    // 2) 확장자 화이트리스트
-    if (IMAGE_EXTS.includes(ext) || DOC_EXTS.includes(ext)) return cb(null, true)
-    // 3) mimetype 병행 — 확장자가 불명확한 이미지(heic 등)는 sharp 파이프로 수용
-    if (file.mimetype?.startsWith('image/')) return cb(null, true)
-    const err = new Error(
-      `unsupported file type — allowed: ${[...IMAGE_EXTS, ...DOC_EXTS].join(', ')}`
-    )
-    err.status = 400
-    cb(err)
+    cb(null, true)
   },
 })
 
@@ -78,69 +98,357 @@ function anonLimit(req, res, next) {
   return anonUploadLimiter(req, res, next)
 }
 
-function folderIdFrom(value) {
-  const raw = String(value || '').trim()
-  const match = raw.match(/\/folders\/([A-Za-z0-9_-]+)/)
-  const id = match?.[1] || raw
-  return /^[A-Za-z0-9_-]{10,}$/.test(id) ? id : ''
+function contentTypeFor(ext, mimetype) {
+  if (mimetype && mimetype !== 'application/octet-stream') return mimetype
+  return DOC_CONTENT_TYPES[ext] || 'application/octet-stream'
 }
 
-async function formDriveTarget(req) {
+/**
+ * 한글 파일명 복원. multer(busboy)는 multipart 파일명을 latin1로 드리므로 받아서
+ * '생산자토로.png'가 깨진 문자로 들어온다. 원본 파일명을 그대로 보존하는 것이 이 라우트의
+ * 약속이니, utf8로 다시 읽어 한글·CJK가 나오면 그 결과를 컴다.
+ */
+function decodeOriginalName(raw) {
+  const name = String(raw || '')
+  if (!/[\u0080-\u00ff]/.test(name)) return name
+  try {
+    const repaired = Buffer.from(name, 'latin1').toString('utf8')
+    if (!repaired.includes('\ufffd') && /[\uac00-\ud7a3\u3130-\u318f\u4e00-\u9fff\u3040-\u30ff]/.test(repaired)) {
+      return repaired
+    }
+  } catch {
+    // 복원 실패 — 원문 유지
+  }
+  return name
+}
+
+function sanitizeBaseName(filename) {
+  const base = path.basename(String(filename || 'file')).replace(/\.[^.]+$/, '')
+  const clean = base
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, '')
+    .replace(/[/\\?%*:|"<>]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return (clean || 'file').slice(0, 60)
+}
+
+function httpError(message, status, extra = {}) {
+  const err = new Error(message)
+  err.status = status
+  Object.assign(err, extra)
+  return err
+}
+
+// ── 폼 업로드 ──────────────────────────────────────────────
+
+/**
+ * 폼 컨텍스트 해석. 여기서 통과한 값만 저장 경로 계산에 쓰인다.
+ * @returns {null|{form:object, field:object, storage:object, course:string}}
+ */
+async function resolveFormUpload(req) {
   const slug = String(req.body?.formSlug || '').trim()
   const fieldId = String(req.body?.fieldId || '').trim()
   if (!slug && !fieldId) return null
-  if (!slug || !fieldId) {
-    const err = new Error('formSlug and fieldId are required for form uploads')
-    err.status = 400
-    throw err
-  }
-  if (!req.publicUser) {
-    const err = new Error('google login required')
-    err.status = 401
-    throw err
-  }
-  const { rows } = await query('SELECT title_ko, fields, settings, published FROM custom_forms WHERE slug = $1', [slug])
+  if (!slug || !fieldId) throw httpError('formSlug and fieldId are required for form uploads', 400)
+
+  const { rows } = await query(
+    'SELECT id, slug, title_ko, category, fields, settings, published FROM custom_forms WHERE slug = $1',
+    [slug]
+  )
   const form = rows[0]
-  if (!form?.published) {
-    const err = new Error('form not found')
-    err.status = 404
-    throw err
+  if (!form?.published) throw httpError('form not found', 404)
+
+  const fields = Array.isArray(form.fields) ? form.fields : []
+  const field = fields.find((f) => f?.id === fieldId && f?.type === 'file')
+  if (!field) throw httpError('invalid form file field', 400)
+
+  // 로그인 정책은 폼 설정을 따른다(제출과 같은 기준).
+  if (form.settings?.require_google_auth !== false && !req.publicUser) {
+    throw httpError('google login required', 401)
   }
-  if (!Array.isArray(form.fields) || !form.fields.some((field) => field?.id === fieldId && field?.type === 'file')) {
-    const err = new Error('invalid form file field')
-    err.status = 400
-    throw err
-  }
-  const rootFolderId = folderIdFrom(form.settings?.drive_folder_id)
-  const auto = form.settings?.drive_auto_folder === true
+
+  const storage = normalizeFileStorage(field.storage, form.settings || {})
+  const template = PATH_TEMPLATES[storage.path_template]
+
   let course = ''
-  if (auto) {
+  if (storage.target === 'drive' && template?.needsCourse) {
+    let values = {}
     try {
-      const values = JSON.parse(String(req.body?.formValues || '{}'))
-      const configuredCourseFieldId = String(form.settings?.drive_course_field_id || '').trim()
-      const courseField = configuredCourseFieldId
-        ? form.fields.find((f) => f?.id === configuredCourseFieldId)
-        : form.fields.find((f) => /과목|course|subject/i.test(`${f?.label_ko || ''} ${f?.label_en || ''}`))
-      const selected = courseField ? values?.[courseField.id] : ''
-      if (Array.isArray(selected)) course = selected.join(', ')
-      else if (selected) course = String(selected)
-    } catch { /* 아래에서 명시적 오류로 처리 */ }
-    if (!form.settings?.drive_semester || !course.trim()) {
-      const err = new Error('학기와 과목을 먼저 선택해야 파일을 업로드할 수 있습니다.')
-      err.status = 422
-      throw err
+      values = JSON.parse(String(req.body?.formValues || '{}'))
+    } catch {
+      values = {}
     }
+    const resolved = resolveCourse(form, values)
+    if (!resolved.ok) {
+      const messages = {
+        course_field_missing: '이 폼에 과목 선택 질문이 지정되지 않았습니다. 관리자에게 알려주세요.',
+        course_not_selected: '먼저 참가 과목을 선택해야 파일을 업로드할 수 있습니다.',
+        course_options_missing: '과목 보기 목록이 비어 있습니다. 관리자에게 알려주세요.',
+        course_not_allowed: '선택한 과목이 이 폼의 과목 목록에 없습니다. 다시 선택해 주세요.',
+      }
+      throw httpError(messages[resolved.reason] || '과목 확인에 실패했습니다.', 422, { reason: resolved.reason })
+    }
+    course = resolved.course
   }
-  const names = [form.settings?.drive_semester, course, form.title_ko]
-  const folderId = auto && rootFolderId
-    ? await ensureDriveFolderPath({ rootFolderId, names })
-    : rootFolderId
-  if (!form.settings?.drive_enabled || !folderId) {
-    const err = new Error('이 폼의 Google Drive 업로드가 아직 설정되지 않았습니다.')
-    err.status = 409
-    throw err
+
+  return { form, field, storage, course }
+}
+
+/** 확장자·MIME·용량 서버 검증. 클라이언트 accept 속성은 편의일 뿐 신뢰하지 않는다 */
+function validateFile(file, storage) {
+  const ext = extOf(file.originalname)
+  if (BLOCKED_EXTS.includes(ext)) throw httpError(`blocked file type: .${ext}`, 400)
+
+  const allowed = allowedExtsFor(storage)
+  const mimeLooksImage = Boolean(file.mimetype?.startsWith('image/'))
+  const extOk = ext ? allowed.includes(ext) : false
+  if (!extOk && !(mimeLooksImage && allowed.some((e) => IMAGE_EXTS.includes(e)))) {
+    throw httpError(`허용되지 않은 파일 형식입니다. 허용: ${allowed.join(', ')}`, 400, { allowed })
   }
-  return { folderId, shareMode: form.settings?.drive_share_mode === 'link' ? 'link' : 'restricted' }
+
+  const max = maxBytesFor(storage)
+  if (file.size > max) {
+    throw httpError(`파일이 너무 큽니다. 최대 ${Math.round(max / (1024 * 1024))}MB`, 413, { maxBytes: max })
+  }
+  return { ext: ext || (mimeLooksImage ? 'jpg' : 'bin') }
+}
+
+/** 같은 파일을 같은 질문에 다시 올리는 재시도를 한 파일로 수렴시키는 키 */
+function idempotencyKeyFor({ req, form, field, buffer }) {
+  const provided = String(req.body?.idempotency_key || req.get('Idempotency-Key') || '').trim()
+  if (provided) return `c:${provided.slice(0, 120)}`
+  const hash = crypto.createHash('sha256')
+  hash.update(String(form.id))
+  hash.update(String(field.id))
+  hash.update(String(req.publicUser?.id ?? req.user?.id ?? 'anon'))
+  hash.update(String(req.file.originalname || ''))
+  hash.update(String(buffer.length))
+  hash.update(buffer)
+  return `h:${hash.digest('hex')}`
+}
+
+function uploadResponse(row) {
+  return {
+    url: row.file_url,
+    name: row.original_name,
+    stored_name: row.stored_name,
+    type: row.mime,
+    bytes: Number(row.bytes || 0),
+    storage: row.storage,
+    purpose: row.purpose,
+    upload_id: row.id,
+    drive_file_id: row.drive_file_id || undefined,
+  }
+}
+
+async function handleFormUpload(req, res, ctx) {
+  const { form, field, storage, course } = ctx
+  const { ext } = validateFile(req.file, storage)
+  const key = idempotencyKeyFor({ req, form, field, buffer: req.file.buffer })
+
+  // 같은 키가 이미 있으면 새 파일을 만들지 않고 이전 결과를 그대로 돌려준다.
+  const existing = await findUploadByKey(key)
+  if (existing && existing.status !== 'deleted') {
+    return res.status(200).json({ ...uploadResponse(existing), idempotent: true })
+  }
+
+  const optimize = shouldOptimize(storage, ext, req.file.mimetype)
+  let buffer = req.file.buffer
+  let outExt = ext
+  let contentType = contentTypeFor(ext, req.file.mimetype)
+
+  if (optimize) {
+    // 웹 전시용만 변환한다. 원본·Drive 경로는 이 분기에 들어오지 않는다.
+    buffer = await sharp(req.file.buffer)
+      .rotate()
+      .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer()
+    outExt = 'webp'
+    contentType = 'image/webp'
+  }
+
+  const originalName = decodeOriginalName(path.basename(req.file.originalname || `file.${outExt}`))
+  const shortId = crypto.randomUUID().slice(0, 8)
+  const storedName = `${sanitizeBaseName(originalName)}_${shortId}.${outExt}`
+
+  if (storage.target === 'drive') {
+    const connection = await resolveConnection({
+      connectionId: storage.connection_id ?? (Number(form.settings?.drive_connection_id) || null),
+    })
+    const { rootFolderId } = resolveRootFolderId({ connection, formSettings: form.settings || {} })
+    if (!rootFolderId) {
+      throw httpError(
+        '이 폼의 Google Drive 루트 폴더가 지정되지 않았습니다. 관리 → 저장소 → Google Drive에서 루트 폴더를 선택하세요.',
+        409,
+        { code: 'root_missing' }
+      )
+    }
+    const built = buildFolderSegments({ form, field, storage, course })
+    if (!built.ok) {
+      throw httpError('저장 경로를 만들 수 없습니다. 관리자에게 알려주세요.', 422, { reason: built.reason })
+    }
+    const { folderId } = await ensurePath({ connection, rootFolderId, segments: built.segments })
+    const saved = await uploadToConnection({
+      connection,
+      folderId,
+      buffer,
+      filename: storedName,
+      mimeType: contentType,
+      shareMode: storage.share_mode,
+      originalName,
+      properties: {
+        formSlug: form.slug,
+        fieldId: field.id,
+        purpose: storage.purpose,
+        submitter: req.publicUser?.email || req.user?.email || '',
+        course: course || '',
+      },
+    })
+
+    const row = await insertUpload({
+      formId: form.id,
+      fieldId: field.id,
+      publicUserId: req.publicUser?.id ?? null,
+      submitterEmail: req.publicUser?.email ?? req.user?.email ?? null,
+      idempotencyKey: key,
+      storage: 'google-drive',
+      purpose: storage.purpose,
+      connectionId: connection.id || null,
+      driveFileId: saved.id,
+      fileUrl: saved.url,
+      folderId,
+      originalName,
+      storedName: saved.name,
+      mime: saved.type,
+      bytes: saved.bytes,
+    })
+    return res.status(201).json({
+      ...uploadResponse(row),
+      format: outExt,
+      folder_id: folderId,
+      path: built.segments,
+    })
+  }
+
+  // ── Vercel Blob (웹 전시용·일반 첨부) ──
+  const blobPath = `dah/forms/${form.slug}/${field.id}/${Date.now()}-${shortId}.${outExt}`
+  let fileUrl = ''
+  let storageKind = 'blob'
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import('@vercel/blob')
+    const blob = await put(blobPath, buffer, {
+      access: 'public',
+      contentType,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    })
+    fileUrl = blob.url
+  } else {
+    // 로컬 폴백(개발용). Render의 임시 파일시스템에서는 재배포 시 사라진다.
+    const filePath = path.join(UPLOADS_DIR, blobPath.replace(/^dah\//, ''))
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, buffer)
+    fileUrl = `${req.protocol}://${req.get('host')}/uploads/${blobPath.replace(/^dah\//, '')}`
+    storageKind = 'local'
+  }
+
+  const row = await insertUpload({
+    formId: form.id,
+    fieldId: field.id,
+    publicUserId: req.publicUser?.id ?? null,
+    submitterEmail: req.publicUser?.email ?? req.user?.email ?? null,
+    idempotencyKey: key,
+    storage: storageKind,
+    purpose: storage.purpose,
+    connectionId: null,
+    driveFileId: null,
+    fileUrl,
+    folderId: null,
+    originalName,
+    storedName,
+    mime: contentType,
+    bytes: buffer.length,
+  })
+  return res.status(201).json({ ...uploadResponse(row), format: outExt })
+}
+
+// ── 그 밖의 업로드 (어드민 이미지·문서) ──────────────────────
+
+async function handleGeneralUpload(req, res) {
+  const usage = String(req.body?.usage || req.query.usage || 'general')
+  if (!req.user && !PUBLIC_USAGES.includes(usage)) {
+    return res.status(403).json({ error: 'login required for this upload usage', allowed: PUBLIC_USAGES })
+  }
+  if (req.file.size > DEFAULT_MAX_BYTES) {
+    return res.status(413).json({ error: 'file too large', maxBytes: DEFAULT_MAX_BYTES })
+  }
+
+  const srcExt = extOf(req.file.originalname)
+  const isImage =
+    IMAGE_EXTS.includes(srcExt) ||
+    (!DOC_EXTS.includes(srcExt) && req.file.mimetype?.startsWith('image/'))
+
+  if (!isImage) {
+    if (!DOC_EXTS.includes(srcExt)) {
+      return res.status(400).json({
+        error: `unsupported file type — allowed: ${[...IMAGE_EXTS, ...DOC_EXTS].join(', ')}`,
+      })
+    }
+    if (!req.user) return res.status(403).json({ error: 'login required for document uploads' })
+    const contentType = contentTypeFor(srcExt, req.file.mimetype)
+    const buf = req.file.buffer
+    const name = `document/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${srcExt}`
+    const originalName = req.file.originalname || `document.${srcExt}`
+
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import('@vercel/blob')
+      const blob = await put(`dah/${name}`, buf, {
+        access: 'public',
+        contentType,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      })
+      return res.status(201).json({
+        url: blob.url, name: originalName, type: contentType, bytes: buf.length, format: srcExt, storage: 'blob',
+      })
+    }
+    const filePath = path.join(UPLOADS_DIR, name)
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, buf)
+    return res.status(201).json({
+      url: `${req.protocol}://${req.get('host')}/uploads/${name}`,
+      name: originalName, type: contentType, bytes: buf.length, format: srcExt, storage: 'local',
+    })
+  }
+
+  // 이미지: WebP 변환 + 리사이즈 (사이트 표시용이므로 원본은 보관하지 않는다)
+  let pipeline = sharp(req.file.buffer).rotate()
+  if (usage === 'showcase') {
+    pipeline = pipeline.resize(1920, 1080, { fit: 'cover', position: 'centre' })
+  } else {
+    const maxDim = usage === 'poster' ? 2400 : 1600
+    pipeline = pipeline.resize({ width: maxDim, height: maxDim, fit: 'inside', withoutEnlargement: true })
+  }
+  const buf = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer()
+  const name = `${usage}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.webp`
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const { put } = await import('@vercel/blob')
+    const blob = await put(`dah/${name}`, buf, {
+      access: 'public',
+      contentType: 'image/webp',
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    })
+    return res.status(201).json({ url: blob.url, bytes: buf.length, format: 'webp', storage: 'blob' })
+  }
+
+  const filePath = path.join(UPLOADS_DIR, name)
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  fs.writeFileSync(filePath, buf)
+  return res.status(201).json({
+    url: `${req.protocol}://${req.get('host')}/uploads/${name}`,
+    bytes: buf.length, format: 'webp', storage: 'local',
+  })
 }
 
 router.post(
@@ -151,95 +459,9 @@ router.post(
   upload.single('file'),
   wrap(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'file field required (multipart/form-data)' })
-    const usage = String(req.body?.usage || req.query.usage || 'general')
-    const driveTarget = await formDriveTarget(req)
-    if (!req.user && !driveTarget && !PUBLIC_USAGES.includes(usage)) {
-      return res.status(403).json({ error: 'login required for this upload usage', allowed: PUBLIC_USAGES })
-    }
-
-    // ── 문서 분기: 이미지가 아니면 sharp 우회, 원본 그대로 저장 ──
-    // 이미지 판정: 확장자 우선, 확장자 불명 시 mimetype 병행 (K1-2)
-    const srcExt = extOf(req.file.originalname)
-    const isImage =
-      IMAGE_EXTS.includes(srcExt) ||
-      (!DOC_EXTS.includes(srcExt) && req.file.mimetype?.startsWith('image/'))
-    if (!isImage) {
-      // 문서는 로그인 필요 (비로그인 공개 용도는 이미지 제출 전용)
-      if (!req.user && !driveTarget) {
-        return res.status(403).json({ error: 'login required for document uploads' })
-      }
-      const ext = DOC_EXTS.includes(srcExt) ? srcExt : 'bin'
-      const contentType =
-        DOC_CONTENT_TYPES[ext] ||
-        (req.file.mimetype && req.file.mimetype !== 'application/octet-stream'
-          ? req.file.mimetype
-          : 'application/octet-stream')
-      const buf = req.file.buffer
-      const name = `document/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
-      const originalName = req.file.originalname || `document.${ext}`
-
-      if (driveTarget) {
-        const saved = await uploadToGoogleDrive({ folderId: driveTarget.folderId, buffer: buf, filename: originalName, mimeType: contentType, shareMode: driveTarget.shareMode })
-        return res.status(201).json({ ...saved, format: ext })
-      }
-
-      if (process.env.BLOB_READ_WRITE_TOKEN) {
-        const { put } = await import('@vercel/blob')
-        const blob = await put(`dah/${name}`, buf, {
-          access: 'public',
-          contentType,
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-        })
-        return res.status(201).json({
-          url: blob.url, name: originalName, type: contentType, bytes: buf.length, format: ext, storage: 'blob',
-        })
-      }
-
-      const filePath = path.join(UPLOADS_DIR, name)
-      fs.mkdirSync(path.dirname(filePath), { recursive: true })
-      fs.writeFileSync(filePath, buf)
-      const url = `${req.protocol}://${req.get('host')}/uploads/${name}`
-      return res.status(201).json({
-        url, name: originalName, type: contentType, bytes: buf.length, format: ext, storage: 'local',
-      })
-    }
-
-    // WebP 변환 + 리사이즈 (원본 버퍼는 저장하지 않음 = 원본 폐기)
-    let pipeline = sharp(req.file.buffer).rotate()
-    if (usage === 'showcase') {
-      pipeline = pipeline.resize(1920, 1080, { fit: 'cover', position: 'centre' }) // 16:9 통일
-    } else {
-      const maxDim = usage === 'poster' ? 2400 : 1600
-      pipeline = pipeline.resize({ width: maxDim, height: maxDim, fit: 'inside', withoutEnlargement: true })
-    }
-    const buf = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer()
-
-    const name = `${usage}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.webp`
-
-    if (driveTarget) {
-      const original = path.basename(req.file.originalname || 'image').replace(/\.[^.]+$/, '') || 'image'
-      const saved = await uploadToGoogleDrive({ folderId: driveTarget.folderId, buffer: buf, filename: `${original}.webp`, mimeType: 'image/webp', shareMode: driveTarget.shareMode })
-      return res.status(201).json({ ...saved, format: 'webp' })
-    }
-
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const { put } = await import('@vercel/blob')
-      const blob = await put(`dah/${name}`, buf, {
-        access: 'public',
-        contentType: 'image/webp',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-      })
-      return res.status(201).json({ url: blob.url, bytes: buf.length, format: 'webp', storage: 'blob' })
-    }
-
-    // ── 로컬 폴백 (개발용) ──
-    // BLOB_READ_WRITE_TOKEN이 없으면 server/uploads/에 저장하고 정적 URL 반환.
-    // Render 등 임시 파일시스템에서는 재배포 시 사라지므로 프로덕션 사용 금지.
-    const filePath = path.join(UPLOADS_DIR, name)
-    fs.mkdirSync(path.dirname(filePath), { recursive: true })
-    fs.writeFileSync(filePath, buf)
-    const url = `${req.protocol}://${req.get('host')}/uploads/${name}`
-    res.status(201).json({ url, bytes: buf.length, format: 'webp', storage: 'local' })
+    const ctx = await resolveFormUpload(req)
+    if (ctx) return handleFormUpload(req, res, ctx)
+    return handleGeneralUpload(req, res)
   })
 )
 

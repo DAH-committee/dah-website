@@ -18,6 +18,9 @@ import { requireAuth, requireRole } from '../middleware/auth.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
+import { normalizeFileStorage, publicFileStorage } from '../lib/formStorage.js'
+import { attachUploads } from '../lib/driveConnections.js'
+import { preflightForm } from '../lib/drivePreflight.js'
 
 const router = Router()
 
@@ -39,6 +42,12 @@ function asArray(v) {
 /** 필드 목록 정규화 — 저장 시 타입·순서를 정리하고 알 수 없는 키는 버린다 */
 function normalizeFields(raw) {
   return asArray(raw).map((f, i) => ({
+    // 53_DRIVE_STORAGE: 파일 질문의 저장소 설정. 화이트리스트를 통과한 모양만 저장한다.
+    // 설정이 없는 예전 폼은 storage 키를 만들지 않고 남긴다 — 폼 전역 Drive 설정을 그대로
+    // 해석하는 런타임 폴백(normalizeFileStorage)이 살아 있어야 기존 폼이 그대로 동작한다.
+    ...(f?.type === 'file' && f?.storage && typeof f.storage === 'object'
+      ? { storage: normalizeFileStorage(f.storage, {}) }
+      : {}),
     id: String(f?.id ?? `f${i + 1}`),
     label_ko: String(f?.label_ko ?? ''),
     label_en: f?.label_en ? String(f.label_en) : '',
@@ -137,8 +146,18 @@ function pickData(fields, data) {
   return out
 }
 
+/**
+ * 공개 폼 응답. 파일 질문은 "어디에 저장되는지"까지만 알려준다 —
+ * 폴더 ID·연결 프로필 ID·공유 설정은 내리지 않는다(클라이언트가 경로를 조작할 여지를 없앤다).
+ */
 function publicForm(row) {
   const settings = row.settings || {}
+  const fields = asArray(row.fields).map((field) => {
+    if (field?.type !== 'file') return field
+    const storage = normalizeFileStorage(field.storage, settings)
+    return { ...field, storage: publicFileStorage(storage) }
+  })
+  const driveFields = fields.filter((f) => f?.type === 'file' && f?.storage?.target === 'drive')
   return {
     id: row.id,
     slug: row.slug,
@@ -147,12 +166,15 @@ function publicForm(row) {
     description_ko: row.description_ko,
     description_en: row.description_en,
     category: row.category,
-    fields: row.fields,
+    fields,
     settings: {
       ...settings,
-      drive_enabled: Boolean(settings.drive_enabled && settings.drive_folder_id),
+      // 레거시 플래그 유지: 예전 클라이언트가 이 값으로 Drive 아이콘을 그린다
+      drive_enabled: driveFields.length > 0,
+      drive_auto_folder: driveFields.some((f) => f.storage.requires_course),
       drive_folder_id: undefined,
       drive_share_mode: undefined,
+      drive_connection_id: undefined,
     },
     published: row.published,
   }
@@ -174,6 +196,18 @@ function googleGate(req, res, next) {
 async function findBySlug(slug) {
   const { rows } = await query('SELECT * FROM custom_forms WHERE slug = $1', [slug])
   return rows[0] || null
+}
+
+/** 제출된 값 중 파일 질문의 URL들 — pending 업로드를 attached로 바꿀 대상 */
+function fileUrlsIn(fields, data) {
+  const out = []
+  for (const field of asArray(fields)) {
+    if (field?.type !== 'file') continue
+    const value = data?.[field.id]
+    if (Array.isArray(value)) out.push(...value.map(String))
+    else if (value) out.push(String(value))
+  }
+  return out
 }
 
 // ── 공개 ────────────────────────────────────────────────────
@@ -254,6 +288,19 @@ router.post(
         req.publicUser?.email ?? null,
       ]
     )
+    // 53_DRIVE_STORAGE: 폼 제출 전엔 파일이 pending으로 남아 있다. 생산된 응답에 실제로 담힌
+    // 파일만 attached로 바꾼다. 버려진 업로드는 "미연결 업로드"로 살아남고 자동 삭제는 없다.
+    try {
+      await attachUploads({
+        formId: form.id,
+        responseId: rows[0].id,
+        urls: fileUrlsIn(form.fields, rows[0].data),
+        publicUserId: req.publicUser?.id ?? null,
+        email: req.publicUser?.email ?? null,
+      })
+    } catch (err) {
+      console.error('[forms] 업로드 상태 전환 실패(제출은 정상):', err.message)
+    }
     res.status(201).json({ response: rows[0] })
   })
 )
@@ -311,6 +358,17 @@ router.put(
        RETURNING id, form_id, data, google_email, submitted_at, updated_at`,
       [JSON.stringify(pickData(form.fields, req.body?.data)), req.publicUser.id, id]
     )
+    try {
+      await attachUploads({
+        formId: form.id,
+        responseId: rows[0].id,
+        urls: fileUrlsIn(form.fields, rows[0].data),
+        publicUserId: req.publicUser?.id ?? null,
+        email: req.publicUser?.email ?? null,
+      })
+    } catch (err) {
+      console.error('[forms] 업로드 상태 전환 실패(수정은 정상):', err.message)
+    }
     res.json({ response: rows[0] })
   })
 )
@@ -358,6 +416,33 @@ router.get(
   })
 )
 
+/**
+ * 공개 사전검사. Drive 설정이 어주간한 폼이 공개되는 것을 막는다 — 제출은 들어오는데
+ * 파일은 어느 폴더에도 없는 상황이 제일 위험하다. 관리자에겐 해결법이 등록된 문구로 돌려준다.
+ * @returns {null|{issues:Array}} null이면 통과
+ */
+async function publishPreflight(body, existing) {
+  const published = body.published === undefined ? existing?.published : Boolean(body.published)
+  if (!published) return null
+  const form = {
+    id: existing?.id ?? null,
+    slug: body.slug ?? existing?.slug ?? '',
+    title_ko: body.title_ko ?? existing?.title_ko ?? '',
+    category: body.category ?? existing?.category ?? 'other',
+    fields: body.fields !== undefined ? normalizeFields(body.fields) : asArray(existing?.fields),
+    settings: body.settings !== undefined ? (body.settings ?? {}) : (existing?.settings ?? {}),
+  }
+  let result = null
+  try {
+    result = await preflightForm(form, { deep: true })
+  } catch (err) {
+    // 사전검사 자신이 토해도 저장을 막지는 않는다(Drive 장어로 폼 편집이 마버리지 않도록).
+    console.error('[forms] 공개 사전검사 오류:', err.message)
+    return null
+  }
+  return result.ok ? null : result
+}
+
 router.post(
   '/admin/forms',
   requireAuth,
@@ -366,6 +451,13 @@ router.post(
     const data = pickFormBody(req.body || {})
     if (!data.slug || !data.title_ko) {
       return res.status(400).json({ error: 'slug and title_ko required' })
+    }
+    const blocked = await publishPreflight(req.body || {}, null)
+    if (blocked) {
+      return res.status(422).json({
+        error: 'Google Drive 설정이 끝나지 않아 공개할 수 없습니다.',
+        issues: blocked.issues,
+      })
     }
     const cols = Object.keys(data)
     const { rows } = await query(
@@ -386,6 +478,14 @@ router.put(
     const data = pickFormBody(req.body || {})
     const cols = Object.keys(data)
     if (!cols.length) return res.status(400).json({ error: 'empty body' })
+    const { rows: current } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
+    const blocked = await publishPreflight(req.body || {}, current[0] || null)
+    if (blocked) {
+      return res.status(422).json({
+        error: 'Google Drive 설정이 끝나지 않아 공개할 수 없습니다.',
+        issues: blocked.issues,
+      })
+    }
     const { rows } = await query(
       `UPDATE custom_forms SET ${cols.map((c, i) => `${c} = $${i + 1}`).join(', ')}, updated_at = now()
        WHERE id = $${cols.length + 1} RETURNING *`,

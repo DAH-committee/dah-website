@@ -18,6 +18,10 @@ import ImageUpload from '../admin/ImageUpload'
 import { formatPhone } from '../../utils/format'
 import { inputCls, labelCls } from '../../pages/submit/exhibitFormShared'
 
+
+const COURSE_LOCK_NOTE =
+  '이미 업로드한 파일이 있어 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하고, 이미 제출했다면 운영진에게 파일 이동을 요청하세요.'
+
 /** 다중 선택. 네이티브 체크박스 대신 카드형이고 실제 input은 sr-only로 남긴다 */
 function CheckboxGroup({ name, options, value = [], onChange, invalid = false, describedBy }) {
   const selected = Array.isArray(value) ? value : []
@@ -143,6 +147,9 @@ function FormField({
             onChange={(e) => set(e.target.value)}
             disabled={field.id === courseFieldId && courseLocked}
           />
+          {field.id === courseFieldId && courseLocked && (
+            <p className="text-caption-m text-[#8a6a1c]">{COURSE_LOCK_NOTE}</p>
+          )}
         </FieldShell>
       )
 
@@ -158,6 +165,9 @@ function FormField({
             disabled={field.id === courseFieldId && courseLocked}
             {...errorProps}
           />
+          {field.id === courseFieldId && courseLocked && (
+            <p className="text-caption-m text-[#8a6a1c]">{COURSE_LOCK_NOTE}</p>
+          )}
         </FieldShell>
       )
 
@@ -224,7 +234,24 @@ function FormField({
         </FieldShell>
       )
 
-    case 'file':
+    case 'file': {
+      // 53_DRIVE_STORAGE: 저장 위치·허용 확장자·상한은 질문마다 다르다. 서버가 내려준 값만 신뢰한다.
+      const storage = field.storage || {}
+      const isDrive = storage.target === 'drive'
+      const requiresCourse = Boolean(storage.requires_course)
+      const accept = Array.isArray(storage.accept) && storage.accept.length
+        ? storage.accept.map((ext) => `.${ext}`).join(',')
+        : isDrive
+          ? 'image/*,.pdf,.ai,.eps,.psd,.tif,.tiff,.svg,.zip,.hwp,.hwpx,.docx,.xlsx,.pptx,.mp4,.mov'
+          : storage.purpose === 'attachment'
+            ? 'image/*,.pdf,.hwp,.hwpx,.docx,.xlsx,.pptx,.zip'
+            : 'image/*'
+      const maxMb = storage.max_bytes ? Math.round(storage.max_bytes / (1024 * 1024)) : null
+      const note = isDrive
+        ? `${requiresCourse ? '선택한 과목 폴더에 ' : ''}원본 그대로 Google Drive에 저장됩니다.${
+            maxMb ? ` 최대 ${maxMb}MB.` : ''
+          }${requiresCourse ? ' 파일을 올린 뒤에는 과목을 바꿀 수 없습니다.' : ''}`
+        : `사이트 표시용으로 최적화해 저장됩니다.${maxMb ? ` 최대 ${maxMb}MB.` : ''}`
       return (
         <FieldShell field={field} error={error} errorId={errorId} as="div">
           <ImageUpload
@@ -232,18 +259,20 @@ function FormField({
             onChange={set}
             usage="general"
             preview={false}
-            accept="image/*,.hwp,.hwpx,.pdf,.docx,.xlsx,.pptx,.zip"
+            accept={accept}
             buttonLabel="파일 선택"
             onUploadingChange={onUploadingChange}
             formSlug={uploadContext?.formSlug}
             fieldId={field.id}
-            driveEnabled={Boolean(uploadContext?.driveEnabled)}
+            driveEnabled={isDrive}
             formValues={formValues}
-            uploadDisabled={Boolean(uploadContext?.driveAutoFolder && !courseSelected)}
+            uploadDisabled={requiresCourse && !courseSelected}
             disabledMessage="먼저 참가 과목을 선택하면 파일을 업로드할 수 있습니다."
+            noteText={note}
           />
         </FieldShell>
       )
+    }
 
     case 'section':
       return null
@@ -281,9 +310,10 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
     ? ordered.find((field) => field.id === configuredCourseFieldId)
     : ordered.find((field) => /과목|course|subject/i.test(`${field?.label_ko || ''} ${field?.label_en || ''}`))
   const courseSelected = courseField ? Boolean(value[courseField.id]) : false
-  const courseLocked = Boolean(
-    uploadContext?.driveAutoFolder &&
-      ordered.some((field) => field.type === 'file' && Boolean(value[field.id]))
+  // 과목 폴더가 필요한 파일 질문에 이미 업로드가 있으면 과목을 바꾸지 못하게 잠근다
+  // (바꾸면 이미 올라간 파일이 다른 과목 폴더에 남는다).
+  const courseLocked = ordered.some(
+    (field) => field.type === 'file' && field.storage?.requires_course && Boolean(value[field.id])
   )
   const pages = useMemo(() => {
     const result = [{ section: null, fields: [] }]

@@ -35,6 +35,7 @@ import FormsAdmin from './FormsAdmin'
 import FormEditor from './FormEditor'
 import FormResponsesSheet from './FormResponsesSheet'
 import SettingsAdmin from './SettingsAdmin'
+import StorageDriveAdmin from './StorageDriveAdmin'
 import UsersAdmin from './UsersAdmin'
 import AboutAdmin from './AboutAdmin'
 import HyunhoEasterEggAdmin from './HyunhoEasterEggAdmin'
@@ -59,6 +60,8 @@ export const ADMIN_ROUTES = [
   { path: 'exhibition', Component: ExhibitionAdmin, role: 'manager' },
   { path: 'forms', Component: FormsAdmin, role: 'manager' },
   { path: 'settings', Component: SettingsAdmin, role: 'manager' },
+  // 53_DRIVE_STORAGE: 연결 생성·해제는 화면 안에서 owner만 보이고, manager는 상황 조회·점검만 한다.
+  { path: 'storage/drive', Component: StorageDriveAdmin, role: 'manager' },
   { path: 'about', Component: AboutAdmin, role: 'manager' },
   { path: 'users', Component: UsersAdmin, role: 'manager' },
   { path: 'easter-egg/hyunho', Component: HyunhoEasterEggAdmin, role: 'owner' },

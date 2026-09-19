@@ -18,6 +18,7 @@ import tagsRoutes from './routes/tags.js'
 import consultRoutes from './routes/consult.js'
 import offeringsRoutes from './routes/offerings.js'
 import formsRoutes from './routes/forms.js'
+import driveAdminRoutes from './routes/driveAdmin.js'
 import easterEggRoutes from './routes/easterEgg.js'
 
 export function createApp(options = {}) {
@@ -68,6 +69,7 @@ export function createApp(options = {}) {
   app.use(consultRoutes) // POST /consult, GET /admin/consultations (Phase 9 K1-9)
   app.use(offeringsRoutes) // GET /offerings, /offerings/semesters, /admin/offerings (H3-3)
   app.use(formsRoutes) // 39_FORM_BUILDER: /forms/:slug, /admin/forms
+  app.use(driveAdminRoutes) // 53_DRIVE_STORAGE: /admin/drive/*, /auth/google/drive/callback
   app.use(easterEggRoutes) // 주현호 이스터에그: 공개 발견 기록 + 본인 owner 전용 관리
 
   app.use((req, res) => res.status(404).json({ error: 'not found' }))

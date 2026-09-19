@@ -385,10 +385,10 @@ function FormPage() {
                 fields={form.fields ?? []}
                 canEdit={win.can_edit}
                 editEnd={editEnd}
+                // 53_DRIVE_STORAGE: 저장 위치는 질문마다 field.storage에 담겨 온다.
+                // 이 컨텍스트는 "어느 폼인가"와 "과목 질문이 무엇인가"만 알려준다.
                 uploadContext={{
                   formSlug: slug,
-                  driveEnabled: Boolean(form.settings?.drive_enabled),
-                  driveAutoFolder: Boolean(form.settings?.drive_auto_folder),
                   courseFieldId: form.settings?.drive_course_field_id,
                 }}
               />
@@ -465,8 +465,6 @@ function FormPage() {
               busyLabel="제출 중"
               uploadContext={{
                 formSlug: slug,
-                driveEnabled: Boolean(form.settings?.drive_enabled),
-                driveAutoFolder: Boolean(form.settings?.drive_auto_folder),
                 courseFieldId: form.settings?.drive_course_field_id,
               }}
               onSubmit={async (value) => {

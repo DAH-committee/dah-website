@@ -3,6 +3,7 @@
 // /health 외 요청에 명확한 JSON 에러를 반환한다.
 // 테스트는 setDb(mock)으로 query 구현을 교체한다 (스모크 테스트 DB 모킹).
 import pg from 'pg'
+import { DRIVE_SCHEMA_STATEMENTS } from './lib/driveSchema.js'
 
 let pool = null
 let injected = null // 테스트 주입용 { query(text, params) }
@@ -64,6 +65,22 @@ export async function ensurePublicAuthSchema() {
       await impl.query(sql)
     } catch (err) {
       console.error('[schema] ensurePublicAuthSchema 문장 실패(계속 진행):', err.message)
+    }
+  }
+}
+
+// 53_DRIVE_STORAGE: Google Drive 연결 프로필·폴더 바인딩·업로드 기록 스키마를 부팅 시 보장한다.
+// 관리자가 Render 셸에서 마이그레이션을 돌리지 못하는 상황(운영진 교체 직후)에도 재배포만으로
+// 저장소 화면이 살아나야 하므로 ensurePublicAuthSchema와 같은 self-heal 규칙을 따른다.
+// DDL 본문은 lib/driveSchema.js 하나에만 있다(마이그레이션 스크립트와 공유).
+export async function ensureDriveSchema() {
+  const impl = injected || pool
+  if (!impl) return
+  for (const sql of DRIVE_SCHEMA_STATEMENTS) {
+    try {
+      await impl.query(sql)
+    } catch (err) {
+      console.error('[schema] ensureDriveSchema 문장 실패(계속 진행):', err.message)
     }
   }
 }
