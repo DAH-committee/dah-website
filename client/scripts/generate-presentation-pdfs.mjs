@@ -142,7 +142,14 @@ const chrome = spawn(chromePath, [
 async function stopChild(child) {
   if (child.exitCode !== null) return
   child.kill('SIGTERM')
-  await Promise.race([once(child, 'exit'), wait(3000)])
+  const exited = await Promise.race([
+    once(child, 'exit').then(() => true),
+    wait(3000).then(() => false),
+  ])
+  if (!exited && child.exitCode === null) {
+    child.kill('SIGKILL')
+    await Promise.race([once(child, 'exit'), wait(3000)])
+  }
 }
 
 function pageUrl(job, page, index) {
@@ -234,5 +241,5 @@ try {
   cdp.close()
 } finally {
   await Promise.all([stopChild(preview), stopChild(chrome)])
-  rmSync(profileDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })
+  rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 })
 }
