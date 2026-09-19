@@ -19,10 +19,12 @@ import {
   Input,
   PageHead,
   PrimaryButton,
+  Select,
   TextArea,
   Toggle,
   DateInput,
 } from '../../components/admin/FormControls'
+import { useAuth } from '../../context/AuthContext'
 
 // ISO ↔ datetime-local 변환 (로컬 시간대 기준 편집, 저장 시 ISO)
 function toLocalInput(iso) {
@@ -75,6 +77,63 @@ function ExhibitionAdmin() {
   const [roundBusy, setRoundBusy] = useState(false)
   const [roundSaved, setRoundSaved] = useState(false)
   const [roundError, setRoundError] = useState(null)
+
+  // 53_DRIVE_STORAGE(전시회 확장): 원본 파일을 보낼 Drive 연결. 연결 목록은 저장소 화면이
+  // 관리하고, 여기서는 "이 전시회 접수가 어떤 연결을 쓰는가"만 고른다.
+  const { user } = useAuth()
+  const isOwner = user?.role === 'owner'
+  const driveStatus = useApi('/admin/drive/status')
+  const driveSetting = useApi('/admin/exhibition/drive')
+  const [driveConnectionId, setDriveConnectionId] = useState('')
+  const [driveHydrated, setDriveHydrated] = useState(false)
+  const [driveBusy, setDriveBusy] = useState(false)
+  const [driveSaved, setDriveSaved] = useState(false)
+  const [driveError, setDriveError] = useState(null)
+  const [clearBusy, setClearBusy] = useState(false)
+  const [clearMessage, setClearMessage] = useState(null)
+
+  useEffect(() => {
+    if (driveHydrated || !driveSetting.data) return
+    setDriveConnectionId(
+      driveSetting.data.connection_id == null ? '' : String(driveSetting.data.connection_id)
+    )
+    setDriveHydrated(true)
+  }, [driveHydrated, driveSetting.data])
+
+  const saveDrive = async (e) => {
+    e.preventDefault()
+    setDriveBusy(true)
+    setDriveError(null)
+    try {
+      await api.put('/admin/settings', {
+        exhibition: {
+          drive_connection_id: driveConnectionId === '' ? null : Number(driveConnectionId),
+        },
+      })
+      setDriveSaved(true)
+      driveSetting.refetch()
+    } catch (err) {
+      setDriveError(err.hint ? `${err.message} (${err.hint})` : err.message)
+    } finally {
+      setDriveBusy(false)
+    }
+  }
+
+  // 테스트 접수 초기화 — owner 전용. Drive 안의 파일은 지우지 않는다(업로드 기록도 남는다).
+  const clearEntries = async () => {
+    if (!window.confirm('접수 내역을 전부 삭제합니다. Drive에 올라간 파일은 지워지지 않습니다. 계속할까요?')) return
+    setClearBusy(true)
+    setClearMessage(null)
+    try {
+      const res = await api.del('/admin/exhibition/entries')
+      setClearMessage(`접수 ${res.deleted}건을 삭제했습니다. Drive 파일은 그대로 있습니다.`)
+      entries.refetch()
+    } catch (err) {
+      setClearMessage(err.message)
+    } finally {
+      setClearBusy(false)
+    }
+  }
 
   const exhibition = settings.data?.exhibition
 
@@ -300,7 +359,65 @@ function ExhibitionAdmin() {
         <p className="font-mono text-caption-m text-text-meta">
           {entries.loading ? '불러오는 중' : `현재 접수 ${total}건`}
         </p>
+        {isOwner && (
+          <div className="flex flex-wrap items-center gap-12 border-t border-glass-line pt-16">
+            <GhostButton onClick={clearEntries} disabled={clearBusy || total === 0}>
+              <Trash2 size={16} aria-hidden="true" />
+              {clearBusy ? '삭제 중' : '접수 내역 전체 삭제'}
+            </GhostButton>
+            <span className="text-caption-m text-text-meta">
+              테스트 접수를 정리할 때 씁니다. Drive에 올라간 파일은 지워지지 않습니다.
+            </span>
+          </div>
+        )}
+        {clearMessage && (
+          <p className="font-mono text-caption-m text-text-meta">{clearMessage}</p>
+        )}
       </div>
+
+      {/* 53_DRIVE_STORAGE(전시회 확장): 접수 원본 파일이 저장될 Google Drive 연결 */}
+      <form onSubmit={saveDrive} className={PANEL}>
+        <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">원본 파일 저장소</h3>
+        <p className="text-small-m text-text-sec">
+          접수자가 올린 작품 원본이 저장될 Google Drive 계정입니다. 폴더는 선택한 연결의 루트 아래
+          <span className="font-mono"> 과목명 / 원본 </span>
+          순서로 자동 생성되고, 원본은 변환 없이 그대로 보관됩니다. 연결 추가·점검은
+          <a href="/admin/storage/drive" className="underline underline-offset-4"> 저장소 · Google Drive </a>
+          화면에서 합니다.
+        </p>
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
+          <Field
+            label="Drive 연결"
+            hint={
+              driveSetting.data?.connection
+                ? `현재: ${driveSetting.data.connection.root_folder_name || driveSetting.data.connection.root_folder_id || '루트 폴더 미지정'}`
+                : '연결을 고르지 않으면 접수자가 원본 파일을 올릴 수 없습니다'
+            }
+          >
+            <Select
+              value={driveConnectionId}
+              onChange={(e) => {
+                setDriveSaved(false)
+                setDriveConnectionId(e.target.value)
+              }}
+              placeholder="연결 선택 안 함"
+              options={(driveStatus.data?.connections ?? [])
+                .filter((c) => c.active && c.has_token)
+                .map((c) => ({
+                  value: String(c.id),
+                  label: `${c.label}${c.account_email ? ` · ${c.account_email}` : ''}`,
+                }))}
+            />
+          </Field>
+        </div>
+        <ErrorText>{driveError}</ErrorText>
+        {driveSaved && <p className="font-mono text-caption-m text-text-meta">저장 완료</p>}
+        <div>
+          <PrimaryButton type="submit" disabled={driveBusy || !driveHydrated}>
+            {driveBusy ? '저장 중' : '저장소 저장'}
+          </PrimaryButton>
+        </div>
+      </form>
 
       {/* H2-2·H2-4: 회차·접수 대상 학기 — 접수 안내 제목과 접수 폼 과목 기본 학기가 이 값을 읽는다 */}
       <form onSubmit={saveRound} className={PANEL}>

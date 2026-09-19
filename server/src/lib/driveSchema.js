@@ -64,4 +64,7 @@ export const DRIVE_SCHEMA_STATEMENTS = [
      ON form_file_uploads (form_id, status, created_at DESC)`,
   `CREATE INDEX IF NOT EXISTS idx_form_file_uploads_url
      ON form_file_uploads (file_url)`,
+  // 53_DRIVE_STORAGE(전시회 확장): 전시회 접수가 원본 파일을 보낼 Drive 연결. 기존 폴더(26-2 등)를
+  // 그대로 루트로 쓰는 연결을 고르면 된다 — 경로는 [과목명, '원본'] 만 붙는다.
+  `ALTER TABLE exhibition_settings ADD COLUMN IF NOT EXISTS drive_connection_id INTEGER`,
 ]

@@ -526,6 +526,27 @@ export async function attachUploads({ formId, responseId, urls, publicUserId, em
   return rowCount || 0
 }
 
+/**
+ * 전시회 접수 업로드 확정 — form_id가 NULL이고 field_id='exhibition_original'인 행만 대상으로 한다.
+ * response_id 컬럼은 이 경우 exhibition_entries.id를 담는다(폼 응답 id와 같은 자리를 재사용).
+ */
+export async function attachExhibitionUploads({ entryId, urls, publicUserId, email }) {
+  const list = [...new Set((urls || []).filter(Boolean).map(String))]
+  if (!list.length) return 0
+  const { rowCount } = await query(
+    `UPDATE form_file_uploads
+        SET status = 'attached', response_id = $1, attached_at = now(), updated_at = now()
+      WHERE form_id IS NULL
+        AND field_id = 'exhibition_original'
+        AND status = 'pending'
+        AND file_url = ANY($2::text[])
+        AND ($3::int IS NULL OR public_user_id IS NULL OR public_user_id = $3)
+        AND ($4::text IS NULL OR submitter_email IS NULL OR submitter_email = $4)`,
+    [entryId, list, publicUserId ?? null, email ?? null]
+  )
+  return rowCount || 0
+}
+
 export async function listUploads({ status = 'pending', formId = null, limit = 200 } = {}) {
   const { rows } = await query(
     `SELECT u.*, f.title_ko AS form_title, f.slug AS form_slug

@@ -9,6 +9,7 @@ import { query } from '../db.js'
 import { requirePublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
+import { attachExhibitionUploads } from '../lib/driveConnections.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -48,6 +49,43 @@ function validImages(images) {
     images === undefined ||
     (Array.isArray(images) && images.length <= MAX_ENTRY_IMAGES && images.every((u) => typeof u === 'string'))
   )
+}
+
+const MAX_ORIGINAL_FILES = 10
+
+// 53_DRIVE_STORAGE(전시회 확장): 원본 파일 목록 형태 검증. url·name만 받고 나머지는 무시한다
+// (폴더 ID·연결 ID 같은 값을 클라이언트가 직접 보내도 서버는 밑지 않는다).
+function validOriginalFiles(files) {
+  return (
+    files === undefined ||
+    (Array.isArray(files) &&
+      files.length <= MAX_ORIGINAL_FILES &&
+      files.every((f) => f && typeof f.url === 'string' && f.url.trim()))
+  )
+}
+
+function sanitizeOriginalFiles(files) {
+  if (!Array.isArray(files)) return undefined
+  return files
+    .filter((f) => f && typeof f.url === 'string' && f.url.trim())
+    .slice(0, MAX_ORIGINAL_FILES)
+    .map((f) => ({ url: String(f.url).trim(), name: String(f.name || '').slice(0, 200) }))
+}
+
+/**
+ * 과목 값 서버 검증 — 저장된 과목 목록(site_settings.exhibitionSubjects)에 있는 값만 통과시킨다.
+ * 목록이 비어 있는 학기(자유 입력 폴백)는 검증을 건너뛴다.
+ */
+async function validCourse(course) {
+  const value = String(course || '').trim()
+  if (!value) return true // 필수 여부는 클라이언트 canSubmit이 막는다 — 여기선 형식만 본다
+  const { rows } = await query("SELECT value FROM site_settings WHERE key = 'exhibitionSubjects'", [])
+  const raw = rows[0]?.value
+  const names = (Array.isArray(raw) ? raw : [])
+    .map((s) => String(s?.name ?? '').trim())
+    .filter(Boolean)
+  if (!names.length) return true
+  return names.includes(value)
 }
 
 // 접수, 수정 기간 게이트. 통과한 설정 행은 핸들러가 재조회하지 않도록 req에 실어 보낸다.
@@ -106,7 +144,15 @@ router.post(
     if (!validImages(images)) {
       return res.status(400).json({ error: `images must be an array of at most ${MAX_ENTRY_IMAGES} urls` })
     }
+    if (!validOriginalFiles(fields?.original_files)) {
+      return res.status(400).json({ error: `original_files must be an array of at most ${MAX_ORIGINAL_FILES} items` })
+    }
+    // 임의 과목명이 곷 폴더명이 되는 것을 막는다 — 저장된 과목 목록 외의 값은 거부한다.
+    if (fields?.course !== undefined && !(await validCourse(fields.course))) {
+      return res.status(400).json({ error: 'course must be one of the registered subjects' })
+    }
 
+    const mergedFields = fields ? { ...fields, original_files: sanitizeOriginalFiles(fields.original_files) } : fields
     const { rows } = await query(
       `INSERT INTO exhibition_entries (semester_label, entry_type, fields, email, images, public_user_id)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -114,13 +160,26 @@ router.post(
       [
         semesterLabelFrom(req.exhibitionSettings),
         entry_type,
-        fields ? JSON.stringify(fields) : null,
+        mergedFields ? JSON.stringify(mergedFields) : null,
         String(req.publicUser.email).trim().toLowerCase(),
         images ? JSON.stringify(images) : JSON.stringify([]),
         req.publicUser.id,
       ]
     )
     const entry = rows[0]
+
+    // 업로드 당시 pending으로 남은 원본 파일을 이 접수 건으로 확정한다. 제출되지 않은 업로드는
+    // 그대로 pending으로 남아 관리 화면에서 보인다(자동 삭제 없음).
+    try {
+      await attachExhibitionUploads({
+        entryId: entry.id,
+        urls: (mergedFields?.original_files || []).map((f) => f.url),
+        publicUserId: req.publicUser.id,
+        email: req.publicUser.email,
+      })
+    } catch (err) {
+      console.error('[submit/exhibition] 업로드 상태 전환 실패(접수는 정상):', err.message)
+    }
 
     // 확인 메일은 접수와 독립. 실패해도 접수 응답은 성공하고 SMTP 미설정이면 조용히 스킵된다.
     sendExhibitionConfirmation(entry).catch((err) =>
@@ -141,6 +200,9 @@ router.put(
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'entry id required' })
     if (!validImages(images)) {
       return res.status(400).json({ error: `images must be an array of at most ${MAX_ENTRY_IMAGES} urls` })
+    }
+    if (!validOriginalFiles(fields?.original_files)) {
+      return res.status(400).json({ error: `original_files must be an array of at most ${MAX_ORIGINAL_FILES} items` })
     }
 
     const { rows } = await query('SELECT * FROM exhibition_entries WHERE id = $1', [id])
@@ -174,6 +236,9 @@ router.put(
         if (entry.fields && key in entry.fields) mergedFields[key] = entry.fields[key]
       }
     }
+    if (fields?.original_files !== undefined) {
+      mergedFields.original_files = sanitizeOriginalFiles(fields.original_files)
+    }
 
     const updated = await query(
       `UPDATE exhibition_entries
@@ -182,6 +247,16 @@ router.put(
        RETURNING id, semester_label, entry_type, fields, email, images, created_at, updated_at`,
       [JSON.stringify(mergedFields), images ? JSON.stringify(images) : null, entry.id]
     )
+    try {
+      await attachExhibitionUploads({
+        entryId: entry.id,
+        urls: (mergedFields.original_files || []).map((f) => f.url),
+        publicUserId: req.publicUser.id,
+        email: req.publicUser.email,
+      })
+    } catch (err) {
+      console.error('[submit/exhibition] 업로드 상태 전환 실패(수정은 정상):', err.message)
+    }
     res.json({ entry: updated.rows[0] })
   })
 )

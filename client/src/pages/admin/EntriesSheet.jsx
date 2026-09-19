@@ -61,6 +61,8 @@ const FIELD_LABELS = {
   title: '작품명',
   work_desc: '작품 설명',
   description: '작품 설명',
+  // 53_DRIVE_STORAGE(전시회 확장): 원본 파일 목록(Google Drive). 표에는 파일명만 보인다.
+  original_files: '원본 파일',
   note: '비고',
 }
 
@@ -82,6 +84,7 @@ const FIELD_ORDER = [
   'title',
   'work_desc',
   'description',
+  'original_files',
   'note',
 ]
 
@@ -108,6 +111,7 @@ const COLUMN_WIDTH = {
   'fields.title': 220,
   'fields.work_desc': 300,
   'fields.description': 300,
+  'fields.original_files': 260,
   // B1-9 접수자 정보 탭(사람 단위 집계)
   person_no: 120,
   person_major: 150,
@@ -275,7 +279,14 @@ function EntriesSheet() {
         dynamic.push({
           key: `fields.${key}`,
           label: FIELD_LABELS[key] || key,
-          get: (r) => cellText(r.fields?.[key]),
+          get:
+            key === 'original_files'
+              ? (r) =>
+                  (Array.isArray(r.fields?.original_files) ? r.fields.original_files : [])
+                    .map((f) => f?.name || f?.url || '')
+                    .filter(Boolean)
+                    .join(', ')
+              : (r) => cellText(r.fields?.[key]),
           order: fieldOrderIndex(key),
         })
       }

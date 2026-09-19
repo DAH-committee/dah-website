@@ -172,13 +172,15 @@ CREATE INDEX IF NOT EXISTS idx_showcase_status ON showcase (status, created_at D
 
 -- 전시회 접수 설정 (단일 행. id=1 고정. owner·admin이 어드민에서 변경)
 CREATE TABLE IF NOT EXISTS exhibition_settings (
-  id             INTEGER PRIMARY KEY CHECK (id = 1),
-  submit_open    TIMESTAMPTZ,
-  submit_close   TIMESTAMPTZ,
-  edit_close     TIMESTAMPTZ,
-  form_schema    JSONB,
-  header_visible BOOLEAN NOT NULL DEFAULT TRUE,
-  button_mode    TEXT NOT NULL DEFAULT 'header' CHECK (button_mode IN ('header', 'floating'))
+  id                  INTEGER PRIMARY KEY CHECK (id = 1),
+  submit_open         TIMESTAMPTZ,
+  submit_close        TIMESTAMPTZ,
+  edit_close          TIMESTAMPTZ,
+  form_schema         JSONB,
+  header_visible      BOOLEAN NOT NULL DEFAULT TRUE,
+  button_mode         TEXT NOT NULL DEFAULT 'header' CHECK (button_mode IN ('header', 'floating')),
+  -- 53_DRIVE_STORAGE(전시회 확장): 원본 파일을 보낼 Google Drive 연결. NULL이면 원본 업로드를 막는다.
+  drive_connection_id INTEGER
 );
 
 -- 전시회 접수 (구글 폼 대체. 41_GOOGLE_AUTH_PUBLIC 이후 본인 확인은 구글 로그인)

@@ -23,6 +23,7 @@ import {
   LockedField,
   LoginGate,
   MemberRows,
+  OriginalFilesField,
   PhoneInput,
   ScheduleHighlight,
   SubmitButton,
@@ -67,6 +68,14 @@ function toForm(entry) {
   }
 }
 
+// 53_DRIVE_STORAGE(전시회 확장): 저장된 원본 파일 목록. 없으면 빈 배열도 없이 보존된다.
+function toOriginalFiles(entry) {
+  const list = entry.fields?.original_files
+  return Array.isArray(list)
+    ? list.filter((f) => f && typeof f.url === 'string').map((f) => ({ url: f.url, name: f.name || '' }))
+    : []
+}
+
 // 접수 항목 → 팀원 행. 최소 1행 유지.
 function toMembers(entry) {
   const loaded = Array.isArray(entry.fields?.members)
@@ -90,6 +99,8 @@ function toMembers(entry) {
 function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, onSaved }) {
   const [form, setForm] = useState(() => toForm(entry))
   const [members, setMembers] = useState(() => toMembers(entry))
+  const [originalFiles, setOriginalFiles] = useState(() => toOriginalFiles(entry))
+  const [filesUploading, setFilesUploading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -104,7 +115,9 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
     canEdit &&
     identityComplete &&
     isValidPhone(form.phone) &&
-    Boolean(form.workTitle.trim() && form.workDesc.trim())
+    Boolean(form.workTitle.trim() && form.workDesc.trim()) &&
+    originalFiles.length > 0 &&
+    !filesUploading
 
   const handleSave = async (event) => {
     event.preventDefault()
@@ -129,6 +142,7 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
         phone: form.phone.trim(),
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
+        original_files: originalFiles,
       }
       const fields = isTeam
         ? {
@@ -265,6 +279,14 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
         <Field label="연락처" required hint="010-0000-0000">
           <PhoneInput value={form.phone} onChange={setValue('phone')} />
         </Field>
+
+        <OriginalFilesField
+          files={originalFiles}
+          onChange={setOriginalFiles}
+          course={entry.fields?.course}
+          onUploadingChange={setFilesUploading}
+          disabled={!canEdit}
+        />
 
         <Field label="작품명" required hint={copy.workTitleHint}>
           <input

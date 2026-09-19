@@ -28,6 +28,7 @@ import {
   BLOCKED_EXTS,
   DOC_EXTS,
   IMAGE_EXTS,
+  ORIGINAL_EXTS,
   PATH_TEMPLATES,
   allowedExtsFor,
   buildFolderSegments,
@@ -138,6 +139,109 @@ function httpError(message, status, extra = {}) {
   err.status = status
   Object.assign(err, extra)
   return err
+}
+
+// ── 전시회 원본 업로드 ──────────────────────────────────────
+// custom_forms(행사 설정)와 별개인 전용 접수 시스템(exhibition_entries)이 쓰는 경로다.
+// context='exhibition-original'로 들어오면 여기서 처리하고, 저장소는 exhibition_settings의
+// 단일 Drive 연결이다(폼별 저장소 설정과 달리 폼이 하나뿐이라 선택지도 하나다).
+async function resolveExhibitionCourse(course) {
+  const { rows } = await query("SELECT value FROM site_settings WHERE key = 'exhibitionSubjects'", [])
+  const raw = rows[0]?.value
+  const names = (Array.isArray(raw) ? raw : [])
+    .map((s) => String(s?.name ?? '').trim())
+    .filter(Boolean)
+  // 과목 목록을 아직 등록하지 않은 학교라면(자유 입력 폴백) 값만 있으면 통과시킨다.
+  if (!names.length) return Boolean(String(course || '').trim())
+  return names.includes(String(course || '').trim())
+}
+
+function exhibitionUploadKey({ email, course, buffer, originalname }) {
+  const hash = crypto.createHash('sha256')
+  hash.update('exhibition-original')
+  hash.update(String(email || 'anon'))
+  hash.update(String(course || ''))
+  hash.update(String(originalname || ''))
+  hash.update(String(buffer.length))
+  hash.update(buffer)
+  return `x:${hash.digest('hex')}`
+}
+
+async function handleExhibitionUpload(req, res) {
+  if (!req.publicUser) throw httpError('google login required', 401)
+  const course = String(req.body?.course || '').trim()
+  if (!course) throw httpError('먼저 참가 과목을 선택해야 파일을 업로드할 수 있습니다.', 422, { code: 'course_not_selected' })
+  const courseOk = await resolveExhibitionCourse(course)
+  if (!courseOk) {
+    throw httpError('선택한 과목이 등록된 과목 목록에 없습니다. 다시 선택해 주세요.', 422, { code: 'course_not_allowed' })
+  }
+
+  const { rows } = await query('SELECT drive_connection_id FROM exhibition_settings WHERE id = 1', [])
+  const connectionId = rows[0]?.drive_connection_id
+  if (!connectionId) {
+    throw httpError(
+      '전시회 원본 저장소가 아직 설정되지 않았습니다. 관리자에게 알려주세요.',
+      409,
+      { code: 'connection_none' }
+    )
+  }
+
+  const ext = extOf(req.file.originalname)
+  if (BLOCKED_EXTS.includes(ext)) throw httpError(`blocked file type: .${ext}`, 400)
+  const mimeLooksImage = Boolean(req.file.mimetype?.startsWith('image/'))
+  if (ext && !ORIGINAL_EXTS.includes(ext) && !mimeLooksImage) {
+    throw httpError(`허용되지 않은 파일 형식입니다. 허용: ${ORIGINAL_EXTS.join(', ')}`, 400)
+  }
+  if (req.file.size > DRIVE_MAX_BYTES) {
+    throw httpError(`파일이 너무 큽니다. 최대 ${Math.round(DRIVE_MAX_BYTES / (1024 * 1024))}MB`, 413)
+  }
+
+  const key = exhibitionUploadKey({ email: req.publicUser.email, course, buffer: req.file.buffer, originalname: req.file.originalname })
+  const existing = await findUploadByKey(key)
+  if (existing && existing.status !== 'deleted') {
+    return res.status(200).json({ ...uploadResponse(existing), idempotent: true })
+  }
+
+  const connection = await resolveConnection({ connectionId })
+  const { rootFolderId } = resolveRootFolderId({ connection, formSettings: {} })
+  if (!rootFolderId) {
+    throw httpError('전시회 원본 저장소의 루트 폴더가 지정되지 않았습니다. 관리자에게 알려주세요.', 409, { code: 'root_missing' })
+  }
+  const { folderId } = await ensurePath({ connection, rootFolderId, segments: [course, '원본'] })
+
+  const originalName = decodeOriginalName(path.basename(req.file.originalname || 'file'))
+  const contentType = contentTypeFor(ext, req.file.mimetype)
+  const storedName = `${sanitizeBaseName(originalName)}_${crypto.randomUUID().slice(0, 8)}.${ext || 'bin'}`
+
+  const saved = await uploadToConnection({
+    connection,
+    folderId,
+    buffer: req.file.buffer,
+    filename: storedName,
+    mimeType: contentType,
+    shareMode: 'restricted', // 전시회 원본은 기본적으로 제한됨(학생 개인정보 포함)
+    originalName,
+    properties: { course, submitter: req.publicUser.email },
+  })
+
+  const row = await insertUpload({
+    formId: null,
+    fieldId: 'exhibition_original',
+    publicUserId: req.publicUser.id,
+    submitterEmail: req.publicUser.email,
+    idempotencyKey: key,
+    storage: 'google-drive',
+    purpose: 'original',
+    connectionId: connection.id || null,
+    driveFileId: saved.id,
+    fileUrl: saved.url,
+    folderId,
+    originalName,
+    storedName: saved.name,
+    mime: saved.type,
+    bytes: saved.bytes,
+  })
+  return res.status(201).json({ ...uploadResponse(row), format: ext, path: [course, '원본'] })
 }
 
 // ── 폼 업로드 ──────────────────────────────────────────────
@@ -459,6 +563,7 @@ router.post(
   upload.single('file'),
   wrap(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'file field required (multipart/form-data)' })
+    if (req.body?.context === 'exhibition-original') return handleExhibitionUpload(req, res)
     const ctx = await resolveFormUpload(req)
     if (ctx) return handleFormUpload(req, res, ctx)
     return handleGeneralUpload(req, res)

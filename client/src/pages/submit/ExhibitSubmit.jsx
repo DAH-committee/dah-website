@@ -26,6 +26,7 @@ import {
   LockedField,
   LoginGate,
   MemberRows,
+  OriginalFilesField,
   PhoneInput,
   ScheduleHighlight,
   ScheduleList,
@@ -119,6 +120,10 @@ function ExhibitSubmit() {
   const [members, setMembers] = useState([{ ...EMPTY_MEMBER }])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  // 53_DRIVE_STORAGE(전시회 확장): 원본 파일은 과목을 고른 다월에 Google Drive로 올리다.
+  // 파일을 하나니란 올리게 되자마자 과목 선택을 잠금 밖에(거론 폴더 보존).
+  const [originalFiles, setOriginalFiles] = useState([])
+  const [filesUploading, setFilesUploading] = useState(false)
 
   const set = (key) => (event) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }))
@@ -130,7 +135,9 @@ function ExhibitSubmit() {
   const canSubmit =
     identityComplete &&
     isValidPhone(form.phone) &&
-    Boolean(form.course.trim() && form.workTitle.trim() && form.workDesc.trim())
+    Boolean(form.course.trim() && form.workTitle.trim() && form.workDesc.trim()) &&
+    originalFiles.length > 0 &&
+    !filesUploading
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -141,6 +148,10 @@ function ExhibitSubmit() {
     }
     if (!form.course.trim()) {
       setError('과목을 선택해 주세요')
+      return
+    }
+    if (originalFiles.length === 0) {
+      setError('작품 원본 파일을 하나 이상 올려 주세요')
       return
     }
     if (
@@ -158,6 +169,7 @@ function ExhibitSubmit() {
         course: form.course.trim(),
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
+        original_files: originalFiles,
       }
       const fields = isTeam
         ? {
@@ -473,6 +485,15 @@ function ExhibitSubmit() {
                   value={form.course}
                   onChange={setValue('course')}
                   defaultSemester={currentSemester}
+                  disabled={originalFiles.length > 0}
+                  disabledHint="원본 파일을 올린 뒤에는 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하세요."
+                />
+
+                <OriginalFilesField
+                  files={originalFiles}
+                  onChange={setOriginalFiles}
+                  course={form.course}
+                  onUploadingChange={setFilesUploading}
                 />
 
                 <Field label="작품명" required hint={copy.workTitleHint}>

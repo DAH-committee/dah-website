@@ -1,13 +1,21 @@
 // 전시회 접수 폼 공용 컴포넌트 (12_BACKEND 5절) — ExhibitSubmit·ExhibitEdit 전용
 // LoginGate와 AccountBar만 공개 제출 공용이라 ShowcaseSubmit도 함께 쓴다(41_AUTH_CONTRACT).
 // 상수·헬퍼는 exhibitFormShared.js(비 JSX 모듈) — 이 파일은 컴포넌트만 export.
-import { Lock, LogOut, X } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Lock, LogOut, Paperclip, Trash2, Upload, X } from 'lucide-react'
 import GlassCard from '../../components/common/GlassCard'
 import RadioCards from '../../components/common/RadioCards'
 import GoogleLoginButton from '../../components/auth/GoogleLoginButton'
 import { ACCENT } from '../../styles/accents'
+import { api } from '../../hooks/useApi'
 import { formatPhone } from '../../utils/format'
 import { formatKst, inputCls, labelCls } from './exhibitFormShared'
+
+// 53_DRIVE_STORAGE(전시회 확장): 원본 파일 확장자 허용목록. 서버가 최종 판정하지만,
+// 업로드 창을 열 때 쓸데없는 파일을 미리 거르려고 accept로도 제시한다.
+const ORIGINAL_FILE_ACCEPT =
+  'image/*,.pdf,.ai,.eps,.psd,.tif,.tiff,.svg,.zip,.hwp,.hwpx,.docx,.xlsx,.pptx,.mp4,.mov'
+const MAX_ORIGINAL_FILES = 10
 
 /** 라벨+힌트 래퍼. 입력 1개면 기본 label, 그룹(팀원·과목 등)은 as="div". */
 export function Field({ as: Tag = 'label', label, required = false, hint, children }) {
@@ -152,7 +160,7 @@ export function PhoneInput({ value, onChange, ...rest }) {
  * 학기(defaultSemester)에 해당하는 과목만 카드로 노출한다. 학기 태그가 없는 과목(semester
  * null)만 있는 경우는 필터 없이 전부 노출한다.
  */
-export function SubjectField({ subjects, value, onChange, defaultSemester }) {
+export function SubjectField({ subjects, value, onChange, defaultSemester, disabled = false, disabledHint }) {
   const semesters = [
     ...new Set(subjects.filter((s) => s.semester).map((s) => String(s.semester))),
   ].sort()
@@ -166,12 +174,15 @@ export function SubjectField({ subjects, value, onChange, defaultSemester }) {
       ? subjects
       : subjects.filter((s) => String(s.semester) === semester)
 
+  const hint = disabled && disabledHint ? disabledHint : '출품작이 제작된 수강 과목을 선택해 주세요'
+
   if (subjects.length === 0) {
     return (
-      <Field label="과목" required hint="출품작이 제작된 수강 과목명">
+      <Field label="과목" required hint={disabled && disabledHint ? disabledHint : '출품작이 제작된 수강 과목명'}>
         <input
           type="text"
           required
+          disabled={disabled}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           className={inputCls}
@@ -181,7 +192,7 @@ export function SubjectField({ subjects, value, onChange, defaultSemester }) {
     )
   }
   return (
-    <Field as="div" label="과목" required hint="출품작이 제작된 수강 과목을 선택해 주세요">
+    <Field as="div" label="과목" required hint={hint}>
       {visible.length === 0 ? (
         <p className="text-small-m text-text-meta md:text-small-d">
           등록된 과목이 없습니다
@@ -191,12 +202,122 @@ export function SubjectField({ subjects, value, onChange, defaultSemester }) {
           name="course"
           value={value}
           onChange={onChange}
+          disabled={disabled}
           options={visible.map((s) => ({
             value: s.value,
             label: s.label,
           }))}
         />
       )}
+    </Field>
+  )
+}
+
+/**
+ * 원본 파일 업로드 필드 — 과목을 먼저 고르지 않으면 잠긄다. 여러 파일을 차례대로 올릴 수
+ * 있고, 올린 파일은 원본 그대로(변환 없이) Google Drive에 저장된다(서버 upload.js
+ * context='exhibition-original' 경로). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
+ */
+export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false }) {
+  const inputRef = useRef(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+  const locked = disabled || !course || !course.trim()
+
+  const handleFile = async (event) => {
+    const file = event.target.files && event.target.files[0]
+    event.target.value = ''
+    if (!file || locked) return
+    if (files.length >= MAX_ORIGINAL_FILES) {
+      setError(`파일은 최대 ${MAX_ORIGINAL_FILES}개까지 올릴 수 있습니다.`)
+      return
+    }
+    setBusy(true)
+    setError(null)
+    onUploadingChange?.(true)
+    try {
+      const res = await api.upload(file, { context: 'exhibition-original', course })
+      if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
+      onChange([...files, { url: res.url, name: res.name || file.name }])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setBusy(false)
+      onUploadingChange?.(false)
+    }
+  }
+
+  const remove = (idx) => onChange(files.filter((_, i) => i !== idx))
+
+  return (
+    <Field
+      as="div"
+      label="원본 파일"
+      required
+      hint={
+        locked
+          ? '먼저 위에서 과목을 선택하면 원본 파일을 올릴 수 있습니다.'
+          : '작품 원본을 변환 없이 그대로 보관합니다. 파일을 올린 뒤에는 과목을 바꿀 수 없습니다.'
+      }
+    >
+      {files.length > 0 && (
+        <ul className="flex flex-col gap-8">
+          {files.map((f, idx) => (
+            <li
+              key={`${f.url}-${idx}`}
+              className="flex min-w-0 items-center justify-between gap-12 rounded-sm border border-border-subtle bg-bg-elev px-12 py-8"
+            >
+              <a
+                href={f.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-w-0 items-center gap-8 truncate font-mono text-small-m text-text-sec underline underline-offset-4 hover:text-text-pri"
+              >
+                <Paperclip size={15} aria-hidden="true" className="shrink-0" />
+                <span className="truncate">{f.name || f.url.split('/').pop()}</span>
+              </a>
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => remove(idx)}
+                  aria-label={`${f.name || '파일'} 제거`}
+                  className="inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-meta transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap items-center gap-12">
+        <button
+          type="button"
+          onClick={() => inputRef.current && inputRef.current.click()}
+          disabled={locked || busy || files.length >= MAX_ORIGINAL_FILES}
+          className="inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm border border-border-subtle px-24 text-body-m font-semibold text-text-pri transition duration-fast ease-out hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-not-allowed disabled:opacity-40 md:h-44 md:text-body-d"
+        >
+          <Upload size={16} aria-hidden="true" />
+          {busy ? '업로드 중' : '원본 파일 추가'}
+        </button>
+        {busy && (
+          <span className="font-mono text-caption-m text-text-meta">업로드 중 — 완료된 뒤 제출하세요</span>
+        )}
+      </div>
+      {error && (
+        <p role="alert" className="text-caption-m text-state-error">
+          {error}
+        </p>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ORIGINAL_FILE_ACCEPT}
+        onChange={handleFile}
+        className="hidden"
+        tabIndex={-1}
+        aria-hidden="true"
+      />
     </Field>
   )
 }

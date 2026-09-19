@@ -157,4 +157,16 @@ router.get(
   })
 )
 
+// 전시회 접수 전체 삭제 — 테스트 데이터 초기화용. owner만 허용하고, 업로드 기록(form_file_uploads)은
+// 지우지 않는다(Drive 안의 실제 파일은 별도 확인 없이 지우지 않는다는 원칙과 같다).
+router.delete(
+  '/admin/exhibition/entries',
+  requireAuth,
+  requireRole('owner'),
+  wrap(async (req, res) => {
+    const result = await query('DELETE FROM exhibition_entries', [])
+    res.json({ ok: true, deleted: result.rowCount ?? 0 })
+  })
+)
+
 export default router

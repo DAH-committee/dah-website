@@ -8,7 +8,7 @@ import { wrap } from './content.js'
 
 const router = Router()
 
-const EXHIBITION_COLS = ['submit_open', 'submit_close', 'edit_close', 'form_schema', 'header_visible', 'button_mode']
+const EXHIBITION_COLS = ['submit_open', 'submit_close', 'edit_close', 'form_schema', 'header_visible', 'button_mode', 'drive_connection_id']
 
 // Y3-1(33_PHASE18): 접수 폼 과목 목록. site_settings.exhibitionSubjects에 저장한다.
 // 형태: [{ name: 'UX디자인', semester: 1 }] — semester는 1|2(학기 구분). 잘못된 값은 걸러낸다.
@@ -119,6 +119,27 @@ router.get(
       settings,
       exhibition: computeExhibitionState(exRes.rows[0], subjects, ordinal, semester),
     })
+  })
+)
+
+// 53_DRIVE_STORAGE(전시회 확장): 지금 연결된 Drive 프로필. GET /settings/public은 공개이라 connection_id를
+// 내려보내지 않으므로, 관리자 화면 전용으로 따로 둔다.
+router.get(
+  '/admin/exhibition/drive',
+  requireAuth,
+  requireRole('manager'),
+  wrap(async (req, res) => {
+    const { rows } = await query('SELECT drive_connection_id FROM exhibition_settings WHERE id = 1', [])
+    const connectionId = rows[0]?.drive_connection_id ?? null
+    let connection = null
+    if (connectionId) {
+      const { rows: conn } = await query(
+        'SELECT id, label, account_email, root_folder_id, root_folder_name, active FROM google_drive_connections WHERE id = $1',
+        [connectionId]
+      )
+      connection = conn[0] || null
+    }
+    res.json({ connection_id: connectionId, connection })
   })
 )
 
