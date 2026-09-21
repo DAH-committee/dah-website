@@ -40,6 +40,7 @@ import {
   achievementHighlights,
   closingPhoto,
   clubDeckImages,
+  councilEvents,
   councilMark,
   councilWork,
 } from '../data/majorCompassDeck'
@@ -97,7 +98,7 @@ const SLIDES = [
   { id: 'decade-vision', label: 'Part 4 · 다음 10년', steps: 3 },
   { id: 'decade-reverse', label: 'Reverse Learning', steps: 1 },
   { id: 'decade-wrapup', label: '정리 및 다음 방향', steps: 2 },
-  { id: 'council', label: '운영위원회', steps: 2 },
+  { id: 'council', label: '운영위원회', steps: 4 },
   // 동아리는 네 개가 각자 한 화면을 가진다(소개·활동·추천 대상 + 실제 활동 이미지).
   { id: 'clubs', label: '동아리', steps: 4 },
   { id: 'closing', label: '마무리', steps: 1 },
@@ -717,6 +718,7 @@ function MajorCompassExperience() {
                 <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1} / {item.period}</p>
                 <h2 className="mt-16 text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item.title}</h2>
                 <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.desc}</p>
+                {item.details && <BulletList items={item.details} className="mt-16 space-y-8" />}
                 {item.awardees && <p className="mt-16 font-bold leading-[1.6] text-text-pri">{item.awardees}</p>}
               </article>
             ))}
@@ -1216,7 +1218,31 @@ function MajorCompassExperience() {
     }
 
     if (slide.id === 'council') {
-      if (stepIndex === 1) {
+      if (stepIndex === 2) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={slide.label} title={councilEvents.title} description={councilEvents.lead} />
+            <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-x-48 gap-y-0 border-y border-border-subtle sm:grid-cols-2">
+              {councilEvents.items.map((item, index) => (
+                <motion.div
+                  key={item.title}
+                  initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  className="grid min-w-0 grid-cols-[44px_minmax(0,1fr)] gap-16 border-b border-border-subtle py-[clamp(12px,1.9dvh,18px)] last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0"
+                >
+                  <span className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1}</span>
+                  <div className="min-w-0">
+                    <h2 className="text-deck-body-m font-bold leading-[1.45] text-text-pri md:text-deck-body-d">{item.title}</h2>
+                    <p className="mt-6 text-body-l-m leading-[1.6] text-text-sec md:text-body-l-d">{item.detail}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+      if (stepIndex === 3) {
         return (
           <div className="flex h-full flex-col justify-center">
             <SlideTitle label={slide.label} title={councilWork.title} description={councilWork.lead} />
@@ -1248,41 +1274,61 @@ function MajorCompassExperience() {
         acc.set(member.role, list)
         return acc
       }, new Map())
-      return (
-        <div className="grid h-full items-center gap-40 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)] lg:gap-56">
-          <div className="min-w-0">
-            <div className="flex items-center gap-20">
-              <img src={councilMark} alt="" aria-hidden="true" className="h-[clamp(48px,7dvh,72px)] w-[clamp(48px,7dvh,72px)] shrink-0" />
-              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{slide.label}</p>
-            </div>
-            <h1 className="mt-24 text-deck-title-m font-bold leading-[1.22] text-text-pri md:text-[clamp(32px,4.45dvh,48px)]">
-              {council?.title || council?.name || '운영위원회'}
-            </h1>
-            {council?.intro && (
-              <p className="mt-24 max-w-4xl text-deck-body-m leading-[1.7] text-text-sec md:text-[clamp(17px,2.05dvh,22px)]">{council.intro}</p>
-            )}
-          </div>
-          <div className="min-w-0 border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-48 lg:pt-0">
-            <dl className="grid gap-x-40 gap-y-20 sm:grid-cols-2">
+      if (stepIndex === 1) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={slide.label} title="열 명이 다섯 개 파트로 전공을 운영합니다." />
+            <dl className="mt-[clamp(24px,4dvh,44px)] grid gap-x-56 gap-y-[clamp(16px,2.6dvh,28px)] border-t border-border-subtle pt-[clamp(20px,3.2dvh,34px)] sm:grid-cols-2">
               {leaders.map((member) => (
                 <div key={member.name} className="min-w-0">
                   <dt className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">{member.role}</dt>
-                  <dd className="mt-8">
-                    <p className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{member.name}</p>
-                    <p className="mt-4 text-small-m leading-[1.6] text-text-meta md:text-small-d">{member.majors}</p>
+                  <dd className="mt-10">
+                    <p className="text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{member.name}</p>
+                    <p className="mt-8 text-small-m leading-[1.6] text-text-meta md:text-small-d">{member.majors}</p>
                   </dd>
                 </div>
               ))}
             </dl>
-            <dl className="mt-[clamp(18px,2.8dvh,30px)] grid gap-x-40 gap-y-16 border-t border-border-subtle pt-[clamp(16px,2.6dvh,26px)] sm:grid-cols-3">
+            <dl className="mt-[clamp(20px,3.2dvh,34px)] grid gap-x-56 gap-y-[clamp(14px,2.2dvh,24px)] border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] sm:grid-cols-3">
               {[...grouped].map(([role, names]) => (
                 <div key={role} className="min-w-0">
                   <dt className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{role}</dt>
-                  <dd className="mt-8 text-body-l-m leading-[1.7] text-text-pri md:text-body-l-d">{names.join(', ')}</dd>
+                  <dd className="mt-10 text-deck-body-m leading-[1.6] text-text-pri md:text-deck-body-d">{names.join(', ')}</dd>
                 </div>
               ))}
             </dl>
           </div>
+        )
+      }
+      // 로고가 주인공인 화면. 로고를 크게 두고 설명은 그 아래에 둔다.
+      return (
+        <div className="flex h-full flex-col items-center justify-center text-center">
+          <motion.img
+            src={councilMark}
+            alt="제1대 운영위원회 LUCID 로고"
+            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: reducedMotion ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="h-[clamp(160px,34dvh,300px)] w-[clamp(160px,34dvh,300px)] shrink-0"
+          />
+          <motion.h1
+            initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reducedMotion ? 0 : 0.44, delay: reducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-[clamp(20px,3.4dvh,36px)] text-deck-title-m font-bold leading-[1.25] text-text-pri md:text-[clamp(32px,4.45dvh,48px)]"
+          >
+            {council?.title || council?.name || '운영위원회'}
+          </motion.h1>
+          {council?.intro && (
+            <motion.p
+              initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.44, delay: reducedMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-[clamp(16px,2.6dvh,28px)] max-w-5xl text-deck-body-m leading-[1.75] text-text-sec md:text-deck-body-d"
+            >
+              {council.intro}
+            </motion.p>
+          )}
         </div>
       )
     }

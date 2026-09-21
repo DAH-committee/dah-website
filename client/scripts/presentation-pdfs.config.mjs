@@ -41,7 +41,7 @@ export const presentationPdfJobs = [
       { id: 'decade-vision', steps: 3 },
       { id: 'decade-reverse' },
       { id: 'decade-wrapup', steps: 2 },
-      { id: 'council', steps: 2 },
+      { id: 'council', steps: 4 },
       { id: 'clubs', steps: 4 },
       { id: 'closing' },
     ]),
