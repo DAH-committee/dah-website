@@ -12,6 +12,31 @@ import { achievements } from '../data/achievements'
 import { careers } from '../data/careers'
 import { councils } from '../data/council'
 import { clubs as fallbackClubs } from '../data/clubs'
+import {
+  decadeAgenda,
+  decadeAiGap,
+  decadeAssignments,
+  decadeCompetency,
+  decadeCover,
+  decadeDemo,
+  decadeDesign,
+  decadeExhibition,
+  decadeFamiliar,
+  decadeIntro,
+  decadeJobMap,
+  decadeNext,
+  decadeOrigin,
+  decadeParts,
+  decadePrinciple,
+  decadeProblem,
+  decadeProject,
+  decadeReverse,
+  decadeSolopreneur,
+  decadeSolopreneurShot,
+  decadeStorybook,
+  decadeThenNow,
+  decadeWrapUp,
+} from '../data/majorDecade'
 
 const EXHIBITION_FALLBACKS = [
   ['2026-1', 'Against Flow'],
@@ -50,6 +75,21 @@ const SLIDES = [
   { id: 'contests', label: '공모전', steps: 2 },
   { id: 'achievements', label: '학생 성과', steps: 1 },
   { id: 'careers', label: '졸업 후 진로', steps: 1 },
+  // 「디지털인문예술전공 10년: 전공교육 우수사례」(한수미 교수) 28장을 옮겨온 구간.
+  // 교수 발표가 '졸업 후 진로'에서 끝나고 학생회 발표가 '운영위원회'에서 시작하므로 그 사이에 둔다.
+  { id: 'decade-cover', label: '디인예 10년', steps: 1 },
+  { id: 'decade-intro', label: '들어가며', steps: 1 },
+  { id: 'decade-origin', label: '2017년 시작과 현재', steps: 3 },
+  { id: 'decade-foundation', label: '전공교육의 출발점', steps: 3 },
+  { id: 'decade-motivation', label: 'Part 1 · 동기', steps: 2 },
+  { id: 'decade-assignments', label: '관심사 기반 과제', steps: 2 },
+  { id: 'decade-efficacy', label: 'Part 2 · 효능감', steps: 2 },
+  { id: 'decade-exhibition', label: '프로젝트 전시회', steps: 2 },
+  { id: 'decade-ai', label: 'AI 교육', steps: 3 },
+  { id: 'decade-career', label: 'Part 3 · 진로', steps: 4 },
+  { id: 'decade-vision', label: 'Part 4 · 다음 10년', steps: 3 },
+  { id: 'decade-reverse', label: 'Reverse Learning', steps: 1 },
+  { id: 'decade-wrapup', label: '정리 및 다음 방향', steps: 2 },
   { id: 'council', label: '운영위원회', steps: 1 },
   { id: 'clubs', label: '동아리', steps: 2 },
   { id: 'closing', label: '마무리', steps: 1 },
@@ -152,6 +192,82 @@ function PosterStrip({ items }) {
             {item.semester_label || item.title_ko || item.title}
           </figcaption>
         </motion.figure>
+      ))}
+    </div>
+  )
+}
+
+// 원본 PPT에서 가져온 화면 캡처는 잘라내지 않는다. 남은 높이를 모두 쓰고 비율만 지킨다.
+// 한 화면에 여러 장을 쌓을 때는 각 이미지의 세로비율만큼 높이를 나눠줘야
+// 가로로 긴 측정 이미지 위아래에 빈 여백이 쌓이지 않는다.
+function Shot({ images, caption, align = 'center' }) {
+  return (
+    <figure className="flex h-full min-w-0 flex-col">
+      <div className="flex min-h-0 flex-1 flex-col gap-16 md:gap-20">
+        {images.map((image) => (
+          <div
+            key={image.src}
+            className="min-h-0 flex-1"
+            style={image.w && image.h ? { flexGrow: image.h / image.w } : undefined}
+          >
+            <img
+              src={image.src}
+              alt={image.alt}
+              className={`h-full w-full rounded-md object-contain ${align === 'left' ? 'object-left' : 'object-center'}`}
+            />
+          </div>
+        ))}
+      </div>
+      {caption && (
+        <figcaption className="mt-20 shrink-0 border-t border-border-subtle pt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+
+// Part 1~4 구간 표지. 숫자·제목·한 줄 설명만 남기고 나머지는 여백으로 둔다.
+function PartCover({ part }) {
+  return (
+    <div className="flex h-full flex-col justify-center">
+      <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{part.no}</p>
+      <h1 className="mt-24 text-deck-display-m font-bold leading-[1.14] tracking-normal text-text-pri md:mt-32 md:text-[clamp(48px,8.9dvh,96px)]">
+        {part.title}
+      </h1>
+      <p className="mt-28 max-w-4xl border-t border-border-subtle pt-24 text-deck-body-m leading-[1.7] text-text-sec md:mt-36 md:text-deck-body-d">
+        {part.detail}
+      </p>
+    </div>
+  )
+}
+
+// 원본 슬라이드 하단의 마무리 문장. 얇은 윗선 하나로 본문과 구분한다.
+function NoteLine({ children, className = '' }) {
+  return (
+    <p className={`mt-[clamp(20px,3dvh,32px)] border-t border-border-subtle pt-[clamp(14px,2.2dvh,20px)] text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d ${className}`.trim()}>
+      {children}
+    </p>
+  )
+}
+
+// 번호가 붙는 동일 위계 항목을 가로로 늘어놓는다. 카드가 아니라 세로 구분선으로 나눈다.
+function NumberedGrid({ items, columns = 4, reducedMotion }) {
+  const columnClass = { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' }[columns]
+  return (
+    <div className={`mt-[clamp(20px,3.4dvh,36px)] grid border-y border-border-subtle sm:grid-cols-2 ${columnClass}`}>
+      {items.map((item, index) => (
+        <motion.article
+          key={item.title}
+          initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.03, ease: [0.16, 1, 0.3, 1] }}
+          className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-28 lg:last:border-r-0"
+        >
+          <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
+          <h2 className="mt-16 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</h2>
+          <p className="mt-16 whitespace-pre-line text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.detail}</p>
+        </motion.article>
       ))}
     </div>
   )
@@ -541,6 +657,475 @@ function MajorCompassExperience() {
               </article>
             ))}
           </div>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-cover') {
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeCover.eyebrow}</p>
+          <h1 className="mt-28 text-deck-display-m font-bold leading-[1.12] tracking-normal text-text-pri md:mt-36 md:text-[clamp(48px,8.9dvh,96px)]">
+            {decadeCover.title}
+          </h1>
+          <p className="mt-28 max-w-5xl text-deck-title-m leading-[1.45] text-text-sec md:mt-32 md:text-deck-title-d">{decadeCover.subtitle}</p>
+          <p className="mt-[clamp(32px,6dvh,64px)] border-t border-border-subtle pt-24 font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">
+            {decadeCover.presenter}
+          </p>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-intro') {
+      return (
+        <div className="grid h-full items-center gap-48 lg:grid-cols-[minmax(0,.88fr)_minmax(0,1.12fr)] lg:gap-64">
+          <SlideTitle label={slide.label} title={decadeIntro.title} />
+          <div>
+            <EntryList
+              items={decadeIntro.questions.map((question) => ({ id: question, question }))}
+              renderItem={(item) => (
+                <p className="text-deck-body-m font-bold leading-[1.6] text-text-pri md:text-deck-body-d">{item.question}</p>
+              )}
+            />
+            <NoteLine className="border-t-0 pt-0">{decadeIntro.closing}</NoteLine>
+          </div>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-origin') {
+      if (stepIndex === 2) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadePrinciple.label} title={decadePrinciple.title} description={decadePrinciple.lead} />
+            <div className="mt-[clamp(20px,3.4dvh,36px)] border-l border-border-strong pl-28 md:pl-40">
+              <p className="text-deck-title-m font-bold leading-[1.4] text-text-pri md:text-deck-title-d">{decadePrinciple.quote}</p>
+              <p className="mt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
+                {decadePrinciple.quoteDetail.join(' ')}
+              </p>
+            </div>
+            <NumberedGrid items={decadePrinciple.rules} columns={3} reducedMotion={reducedMotion} />
+          </div>
+        )
+      }
+      const view = stepIndex === 0 ? decadeOrigin.past : decadeOrigin.present
+      return (
+        <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,.62fr)_minmax(0,1.38fr)] lg:gap-56">
+          <div className="flex min-w-0 flex-col justify-center">
+            <SlideTitle label={slide.label} title={decadeOrigin.title} />
+            <p className="mt-[clamp(20px,3dvh,32px)] border-t border-border-subtle pt-20 font-mono text-deck-meta-m text-text-sec md:text-deck-meta-d">
+              {view.label}
+            </p>
+            {stepIndex === 1 && (
+              <>
+                <p className="mt-20 text-deck-title-m font-bold leading-[1.4] text-text-pri md:text-deck-title-d">
+                  {decadeOrigin.present.enrollment}
+                </p>
+                <p className="mt-16 break-all text-small-m leading-[1.65] text-text-meta md:text-small-d">
+                  {decadeOrigin.present.source}
+                </p>
+              </>
+            )}
+          </div>
+          <Shot images={stepIndex === 0 ? decadeOrigin.past.images : decadeOrigin.present.images} />
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-foundation') {
+      if (stepIndex === 0) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={slide.label} title={decadeAgenda.title} />
+            <div className="mt-[clamp(24px,4dvh,44px)] grid border-y border-border-subtle sm:grid-cols-2 lg:grid-cols-4">
+              {decadeAgenda.items.map((item, index) => (
+                <motion.article
+                  key={item.no}
+                  initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                  className="min-w-0 border-b border-border-subtle py-[clamp(20px,3.2dvh,34px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-32 lg:last:border-r-0"
+                >
+                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{item.no}</p>
+                  <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{item.title}</h2>
+                  <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.detail}</p>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        )
+      }
+      if (stepIndex === 1) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeProblem.label} title={decadeProblem.title} description={decadeProblem.lead} />
+            <EntryList
+              className="mt-[clamp(20px,3.2dvh,34px)]"
+              items={decadeProblem.items.map((item) => ({ ...item, id: item.tag }))}
+              renderItem={(item) => (
+                <div className="grid gap-12 md:grid-cols-[120px_minmax(0,1fr)] md:gap-28">
+                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{item.tag}</p>
+                  <div className="min-w-0">
+                    <p className="text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item.quote}</p>
+                    <p className="mt-8 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.detail}</p>
+                  </div>
+                </div>
+              )}
+            />
+            <NoteLine className="border-t-0 pt-0">{decadeProblem.footer}</NoteLine>
+          </div>
+        )
+      }
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeDesign.label} title={decadeDesign.title} description={decadeDesign.lead} />
+          <div className="mt-[clamp(24px,4dvh,44px)] grid border-y border-border-subtle lg:grid-cols-3">
+            {decadeDesign.stages.map((stage, index) => (
+              <motion.article
+                key={stage.title}
+                initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                className="min-w-0 border-b border-border-subtle py-[clamp(20px,3.2dvh,34px)] last:border-b-0 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0"
+              >
+                <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
+                <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{stage.title}</h2>
+                <p className="mt-16 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{stage.detail}</p>
+              </motion.article>
+            ))}
+          </div>
+          <NoteLine className="border-t-0 pt-0 font-bold text-text-pri">{decadeDesign.footer}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-motivation') {
+      if (stepIndex === 0) return <PartCover part={decadeParts.motivation} />
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeFamiliar.label} title={decadeFamiliar.title} />
+          <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)] lg:gap-56">
+            <div className="grid gap-[clamp(18px,2.8dvh,30px)]">
+              {decadeFamiliar.blocks.map((block) => (
+                <div key={block.title} className="min-w-0">
+                  <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{block.title}</h2>
+                  <ul className="mt-12 space-y-8">
+                    {block.lines.map((line) => (
+                      <li key={line} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {line}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeFamiliar.aside.label}</p>
+              <p className="mt-16 text-deck-title-m font-bold leading-[1.4] text-text-pri md:text-deck-title-d">{decadeFamiliar.aside.statement}</p>
+              <p className="mt-20 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{decadeFamiliar.aside.detail}</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-assignments') {
+      if (stepIndex === 0) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeAssignments.label} title={decadeAssignments.title} />
+            <NumberedGrid items={decadeAssignments.items} columns={4} reducedMotion={reducedMotion} />
+            <NoteLine className="border-t-0 pt-0 font-bold text-text-pri">{decadeAssignments.footer}</NoteLine>
+          </div>
+        )
+      }
+      return (
+        <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,.62fr)_minmax(0,1.38fr)] lg:gap-56">
+          <div className="flex min-w-0 flex-col justify-center">
+            <SlideTitle label={decadeAssignments.label} title={decadeAssignments.title} />
+            <p className="mt-[clamp(20px,3dvh,32px)] border-t border-border-subtle pt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
+              {decadeAssignments.shot.caption}
+            </p>
+          </div>
+          <Shot images={[{ src: decadeAssignments.shot.image, alt: decadeAssignments.shot.alt }]} />
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-efficacy') {
+      if (stepIndex === 0) return <PartCover part={decadeParts.efficacy} />
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeProject.label} title={decadeProject.title} description={decadeProject.lead} />
+          <NumberedGrid items={decadeProject.steps} columns={5} reducedMotion={reducedMotion} />
+          <NoteLine className="border-t-0 pt-0">{decadeProject.footer.join(' ')}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-exhibition') {
+      if (stepIndex === 0) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeExhibition.label} title={decadeExhibition.title} description={decadeExhibition.lead} />
+            <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)] lg:gap-56">
+              <div className="min-w-0">
+                <dl className="grid grid-cols-3 gap-24">
+                  {decadeExhibition.stats.map((stat) => (
+                    <div key={stat.value} className="min-w-0">
+                      <dt className="text-stat-m font-bold leading-[1.1] text-text-pri md:text-stat-d">{stat.value}</dt>
+                      <dd className="mt-12 text-body-l-m leading-[1.6] text-text-meta md:text-body-l-d">{stat.caption}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-[clamp(20px,3dvh,32px)] border-t border-border-subtle pt-20">
+                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeExhibition.output.label}</p>
+                  <p className="mt-12 text-deck-body-m leading-[1.7] text-text-pri md:text-deck-body-d">{decadeExhibition.output.detail}</p>
+                </div>
+              </div>
+              <div className="border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0">
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeExhibition.reason.label}</p>
+                <p className="mt-16 text-deck-body-m leading-[1.75] text-text-sec md:text-deck-body-d">{decadeExhibition.reason.detail}</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+      return (
+        <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,.55fr)_minmax(0,1.45fr)] lg:gap-56">
+          <div className="flex min-w-0 flex-col justify-center">
+            <SlideTitle label={decadeExhibition.label} title={decadeExhibition.title} />
+            <p className="mt-[clamp(20px,3dvh,32px)] border-t border-border-subtle pt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
+              {decadeExhibition.shot.caption}
+            </p>
+          </div>
+          <Shot images={[{ src: decadeExhibition.shot.image, alt: decadeExhibition.shot.alt }]} />
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-ai') {
+      if (stepIndex === 0) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <header className="max-w-7xl">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeAiGap.label}</p>
+              <h1 className="mt-20 text-deck-title-m font-bold leading-[1.22] tracking-normal text-text-pri md:mt-24 md:text-[clamp(32px,4.45dvh,48px)]">
+                {decadeAiGap.title}
+              </h1>
+              <p className="mt-16 text-deck-body-m leading-[1.6] text-text-meta md:text-deck-body-d">{decadeAiGap.titleNote}</p>
+              <p className="mt-20 max-w-5xl text-deck-body-m leading-[1.7] text-text-sec md:mt-24 md:text-[clamp(17px,2.05dvh,22px)]">{decadeAiGap.lead}</p>
+            </header>
+            <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-40 border-y border-border-subtle py-[clamp(16px,2.6dvh,28px)] lg:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)] lg:gap-56">
+              <ol className="min-w-0 divide-y divide-border-subtle">
+                {decadeAiGap.steps.map((step, index) => (
+                  <li key={step.title} className="grid grid-cols-[52px_minmax(0,1fr)] gap-16 py-[clamp(12px,2dvh,20px)] first:pt-0 last:pb-0">
+                    <span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</span>
+                    <div className="min-w-0">
+                      <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{step.title}</h2>
+                      <p className="mt-8 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{step.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <div className="border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0">
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeAiGap.rules.label}</p>
+                <ul className="mt-16 space-y-12">
+                  {decadeAiGap.rules.items.map((item) => (
+                    <li key={item} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )
+      }
+      if (stepIndex === 1) {
+        return (
+          <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,.5fr)_minmax(0,1.5fr)] lg:gap-56">
+            <div className="flex min-w-0 flex-col justify-center">
+              <SlideTitle label={decadeStorybook.label} title={decadeStorybook.title} />
+            </div>
+            <Shot images={decadeStorybook.images} />
+          </div>
+        )
+      }
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeDemo.label} title={decadeDemo.title} description={decadeDemo.lead} />
+          <div className="mt-[clamp(20px,3.2dvh,34px)] grid gap-40 border-y border-border-subtle py-[clamp(16px,2.6dvh,28px)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] lg:gap-56">
+            <div className="min-w-0">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeDemo.listLabel}</p>
+              <ol className="mt-16 divide-y divide-border-subtle">
+                {decadeDemo.items.map((item, index) => (
+                  <li key={item.title} className="grid grid-cols-[52px_minmax(0,1fr)] gap-16 py-[clamp(12px,2dvh,20px)] first:pt-0 last:pb-0">
+                    <span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</span>
+                    <div className="min-w-0">
+                      <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</h2>
+                      <p className="mt-8 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{item.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeDemo.aside.label}</p>
+              <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{decadeDemo.aside.detail}</p>
+              <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{decadeDemo.aside.note}</p>
+              <p className="mt-20 border-t border-border-subtle pt-20 text-deck-body-m font-bold leading-[1.6] text-text-pri md:text-deck-body-d">
+                {decadeDemo.aside.quote.join(' ')}
+              </p>
+            </div>
+          </div>
+          <NoteLine className="border-t-0 pt-0">{decadeDemo.footer}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-career') {
+      if (stepIndex === 0) return <PartCover part={decadeParts.career} />
+      if (stepIndex === 1) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeJobMap.label} title={decadeJobMap.title} description={decadeJobMap.lead} />
+            <NumberedGrid items={decadeJobMap.groups} columns={4} reducedMotion={reducedMotion} />
+            <NoteLine className="border-t-0 pt-0">{decadeJobMap.footer}</NoteLine>
+          </div>
+        )
+      }
+      if (stepIndex === 2) {
+        return (
+          <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,.8fr)] lg:gap-56">
+            <div className="flex min-w-0 flex-col justify-center">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeSolopreneurShot.label}</p>
+              <h1 className="mt-20 text-deck-title-m font-bold leading-[1.3] text-text-pri md:mt-24 md:text-[clamp(32px,4.45dvh,48px)]">
+                {decadeSolopreneurShot.title}
+              </h1>
+              <p className="mt-[clamp(20px,3dvh,32px)] break-all border-t border-border-subtle pt-20 text-small-m leading-[1.65] text-text-meta md:text-small-d">
+                {decadeSolopreneurShot.source}
+              </p>
+            </div>
+            <Shot images={[{ src: decadeSolopreneurShot.image, alt: decadeSolopreneurShot.alt }]} />
+          </div>
+        )
+      }
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeThenNow.label} title={decadeThenNow.title} description={decadeThenNow.lead} />
+          <div className="mt-[clamp(20px,3.2dvh,34px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-[minmax(0,.62fr)_minmax(0,1.38fr)] lg:gap-56">
+            <div className="min-w-0">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeThenNow.past.year}</p>
+              <ul className="mt-16 space-y-10">
+                {decadeThenNow.past.lines.map((line) => (
+                  <li key={line} className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">— {line}</li>
+                ))}
+              </ul>
+              <p className="mt-20 border-t border-border-subtle pt-16 text-body-l-m leading-[1.7] text-text-meta md:text-body-l-d">
+                {decadeThenNow.past.note.join(' ')}
+              </p>
+            </div>
+            <div className="border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0">
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeThenNow.present.year}</p>
+              <div className="mt-16 grid gap-x-40 gap-y-[clamp(12px,2dvh,20px)] sm:grid-cols-2 lg:grid-cols-3">
+                {decadeThenNow.present.items.map((item) => (
+                  <div key={item.title} className="min-w-0">
+                    <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</h2>
+                    <p className="mt-8 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{item.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <NoteLine className="border-t-0 pt-0">{decadeThenNow.footer}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-vision') {
+      if (stepIndex === 0) return <PartCover part={decadeParts.vision} />
+      if (stepIndex === 1) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeCompetency.label} title={decadeCompetency.title} description={decadeCompetency.lead} />
+            <p className="mt-[clamp(18px,2.8dvh,30px)] border-y border-border-subtle py-16 font-mono text-deck-meta-m leading-[1.7] text-text-sec md:text-deck-meta-d">
+              {decadeCompetency.flow.join('  \u203a  ')}
+            </p>
+            <NumberedGrid items={decadeCompetency.items} columns={5} reducedMotion={reducedMotion} />
+            <NoteLine className="border-t-0 pt-0">{decadeCompetency.footer}</NoteLine>
+          </div>
+        )
+      }
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeSolopreneur.label} title={decadeSolopreneur.title} />
+          <p className="mt-[clamp(20px,3dvh,32px)] border-l border-border-strong pl-28 text-deck-title-m font-bold leading-[1.4] text-text-pri md:pl-40 md:text-deck-title-d">
+            {decadeSolopreneur.definition}
+          </p>
+          <div className="mt-[clamp(20px,3.2dvh,34px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-2 lg:gap-56">
+            {decadeSolopreneur.blocks.map((block, index) => (
+              <div key={block.title} className={`min-w-0 ${index === 1 ? 'border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0' : ''}`}>
+                <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{block.title}</p>
+                <ul className="mt-16 space-y-12">
+                  {block.lines.map((line) => (
+                    <li key={line} className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">— {line}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <NoteLine className="border-t-0 pt-0">{decadeSolopreneur.footer}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-reverse') {
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeReverse.label} title={decadeReverse.title} description={decadeReverse.lead} />
+          <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-2 lg:gap-56">
+            {decadeReverse.blocks.map((block, index) => (
+              <div key={block.title} className={`min-w-0 ${index === 1 ? 'border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-40 lg:pt-0' : ''}`}>
+                <h2 className="text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{block.title}</h2>
+                <p className="mt-12 text-deck-body-m leading-[1.6] text-text-meta md:text-deck-body-d">{block.subtitle}</p>
+                <ul className="mt-20 space-y-12">
+                  {block.lines.map((line) => (
+                    <li key={line} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {line}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <NoteLine className="border-t-0 pt-0">{decadeReverse.footer}</NoteLine>
+        </div>
+      )
+    }
+
+    if (slide.id === 'decade-wrapup') {
+      if (stepIndex === 0) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={decadeWrapUp.label} title={decadeWrapUp.title} />
+            <EntryList
+              className="mt-[clamp(20px,3.2dvh,34px)]"
+              items={decadeWrapUp.items.map((item) => ({ ...item, id: item.title }))}
+              renderItem={(item, index) => (
+                <div className="grid grid-cols-[52px_minmax(0,1fr)] gap-16 md:gap-24">
+                  <span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</span>
+                  <div className="min-w-0">
+                    <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</h2>
+                    <p className="mt-8 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{item.detail}</p>
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+        )
+      }
+      return (
+        <div className="flex h-full flex-col justify-center">
+          <SlideTitle label={decadeNext.label} title={decadeNext.title} description={decadeNext.lead} />
+          <NumberedGrid items={decadeNext.items} columns={3} reducedMotion={reducedMotion} />
+          <p className="mt-[clamp(24px,4dvh,44px)] text-deck-display-m font-bold leading-[1.2] text-text-pri md:text-deck-display-d">
+            {decadeNext.closing}
+          </p>
         </div>
       )
     }
