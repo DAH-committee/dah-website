@@ -473,6 +473,27 @@ function MajorCompassExperience() {
             className="absolute inset-0 h-full w-full object-cover opacity-55"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-bg-base via-bg-base/90 to-bg-base/20" />
+          {/* 관객이 자리에서 바로 찍는다. 화면 오른쪽 눈높이에 크게 둔다.
+              QR은 흰 바탕·어두운 모듈이 표준 — 반전시키면 못 읽는 스캐너가 있다. */}
+          {/* 세로 가운데 정렬은 바깥 div가 맡는다. motion 요소에 -translate-y-1/2를 걸면
+              등장 애니메이션의 transform이 덮어써 아래로 내려앉는다. */}
+          <div className="pointer-events-none absolute inset-y-0 right-[clamp(24px,6.7vw,128px)] z-20 flex items-center">
+            <motion.figure
+              initial={reducedMotion ? false : { opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reducedMotion ? 0 : 0.5, delay: reducedMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center gap-16"
+            >
+              <img
+                src="/images/decade/major-compass-qr.svg"
+                alt="디지털인문예술전공 웹사이트 QR 코드"
+                className="h-[clamp(190px,35dvh,330px)] w-[clamp(190px,35dvh,330px)] rounded-md shadow-glass"
+              />
+              <figcaption className="text-center font-mono text-deck-meta-m leading-[1.6] text-text-sec md:text-deck-meta-d">
+                전공 웹사이트
+              </figcaption>
+            </motion.figure>
+          </div>
           <motion.div
             initial={reducedMotion ? false : { opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -483,7 +504,7 @@ function MajorCompassExperience() {
             <h1 className="mt-28 text-deck-display-m font-bold leading-[1.12] tracking-normal text-text-pri md:mt-36 md:text-[clamp(48px,8.9dvh,96px)]">
               디지털인문예술전공
             </h1>
-            <p className="mt-28 max-w-4xl text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
+            <p className="mt-28 max-w-3xl text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
               사람과 사회에 대한 질문을 기술과 디자인의 언어로 풀어냅니다.
             </p>
           </motion.div>
@@ -1342,7 +1363,8 @@ function MajorCompassExperience() {
       const intro = club.intro || club.body?.intro
       const activities = club.activities || club.body?.activities || []
       const targets = club.targets || club.body?.targets || []
-      const images = clubDeckImages[club.id] ?? []
+      // 이름으로 찾는다. 서버는 숫자 id, 폴백은 문자열 id라 id는 기준이 될 수 없다.
+      const images = clubDeckImages[name] ?? []
       return (
         <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-56">
           <div className="flex min-w-0 flex-col justify-center">

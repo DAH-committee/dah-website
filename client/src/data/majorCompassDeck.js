@@ -35,25 +35,29 @@ export const achievementHighlights = [
 
 // 동아리별 실제 카드뉴스·활동 사진.
 // 개인 전화번호가 찍힌 장(DS4H 표지, 아이소 지원방법, 커넥트 문의)은 발표 자료에서 제외했다.
+//
+// 키는 동아리 이름이다. id로 잡으면 안 된다 — 폴백 데이터(clubs.js)는 'club-ds4h' 같은
+// 문자열 id를 쓰지만 서버 API는 숫자 id(25~28)를 내려줘서 배포 환경에서만
+// 이미지가 통째로 안 보였다. 이름은 양쪽이 같다.
 export const clubDeckImages = {
-  'club-the-instudio': [
+  '더 인스튜디오': [
     { src: '/images/clubs-deck/theinstudio-1.webp', alt: '더 인스튜디오 소개 표지' },
     { src: '/images/clubs-deck/theinstudio-2.webp', alt: '더 인스튜디오 UX·UI 프로젝트 결과물 모음' },
     { src: '/images/clubs-deck/theinstudio-3.webp', alt: '더 인스튜디오 활동 내용 안내' },
     { src: '/images/clubs-deck/theinstudio-4.webp', alt: '더 인스튜디오 동아리 소개' },
   ],
-  'club-i-so': [
+  'I-SO': [
     { src: '/images/clubs-deck/iso-1.webp', alt: 'I-SO 활동 현장 사진' },
     { src: '/images/clubs-deck/iso-2.webp', alt: 'I-SO 활동 안내' },
     { src: '/images/clubs-deck/iso-3.webp', alt: 'I-SO 모집 대상 안내' },
   ],
-  'club-connect': [
+  'CON:NECT': [
     { src: '/images/clubs-deck/connect-1.webp', alt: 'CON:NECT 소개 표지와 활동 사진' },
     { src: '/images/clubs-deck/connect-2.webp', alt: 'CON:NECT 북페어·콘텐츠페스타·고교 연계 활동 사진' },
     { src: '/images/clubs-deck/connect-3.webp', alt: 'CON:NECT 활동 소개' },
     { src: '/images/clubs-deck/connect-4.webp', alt: 'CON:NECT 동아리 소개' },
   ],
-  'club-ds4h': [
+  'DS4H': [
     { src: '/images/clubs-deck/ds4h-1.webp', alt: 'DS4H 데이터 분석 스터디 현장' },
     { src: '/images/clubs-deck/ds4h-2.webp', alt: 'DS4H 프로젝트 결과물' },
   ],
