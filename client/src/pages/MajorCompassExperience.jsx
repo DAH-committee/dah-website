@@ -71,7 +71,7 @@ const CONTEST_FALLBACKS = [
 }))
 
 // 발표 흐름의 단일 원천. steps는 같은 화면 안에서 설명을 한 단계 더 깊게 보여줄 때만 쓴다.
-const SLIDES = [
+const ALL_SLIDES = [
   { id: 'cover', label: '표지', steps: 1 },
   { id: 'about', label: '전공 소개', steps: 3 },
   { id: 'curriculum', label: '교육과정', steps: 4 },
@@ -84,25 +84,29 @@ const SLIDES = [
   { id: 'achievements', label: '학생 성과', steps: 1 },
   { id: 'careers', label: '졸업 후 진로', steps: 1 },
   // 「디지털인문예술전공 10년: 전공교육 우수사례」(한수미 교수) 28장을 옮겨온 구간.
-  // 교수 발표가 '졸업 후 진로'에서 끝나고 학생회 발표가 '운영위원회'에서 시작하므로 그 사이에 둔다.
-  { id: 'decade-cover', label: '디인예 10년', steps: 1 },
-  { id: 'decade-intro', label: '들어가며', steps: 1 },
-  { id: 'decade-origin', label: '2017년 시작과 현재', steps: 3 },
-  { id: 'decade-foundation', label: '전공교육의 출발점', steps: 3 },
-  { id: 'decade-motivation', label: 'Part 1 · 동기', steps: 2 },
-  { id: 'decade-assignments', label: '관심사 기반 과제', steps: 2 },
-  { id: 'decade-efficacy', label: 'Part 2 · 효능감', steps: 2 },
-  { id: 'decade-exhibition', label: '프로젝트 전시회', steps: 2 },
-  { id: 'decade-ai', label: 'AI 교육', steps: 3 },
-  { id: 'decade-career', label: 'Part 3 · 진로', steps: 4 },
-  { id: 'decade-vision', label: 'Part 4 · 다음 10년', steps: 3 },
-  { id: 'decade-reverse', label: 'Reverse Learning', steps: 1 },
-  { id: 'decade-wrapup', label: '정리 및 다음 방향', steps: 2 },
+  // 교수님이 본인 자료로 따로 발표하시므로 enabled: false로 흐름에서 뺀다.
+  // 화면 코드는 그대로 두었으니 이 플래그만 지우면 원래 자리(졸업 후 진로 ↔ 운영위원회)로 돌아온다.
+  { id: 'decade-cover', label: '디인예 10년', steps: 1 , enabled: false },
+  { id: 'decade-intro', label: '들어가며', steps: 1 , enabled: false },
+  { id: 'decade-origin', label: '2017년 시작과 현재', steps: 3 , enabled: false },
+  { id: 'decade-foundation', label: '전공교육의 출발점', steps: 3 , enabled: false },
+  { id: 'decade-motivation', label: 'Part 1 · 동기', steps: 2 , enabled: false },
+  { id: 'decade-assignments', label: '관심사 기반 과제', steps: 2 , enabled: false },
+  { id: 'decade-efficacy', label: 'Part 2 · 효능감', steps: 2 , enabled: false },
+  { id: 'decade-exhibition', label: '프로젝트 전시회', steps: 2 , enabled: false },
+  { id: 'decade-ai', label: 'AI 교육', steps: 3 , enabled: false },
+  { id: 'decade-career', label: 'Part 3 · 진로', steps: 4 , enabled: false },
+  { id: 'decade-vision', label: 'Part 4 · 다음 10년', steps: 3 , enabled: false },
+  { id: 'decade-reverse', label: 'Reverse Learning', steps: 1 , enabled: false },
+  { id: 'decade-wrapup', label: '정리 및 다음 방향', steps: 2 , enabled: false },
   { id: 'council', label: '운영위원회', steps: 4 },
   // 동아리는 네 개가 각자 한 화면을 가진다(소개·활동·추천 대상 + 실제 활동 이미지).
   { id: 'clubs', label: '동아리', steps: 4 },
   { id: 'closing', label: '마무리', steps: 1 },
 ]
+
+// 실제 발표 흐름·주제 맵·모바일 미리보기·PDF가 모두 이 배열 하나만 본다.
+const SLIDES = ALL_SLIDES.filter((item) => item.enabled !== false)
 
 const FEATURED_CAREER_IDS = ['career-07', 'career-15', 'career-22', 'career-03']
 
