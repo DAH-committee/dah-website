@@ -1229,7 +1229,10 @@ function MajorCompassExperience() {
         </>
       )}
 
-      <section className={`relative z-10 h-full ${slide.id === 'cover' ? 'p-0' : 'px-[clamp(24px,6.7vw,128px)] py-[clamp(48px,8dvh,88px)]'}`}>
+      {/* 패딩은 slide 단위(motion.div)에 붙인다. section에 붙이면 AnimatePresence가 보존하는
+          퇴장 중인 이전 슬라이드까지 현재 슬라이드의 패딩을 공유해, 표지(p-0) ↔ 본문(유무)
+          사이를 오가가는 순간만 퇴장 컸텐츠에 새 패딩이 먹허 보이며 전환이 튀거리는 문제가 있었다. */}
+      <section className="relative z-10 h-full">
         <AnimatePresence mode="sync" custom={direction}>
           <motion.div
             key={`${slide.id}-${stepIndex}`}
@@ -1238,7 +1241,7 @@ function MajorCompassExperience() {
             initial={reducedMotion ? false : 'enter'}
             animate={reducedMotion ? { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' } : 'center'}
             exit={reducedMotion ? undefined : 'exit'}
-            className="relative h-full overflow-hidden"
+            className={`relative h-full overflow-hidden ${slide.id === 'cover' ? 'p-0' : 'px-[clamp(24px,6.7vw,128px)] py-[clamp(48px,8dvh,88px)]'}`}
           >
             {!reducedMotion && (
               <motion.div
