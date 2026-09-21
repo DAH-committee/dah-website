@@ -385,5 +385,4 @@ export const decadeNext = {
     { title: 'AI Ready', detail: '전 과목 AI 활용을 역량 기준으로 명문화' },
     { title: 'Change Ready', detail: '중재형(mediator) 융합인재 양성 = AI솔로프리너' },
   ],
-  closing: '감사합니다.',
 }

@@ -8,7 +8,6 @@ import { ABOUT_COPY } from './About'
 import { tracks, codeSharing } from '../data/tracks'
 import { nanodegree } from '../data/nanodegree'
 import { professors as fallbackProfessors } from '../data/professors'
-import { achievements } from '../data/achievements'
 import { careers } from '../data/careers'
 import { councils } from '../data/council'
 import { clubs as fallbackClubs } from '../data/clubs'
@@ -37,6 +36,13 @@ import {
   decadeThenNow,
   decadeWrapUp,
 } from '../data/majorDecade'
+import {
+  achievementHighlights,
+  closingPhoto,
+  clubDeckImages,
+  councilMark,
+  councilWork,
+} from '../data/majorCompassDeck'
 
 const EXHIBITION_FALLBACKS = [
   ['2026-1', 'Against Flow'],
@@ -68,7 +74,8 @@ const SLIDES = [
   { id: 'cover', label: '표지', steps: 1 },
   { id: 'about', label: '전공 소개', steps: 3 },
   { id: 'curriculum', label: '교육과정', steps: 4 },
-  { id: 'codesharing', label: '코드쉐어링', steps: 2 },
+  // 코드쉐어링은 화면을 갈아끼우지 않는다. 네 단계를 한 화면에 두고 밝기만 옮긴다.
+  { id: 'codesharing', label: '코드쉐어링', steps: 4 },
   { id: 'nanodegree', label: '나노디그리', steps: 5 },
   { id: 'faculty', label: '교수진', steps: 2 },
   { id: 'exhibitions', label: '전시', steps: 2 },
@@ -90,12 +97,12 @@ const SLIDES = [
   { id: 'decade-vision', label: 'Part 4 · 다음 10년', steps: 3 },
   { id: 'decade-reverse', label: 'Reverse Learning', steps: 1 },
   { id: 'decade-wrapup', label: '정리 및 다음 방향', steps: 2 },
-  { id: 'council', label: '운영위원회', steps: 1 },
-  { id: 'clubs', label: '동아리', steps: 2 },
+  { id: 'council', label: '운영위원회', steps: 2 },
+  // 동아리는 네 개가 각자 한 화면을 가진다(소개·활동·추천 대상 + 실제 활동 이미지).
+  { id: 'clubs', label: '동아리', steps: 4 },
   { id: 'closing', label: '마무리', steps: 1 },
 ]
 
-const FEATURED_ACHIEVEMENT_IDS = ['ach-12', 'ach-18', 'ach-20']
 const FEATURED_CAREER_IDS = ['career-07', 'career-15', 'career-22', 'career-03']
 
 const slideMotion = {
@@ -224,6 +231,22 @@ function Shot({ images, caption, align = 'center' }) {
         </figcaption>
       )}
     </figure>
+  )
+}
+
+// 목록 마커. 앰대시(—) 대신 작은 원으로 항목을 연다.
+function BulletList({ items, className = '', tone = 'sec' }) {
+  return (
+    <ul className={`space-y-12 ${className}`.trim()}>
+      {items.map((item) => (
+        <li key={item} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16">
+          <span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" />
+          <span className={`text-body-l-m leading-[1.7] md:text-body-l-d ${tone === 'pri' ? 'text-text-pri' : 'text-text-sec'}`}>
+            {item}
+          </span>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -483,14 +506,59 @@ function MajorCompassExperience() {
               <p className="mt-24 text-deck-title-m font-bold leading-[1.45] text-text-pri md:text-deck-title-d">{ABOUT_COPY.ko.whyStatement}</p>
             )}
             {stepIndex === 1 && (
-              <p className="mt-24 text-deck-body-m leading-[1.8] text-text-pri md:text-deck-body-d">{ABOUT_COPY.ko.what}</p>
+              <>
+                <p className="mt-24 text-deck-body-m leading-[1.8] text-text-pri md:text-deck-body-d">{ABOUT_COPY.ko.what}</p>
+                {/* 세 영역이 한가운데로 모인다는 것을 글 대신 도형으로 보인다. */}
+                <div className="mt-[clamp(20px,3.4dvh,36px)] grid items-center gap-16 border-t border-border-subtle pt-[clamp(18px,2.8dvh,30px)] sm:grid-cols-[repeat(3,minmax(0,1fr))_auto_minmax(0,1fr)]">
+                  {ABOUT_COPY.ko.whatKeywords.map((keyword, index) => (
+                    <motion.div
+                      key={keyword}
+                      initial={reducedMotion ? false : { opacity: 0, scale: 0.94 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: reducedMotion ? 0 : 0.4, delay: reducedMotion ? 0 : index * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex aspect-square min-w-0 items-center justify-center rounded-full border border-purple-light/45 bg-purple-primary/10 px-16 text-center"
+                    >
+                      <span className="text-body-l-m font-bold leading-[1.45] text-text-pri md:text-body-l-d">{keyword}</span>
+                    </motion.div>
+                  ))}
+                  <motion.span
+                    aria-hidden="true"
+                    initial={reducedMotion ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.3, delay: reducedMotion ? 0 : 0.42 }}
+                    className="hidden justify-self-center font-mono text-deck-title-m text-text-meta sm:block md:text-deck-title-d"
+                  >
+                    ›
+                  </motion.span>
+                  <motion.div
+                    initial={reducedMotion ? false : { opacity: 0, scale: 0.94 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.44, delay: reducedMotion ? 0 : 0.52, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex aspect-square min-w-0 items-center justify-center rounded-full border border-purple-light bg-purple-primary/25 px-16 text-center"
+                  >
+                    <span className="text-deck-body-m font-bold leading-[1.4] text-text-pri md:text-deck-body-d">디지털<br />인문예술</span>
+                  </motion.div>
+                </div>
+              </>
             )}
             {stepIndex === 2 && (
-              <EntryList
-                items={ABOUT_COPY.ko.vision}
-                className="mt-20"
-                renderItem={(item) => <p className="text-deck-body-m leading-[1.7] text-text-pri md:text-deck-body-d">{item.title}</p>}
-              />
+              <ol className="mt-20 divide-y divide-border-subtle border-y border-border-subtle">
+                {ABOUT_COPY.ko.vision.map((item, index) => (
+                  <motion.li
+                    key={item.title}
+                    initial={reducedMotion ? false : { opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                    className="grid grid-cols-[44px_minmax(0,1fr)] gap-16 py-[clamp(14px,2.2dvh,22px)] md:gap-24"
+                  >
+                    <span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</span>
+                    <div className="min-w-0">
+                      <p className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</p>
+                      <p className="mt-8 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.desc}</p>
+                    </div>
+                  </motion.li>
+                ))}
+              </ol>
             )}
           </motion.div>
         </div>
@@ -532,27 +600,46 @@ function MajorCompassExperience() {
     }
 
     if (slide.id === 'codesharing') {
-      const showTypes = stepIndex === 1
+      // 화면은 그대로 두고 현재 단계만 밝게 둔다. 단계를 옮길 때마다 화면이 통진로 바뀜지 않는다.
       return (
-        <div className="grid h-full items-center gap-40 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
+        <div className="flex h-full flex-col justify-center">
           <SlideTitle label={slide.label} title="다른 전공의 배움도 디인예의 역량으로 연결합니다." description={codeSharing.definition} />
-          {showTypes ? (
-            <EntryList
-              items={codeSharing.types}
-              renderItem={(item, index) => (
-                <div className="grid grid-cols-[64px_minmax(0,1fr)] gap-20">
-                  <span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</span>
-                  <div><h2 className="text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item.name}</h2><p className="mt-8 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{item.detail}</p></div>
-                </div>
-              )}
-            />
-          ) : (
-            <ol className="grid grid-cols-2 gap-x-32 gap-y-28 border-y border-border-subtle py-28 md:grid-cols-4">
-              {codeSharing.steps.map((item, index) => (
-                <li key={item} className="min-w-0"><p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p><p className="mt-12 text-deck-body-m font-bold leading-[1.6] text-text-pri md:text-deck-body-d">{item}</p></li>
+          <ol className="mt-[clamp(20px,3.4dvh,36px)] grid border-y border-border-subtle sm:grid-cols-2 lg:grid-cols-4">
+            {codeSharing.steps.map((item, index) => {
+              const active = index === stepIndex
+              return (
+                <motion.li
+                  key={item}
+                  initial={false}
+                  animate={{ opacity: active ? 1 : 0.3 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}
+                  className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-28 lg:last:border-r-0"
+                >
+                  <p className={`font-mono text-deck-meta-m md:text-deck-meta-d ${active ? 'text-purple-light' : 'text-text-meta'}`}>0{index + 1}</p>
+                  <p className="mt-16 text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item}</p>
+                  {active && (
+                    <motion.span
+                      aria-hidden="true"
+                      layoutId="codesharing-underline"
+                      className="mt-16 block h-[2px] w-40 bg-purple-light"
+                    />
+                  )}
+                </motion.li>
+              )
+            })}
+          </ol>
+          <div className="mt-[clamp(18px,2.8dvh,30px)]">
+            <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">코드쉐어링 유형</p>
+            <ol className="mt-16 grid gap-x-40 gap-y-16 lg:grid-cols-3">
+              {codeSharing.types.map((item, index) => (
+                <li key={item.name} className="min-w-0 border-l border-border-subtle pl-20">
+                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
+                  <p className="mt-8 text-body-l-m font-bold leading-[1.55] text-text-pri md:text-body-l-d">{item.name}</p>
+                  <p className="mt-8 text-small-m leading-[1.65] text-text-sec md:text-small-d">{item.detail}</p>
+                </li>
               ))}
             </ol>
-          )}
+          </div>
         </div>
       )
     }
@@ -620,18 +707,16 @@ function MajorCompassExperience() {
     }
 
     if (slide.id === 'achievements') {
-      const featured = FEATURED_ACHIEVEMENT_IDS
-        .map((id) => achievements.find((item) => item.id === id))
-        .filter(Boolean)
+      const featured = achievementHighlights
       return (
         <div className="flex h-full flex-col justify-center">
           <SlideTitle label={slide.label} title="배움은 공모전·디자인·연구 성과로 이어집니다." description="디자인 역량, AI 프로젝트, 학술 연구로 확장된 디인예의 대표 성과입니다." />
           <div className="mt-[clamp(24px,4dvh,40px)] grid border-y border-border-subtle lg:grid-cols-3">
             {featured.map((item, index) => (
               <article key={item.id} className="border-b border-border-subtle py-[clamp(20px,3dvh,32px)] lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
-                <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1} / {item.year}</p>
+                <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1} / {item.period}</p>
                 <h2 className="mt-16 text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item.title}</h2>
-                <p className="mt-16 line-clamp-3 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.desc}</p>
+                <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.desc}</p>
                 {item.awardees && <p className="mt-16 font-bold leading-[1.6] text-text-pri">{item.awardees}</p>}
               </article>
             ))}
@@ -741,12 +826,12 @@ function MajorCompassExperience() {
               {decadeAgenda.items.map((item, index) => (
                 <motion.article
                   key={item.no}
-                  initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                  initial={reducedMotion ? false : { opacity: 0, x: -28 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.52, delay: reducedMotion ? 0 : 0.14 + index * 0.22, ease: [0.16, 1, 0.3, 1] }}
                   className="min-w-0 border-b border-border-subtle py-[clamp(20px,3.2dvh,34px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-32 lg:last:border-r-0"
                 >
-                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{item.no}</p>
+                  <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{item.no}</p>
                   <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{item.title}</h2>
                   <p className="mt-16 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.detail}</p>
                 </motion.article>
@@ -759,20 +844,23 @@ function MajorCompassExperience() {
         return (
           <div className="flex h-full flex-col justify-center">
             <SlideTitle label={decadeProblem.label} title={decadeProblem.title} description={decadeProblem.lead} />
-            <EntryList
-              className="mt-[clamp(20px,3.2dvh,34px)]"
-              items={decadeProblem.items.map((item) => ({ ...item, id: item.tag }))}
-              renderItem={(item) => (
-                <div className="grid gap-12 md:grid-cols-[120px_minmax(0,1fr)] md:gap-28">
-                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{item.tag}</p>
-                  <div className="min-w-0">
-                    <p className="text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item.quote}</p>
-                    <p className="mt-8 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item.detail}</p>
-                  </div>
-                </div>
-              )}
-            />
-            <NoteLine className="border-t-0 pt-0">{decadeProblem.footer}</NoteLine>
+            {/* 세 가지 문제를 각각 원 안에 넣고, 마무리 문장은 가운데로 둔다. */}
+            <div className="mt-[clamp(20px,3.4dvh,36px)] grid gap-32 sm:grid-cols-3 lg:gap-48">
+              {decadeProblem.items.map((item, index) => (
+                <motion.div
+                  key={item.tag}
+                  initial={reducedMotion ? false : { opacity: 0, scale: 0.94 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.46, delay: reducedMotion ? 0 : 0.1 + index * 0.16, ease: [0.16, 1, 0.3, 1] }}
+                  className="mx-auto flex aspect-square w-full max-w-[clamp(190px,29dvh,290px)] flex-col items-center justify-center rounded-full border border-purple-light/45 bg-purple-primary/10 px-24 text-center"
+                >
+                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-purple-light md:text-deck-meta-d">{item.tag}</p>
+                  <p className="mt-12 text-body-l-m font-bold leading-[1.45] text-text-pri md:text-body-l-d">{item.quote}</p>
+                  <p className="mt-12 text-small-m leading-[1.6] text-text-sec md:text-small-d">{item.detail}</p>
+                </motion.div>
+              ))}
+            </div>
+            <NoteLine className="border-t-0 pt-0 text-center">{decadeProblem.footer}</NoteLine>
           </div>
         )
       }
@@ -811,7 +899,7 @@ function MajorCompassExperience() {
                   <h2 className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{block.title}</h2>
                   <ul className="mt-12 space-y-8">
                     {block.lines.map((line) => (
-                      <li key={line} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {line}</li>
+                      <li key={line} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{line}</span></li>
                     ))}
                   </ul>
                 </div>
@@ -930,7 +1018,7 @@ function MajorCompassExperience() {
                 <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeAiGap.rules.label}</p>
                 <ul className="mt-16 space-y-12">
                   {decadeAiGap.rules.items.map((item) => (
-                    <li key={item} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {item}</li>
+                    <li key={item} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{item}</span></li>
                   ))}
                 </ul>
               </div>
@@ -1015,7 +1103,7 @@ function MajorCompassExperience() {
               <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeThenNow.past.year}</p>
               <ul className="mt-16 space-y-10">
                 {decadeThenNow.past.lines.map((line) => (
-                  <li key={line} className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">— {line}</li>
+                  <li key={line} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{line}</span></li>
                 ))}
               </ul>
               <p className="mt-20 border-t border-border-subtle pt-16 text-body-l-m leading-[1.7] text-text-meta md:text-body-l-d">
@@ -1065,7 +1153,7 @@ function MajorCompassExperience() {
                 <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{block.title}</p>
                 <ul className="mt-16 space-y-12">
                   {block.lines.map((line) => (
-                    <li key={line} className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">— {line}</li>
+                    <li key={line} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{line}</span></li>
                   ))}
                 </ul>
               </div>
@@ -1087,7 +1175,7 @@ function MajorCompassExperience() {
                 <p className="mt-12 text-deck-body-m leading-[1.6] text-text-meta md:text-deck-body-d">{block.subtitle}</p>
                 <ul className="mt-20 space-y-12">
                   {block.lines.map((line) => (
-                    <li key={line} className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">— {line}</li>
+                    <li key={line} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{line}</span></li>
                   ))}
                 </ul>
               </div>
@@ -1123,56 +1211,147 @@ function MajorCompassExperience() {
         <div className="flex h-full flex-col justify-center">
           <SlideTitle label={decadeNext.label} title={decadeNext.title} description={decadeNext.lead} />
           <NumberedGrid items={decadeNext.items} columns={3} reducedMotion={reducedMotion} />
-          <p className="mt-[clamp(24px,4dvh,44px)] text-deck-display-m font-bold leading-[1.2] text-text-pri md:text-deck-display-d">
-            {decadeNext.closing}
-          </p>
         </div>
       )
     }
 
     if (slide.id === 'council') {
-      const leaders = (council?.members ?? []).slice(0, 2)
+      if (stepIndex === 1) {
+        return (
+          <div className="flex h-full flex-col justify-center">
+            <SlideTitle label={slide.label} title={councilWork.title} description={councilWork.lead} />
+            <div className="mt-[clamp(20px,3.4dvh,36px)] grid border-y border-border-subtle lg:grid-cols-3">
+              {councilWork.groups.map((group, index) => (
+                <motion.article
+                  key={group.title}
+                  initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                  className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0"
+                >
+                  <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1}</p>
+                  <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{group.title}</h2>
+                  <BulletList items={group.items} className="mt-20" />
+                </motion.article>
+              ))}
+            </div>
+            <NoteLine className="border-t-0 pt-0 font-bold text-text-pri">{councilWork.footer}</NoteLine>
+          </div>
+        )
+      }
+      const members = council?.members ?? []
+      const leaders = members.filter((member) => member.majors)
+      const departments = members.filter((member) => !member.majors)
+      const grouped = departments.reduce((acc, member) => {
+        const list = acc.get(member.role) ?? []
+        list.push(member.name)
+        acc.set(member.role, list)
+        return acc
+      }, new Map())
       return (
-        <div className="grid h-full items-center gap-40 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)]">
-          <SlideTitle label={slide.label} title={council?.title || council?.name || '운영위원회'} description={council?.intro} />
-          <EntryList
-            items={leaders}
-            renderItem={(member) => <div className="grid grid-cols-[120px_minmax(0,1fr)] gap-24"><dt className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{member.role}</dt><dd><p className="text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{member.name}</p>{member.majors && <p className="mt-6 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{member.majors}</p>}</dd></div>}
-          />
-        </div>
-      )
-    }
-
-    if (slide.id === 'clubs') {
-      const current = clubs.slice(stepIndex * 2, (stepIndex + 1) * 2)
-      return (
-        <div className="flex h-full flex-col justify-center">
-          <SlideTitle label={slide.label} title="네 개의 동아리가 각자의 방식으로 전공을 확장합니다." />
-          <div className="mt-32 grid border-y border-border-subtle lg:grid-cols-2">
-            {current.map((club, index) => {
-              const name = club.title_ko || club.title || club.name
-              const field = club.tag || club.field
-              const intro = club.intro || club.body?.intro
-              const activities = club.activities || club.body?.activities || []
-              return (
-                <article key={club.id} className="border-b border-border-subtle py-28 last:border-b-0 lg:border-b-0 lg:border-r lg:px-40 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
-                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{stepIndex * 2 + index + 1} / {field}</p>
-                  <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{name}</h2>
-                  <p className="mt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{intro}</p>
-                  {activities.length > 0 && <ul className="mt-24 space-y-10 border-t border-border-subtle pt-20">{activities.slice(0, 3).map((activity) => <li key={activity} className="text-body-l-m leading-[1.65] text-text-pri md:text-body-l-d">— {activity}</li>)}</ul>}
-                </article>
-              )
-            })}
+        <div className="grid h-full items-center gap-40 lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)] lg:gap-56">
+          <div className="min-w-0">
+            <div className="flex items-center gap-20">
+              <img src={councilMark} alt="" aria-hidden="true" className="h-[clamp(48px,7dvh,72px)] w-[clamp(48px,7dvh,72px)] shrink-0" />
+              <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{slide.label}</p>
+            </div>
+            <h1 className="mt-24 text-deck-title-m font-bold leading-[1.22] text-text-pri md:text-[clamp(32px,4.45dvh,48px)]">
+              {council?.title || council?.name || '운영위원회'}
+            </h1>
+            {council?.intro && (
+              <p className="mt-24 max-w-4xl text-deck-body-m leading-[1.7] text-text-sec md:text-[clamp(17px,2.05dvh,22px)]">{council.intro}</p>
+            )}
+          </div>
+          <div className="min-w-0 border-t border-border-subtle pt-24 lg:border-l lg:border-t-0 lg:pl-48 lg:pt-0">
+            <dl className="grid gap-x-40 gap-y-20 sm:grid-cols-2">
+              {leaders.map((member) => (
+                <div key={member.name} className="min-w-0">
+                  <dt className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">{member.role}</dt>
+                  <dd className="mt-8">
+                    <p className="text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{member.name}</p>
+                    <p className="mt-4 text-small-m leading-[1.6] text-text-meta md:text-small-d">{member.majors}</p>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <dl className="mt-[clamp(18px,2.8dvh,30px)] grid gap-x-40 gap-y-16 border-t border-border-subtle pt-[clamp(16px,2.6dvh,26px)] sm:grid-cols-3">
+              {[...grouped].map(([role, names]) => (
+                <div key={role} className="min-w-0">
+                  <dt className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{role}</dt>
+                  <dd className="mt-8 text-body-l-m leading-[1.7] text-text-pri md:text-body-l-d">{names.join(', ')}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       )
     }
 
+    if (slide.id === 'clubs') {
+      // 동아리 하나당 한 화면. 왼쪽은 소개·활동·추천 대상, 오른쪽은 실제 활동 이미지.
+      const club = clubs[stepIndex] ?? clubs[0]
+      if (!club) return null
+      const name = club.title_ko || club.title || club.name
+      const field = club.tag || club.field
+      const intro = club.intro || club.body?.intro
+      const activities = club.activities || club.body?.activities || []
+      const targets = club.targets || club.body?.targets || []
+      const images = clubDeckImages[club.id] ?? []
+      return (
+        <div className="grid h-full min-h-0 gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-56">
+          <div className="flex min-w-0 flex-col justify-center">
+            <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">
+              {slide.label} 0{stepIndex + 1} / {field}
+            </p>
+            <h1 className="mt-20 text-deck-title-m font-bold leading-[1.25] text-text-pri md:mt-24 md:text-[clamp(32px,4.45dvh,48px)]">{name}</h1>
+            <p className="mt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{intro}</p>
+            <div className="mt-[clamp(18px,2.8dvh,30px)] grid gap-32 border-t border-border-subtle pt-[clamp(16px,2.6dvh,26px)] sm:grid-cols-2">
+              {activities.length > 0 && (
+                <div className="min-w-0">
+                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">활동 내용</p>
+                  <BulletList items={activities} className="mt-16" tone="pri" />
+                </div>
+              )}
+              {targets.length > 0 && (
+                <div className="min-w-0">
+                  <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">추천 대상</p>
+                  <BulletList items={targets} className="mt-16" />
+                </div>
+              )}
+            </div>
+          </div>
+          {images.length > 0 && (
+            <div className="grid min-h-0 grid-cols-2 gap-16 md:gap-20">
+              {images.map((image, index) => (
+                <motion.div
+                  key={image.src}
+                  initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.36, delay: reducedMotion ? 0 : index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                  className="min-h-0 overflow-hidden rounded-md"
+                >
+                  {/* 카드뉴스에 글이 들어 있어 잘라내면 안 된다. 비율 그대로 넣는다. */}
+                  <img src={image.src} alt={image.alt} className="h-full w-full object-contain" />
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )
+    }
+
     return (
-      <div className="flex h-full flex-col justify-center">
-        <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">디지털인문예술전공</p>
-        <h1 className="mt-28 max-w-6xl text-deck-display-m font-bold leading-[1.2] tracking-normal text-text-pri md:text-deck-display-d">당신의 질문에서<br />다음 프로젝트가 시작됩니다.</h1>
-        <p className="mt-32 max-w-3xl text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">한림대학교 디지털인문예술전공</p>
+      <div className="grid h-full min-h-0 items-center gap-40 lg:grid-rows-[minmax(0,1fr)] lg:grid-cols-[minmax(0,.95fr)_minmax(0,1.05fr)] lg:gap-56">
+        <div className="flex min-w-0 flex-col justify-center">
+          <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">디지털인문예술전공</p>
+          <h1 className="mt-28 text-deck-display-m font-bold leading-[1.2] tracking-normal text-text-pri md:text-deck-display-d">당신의 질문에서<br />다음 프로젝트가 시작됩니다.</h1>
+          <p className="mt-32 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">한림대학교 디지털인문예술전공</p>
+        </div>
+        <figure className="flex h-full min-h-0 flex-col justify-center">
+          <div className="min-h-0 flex-1">
+            <img src={closingPhoto.src} alt={closingPhoto.alt} className="h-full w-full rounded-md object-cover" />
+          </div>
+        </figure>
       </div>
     )
   }
