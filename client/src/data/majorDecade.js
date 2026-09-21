@@ -379,7 +379,7 @@ export const decadeWrapUp = {
 export const decadeNext = {
   label: '마무리',
   title: '2027년, 디인예 새로운 도약',
-  lead: '전공명과 구조를 새로 쓰고자 합니다 — Design, AI & EnterCulture (DAE)',
+  lead: '전공명과 구조를 새로 쓰고자 합니다. Design, AI & EnterCulture (DAE)',
   items: [
     { title: 'Career Ready', detail: '모든 교과목이 직군과 직접 연결되도록 재편' },
     { title: 'AI Ready', detail: '전 과목 AI 활용을 역량 기준으로 명문화' },

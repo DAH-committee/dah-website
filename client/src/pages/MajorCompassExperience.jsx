@@ -75,9 +75,9 @@ const ALL_SLIDES = [
   { id: 'cover', label: '표지', steps: 1 },
   { id: 'about', label: '전공 소개', steps: 3 },
   { id: 'curriculum', label: '교육과정', steps: 4 },
-  // 코드쉐어링은 화면을 갈아끼우지 않는다. 네 단계를 한 화면에 두고 밝기만 옮긴다.
-  { id: 'codesharing', label: '코드쉐어링', steps: 4 },
-  { id: 'nanodegree', label: '나노디그리', steps: 5 },
+  // 코드쉐어링·나노디그리는 단계 없이 한 화면씩만 보여준다.
+  { id: 'codesharing', label: '코드쉐어링', steps: 1 },
+  { id: 'nanodegree', label: '나노디그리', steps: 1 },
   { id: 'faculty', label: '교수진', steps: 2 },
   { id: 'exhibitions', label: '전시', steps: 2 },
   { id: 'contests', label: '공모전', steps: 2 },
@@ -185,7 +185,7 @@ function EntryList({ items, renderItem, className = '' }) {
 
 function PosterStrip({ items }) {
   return (
-    <div className="grid grid-cols-2 gap-20 md:grid-cols-3 md:gap-28">
+    <div className="grid grid-cols-2 gap-20 md:grid-cols-3 md:gap-24">
       {items.map((item, index) => (
         <motion.figure
           key={item.id}
@@ -290,7 +290,7 @@ function NumberedGrid({ items, columns = 4, reducedMotion }) {
           initial={reducedMotion ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.03, ease: [0.16, 1, 0.3, 1] }}
-          className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-28 lg:last:border-r-0"
+          className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-24 lg:last:border-r-0"
         >
           <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
           <h2 className="mt-16 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.title}</h2>
@@ -314,7 +314,7 @@ function MobilePreview({ onPresent }) {
 
   return (
     <main className="min-h-dvh bg-bg-base pb-40 text-text-pri" aria-label="디지털인문예술전공 전공 나침반 미리보기">
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border-subtle bg-bg-base/90 px-20 py-14 backdrop-blur-glass">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border-subtle bg-bg-base/90 px-20 py-16 backdrop-blur-glass">
         <Link to="/resources/major-compass" className="text-small-m text-text-sec">자료실로 돌아가기</Link>
         <button type="button" onClick={onPresent} className="inline-flex min-h-11 items-center gap-8 border border-purple-light/60 bg-purple-primary px-12 text-small-m font-bold text-text-pri">
           <Maximize2 size={15} aria-hidden="true" />
@@ -525,7 +525,7 @@ function MajorCompassExperience() {
             initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className="border-l border-border-strong pl-28 md:pl-48"
+            className="border-l border-border-strong pl-24 md:pl-48"
           >
             <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{mode}</p>
             {stepIndex === 0 && (
@@ -599,7 +599,7 @@ function MajorCompassExperience() {
           {!focusedTrack ? (
             <div className="mt-40 grid border-y border-border-subtle lg:grid-cols-3">
               {tracks.map((track, index) => (
-                <motion.article key={track.id} initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="border-b border-border-subtle py-28 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
+                <motion.article key={track.id} initial={reducedMotion ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="border-b border-border-subtle py-24 lg:border-b-0 lg:border-r lg:px-32 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
                   <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">트랙 {String(index + 1).padStart(2, '0')}</p>
                   <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{track.name}</h2>
                   <p className="mt-20 text-body-l-m leading-[1.7] text-text-sec md:text-body-l-d">{track.keywords.join(' · ')}</p>
@@ -613,7 +613,7 @@ function MajorCompassExperience() {
                 <h2 className="mt-16 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{focusedTrack.name}</h2>
                 <p className="mt-24 text-deck-body-m leading-[1.75] text-text-sec md:text-deck-body-d">{focusedTrack.summary}</p>
               </div>
-              <div className="border-l border-border-subtle pl-28 md:pl-40">
+              <div className="border-l border-border-subtle pl-24 md:pl-40">
                 <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">핵심 키워드</p>
                 <p className="mt-16 text-deck-body-m font-bold leading-[1.7] text-text-pri md:text-deck-body-d">{focusedTrack.keywords.join(' · ')}</p>
                 <p className="mt-28 font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">주요 교과목</p>
@@ -626,67 +626,51 @@ function MajorCompassExperience() {
     }
 
     if (slide.id === 'codesharing') {
-      // 화면은 그대로 두고 현재 단계만 밝게 둔다. 단계를 옮길 때마다 화면이 통진로 바뀜지 않는다.
+      // 단계도 유형 설명도 뺀다. 이수 순서 네 개만 한 화면에 보여준다.
       return (
         <div className="flex h-full flex-col justify-center">
           <SlideTitle label={slide.label} title="다른 전공의 배움도 디인예의 역량으로 연결합니다." description={codeSharing.definition} />
-          <ol className="mt-[clamp(20px,3.4dvh,36px)] grid border-y border-border-subtle sm:grid-cols-2 lg:grid-cols-4">
-            {codeSharing.steps.map((item, index) => {
-              const active = index === stepIndex
-              return (
-                <motion.li
-                  key={item}
-                  initial={false}
-                  animate={{ opacity: active ? 1 : 0.3 }}
-                  transition={{ duration: reducedMotion ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}
-                  className="min-w-0 border-b border-border-subtle py-[clamp(18px,2.8dvh,30px)] last:border-b-0 sm:px-20 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-28 lg:last:border-r-0"
-                >
-                  <p className={`font-mono text-deck-meta-m md:text-deck-meta-d ${active ? 'text-purple-light' : 'text-text-meta'}`}>0{index + 1}</p>
-                  <p className="mt-16 text-deck-body-m font-bold leading-[1.55] text-text-pri md:text-deck-body-d">{item}</p>
-                  {active && (
-                    <motion.span
-                      aria-hidden="true"
-                      layoutId="codesharing-underline"
-                      className="mt-16 block h-[2px] w-40 bg-purple-light"
-                    />
-                  )}
-                </motion.li>
-              )
-            })}
+          <ol className="mt-[clamp(28px,4.6dvh,52px)] grid border-y border-border-subtle sm:grid-cols-2 lg:grid-cols-4">
+            {codeSharing.steps.map((item, index) => (
+              <motion.li
+                key={item}
+                initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                className="flex min-w-0 flex-col border-b border-border-subtle py-[clamp(22px,3.6dvh,40px)] last:border-b-0 sm:px-24 sm:first:pl-0 sm:last:pr-0 lg:border-b-0 lg:border-r lg:px-32 lg:last:border-r-0"
+              >
+                <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1}</p>
+                <p className="mt-16 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item}</p>
+              </motion.li>
+            ))}
           </ol>
-          <div className="mt-[clamp(18px,2.8dvh,30px)]">
-            <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">코드쉐어링 유형</p>
-            <ol className="mt-16 grid gap-x-40 gap-y-16 lg:grid-cols-3">
-              {codeSharing.types.map((item, index) => (
-                <li key={item.name} className="min-w-0 border-l border-border-subtle pl-20">
-                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
-                  <p className="mt-8 text-body-l-m font-bold leading-[1.55] text-text-pri md:text-body-l-d">{item.name}</p>
-                  <p className="mt-8 text-small-m leading-[1.65] text-text-sec md:text-small-d">{item.detail}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <NoteLine className="border-t-0 pt-0">{codeSharing.note}</NoteLine>
         </div>
       )
     }
 
     if (slide.id === 'nanodegree') {
-      const selected = stepIndex > 0 ? nanodegree.programs[stepIndex - 1] : null
+      // 네 과정을 한 번에 보여준다. 네 칸으로 쪼개면 'UX / 디자인'처럼 과정명이
+      // 두 줄로 끊겨서 2×2로 둔다. 좌우 폭이 두 배라 해상도가 낮아도 한 줄로 남는다.
       return (
         <div className="flex h-full flex-col justify-center">
           <SlideTitle label={slide.label} title="현장 실무 중심의 나노디그리" description={`${nanodegree.intro} ${nanodegree.cert}`} />
-          <div className="mt-32 grid border-y border-border-subtle lg:grid-cols-4">
-            {nanodegree.programs.map((program, index) => {
-              const active = !selected || selected.name === program.name
-              return (
-                <motion.article key={program.name} initial={false} animate={{ opacity: active ? 1 : 0.34 }} transition={{ duration: reducedMotion ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }} className="border-b border-border-subtle px-0 py-24 last:border-b-0 lg:border-b-0 lg:border-r lg:px-28 lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
-                  <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
-                  <h2 className="mt-12 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{program.name}</h2>
-                  <p className="mt-12 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{program.criteria} · {program.partner}</p>
-                  {active && selected && <p className="mt-20 border-t border-border-subtle pt-16 text-body-l-m leading-[1.7] text-text-pri md:text-body-l-d">{program.courses.map((course) => course.name).join(' / ')}</p>}
-                </motion.article>
-              )
-            })}
+          <div className="mt-[clamp(24px,4dvh,44px)] grid border-y border-border-subtle sm:grid-cols-2">
+            {nanodegree.programs.map((program, index) => (
+              <motion.article
+                key={program.name}
+                initial={reducedMotion ? false : { opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.34, delay: reducedMotion ? 0 : index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+                className="flex min-w-0 flex-col border-b border-border-subtle py-[clamp(18px,2.9dvh,32px)] last:border-b-0 sm:[&:nth-last-child(2)]:border-b-0 sm:odd:border-r sm:odd:pr-40 sm:even:pl-40"
+              >
+                <p className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1}</p>
+                <h2 className="mt-12 text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{program.name}</h2>
+                <p className="mt-12 text-deck-body-m leading-[1.6] text-text-sec md:text-deck-body-d">
+                  {program.criteria} · {program.partner}
+                </p>
+              </motion.article>
+            ))}
           </div>
         </div>
       )
@@ -699,7 +683,7 @@ function MajorCompassExperience() {
           <SlideTitle label={slide.label} title="서로 다른 전문성이 하나의 융합 교육을 만듭니다." />
           <div className="mt-[clamp(20px,3dvh,32px)] grid gap-x-56 gap-y-[clamp(12px,2.2dvh,24px)] border-y border-border-subtle py-[clamp(16px,2.6dvh,28px)] lg:grid-cols-2">
             {current.map((person, index) => (
-              <motion.figure key={person.id} initial={reducedMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="grid min-w-0 items-center gap-20 md:gap-28" style={{ gridTemplateColumns: 'clamp(72px, 11dvh, 120px) minmax(0, 1fr)' }}>
+              <motion.figure key={person.id} initial={reducedMotion ? false : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.32, delay: reducedMotion ? 0 : index * 0.025, ease: [0.16, 1, 0.3, 1] }} className="grid min-w-0 items-center gap-20 md:gap-24" style={{ gridTemplateColumns: 'clamp(72px, 11dvh, 120px) minmax(0, 1fr)' }}>
                 <ImageFrame src={person.photo || undefined} alt={`${person.name} 교수 사진`} ratio="306/427" contain bg={person.hasBg} placeholder={<span className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{initialsOf(person)}</span>} />
                 <figcaption className="min-w-0">
                   <p className="text-deck-body-m font-bold leading-[1.45] text-text-pri md:text-deck-body-d">{person.name}</p>
@@ -716,7 +700,7 @@ function MajorCompassExperience() {
 
     if (slide.id === 'exhibitions') {
       return (
-        <div className="grid h-full items-center gap-36 lg:grid-cols-[minmax(0,.7fr)_minmax(0,1.3fr)]">
+        <div className="grid h-full items-center gap-32 lg:grid-cols-[minmax(0,.7fr)_minmax(0,1.3fr)]">
           <SlideTitle label={slide.label} title="수업의 결과를 전시로 공개합니다." description="프로젝트는 매 학기 전시를 통해 관객을 만나고, 다음 작업의 출발점이 됩니다." />
           <PosterStrip items={exhibitions.slice(stepIndex * 3, (stepIndex + 1) * 3)} />
         </div>
@@ -725,7 +709,7 @@ function MajorCompassExperience() {
 
     if (slide.id === 'contests') {
       return (
-        <div className="grid h-full items-center gap-36 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]">
+        <div className="grid h-full items-center gap-32 lg:grid-cols-[minmax(0,.75fr)_minmax(0,1.25fr)]">
           <SlideTitle label={slide.label} title="공모전에서 기획과 제작의 결과를 남깁니다." description="포스터와 장서표 공모전은 학생이 직접 주제를 해석하고 시각화한 결과를 공유하는 자리입니다." />
           <div className="max-w-3xl"><PosterStrip items={contests.slice(stepIndex * 2, (stepIndex + 1) * 2)} /></div>
         </div>
@@ -758,14 +742,17 @@ function MajorCompassExperience() {
         .filter(Boolean)
       return (
         <div className="flex h-full flex-col justify-center">
-          <SlideTitle label={slide.label} title="졸업 이후의 진로" description="UX 디자인, AI 연구, 비주얼 디자인, 대학원까지—전공에서 시작한 역량은 서로 다른 현장으로 이어집니다." />
+          <SlideTitle label={slide.label} title="졸업 이후의 진로" description="UX 디자인, AI 연구, 비주얼 디자인, 대학원까지 전공에서 시작한 역량은 서로 다른 현장으로 이어집니다." />
+          {/* 카드마다 직무명 길이가 달라 이름 줄이 틀어진다. 이름은 mt-auto로 바닥에 붙여 맞춘다. */}
           <div className="mt-[clamp(24px,4dvh,40px)] grid grid-cols-2 border-y border-border-subtle lg:grid-cols-4">
             {featured.map((item, index) => (
-              <article key={item.id} className="border-b border-r border-border-subtle px-16 py-[clamp(20px,3dvh,32px)] even:border-r-0 lg:border-b-0 lg:px-28 lg:even:border-r lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
+              <article key={item.id} className="flex min-w-0 flex-col border-b border-r border-border-subtle px-16 py-[clamp(20px,3dvh,32px)] even:border-r-0 lg:border-b-0 lg:px-24 lg:even:border-r lg:first:pl-0 lg:last:border-r-0 lg:last:pr-0">
                 <p className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">0{index + 1}</p>
-                <h2 className="mt-16 text-deck-body-m font-bold leading-[1.5] text-text-pri md:text-deck-body-d">{item.company}</h2>
+                {/* 전역 CSS가 overflow-wrap:anywhere라 좌우가 좁으면 영문 고유명사가
+                    글자 단위로 쪼개진다(OSCART → OSCAR/T). 여기서만 단어 단위로 되돌린다. */}
+                <h2 className="mt-16 text-deck-body-m font-bold leading-[1.5] text-text-pri [overflow-wrap:break-word] md:text-deck-body-d">{item.company}</h2>
                 <p className="mt-12 text-body-l-m leading-[1.65] text-text-sec md:text-body-l-d">{item.role || item.majors}</p>
-                <p className="mt-20 font-bold leading-[1.6] text-text-pri">{item.name}</p>
+                <p className="mt-auto pt-20 font-bold leading-[1.6] text-text-pri">{item.name}</p>
               </article>
             ))}
           </div>
@@ -810,7 +797,7 @@ function MajorCompassExperience() {
         return (
           <div className="flex h-full flex-col justify-center">
             <SlideTitle label={decadePrinciple.label} title={decadePrinciple.title} description={decadePrinciple.lead} />
-            <div className="mt-[clamp(20px,3.4dvh,36px)] border-l border-border-strong pl-28 md:pl-40">
+            <div className="mt-[clamp(20px,3.4dvh,36px)] border-l border-border-strong pl-24 md:pl-40">
               <p className="text-deck-title-m font-bold leading-[1.4] text-text-pri md:text-deck-title-d">{decadePrinciple.quote}</p>
               <p className="mt-20 text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">
                 {decadePrinciple.quoteDetail.join(' ')}
@@ -1128,7 +1115,7 @@ function MajorCompassExperience() {
           <div className="mt-[clamp(20px,3.2dvh,34px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-[minmax(0,.62fr)_minmax(0,1.38fr)] lg:gap-56">
             <div className="min-w-0">
               <p className="font-mono text-deck-meta-m font-bold tracking-label text-text-meta md:text-deck-meta-d">{decadeThenNow.past.year}</p>
-              <ul className="mt-16 space-y-10">
+              <ul className="mt-16 space-y-8">
                 {decadeThenNow.past.lines.map((line) => (
                   <li key={line} className="grid grid-cols-[9px_minmax(0,1fr)] items-start gap-16"><span aria-hidden="true" className="mt-[0.66em] h-[7px] w-[7px] rounded-full bg-purple-light" /><span className="text-deck-body-m leading-[1.7] text-text-sec md:text-deck-body-d">{line}</span></li>
                 ))}
@@ -1171,7 +1158,7 @@ function MajorCompassExperience() {
       return (
         <div className="flex h-full flex-col justify-center">
           <SlideTitle label={decadeSolopreneur.label} title={decadeSolopreneur.title} />
-          <p className="mt-[clamp(20px,3dvh,32px)] border-l border-border-strong pl-28 text-deck-title-m font-bold leading-[1.4] text-text-pri md:pl-40 md:text-deck-title-d">
+          <p className="mt-[clamp(20px,3dvh,32px)] border-l border-border-strong pl-24 text-deck-title-m font-bold leading-[1.4] text-text-pri md:pl-40 md:text-deck-title-d">
             {decadeSolopreneur.definition}
           </p>
           <div className="mt-[clamp(20px,3.2dvh,34px)] grid gap-40 border-y border-border-subtle py-[clamp(18px,2.8dvh,30px)] lg:grid-cols-2 lg:gap-56">
@@ -1259,7 +1246,7 @@ function MajorCompassExperience() {
                   <span className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">0{index + 1}</span>
                   <div className="min-w-0">
                     <h2 className="text-deck-body-m font-bold leading-[1.45] text-text-pri md:text-deck-body-d">{item.title}</h2>
-                    <p className="mt-6 text-body-l-m leading-[1.6] text-text-sec md:text-body-l-d">{item.detail}</p>
+                    <p className="mt-4 text-body-l-m leading-[1.6] text-text-sec md:text-body-l-d">{item.detail}</p>
                   </div>
                 </motion.div>
               ))}
@@ -1307,7 +1294,7 @@ function MajorCompassExperience() {
               {leaders.map((member) => (
                 <div key={member.name} className="min-w-0">
                   <dt className="font-mono text-deck-meta-m text-purple-light md:text-deck-meta-d">{member.role}</dt>
-                  <dd className="mt-10">
+                  <dd className="mt-8">
                     <p className="text-deck-title-m font-bold leading-[1.3] text-text-pri md:text-deck-title-d">{member.name}</p>
                     <p className="mt-8 text-small-m leading-[1.6] text-text-meta md:text-small-d">{member.majors}</p>
                   </dd>
@@ -1318,7 +1305,7 @@ function MajorCompassExperience() {
               {[...grouped].map(([role, names]) => (
                 <div key={role} className="min-w-0">
                   <dt className="font-mono text-deck-meta-m text-text-meta md:text-deck-meta-d">{role}</dt>
-                  <dd className="mt-10 text-deck-body-m leading-[1.6] text-text-pri md:text-deck-body-d">{names.join(', ')}</dd>
+                  <dd className="mt-8 text-deck-body-m leading-[1.6] text-text-pri md:text-deck-body-d">{names.join(', ')}</dd>
                 </div>
               ))}
             </dl>
