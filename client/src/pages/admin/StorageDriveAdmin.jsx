@@ -96,9 +96,9 @@ function InlineField({ label, hint, action, children }) {
   return (
     <div className="flex min-w-0 flex-col gap-8">
       <span className="text-body-m font-bold text-text-pri">{label}</span>
-      <div className="flex flex-col gap-12 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-12 sm:flex-row sm:items-stretch">
         <div className="min-w-0 flex-1">{children}</div>
-        <div className="flex shrink-0 flex-wrap items-center gap-8 [&>button]:h-11 [&>button]:w-full sm:[&>button]:w-auto">{action}</div>
+        <div className="flex shrink-0 flex-wrap items-stretch gap-8 [&>button]:h-auto [&>button]:min-h-11 [&>button]:w-full sm:[&>button]:w-auto">{action}</div>
       </div>
       {hint && <p className={NOTE}>{hint}</p>}
     </div>
