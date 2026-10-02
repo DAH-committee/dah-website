@@ -49,26 +49,26 @@ const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
 // 53_DRIVE_STORAGE: 파일 질문별 저장소. 값은 서버 lib/formStorage.js와 같은 화이트리스트다.
 const STORAGE_TARGETS = [
-  { value: 'blob', label: 'Vercel Blob (사이트 표시용)' },
-  { value: 'drive', label: 'Google Drive (원본·인쇄용)' },
+  { value: 'blob', label: '웹 전시용 임시 저장소 (사이트에 보여줄 이미지)' },
+  { value: 'drive', label: '구글 드라이브 (원본, 인쇄용 파일)' },
 ]
 const STORAGE_PURPOSES = [
-  { value: 'web', label: '웹 전시용 — 리사이즈·WebP 생성' },
-  { value: 'original', label: '원본·인쇄용 — 변환 없이 원본 보존' },
-  { value: 'attachment', label: '일반 제출 서류 — 변환 없이 보존' },
+  { value: 'web', label: '웹 전시용: 사이트에 맞게 크기를 줄여 저장' },
+  { value: 'original', label: '원본, 인쇄용: 올린 그대로 보관' },
+  { value: 'attachment', label: '일반 제출 서류: 올린 그대로 보관' },
 ]
 const SHARE_MODES = [
-  { value: 'restricted', label: '제한됨 — 폴더 권한을 가진 사람만' },
-  { value: 'link', label: '링킬를 가진 사용자에게 보기 허용' },
+  { value: 'restricted', label: '제한: 폴더를 공유받은 사람만 볼 수 있음' },
+  { value: 'link', label: '링크를 아는 사람은 누구나 볼 수 있음' },
 ]
 const DEFAULT_TEMPLATES = [
   { value: 'exhibition_original', label: '전시회 원본 — 학기 / 폼명 / 과목 / 원본', needs_course: true, needs_semester: true },
-  { value: 'course_leaf', label: '과목 / 원본 (학기 폴더를 루트로 사용)', needs_course: true, needs_semester: false },
+  { value: 'course_leaf', label: '과목 / 원본 (학기 폴더를 저장 폴더로 정했을 때)', needs_course: true, needs_semester: false },
   { value: 'semester_course_field', label: '학기 / 과목 / 파일 질문명', needs_course: true, needs_semester: true },
   { value: 'semester_category_form_field', label: '학기 또는 연도 / 분류 / 폼명 / 파일 질문명', needs_course: false, needs_semester: true },
   { value: 'semester_form_field', label: '학기 또는 연도 / 폼명 / 파일 질문명', needs_course: false, needs_semester: true },
   { value: 'form_field', label: '폼명 / 파일 질문명', needs_course: false, needs_semester: false },
-  { value: 'root', label: '루트 폴더에 바로 저장', needs_course: false, needs_semester: false },
+  { value: 'root', label: '저장 폴더에 바로 넣기', needs_course: false, needs_semester: false },
 ]
 // 서버와 같은 순서로 단계를 조립해 관리자가 저장 전에 경로를 눈으로 토다
 const PATH_PREVIEW = {
@@ -342,7 +342,7 @@ function FileStorageCard({
   const template = templates.find((t) => t.value === storage.path_template) || templates[0]
   const driveOptions = connections
     .filter((c) => c.active && c.has_token)
-    .map((c) => ({ value: String(c.id), label: `${c.label}${c.account_email ? ` · ${c.account_email}` : ''}` }))
+    .map((c) => ({ value: String(c.id), label: `${c.label}${c.account_email ? ` (${c.account_email})` : ''}` }))
   const selected = connections.find((c) => String(c.id) === String(storage.connection_id ?? settings.drive_connection_id))
   const build = PATH_PREVIEW[storage.path_template] || PATH_PREVIEW.semester_form_field
   const segments = build({
@@ -353,7 +353,7 @@ function FileStorageCard({
     course: '(선택한 과목)',
     leaf: storage.folder_label,
   }).filter(Boolean)
-  const rootLabel = selected?.root_folder_name || selected?.root_folder_id || '(루트 폴더 미지정)'
+  const rootLabel = selected?.root_folder_name || selected?.root_folder_id || '(저장 폴더를 아직 정하지 않았습니다)'
 
   return (
     <div className="overflow-hidden rounded-md border border-[#d8d1ed] bg-[#faf9ff]">
@@ -363,14 +363,14 @@ function FileStorageCard({
           <div>
             <p className="text-small-m font-bold text-[#29253a]">이 파일 질문의 저장 위치</p>
             <p className="text-caption-m text-[#6e6680]">
-              {isDrive ? 'Google Drive — 원본을 변환 없이 보관합니다.' : 'Vercel Blob — 사이트 표시용으로 최적화합니다.'}
+              {isDrive ? '구글 드라이브: 올린 원본을 그대로 보관합니다.' : '웹 전시용 임시 저장소: 사이트에 보여주기 좋게 줄여서 보관합니다. 드라이브에는 쌓이지 않습니다.'}
             </p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
-        <Field label="저장 위치">
+        <Field label="파일이 저장될 곳" hint="원본을 받으려면 구글 드라이브로 바꿔야 합니다">
           <Select
             tone="light"
             value={storage.target}
@@ -386,10 +386,10 @@ function FileStorageCard({
             }}
           />
         </Field>
-        <Field label="파일 용도">
+        <Field label="파일의 쓰임">
           <Select tone="light" value={storage.purpose} options={STORAGE_PURPOSES} onChange={(e) => set('purpose')(e.target.value)} />
         </Field>
-        <Field label="허용 확장자" hint="비우면 용도에 맞는 기본값. 쉼표로 구분">
+        <Field label="올릴 수 있는 파일 종류" hint="비워 두면 기본값을 씁니다. 여러 개는 쉼표로 나눕니다">
           <Input
             value={(storage.accept || []).join(', ')}
             onChange={(e) =>
@@ -403,7 +403,7 @@ function FileStorageCard({
             placeholder="jpg, png, pdf, ai"
           />
         </Field>
-        <Field label="최대 용량 (MB)" hint={isDrive ? '비우면 100MB' : '비우면 20MB'}>
+        <Field label="최대 용량 (MB)" hint={isDrive ? '비워 두면 100MB까지' : '비워 두면 20MB까지'}>
           <Input
             type="number"
             min="1"
@@ -414,17 +414,17 @@ function FileStorageCard({
 
         {isDrive && (
           <>
-            <Field label="Google Drive 연결" hint={driveOptions.length ? '관리 → 저장소에서 연결한 계정' : '연결된 Drive 계정이 없습니다'}>
+            <Field label="파일을 모을 드라이브" hint={driveOptions.length ? '관리 메뉴의 파일 보관함에서 연결한 계정입니다' : '연결된 드라이브가 없습니다'}>
               <Select
                 tone="light"
                 value={storage.connection_id == null ? '' : String(storage.connection_id)}
                 options={driveOptions}
-                placeholder={driveOptions.length ? '연결 선택' : '연결된 Drive 계정이 없습니다'}
+                placeholder={driveOptions.length ? '드라이브 고르기' : '연결된 드라이브가 없습니다'}
                 onChange={(e) => set('connection_id')(e.target.value === '' ? null : Number(e.target.value))}
                 disabled={!driveOptions.length}
               />
             </Field>
-            <Field label="폴더 경로 규칙">
+            <Field label="폴더를 나누는 방식">
               <Select
                 tone="light"
                 value={storage.path_template}
@@ -432,21 +432,21 @@ function FileStorageCard({
                 onChange={(e) => set('path_template')(e.target.value)}
               />
             </Field>
-            <Field label="마지막 폴더 이름" hint="전시회 원본 규칙에서 마지막 단계 이름. 비우면 “원본”">
+            <Field label="맨 안쪽 폴더 이름" hint="비워 두면 “원본”이라는 이름이 됩니다">
               <Input value={storage.folder_label} onChange={(e) => set('folder_label')(e.target.value)} placeholder="원본" />
             </Field>
-            <Field label="파일 공개 범위" hint="학생 제출물과 원본은 제한됨을 권장">
+            <Field label="파일 공개 범위" hint="학생 제출물과 원본은 ‘제한’을 권장합니다">
               <Select tone="light" value={storage.share_mode} options={SHARE_MODES} onChange={(e) => set('share_mode')(e.target.value)} />
             </Field>
-            <Field label="학기 또는 연도" hint="폼 전체 공통. 2026-2 또는 2026">
+            <Field label="학기 또는 연도" hint="이 폼 전체에 똑같이 적용됩니다. 예: 2026-2">
               <Input value={settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
             </Field>
-            <Field label="과목 선택 질문" hint="폼 전체 공통. 과목 폴더 분류에 사용">
+            <Field label="과목을 고르는 질문" hint="이 질문에서 고른 과목 이름으로 폴더가 나뉩니다">
               <Select
                 tone="light"
                 value={settings.drive_course_field_id}
                 options={courseFieldOptions}
-                placeholder={courseFieldOptions.length ? '과목 질문 선택' : '객관식·드롭다운 질문을 먼저 만드세요'}
+                placeholder={courseFieldOptions.length ? '질문 고르기' : '객관식이나 드롭다운 질문을 먼저 만들어 주세요'}
                 onChange={(e) => setSetting('drive_course_field_id')(e.target.value)}
                 disabled={!courseFieldOptions.length}
               />
@@ -457,16 +457,16 @@ function FileStorageCard({
                 예상 저장 경로: {rootLabel} / {segments.join(' / ') || '(루트에 바로 저장)'}
               </p>
               {!selected && (
-                <p className="text-caption-m text-state-error">연결된 Drive 계정이 없습니다. 관리 → 저장소 → Google Drive에서 먼저 연결하세요.</p>
+                <p className="text-caption-m text-state-error">연결된 드라이브가 없습니다. 관리 메뉴의 ‘파일 보관함 (구글 드라이브)’에서 먼저 연결해 주세요.</p>
               )}
               {selected && !selected.root_folder_id && (
-                <p className="text-caption-m text-state-error">루트 폴더 접근 권한이 없습니다. 관리 → 저장소에서 루트 폴더를 지정하세요.</p>
+                <p className="text-caption-m text-state-error">저장 폴더가 정해지지 않았거나 접근할 수 없습니다. ‘파일 보관함 (구글 드라이브)’에서 저장 폴더를 정해 주세요.</p>
               )}
               {template?.needs_semester && !(settings.drive_semester || '').trim() && (
                 <p className="text-caption-m text-state-error">학기를 입력해야 폴더가 만들어집니다.</p>
               )}
               {template?.needs_course && !settings.drive_course_field_id && (
-                <p className="text-caption-m text-state-error">과목 선택 질문이 지정되지 않았습니다.</p>
+                <p className="text-caption-m text-state-error">과목을 고르는 질문을 정해 주세요.</p>
               )}
               <div className="flex flex-wrap items-center gap-8">
                 <GhostButton
@@ -475,7 +475,7 @@ function FileStorageCard({
                   disabled={loadingCourses || !settings.drive_course_field_id}
                   className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                 >
-                  {loadingCourses ? '불러오는 중' : '개설 과목 불러오기'}
+                  {loadingCourses ? '불러오는 중' : '개설된 과목 가져오기'}
                 </GhostButton>
                 <GhostButton
                   type="button"
@@ -484,7 +484,7 @@ function FileStorageCard({
                   className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                   title={formId ? '' : '폼을 먼저 저장하세요'}
                 >
-                  폴더 구조 미리보기
+                  폴더가 어떻게 만들어질지 보기
                 </GhostButton>
                 <GhostButton
                   type="button"
@@ -492,7 +492,7 @@ function FileStorageCard({
                   disabled={preparing || !formId}
                   className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                 >
-                  누락 폴더 준비
+                  필요한 폴더 미리 만들기
                 </GhostButton>
               </div>
               {prepareResult && (
@@ -504,7 +504,7 @@ function FileStorageCard({
                       {(prepareResult.steps || []).map((step, i) => (
                         <p key={`${step.name}-${i}`}>
                           {step.name}{' '}
-                          {step.missing ? '— 폴더가 없습니다' : step.created ? '— 새로 만들었습니다' : '— 이미 있어 재사용'}
+                          {step.missing ? '(폴더가 아직 없습니다)' : step.created ? '(새로 만들었습니다)' : '(이미 있어서 그대로 씁니다)'}
                         </p>
                       ))}
                       {prepareResult.folder_url && (
@@ -523,8 +523,8 @@ function FileStorageCard({
 
         {!isDrive && (
           <p className="md:col-span-2 rounded-sm bg-[#eee9ff] px-12 py-10 text-caption-m text-[#51486a]">
-            웹 전시용 이미지는 최장변 2400px WebP로 최적화해 사이트에 바로 쓸 수 있게 저장합니다. 원본이 필요하면 저장 위치를
-            Google Drive로 바꾸세요.
+            웹 전시용 이미지는 사이트에서 바로 보여줄 수 있게 크기를 줄여 저장합니다. 원본 파일이 필요하면 저장될 곳을
+            구글 드라이브로 바꿔 주세요.
           </p>
         )}
       </div>

@@ -78,7 +78,7 @@ export async function preflightForm(form, { deep = false, drive: injectedDrive }
   if (connection && !rootFolderId) {
     issues.push({
       code: 'root_missing',
-      message: '루트 폴더가 지정되지 않았습니다. 관리 → 저장소 → Google Drive에서 루트 폴더를 선택하세요.',
+      message: '저장 폴더가 정해지지 않았습니다. 관리 메뉴의 ‘파일 보관함 (구글 드라이브)’에서 저장 폴더를 정해 주세요.',
     })
   }
 
@@ -91,11 +91,11 @@ export async function preflightForm(form, { deep = false, drive: injectedDrive }
       if (!rootProbe.ok) {
         issues.push({
           code: 'root_not_accessible',
-          message: `루트 폴더 접근 권한이 없습니다. ${rootProbe.message || ''}`.trim(),
+          message: `저장 폴더에 접근할 수 없습니다. ${rootProbe.message || ''}`.trim(),
         })
       }
     } catch (err) {
-      issues.push({ code: 'drive_error', message: err.message || 'Drive 점검에 실패했습니다.' })
+      issues.push({ code: 'drive_error', message: err.message || '드라이브 확인에 실패했습니다.' })
     }
   }
 

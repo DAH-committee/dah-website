@@ -377,21 +377,21 @@ function ExhibitionAdmin() {
 
       {/* 53_DRIVE_STORAGE(전시회 확장): 접수 원본 파일이 저장될 Google Drive 연결 */}
       <form onSubmit={saveDrive} className={PANEL}>
-        <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">원본 파일 저장소</h3>
+        <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">작품 원본 파일을 모을 드라이브</h3>
         <p className="text-small-m text-text-sec">
-          접수자가 올린 작품 원본이 저장될 Google Drive 계정입니다. 폴더는 선택한 연결의 루트 아래
-          <span className="font-mono"> 과목명 / 원본 </span>
-          순서로 자동 생성되고, 원본은 변환 없이 그대로 보관됩니다. 연결 추가·점검은
-          <a href="/admin/storage/drive" className="underline underline-offset-4"> 저장소 · Google Drive </a>
+          접수자가 올린 작품 원본이 쌓일 구글 드라이브를 고르는 곳입니다. 저장 폴더 안에
+          <span className="font-semibold"> 과목 이름 / 원본 </span>
+          순서로 폴더가 저절로 만들어지고, 파일은 올린 그대로 보관됩니다. 드라이브를 새로 연결하거나 잘 되는지 확인하는 일은
+          <a href="/admin/storage/drive" className="underline underline-offset-4"> 파일 보관함 (구글 드라이브) </a>
           화면에서 합니다.
         </p>
         <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
           <Field
-            label="Drive 연결"
+            label="파일을 모을 드라이브"
             hint={
               driveSetting.data?.connection
-                ? `현재: ${driveSetting.data.connection.root_folder_name || driveSetting.data.connection.root_folder_id || '루트 폴더 미지정'}`
-                : '연결을 고르지 않으면 접수자가 원본 파일을 올릴 수 없습니다'
+                ? `지금은 ${driveSetting.data.connection.root_folder_name || driveSetting.data.connection.root_folder_id || '저장 폴더를 아직 정하지 않았습니다'}`
+                : '드라이브를 고르지 않으면 접수자가 원본 파일을 올릴 수 없습니다'
             }
           >
             <Select
@@ -400,12 +400,12 @@ function ExhibitionAdmin() {
                 setDriveSaved(false)
                 setDriveConnectionId(e.target.value)
               }}
-              placeholder="연결 선택 안 함"
+              placeholder="고르지 않음"
               options={(driveStatus.data?.connections ?? [])
                 .filter((c) => c.active && c.has_token)
                 .map((c) => ({
                   value: String(c.id),
-                  label: `${c.label}${c.account_email ? ` · ${c.account_email}` : ''}`,
+                  label: `${c.label}${c.account_email ? ` (${c.account_email})` : ''}`,
                 }))}
             />
           </Field>
@@ -414,7 +414,7 @@ function ExhibitionAdmin() {
         {driveSaved && <p className="font-mono text-caption-m text-text-meta">저장 완료</p>}
         <div>
           <PrimaryButton type="submit" disabled={driveBusy || !driveHydrated}>
-            {driveBusy ? '저장 중' : '저장소 저장'}
+            {driveBusy ? '저장 중' : '이 드라이브로 정하기'}
           </PrimaryButton>
         </div>
       </form>

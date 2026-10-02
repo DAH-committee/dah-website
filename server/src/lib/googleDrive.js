@@ -274,7 +274,7 @@ async function createFolder(drive, parentId, name) {
  */
 export async function ensureFolderPath(drive, { rootFolderId, segments = [], dryRun = false }) {
   if (!rootFolderId) {
-    const err = new Error('Google Drive 루트 폴더가 지정되지 않았습니다.')
+    const err = new Error('저장 폴더가 정해지지 않았습니다. 관리 메뉴의 ‘파일 보관함 (구글 드라이브)’에서 정해 주세요.')
     err.status = 409
     err.code = 'root_missing'
     throw err

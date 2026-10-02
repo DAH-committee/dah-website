@@ -153,7 +153,7 @@ function credentialsFor(row) {
   if (row.auth_mode === 'apps-script') {
     const secret = open(row.refresh_token_enc)
     if (!secret) {
-      const err = new Error('저장된 Apps Script 비밀키를 열 수 없습니다. 연결을 다시 등록하세요.')
+      const err = new Error('저장해 둔 연결 비밀번호를 읽을 수 없습니다. 새 계정으로 연결하기에서 다시 연결해 주세요.')
       err.status = 409
       err.code = 'token_unreadable'
       throw err
@@ -163,14 +163,14 @@ function credentialsFor(row) {
   if (row.auth_mode === 'env') {
     const credentials = legacyEnvCredentials()
     if (credentials) return credentials
-    const err = new Error('환경변수 Google Drive 설정이 사라졌습니다.')
+    const err = new Error('서버에 저장된 구글 드라이브 설정이 사라졌습니다. 개발 담당에게 알려 주세요.')
     err.status = 503
     err.code = 'drive_not_configured'
     throw err
   }
   const app = oauthAppCredentials()
   if (!app) {
-    const err = new Error('Google OAuth 클라이언트 설정이 없습니다.')
+    const err = new Error('구글 로그인 연결에 필요한 서버 설정이 없습니다. 개발 담당에게 알려 주세요.')
     err.status = 503
     err.code = 'oauth_app_missing'
     err.hint = 'Render 환경변수 GOOGLE_DRIVE_CLIENT_ID, GOOGLE_DRIVE_CLIENT_SECRET, GOOGLE_DRIVE_REDIRECT_URI를 설정하세요.'
@@ -178,7 +178,7 @@ function credentialsFor(row) {
   }
   const refreshToken = open(row.refresh_token_enc)
   if (!refreshToken) {
-    const err = new Error('저장된 Google 연결 토큰을 열 수 없습니다. 계정을 다시 연결하세요.')
+    const err = new Error('저장해 둔 구글 로그인 정보를 읽을 수 없습니다. 계정을 다시 연결해 주세요.')
     err.status = 409
     err.code = 'token_unreadable'
     throw err
@@ -251,7 +251,7 @@ export async function ensurePath({ connection, rootFolderId, segments = [], dryR
   const drive = injected || (await driveFor(connection))
   const root = await probeFolder(drive, rootFolderId)
   if (!root.ok) {
-    const err = new Error(root.message || '루트 폴더에 접근할 수 없습니다.')
+    const err = new Error(root.message || '저장 폴더에 접근할 수 없습니다. 폴더 주소가 맞는지, 이 계정에 공유되어 있는지 확인해 주세요.')
     err.status = 409
     err.code = `root_${root.reason || 'error'}`
     err.detail = { root }
@@ -307,7 +307,7 @@ export async function checkConnection(row, { rootFolderId } = {}) {
     if (targetRoot) {
       root = await probeFolder(drive, targetRoot)
       ok = root.ok
-      if (!root.ok) error = root.message || '루트 폴더에 접근할 수 없습니다.'
+      if (!root.ok) error = root.message || '저장 폴더에 접근할 수 없습니다. 폴더 주소가 맞는지, 이 계정에 공유되어 있는지 확인해 주세요.'
     } else {
       ok = true
       error = ''
@@ -379,7 +379,7 @@ export async function createConnection({ label, accountEmail, refreshToken, scop
  */
 export async function createAppsScriptConnection({ label, scriptUrl, secret, rootFolderId = '', createdBy = null }) {
   if (!isSecretBoxConfigured()) {
-    const err = new Error('DRIVE_TOKEN_ENC_KEY가 없어 Apps Script 비밀키를 저장할 수 없습니다.')
+    const err = new Error('서버 설정이 아직 끝나지 않아 비밀번호를 안전하게 저장할 수 없습니다. 개발 담당에게 알려 주세요.')
     err.status = 503
     err.code = 'enc_key_missing'
     err.hint = 'Render 환경변수에 DRIVE_TOKEN_ENC_KEY(32바이트 랜덤값 base64)를 추가한 뒤 재배포하세요.'
@@ -407,7 +407,7 @@ export async function createAppsScriptConnection({ label, scriptUrl, secret, roo
        (label, account_email, auth_mode, scope, root_folder_id, refresh_token_enc, script_url, created_by)
      VALUES ($1, '', 'apps-script', 'apps-script-relay', $2, $3, $4, $5)
      RETURNING ${CONNECTION_COLUMNS}`,
-    [String(label || 'Apps Script Drive 연결').slice(0, 80), rootFolderId, sealed, url, createdBy]
+    [String(label || '새 드라이브 연결').slice(0, 80), rootFolderId, sealed, url, createdBy]
   )
   return rows[0]
 }
