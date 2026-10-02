@@ -80,6 +80,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
   const [busy, setBusy] = useState('')
   const [rootInput, setRootInput] = useState(connection.root_folder_id || '')
   const [newFolderName, setNewFolderName] = useState('')
+  const [nameInput, setNameInput] = useState(connection.label || '')
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState(null)
   const [forms, setForms] = useState(null)
@@ -88,6 +89,10 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
   useEffect(() => {
     setRootInput(connection.root_folder_id || '')
   }, [connection.root_folder_id])
+
+  useEffect(() => {
+    setNameInput(connection.label || '')
+  }, [connection.label])
 
   const run = async (key, fn) => {
     setBusy(key)
@@ -112,6 +117,13 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
     run('root', async () => {
       await api.put(`/admin/drive/connections/${connection.id}`, { root_folder_id: rootInput })
       onMessage('저장 폴더를 바꿨습니다.')
+      onChanged()
+    })
+
+  const saveName = () =>
+    run('name', async () => {
+      await api.put(`/admin/drive/connections/${connection.id}`, { label: nameInput.trim() })
+      onMessage('이름을 바꿨습니다.')
       onChanged()
     })
 
@@ -289,6 +301,15 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
 
       {isOwner && !connection.is_env && (
         <div className="flex flex-col gap-16 border-t border-border-subtle pt-16">
+          <div className="grid grid-cols-1 items-end gap-12 md:grid-cols-[1fr_auto]">
+            <Field label="이 연결의 이름" hint="알아보기 쉬운 이름으로 바꿔 두세요. 예: 2027 운영위원장 드라이브">
+              <Input value={nameInput} onChange={(e) => setNameInput(e.target.value)} />
+            </Field>
+            <GhostButton onClick={saveName} disabled={Boolean(busy) || !nameInput.trim() || nameInput.trim() === connection.label}>
+              {busy === 'name' ? '저장 중' : '이름 바꾸기'}
+            </GhostButton>
+          </div>
+
           <div className="grid grid-cols-1 items-end gap-12 md:grid-cols-[1fr_auto]">
             <Field label="저장 폴더 바꾸기" hint="바꾸고 싶은 구글 드라이브 폴더의 주소를 붙여 넣으세요. 저장하기 전에 사이트가 그 폴더에 접근할 수 있는지 자동으로 확인합니다.">
               <Input value={rootInput} onChange={(e) => setRootInput(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />

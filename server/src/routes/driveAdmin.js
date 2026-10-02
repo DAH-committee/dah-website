@@ -152,8 +152,8 @@ router.post(
     if (!app) throw notConfigured()
     if (!isSecretBoxConfigured()) {
       return res.status(503).json({
-        error: 'DRIVE_TOKEN_ENC_KEY가 없어 연결 토큰을 저장할 수 없습니다.',
-        hint: 'Render 환경변수에 DRIVE_TOKEN_ENC_KEY(32바이트 랜덤값 base64)를 추가한 뒤 재배포하세요.',
+        error: '서버 설정이 아직 끝나지 않아 연결 정보를 안전하게 저장할 수 없습니다.',
+        hint: '개발 담당에게 알려 주세요. 서버 설정을 추가해야 합니다.',
       })
     }
     const label = String(req.body?.label || '').slice(0, 80)
@@ -186,8 +186,8 @@ router.post(
   wrap(async (req, res) => {
     if (!isSecretBoxConfigured()) {
       return res.status(503).json({
-        error: 'DRIVE_TOKEN_ENC_KEY가 없어 Apps Script 비밀키를 저장할 수 없습니다.',
-        hint: 'Render 환경변수에 DRIVE_TOKEN_ENC_KEY(32바이트 랜덤값 base64)를 추가한 뒤 재배포하세요.',
+        error: '서버 설정이 아직 끝나지 않아 연결 비밀번호를 안전하게 저장할 수 없습니다.',
+        hint: '개발 담당에게 알려 주세요. 서버 설정을 추가해야 합니다.',
       })
     }
     const scriptUrl = String(req.body?.script_url || '').trim()
@@ -196,7 +196,7 @@ router.post(
 
     if (!isAppsScriptUrl(scriptUrl)) {
       return res.status(400).json({
-        error: 'Apps Script 웹앱 주소 형식이 아닙니다.',
+        error: '연결 주소가 올바르지 않습니다. 배포 후 나온, /exec로 끝나는 주소를 그대로 붙여 넣어 주세요.',
         hint: '배포 후 받은 https://script.google.com/macros/s/.../exec 주소를 넣으세요.',
       })
     }
@@ -204,7 +204,7 @@ router.post(
       return res.status(400).json({ error: '공유 비밀키는 16자 이상이어야 합니다.' })
     }
     if (req.body?.root_folder_id && !rootFolderId) {
-      return res.status(400).json({ error: 'Drive 폴더 URL 또는 ID 형식이 아닙니다.' })
+      return res.status(400).json({ error: '드라이브 폴더 주소가 올바르지 않습니다. 구글 드라이브에서 폴더를 열고 주소창의 주소를 그대로 붙여 넣어 주세요.' })
     }
 
     const row = await createAppsScriptConnection({
@@ -324,7 +324,7 @@ router.put(
   wrap(async (req, res) => {
     const id = Number(req.params.id)
     if (id === ENV_CONNECTION_ID) {
-      return res.status(400).json({ error: '환경변수 연결은 화면에서 수정할 수 없습니다. Render 환경변수를 사용하세요.' })
+      return res.status(400).json({ error: '이 연결은 서버 설정으로 만들어져 화면에서 고칠 수 없습니다. 개발 담당에게 요청해 주세요.' })
     }
     const row = await getConnectionRow(id)
     if (!row) return res.status(404).json({ error: '연결을 찾을 수 없습니다.' })
@@ -344,9 +344,9 @@ router.put(
         const probe = await probeFolder(drive, rootFolderId)
         if (!probe.ok) {
           return res.status(409).json({
-            error: probe.message || '이 계정은 해당 폴더에 접근할 수 없습니다.',
+            error: probe.message || '이 계정은 그 폴더에 접근할 수 없습니다.',
             reason: probe.reason,
-            hint: '폴더를 이 계정에 편집자로 공유한 뒤 다시 시도하거나, 새 루트 폴더를 선택하세요.',
+            hint: '폴더를 이 계정에 ‘편집자’로 공유한 뒤 다시 해 보거나, 다른 폴더를 고르세요.',
           })
         }
         patch.rootFolderId = probe.id
@@ -369,7 +369,7 @@ router.delete(
   wrap(async (req, res) => {
     const id = Number(req.params.id)
     if (id === ENV_CONNECTION_ID) {
-      return res.status(400).json({ error: '환경변수 연결은 화면에서 해제할 수 없습니다.' })
+      return res.status(400).json({ error: '이 연결은 서버 설정으로 만들어져 화면에서 끊을 수 없습니다. 개발 담당에게 요청해 주세요.' })
     }
     const row = await disconnectConnection(id)
     if (!row) return res.status(404).json({ error: '연결을 찾을 수 없습니다.' })
@@ -388,7 +388,7 @@ router.post(
     const row = await getConnectionRow(req.params.id)
     if (!row) return res.status(404).json({ error: '연결을 찾을 수 없습니다.' })
     const name = String(req.body?.name || '').trim()
-    if (!name) return res.status(400).json({ error: '만들 루트 폴더 이름이 필요합니다.' })
+    if (!name) return res.status(400).json({ error: '만들 폴더의 이름을 적어 주세요.' })
     const parentId = req.body?.parent_id ? folderIdFrom(req.body.parent_id) : 'root'
     const drive = await driveFor(row)
     const { ensureFolderPath } = await import('../lib/googleDrive.js')
@@ -480,7 +480,7 @@ router.post(
   wrap(async (req, res) => {
     const connection = await resolveConnection({ connectionId: req.body?.connection_id ?? null })
     const { rootFolderId } = resolveRootFolderId({ connection, formSettings: {} })
-    if (!rootFolderId) return res.status(409).json({ error: '루트 폴더가 지정되지 않았습니다.' })
+    if (!rootFolderId) return res.status(409).json({ error: '저장 폴더가 정해지지 않았습니다.' })
     const drive = await driveFor(connection)
     // 테스트 산출물은 이름으로 구분되는 별도 폴더에만 넣는다. 기존 폴더를 건드리지 않는다.
     const { folderId } = await ensurePath({
