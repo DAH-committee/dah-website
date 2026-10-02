@@ -1,9 +1,9 @@
-// StorageDriveAdmin.jsx — 관리 → 저장소 → Google Drive (53_DRIVE_STORAGE)
+// StorageDriveAdmin.jsx — 관리 > 파일 보관함 (구글 드라이브)
 //
-// 기준: 개발을 모르는 운영진이 설명 없이도 할 일을 끝낼 수 있어야 한다.
-// 화면에 보이는 말은 전부 일상어로 쓴다(토큰, 루트, 릴레이 같은 용어와 가운뎃점, 줄표 금지).
-//   1) 지금 정상인지 맨 위에서 확인  2) 잘 연결됐는지 확인  3) 시험 파일 올려보기
-//   4) 계정을 바꿔야 할 때만 맨 아래 '새 계정으로 연결하기'를 연다.
+// 기준: 개발을 모르는 운영진이 설명 없이도 끝낼 수 있는 화면.
+//   1) 위계: 현재 상태(가장 크게) > 설정 변경, 신청 폼 연결, 미제출 파일 > 담당자 교체, 새 계정 연결(접힘)
+//   2) 문장: 제목, 항목명, 안내는 명사형으로 짧게. 기술 용어, 가운뎃점, 줄표 금지.
+//   3) 정렬: 입력칸과 버튼은 같은 높이의 한 줄. 설명은 줄 아래. 위험한 버튼은 접힌 '연결 관리' 안.
 // 로그인 정보는 화면에 오지 않는다. 서버가 암호화해 보관하고 여기서는 연결 상태만 본다.
 
 import { useEffect, useState } from 'react'
@@ -11,6 +11,7 @@ import { useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
   Check,
+  ChevronDown,
   ExternalLink,
   FolderPlus,
   HardDrive,
@@ -24,7 +25,6 @@ import { api, useApi } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { useAuth } from '../../context/AuthContext'
 import {
-  EmptyNote,
   ErrorText,
   Field,
   GhostButton,
@@ -34,17 +34,19 @@ import {
 } from '../../components/admin/FormControls'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 
-const CARD = 'flex min-w-0 flex-col gap-16 rounded-md border border-border-subtle bg-bg-panel p-24'
-const ROW = 'flex flex-wrap items-baseline gap-8 text-body-m text-text-sec md:text-body-d'
-const KEY = 'text-small-m font-bold text-text-meta'
+const CARD = 'flex min-w-0 flex-col gap-24 rounded-md border border-border-subtle bg-bg-panel p-24 md:p-32'
+const H3 = 'text-body-l-m font-bold text-text-pri md:text-body-l-d'
+const NOTE = 'text-small-m leading-[1.7] text-text-sec'
+const TERM = 'text-small-m font-bold text-text-meta'
+const DANGER_BTN = '!border-state-error/50 !text-state-error hover:!border-state-error'
 
 const CONNECT_ERROR = {
-  consent_cancelled: '구글 화면에서 연결을 취소하셨습니다. 다시 시도해 주세요.',
-  invalid_state: '연결 시간이 지났습니다. 처음부터 다시 시도해 주세요.',
-  missing_code: '구글에서 확인 정보를 보내지 않았습니다. 다시 시도해 주세요.',
-  token_exchange_failed: '구글과 연결하는 과정에서 문제가 생겼습니다. 개발 담당에게 알려 주세요.',
+  consent_cancelled: '구글 화면에서 연결 취소. 다시 시도해 주세요.',
+  invalid_state: '연결 시간 초과. 처음부터 다시 시도해 주세요.',
+  missing_code: '구글의 확인 정보 미수신. 다시 시도해 주세요.',
+  token_exchange_failed: '구글 연결 과정 오류. 개발 담당에게 문의해 주세요.',
   no_refresh_token:
-    '이 계정은 이미 이 사이트를 허용한 적이 있어 새로 연결되지 않습니다. 구글 계정의 보안 설정에서 이 사이트의 접근 권한을 삭제한 뒤 다시 시도해 주세요.',
+    '이미 허용한 적이 있는 계정이라 새 연결 불가. 구글 계정의 보안 설정에서 이 사이트의 접근 권한을 삭제한 뒤 다시 시도해 주세요.',
 }
 
 function formatDate(value) {
@@ -69,18 +71,62 @@ function StatusPill({ ok, children }) {
       ? 'border-state-success text-state-success'
       : 'border-state-error text-state-error'
   return (
-    <span className={`inline-flex items-center gap-4 rounded-sm border px-12 py-4 font-mono text-caption-m ${tone}`}>
+    <span className={`inline-flex h-32 items-center rounded-sm border px-12 text-small-m font-bold ${tone}`}>
       {children}
     </span>
   )
 }
 
-/** 연결 카드 1장 — 계정·권한·루트 폴더·점검 결과와 버튼 */
+/** 항목명과 값을 한 쌍으로 보여주는 한 칸 */
+function Item({ term, children }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <dt className={TERM}>{term}</dt>
+      <dd className="min-w-0 break-words text-body-m font-semibold text-text-pri md:text-body-d">{children}</dd>
+    </div>
+  )
+}
+
+/**
+ * 입력칸과 버튼이 한 줄에 같은 높이로 놓이는 한 행.
+ * 설명(hint)은 줄 아래에 둔다. Field처럼 설명을 입력칸과 같은 칸에 넣으면
+ * 옆 버튼이 입력칸이 아니라 입력칸과 설명의 가운데 높이에 맞춰져 어긋난다.
+ */
+function InlineField({ label, hint, action, children }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-8">
+      <span className="text-body-m font-bold text-text-pri">{label}</span>
+      <div className="flex flex-col gap-12 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">{children}</div>
+        <div className="flex shrink-0 flex-wrap items-center gap-8 [&>button]:h-11 [&>button]:w-full sm:[&>button]:w-auto">{action}</div>
+      </div>
+      {hint && <p className={NOTE}>{hint}</p>}
+    </div>
+  )
+}
+
+/** 접었다 펴는 구역. 자주 쓰지 않는 설정은 여기에 둔다. */
+function Fold({ title, note, children, className = '' }) {
+  return (
+    <details className={`group rounded-md border border-border-subtle bg-bg-panel ${className}`.trim()}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-16 p-24 md:px-32">
+        <span className="min-w-0">
+          <span className={`block ${H3}`}>{title}</span>
+          {note && <span className={`mt-4 block ${NOTE}`}>{note}</span>}
+        </span>
+        <ChevronDown size={20} aria-hidden="true" className="shrink-0 text-text-meta transition-transform duration-fast group-open:rotate-180" />
+      </summary>
+      <div className="flex flex-col gap-24 border-t border-border-subtle p-24 md:p-32">{children}</div>
+    </details>
+  )
+}
+
+/** 연결 카드 1장: 현재 상태가 가장 크고, 설정 변경과 연결 관리는 접어 둔다. */
 function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
   const [busy, setBusy] = useState('')
   const [rootInput, setRootInput] = useState(connection.root_folder_id || '')
-  const [newFolderName, setNewFolderName] = useState('')
   const [nameInput, setNameInput] = useState(connection.label || '')
+  const [newFolderName, setNewFolderName] = useState('')
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState(null)
   const [forms, setForms] = useState(null)
@@ -113,17 +159,17 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
       onChanged()
     })
 
-  const saveRoot = () =>
-    run('root', async () => {
-      await api.put(`/admin/drive/connections/${connection.id}`, { root_folder_id: rootInput })
-      onMessage('저장 폴더를 바꿨습니다.')
-      onChanged()
-    })
-
   const saveName = () =>
     run('name', async () => {
       await api.put(`/admin/drive/connections/${connection.id}`, { label: nameInput.trim() })
-      onMessage('이름을 바꿨습니다.')
+      onMessage('이름 변경 완료')
+      onChanged()
+    })
+
+  const saveRoot = () =>
+    run('root', async () => {
+      await api.put(`/admin/drive/connections/${connection.id}`, { root_folder_id: rootInput })
+      onMessage('저장 폴더 변경 완료')
       onChanged()
     })
 
@@ -143,7 +189,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
       })
       setPreview(null)
       setNewFolderName('')
-      onMessage(`"${res.root?.name || newFolderName}" 폴더를 만들고 저장 폴더로 정했습니다.`)
+      onMessage(`새 저장 폴더 생성 완료: ${res.root?.name || newFolderName}`)
       onChanged()
     })
 
@@ -151,7 +197,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
     run('test', async () => {
       const res = await api.post('/admin/drive/test-upload', { connection_id: connection.id })
       onMessage(
-        `시험 파일을 올렸습니다. 파일 이름은 ${res.file?.name}이고 ${res.folder_name} 폴더에 들어갔습니다. 자동으로 지우지 않으니 필요 없으면 직접 지우세요.`
+        `시험 파일 업로드 완료: ${res.file?.name} (${res.folder_name} 폴더). 자동 삭제 없음, 필요 없으면 드라이브에서 직접 삭제`
       )
     })
 
@@ -165,7 +211,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
     run('disconnect', async () => {
       if (!window.confirm('연결을 끊으면 이 사이트가 이 계정으로 파일을 보낼 수 없게 됩니다. 드라이브에 이미 있는 파일은 지워지지 않습니다. 계속할까요?')) return
       await api.del(`/admin/drive/connections/${connection.id}`)
-      onMessage('연결을 끊었습니다. 드라이브에 있는 파일은 그대로입니다.')
+      onMessage('연결 끊기 완료. 드라이브의 파일은 그대로 유지')
       onChanged()
     })
 
@@ -175,52 +221,54 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
       onChanged()
     })
 
+  const working = connection.last_check_ok === true && connection.active
+  const statusLabel = !connection.active
+    ? '사용 중지'
+    : connection.last_check_ok === null
+      ? '확인 전'
+      : connection.last_check_ok
+        ? '정상'
+        : '문제 있음'
+
   return (
-    <article className={CARD}>
-      <header className="flex flex-wrap items-start justify-between gap-12 border-b border-border-subtle pb-16">
+    <article className={`${CARD} border-border-purple`}>
+      <header className="flex flex-wrap items-start justify-between gap-16">
         <div className="flex min-w-0 items-start gap-12">
           <GoogleDriveIcon />
           <div className="min-w-0">
-            <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">{connection.label}</h3>
-            <p className="font-mono text-caption-m text-text-meta">
-              {connection.account_email ? `${connection.account_email} 계정` : '계정 이메일을 아직 확인하지 못했습니다'}
+            <h3 className={H3}>{connection.label}</h3>
+            <p className="mt-4 text-small-m text-text-meta">
+              {connection.account_email ? `${connection.account_email} 계정` : '계정 이메일 확인 전'}
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-8">
-          <StatusPill ok={connection.active}>{connection.active ? '사용 중' : '쓰지 않는 중'}</StatusPill>
-          <StatusPill ok={connection.has_token}>{connection.has_token ? '로그인 정보 저장됨' : '로그인 정보 없음'}</StatusPill>
-          <StatusPill ok={connection.last_check_ok}>
-            {connection.last_check_ok === null ? '확인 전' : connection.last_check_ok ? '확인 결과 정상' : '확인 결과 문제 있음'}
-          </StatusPill>
-        </div>
+        <StatusPill ok={connection.active ? connection.last_check_ok : null}>{statusLabel}</StatusPill>
       </header>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <p className={ROW}>
-          <span className={KEY}>저장 폴더</span>
-          {connection.root_folder_id ? (
-            <a
-              href={connection.root_folder_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-4 underline underline-offset-4 hover:text-text-pri"
-            >
-              {connection.root_folder_name || connection.root_folder_id}
-              <ExternalLink size={14} aria-hidden="true" />
-            </a>
-          ) : (
-            <span className="text-state-error">아직 정하지 않았습니다</span>
-          )}
+      <div>
+        <p className={`text-h3-m font-bold md:text-h3-d ${working ? 'text-state-success' : 'text-text-pri'}`}>
+          {working ? '파일 수신 가능' : connection.active ? '확인 필요' : '파일 수신 중지'}
         </p>
-        <p className={ROW}>
-          <span className={KEY}>마지막으로 확인한 때</span>
-          {formatDate(connection.last_check_at)}
-        </p>
-        <p className={ROW}>
-          <span className={KEY}>연결한 날</span>
-          {formatDate(connection.created_at)}
-        </p>
+        <dl className="mt-16 grid grid-cols-1 gap-x-32 gap-y-16 md:grid-cols-2">
+          <Item term="저장 폴더">
+            {connection.root_folder_id ? (
+              <a
+                href={connection.root_folder_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-4 underline underline-offset-4 hover:text-text-meta"
+              >
+                {connection.root_folder_name || connection.root_folder_id}
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+            ) : (
+              <span className="text-state-error">미지정</span>
+            )}
+          </Item>
+          <Item term="저장 계정">{connection.account_email || '확인 전'}</Item>
+          <Item term="마지막 확인">{formatDate(connection.last_check_at)}</Item>
+          <Item term="연결일">{formatDate(connection.created_at)}</Item>
+        </dl>
       </div>
 
       {connection.last_error && (
@@ -231,67 +279,58 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
       )}
 
       {checkResult && (
-        <div className="rounded-sm border border-border-subtle bg-bg-elev p-12 text-small-m text-text-sec">
-          <p className="font-semibold text-text-pri">
-            {checkResult.ok ? '정상입니다. 파일을 보낼 수 있습니다.' : '문제가 있습니다. 아래를 확인해 주세요.'}
-            {checkResult.account?.email ? ` (${checkResult.account.email} 계정)` : ''}
+        <div className="rounded-sm border border-border-subtle bg-bg-elev p-16">
+          <p className={`text-body-m font-bold ${checkResult.ok ? 'text-state-success' : 'text-state-error'}`}>
+            {checkResult.ok ? '확인 결과 정상: 파일 수신 가능' : '확인 결과 문제 발견: 아래 항목 점검'}
           </p>
-          {checkResult.root && (
-            <p className="mt-4">
-              저장 폴더는 {checkResult.root.name || '이름 없음'}입니다. {checkResult.root.ok ? '파일을 넣을 수 있습니다.' : checkResult.root.message}
-            </p>
-          )}
-          {checkResult.account?.quota && (
-            <p className="mt-4 text-small-m text-text-meta">
-              드라이브 사용량은 {formatBytes(checkResult.account.quota.usage)}입니다
-              {checkResult.account.quota.limit ? ` (전체 ${formatBytes(checkResult.account.quota.limit)} 중)` : ' (용량 제한 없음)'}
-            </p>
-          )}
+          <dl className="mt-12 grid grid-cols-1 gap-x-32 gap-y-12 md:grid-cols-2">
+            {checkResult.account?.email && <Item term="저장 계정">{checkResult.account.email}</Item>}
+            {checkResult.root && (
+              <Item term="저장 폴더">
+                {checkResult.root.name || '이름 없음'} ({checkResult.root.ok ? '쓰기 가능' : checkResult.root.message})
+              </Item>
+            )}
+            {checkResult.account?.quota && (
+              <Item term="드라이브 사용량">
+                {formatBytes(checkResult.account.quota.usage)}
+                {checkResult.account.quota.limit ? ` / ${formatBytes(checkResult.account.quota.limit)}` : ' (제한 없음)'}
+              </Item>
+            )}
+          </dl>
           {!checkResult.ok && (
-            <ul className="mt-8 list-disc pl-20 text-small-m">
-              <li>저장 폴더를 이 계정에 '편집자'로 공유한 뒤 다시 확인해 보세요.</li>
-              <li>그래도 안 되면 아래에서 저장 폴더를 바꾸거나 새로 만드세요.</li>
+            <ul className="mt-12 list-disc pl-20 text-small-m leading-[1.8] text-text-sec">
+              <li>저장 폴더를 이 계정에 ‘편집자’로 공유한 뒤 재확인</li>
+              <li>해결되지 않으면 아래 ‘설정 변경’에서 저장 폴더 변경 또는 새 폴더 생성</li>
             </ul>
           )}
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-8 border-t border-border-subtle pt-16">
-        <GhostButton onClick={check} disabled={Boolean(busy)}>
+      <div className="flex flex-wrap items-center gap-12">
+        <PrimaryButton onClick={check} disabled={Boolean(busy)}>
           <RefreshCw size={16} aria-hidden="true" />
-          {busy === 'check' ? '확인 중' : '잘 연결됐는지 확인'}
-        </GhostButton>
+          {busy === 'check' ? '확인 중' : '연결 확인'}
+        </PrimaryButton>
         <GhostButton onClick={testUpload} disabled={Boolean(busy) || !connection.root_folder_id}>
           <UploadCloud size={16} aria-hidden="true" />
-          {busy === 'test' ? '올리는 중' : '시험 파일 올려보기'}
+          {busy === 'test' ? '업로드 중' : '시험 파일 업로드'}
         </GhostButton>
         <GhostButton onClick={loadForms} disabled={Boolean(busy)}>
           <Link2 size={16} aria-hidden="true" />
-          이 보관함을 쓰는 신청 폼 보기
+          연결된 신청 폼 보기
         </GhostButton>
-        {isOwner && !connection.is_env && (
-          <>
-            <GhostButton onClick={toggleActive} disabled={Boolean(busy)}>
-              {connection.active ? '잠시 쓰지 않기' : '다시 쓰기'}
-            </GhostButton>
-            <GhostButton onClick={disconnect} disabled={Boolean(busy)}>
-              <Unplug size={16} aria-hidden="true" />
-              연결 끊기
-            </GhostButton>
-          </>
-        )}
       </div>
 
       {forms && (
-        <div className="rounded-sm border border-border-subtle bg-bg-elev p-12">
-          <p className="text-small-m font-bold text-text-meta">이 보관함에 파일을 보내는 신청 폼</p>
+        <div className="rounded-sm border border-border-subtle bg-bg-elev p-16">
+          <p className="text-body-m font-bold text-text-pri">이 드라이브를 쓰는 신청 폼</p>
           {forms.length === 0 ? (
-            <p className="mt-8 text-small-m text-text-meta">아직 없습니다. 신청 폼의 파일 질문에서 저장 위치를 구글 드라이브로 고르면 여기에 나타납니다.</p>
+            <p className={`mt-8 ${NOTE}`}>해당 폼 없음. 신청 폼의 파일 질문에서 저장 위치를 ‘구글 드라이브’로 선택하면 표시</p>
           ) : (
             <ul className="mt-8 flex flex-col gap-4 text-small-m text-text-sec">
               {forms.map((form) => (
                 <li key={form.id}>
-                  {form.title_ko} ({form.published ? '공개 중' : '아직 비공개'})
+                  {form.title_ko} ({form.published ? '공개 중' : '비공개'})
                 </li>
               ))}
             </ul>
@@ -300,49 +339,90 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
       )}
 
       {isOwner && !connection.is_env && (
-        <div className="flex flex-col gap-16 border-t border-border-subtle pt-16">
-          <div className="grid grid-cols-1 items-end gap-12 md:grid-cols-[1fr_auto]">
-            <Field label="이 연결의 이름" hint="알아보기 쉬운 이름으로 바꿔 두세요. 예: 2027 운영위원장 드라이브">
+        <details className="group border-t border-border-subtle pt-24">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-16">
+            <span>
+              <span className="block text-body-m font-bold text-text-pri">설정 변경</span>
+              <span className={`mt-4 block ${NOTE}`}>이름, 저장 폴더, 연결 관리</span>
+            </span>
+            <ChevronDown size={20} aria-hidden="true" className="shrink-0 text-text-meta transition-transform duration-fast group-open:rotate-180" />
+          </summary>
+
+          <div className="mt-24 flex flex-col gap-32">
+            <InlineField
+              label="연결 이름"
+              hint="알아보기 쉬운 이름. 예: 2027 운영위원장 드라이브"
+              action={
+                <GhostButton onClick={saveName} disabled={Boolean(busy) || !nameInput.trim() || nameInput.trim() === connection.label}>
+                  {busy === 'name' ? '저장 중' : '이름 변경'}
+                </GhostButton>
+              }
+            >
               <Input value={nameInput} onChange={(e) => setNameInput(e.target.value)} />
-            </Field>
-            <GhostButton onClick={saveName} disabled={Boolean(busy) || !nameInput.trim() || nameInput.trim() === connection.label}>
-              {busy === 'name' ? '저장 중' : '이름 바꾸기'}
-            </GhostButton>
-          </div>
+            </InlineField>
 
-          <div className="grid grid-cols-1 items-end gap-12 md:grid-cols-[1fr_auto]">
-            <Field label="저장 폴더 바꾸기" hint="바꾸고 싶은 구글 드라이브 폴더의 주소를 붙여 넣으세요. 저장하기 전에 사이트가 그 폴더에 접근할 수 있는지 자동으로 확인합니다.">
+            <InlineField
+              label="저장 폴더 변경"
+              hint="구글 드라이브 폴더 주소 붙여넣기. 변경 전 접근 가능 여부 자동 확인"
+              action={
+                <GhostButton onClick={saveRoot} disabled={Boolean(busy)}>
+                  {busy === 'root' ? '확인 중' : '이 폴더로 변경'}
+                </GhostButton>
+              }
+            >
               <Input value={rootInput} onChange={(e) => setRootInput(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />
-            </Field>
-            <GhostButton onClick={saveRoot} disabled={Boolean(busy)}>
-              {busy === 'root' ? '확인 중' : '이 폴더로 바꾸기'}
-            </GhostButton>
-          </div>
+            </InlineField>
 
-          <div className="grid grid-cols-1 items-end gap-12 md:grid-cols-[1fr_auto_auto]">
-            <Field label="새 저장 폴더 만들기" hint="내 드라이브 맨 위에 새 폴더를 만듭니다. 먼저 '만들어질 모습 보기'를 눌러 확인하세요.">
-              <Input value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="2027 한림대학교 디지털인문예술전공" />
-            </Field>
-            <GhostButton onClick={previewFolder} disabled={Boolean(busy) || !newFolderName.trim()}>
-              만들어질 모습 보기
-            </GhostButton>
-            <PrimaryButton onClick={createFolder} disabled={Boolean(busy) || !newFolderName.trim() || !preview}>
-              <FolderPlus size={16} aria-hidden="true" />
-              확인했으니 만들기
-            </PrimaryButton>
-          </div>
+            <div className="flex flex-col gap-12">
+              <InlineField
+                label="새 저장 폴더 생성"
+                hint="내 드라이브 맨 위에 새 폴더 생성. ‘미리보기’로 먼저 확인"
+                action={
+                  <GhostButton onClick={previewFolder} disabled={Boolean(busy) || !newFolderName.trim()}>
+                    미리보기
+                  </GhostButton>
+                }
+              >
+                <Input value={newFolderName} onChange={(e) => { setNewFolderName(e.target.value); setPreview(null) }} placeholder="2027 한림대학교 디지털인문예술전공" />
+              </InlineField>
 
-          {preview && (
-            <div className="rounded-sm border border-border-purple bg-glass-bg p-12 font-mono text-caption-m text-text-sec">
-              <p className="text-text-pri">이렇게 만들어집니다</p>
-              {preview.map((step) => (
-                <p key={step.name}>
-                  내 드라이브 / {step.name} {step.missing ? '(새로 만듭니다)' : '(이미 있어서 그대로 씁니다)'}
-                </p>
-              ))}
+              {preview && (
+                <div className="flex flex-col gap-12 rounded-sm border border-border-purple bg-glass-bg p-16">
+                  <div>
+                    <p className="text-body-m font-bold text-text-pri">생성 예정 폴더</p>
+                    <ul className="mt-8 text-small-m leading-[1.8] text-text-sec">
+                      {preview.map((step) => (
+                        <li key={step.name}>
+                          내 드라이브 / {step.name} ({step.missing ? '새로 생성' : '기존 폴더 사용'})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <PrimaryButton onClick={createFolder} disabled={Boolean(busy)}>
+                      <FolderPlus size={16} aria-hidden="true" />
+                      {busy === 'create' ? '생성 중' : '확인 후 생성'}
+                    </PrimaryButton>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            <div className="flex flex-col gap-12 border-t border-border-subtle pt-24">
+              <span className="text-body-m font-bold text-text-pri">연결 관리</span>
+              <div className="flex flex-wrap items-center gap-12">
+                <GhostButton onClick={toggleActive} disabled={Boolean(busy)}>
+                  {connection.active ? '사용 중지' : '사용 재개'}
+                </GhostButton>
+                <GhostButton onClick={disconnect} disabled={Boolean(busy)} className={DANGER_BTN}>
+                  <Unplug size={16} aria-hidden="true" />
+                  연결 끊기
+                </GhostButton>
+              </div>
+              <p className={NOTE}>사용 중지: 파일 수신만 일시 중단. 연결 끊기: 로그인 정보 삭제, 드라이브의 파일은 유지</p>
+            </div>
+          </div>
+        </details>
       )}
 
       <ErrorText>{error}</ErrorText>
@@ -350,7 +430,27 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
   )
 }
 
-/** 미연결 업로드 — 제출되지 않은 파일. 자동 삭제하지 않고 관리자 확인으로만 지운다 */
+/** 신청 폼과 이 드라이브의 관계. 폼은 저절로 드라이브로 보내지 않는다는 점을 표로 보여준다. */
+function FormLinkGuide() {
+  return (
+    <section className={CARD}>
+      <h3 className={H3}>신청 폼 연결 방식</h3>
+      <dl className="grid grid-cols-1 gap-y-16 md:grid-cols-[180px_1fr] md:gap-x-32">
+        <dt className={TERM}>전시회 접수</dt>
+        <dd className="text-body-m text-text-pri md:text-body-d">전시회 설정에서 선택한 드라이브에 자동 저장</dd>
+        <dt className={TERM}>일반 신청 폼</dt>
+        <dd className="text-body-m text-text-pri md:text-body-d">
+          파일 질문마다 저장 위치를 <strong>‘구글 드라이브’</strong>로 직접 선택해야 저장
+          <span className={`mt-4 block ${NOTE}`}>미선택 시 웹 전시용 임시 저장소로 이동, 이 보관함에는 미저장</span>
+        </dd>
+        <dt className={TERM}>드라이브 선택</dt>
+        <dd className="text-body-m text-text-pri md:text-body-d">연결이 1개이면 자동 선택</dd>
+      </dl>
+    </section>
+  )
+}
+
+/** 제출 미완료 파일: 자동 삭제하지 않고 관리자 확인으로만 지운다 */
 function PendingUploads({ isOwner }) {
   const { data, loading, error, refetch } = useApi('/admin/drive/uploads', { params: { status: 'pending' } })
   const [busy, setBusy] = useState(0)
@@ -372,32 +472,30 @@ function PendingUploads({ isOwner }) {
 
   return (
     <section className={CARD}>
-      <header className="flex flex-wrap items-center justify-between gap-12">
+      <header className="flex flex-wrap items-start justify-between gap-16">
         <div>
-          <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">제출이 끝나지 않은 파일</h3>
-          <p className="text-small-m text-text-sec">
-            파일은 올라왔지만 신청서 제출까지 마치지 않은 경우입니다. 자동으로 지우지 않으니 필요 없는 것은 직접 지워 주세요.
-          </p>
+          <h3 className={H3}>제출 미완료 파일</h3>
+          <p className={`mt-4 ${NOTE}`}>업로드 후 신청서를 제출하지 않은 파일. 자동 삭제 없음, 필요 없으면 직접 삭제</p>
         </div>
         <GhostButton onClick={refetch}>
           <RefreshCw size={16} aria-hidden="true" />
-          새로 고침
+          새로고침
         </GhostButton>
       </header>
-      {loading && <p className="text-small-m text-text-meta">불러오는 중입니다</p>}
+      {loading && <p className={NOTE}>불러오는 중</p>}
       <ErrorText>{error?.message}</ErrorText>
-      {!loading && items.length === 0 && <EmptyNote>제출이 끝나지 않은 파일이 없습니다</EmptyNote>}
+      {!loading && items.length === 0 && <p className="text-body-m font-semibold text-text-meta">해당 파일 없음</p>}
       {items.length > 0 && (
         <ul className="flex flex-col gap-8">
           {items.map((row) => (
             <li
               key={row.id}
-              className="flex flex-wrap items-center justify-between gap-12 rounded-sm border border-border-subtle bg-bg-elev p-12"
+              className="flex flex-wrap items-center justify-between gap-12 rounded-sm border border-border-subtle bg-bg-elev p-16"
             >
               <div className="min-w-0">
-                <p className="truncate text-body-m text-text-pri">{row.original_name || row.stored_name}</p>
-                <p className="text-small-m text-text-meta">
-                  {[row.form_title || '어느 폼인지 알 수 없음', formatBytes(row.bytes), formatDate(row.created_at), row.submitter_email || '제출자를 알 수 없음'].join(', ')}
+                <p className="truncate text-body-m font-semibold text-text-pri">{row.original_name || row.stored_name}</p>
+                <p className={`mt-4 ${NOTE}`}>
+                  {[row.form_title || '폼 불명', formatBytes(row.bytes), formatDate(row.created_at), row.submitter_email || '제출자 불명'].join(', ')}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-8">
@@ -414,11 +512,11 @@ function PendingUploads({ isOwner }) {
                 {isOwner && (
                   <>
                     <GhostButton onClick={() => remove(row, false)} disabled={busy === row.id}>
-                      목록에서만 지우기
+                      목록에서만 삭제
                     </GhostButton>
-                    <GhostButton onClick={() => remove(row, true)} disabled={busy === row.id}>
+                    <GhostButton onClick={() => remove(row, true)} disabled={busy === row.id} className={DANGER_BTN}>
                       <Trash2 size={16} aria-hidden="true" />
-                      파일도 휴지통으로
+                      파일도 휴지통
                     </GhostButton>
                   </>
                 )}
@@ -431,11 +529,7 @@ function PendingUploads({ isOwner }) {
   )
 }
 
-/**
- * 새 계정 연결 카드(Apps Script 방식).
- * 구글 클라우드 설정 없이 연결하는 길이다. 신청자는 계속 사이트 폼을 쓰고
- * 구글 쪽 스크립트는 화면 없이 파일만 받는다. 계정을 바꿀 때만 쓰므로 접어서 둔다.
- */
+/** 새 계정 연결(Apps Script 방식). 계정을 바꿀 때만 쓰므로 접어 둔다. */
 function AppsScriptConnect({ ready, onDone }) {
   const [label, setLabel] = useState('')
   const [url, setUrl] = useState('')
@@ -460,8 +554,8 @@ function AppsScriptConnect({ ready, onDone }) {
       setSecret('')
       onDone(
         res.check?.ok
-          ? `새 계정을 연결했습니다. 파일이 저장될 계정은 ${res.check?.account?.email || '확인 중'}입니다.`
-          : '연결은 만들었지만 확인에 실패했습니다. 아래 안내를 따라 점검해 주세요.'
+          ? `새 계정 연결 완료. 저장 계정: ${res.check?.account?.email || '확인 중'}`
+          : '연결 생성 완료, 확인 실패. 아래 항목 점검'
       )
     } catch (err) {
       setError(err.hint ? `${err.message} (${err.hint})` : err.message)
@@ -471,103 +565,90 @@ function AppsScriptConnect({ ready, onDone }) {
   }
 
   return (
-    <details className={`${CARD} group`}>
-      <summary className="cursor-pointer list-none">
-        <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">새 계정으로 연결하기</h3>
-        <p className="mt-4 text-small-m text-text-sec">
-          파일을 모을 구글 계정을 바꿀 때만 엽니다. 평소에는 열 필요가 없습니다. 눌러서 펼쳐 보세요.
-        </p>
-      </summary>
+    <Fold title="새 계정 연결" note="파일 수신 계정을 바꿀 때만 사용. 평소에는 열지 않아도 됨">
+      <ol className="list-decimal pl-20 text-body-m leading-[1.9] text-text-sec">
+        <li>파일 수신 계정으로 script.google.com 접속, ‘새 프로젝트’ 생성</li>
+        <li>
+          연결용 코드 붙여넣기 (파일: <code className="font-mono text-small-m">server/scripts/apps-script/drive-relay.gs</code>)
+          <span className={`block ${NOTE}`}>코드 맨 위 비밀번호를 32자 이상의 임의 문자로 변경</span>
+        </li>
+        <li>
+          ‘배포’ 에서 ‘새 배포’ 선택
+          <span className={`block ${NOTE}`}>종류 ‘웹 앱’, 실행 사용자 ‘나’, 접근 권한 ‘모든 사용자’</span>
+        </li>
+        <li>
+          배포 후 표시되는 <code className="font-mono text-small-m">/exec</code> 주소와 2번의 비밀번호를 아래에 입력
+        </li>
+      </ol>
+      <p className={NOTE}>처음 한 번만 필요한 작업. 어려우면 개발 담당과 함께 진행</p>
 
-      <div className="mt-16 flex flex-col gap-16">
-        <p className="text-small-m text-text-sec">
-          신청자는 지금처럼 사이트의 신청 폼을 그대로 쓰고, 파일만 새 계정의 드라이브로 모이게 하는 방법입니다.
-          처음 한 번만 하면 되고, 어렵다면 개발 담당과 함께 진행하세요.
-        </p>
+      <div className="grid grid-cols-1 gap-x-24 gap-y-20 md:grid-cols-2">
+        <Field label="연결 이름" hint="예: 2027 운영위원장 드라이브">
+          <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="2027 운영위원장 드라이브" />
+        </Field>
+        <Field label="저장 폴더 주소" hint="미입력 가능, 연결 후 지정">
+          <Input value={root} onChange={(e) => setRoot(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />
+        </Field>
+        <Field label="연결 주소" hint="배포 후 표시된 /exec 주소">
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
+        </Field>
+        <Field label="연결 비밀번호" hint="코드 맨 위 비밀번호와 동일하게 입력, 저장 후 재표시 없음">
+          <Input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} autoComplete="off" />
+        </Field>
+      </div>
 
-        <ol className="list-decimal pl-20 text-small-m leading-[1.8] text-text-sec">
-          <li>파일을 모을 구글 계정으로 로그인한 뒤 script.google.com에 들어가 '새 프로젝트'를 만듭니다.</li>
-          <li>
-            개발 담당에게 받은 연결용 코드를 붙여 넣습니다. 코드 파일은 <code className="font-mono">server/scripts/apps-script/drive-relay.gs</code>에 있습니다.
-            맨 위의 비밀번호 칸을 32글자 이상의 아무 글자로 바꿉니다.
-          </li>
-          <li>화면 오른쪽 위의 '배포'를 누르고 '새 배포'를 고릅니다. 종류는 '웹 앱', 실행 사용자는 '나', 접근 권한은 <strong>'모든 사용자'</strong>로 정하고 배포합니다.</li>
-          <li>배포가 끝나면 <code className="font-mono">/exec</code>로 끝나는 주소가 나옵니다. 그 주소와 2번에서 정한 비밀번호를 아래 칸에 넣고 '새 계정 연결하기'를 누릅니다.</li>
-        </ol>
+      <div className="flex flex-wrap items-center gap-12">
+        <PrimaryButton onClick={submit} disabled={busy || !ready || !url.trim() || secret.trim().length < 16}>
+          <Link2 size={16} aria-hidden="true" />
+          {busy ? '확인 중' : '새 계정 연결'}
+        </PrimaryButton>
+        {!ready && <span className="text-small-m text-state-error">서버 설정 미완료로 연결 불가. 개발 담당에게 문의</span>}
+      </div>
 
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-          <Field label="연결 이름" hint="나중에 알아보기 쉬운 이름. 예: 2027 운영위원장 드라이브">
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="2027 운영위원장 드라이브" />
-          </Field>
-          <Field label="저장 폴더 주소" hint="지금 몰라도 됩니다. 비워 두면 연결한 뒤에 정할 수 있습니다">
-            <Input value={root} onChange={(e) => setRoot(e.target.value)} placeholder="https://drive.google.com/drive/folders/..." />
-          </Field>
-          <Field label="연결 주소" hint="배포 후 나온, /exec로 끝나는 주소">
-            <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/.../exec" />
-          </Field>
-          <Field label="연결 비밀번호" hint="코드 맨 위에 적은 비밀번호와 똑같이 입력하세요. 저장한 뒤에는 다시 보이지 않습니다">
-            <Input type="password" value={secret} onChange={(e) => setSecret(e.target.value)} autoComplete="off" />
-          </Field>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-8">
-          <PrimaryButton onClick={submit} disabled={busy || !ready || !url.trim() || secret.trim().length < 16}>
-            <Link2 size={16} aria-hidden="true" />
-            {busy ? '확인 중' : '새 계정 연결하기'}
-          </PrimaryButton>
-          {!ready && (
-            <span className="text-small-m text-state-error">
-              서버 설정이 아직 끝나지 않아 연결할 수 없습니다. 개발 담당에게 알려 주세요.
-            </span>
+      {result && (
+        <div className="rounded-sm border border-border-subtle bg-bg-elev p-16">
+          <p className={`text-body-m font-bold ${result.ok ? 'text-state-success' : 'text-state-error'}`}>
+            {result.ok ? '확인 결과 정상: 파일 수신 가능' : '확인 결과 문제 발견: 아래 항목 점검'}
+          </p>
+          <dl className="mt-12 grid grid-cols-1 gap-x-32 gap-y-12 md:grid-cols-2">
+            {result.account?.email && <Item term="저장 계정">{result.account.email}</Item>}
+            {result.root && (
+              <Item term="저장 폴더">
+                {result.root.name || '이름 없음'} ({result.root.ok ? '쓰기 가능' : result.root.message})
+              </Item>
+            )}
+          </dl>
+          {!result.ok && (
+            <ul className="mt-12 list-disc pl-20 text-small-m leading-[1.8] text-text-sec">
+              <li>배포 접근 권한이 ‘모든 사용자’인지 여부</li>
+              <li>코드의 비밀번호와 입력한 비밀번호의 일치 여부</li>
+              <li>코드 수정 후 ‘새 배포’ 재생성 여부 (미생성 시 수정 내용 미적용)</li>
+            </ul>
           )}
         </div>
-
-        {result && (
-          <div className="rounded-sm border border-border-subtle bg-bg-elev p-12 text-small-m text-text-sec">
-            <p className="font-semibold text-text-pri">{result.ok ? '정상입니다. 파일을 보낼 수 있습니다.' : '문제가 있습니다. 아래를 확인해 주세요.'}</p>
-            {result.account?.email && <p className="mt-4">파일이 저장될 계정은 {result.account.email}입니다.</p>}
-            {result.root && (
-              <p className="mt-4">
-                저장 폴더는 {result.root.name || '이름 없음'}입니다. {result.root.ok ? '파일을 넣을 수 있습니다.' : result.root.message}
-              </p>
-            )}
-            {!result.ok && (
-              <ul className="mt-8 list-disc pl-20">
-                <li>배포할 때 접근 권한을 '모든 사용자'로 했는지 확인하세요.</li>
-                <li>코드에 적은 비밀번호와 여기에 입력한 비밀번호가 똑같은지 확인하세요.</li>
-                <li>코드를 고쳤다면 '새 배포'를 다시 만들어야 고친 내용이 적용됩니다.</li>
-              </ul>
-            )}
-          </div>
-        )}
-        <ErrorText>{error}</ErrorText>
-      </div>
-    </details>
+      )}
+      <ErrorText>{error}</ErrorText>
+    </Fold>
   )
 }
 
-/** 맨 위 한눈에 보기. 설명을 읽기 전에 지금 정상인지부터 알려준다. */
-function StatusSummary({ connections, loading }) {
+/** 연결이 없거나 이상할 때만 맨 위에 띄우는 알림. 정상일 때는 카드 안의 상태로 충분하다. */
+function ProblemNotice({ connections, loading }) {
   if (loading) return null
   const active = connections.filter((c) => c.active)
-  const working = active.find((c) => c.last_check_ok)
-  const tone = working ? 'border-state-success/40 bg-state-success/5' : 'border-state-error/40 bg-state-error/5'
-  const headTone = working ? 'text-state-success' : 'text-state-error'
-
-  let head = '연결된 드라이브가 없습니다'
-  let body = '아래 맨 끝의 ‘새 계정으로 연결하기’를 열어 파일을 모을 구글 계정을 연결해 주세요.'
-  if (working) {
-    head = '정상입니다'
-    body = `지금 신청자가 올리는 파일은 ${working.account_email || '연결된'} 계정의 ‘${working.root_folder_name || '저장 폴더'}’ 폴더로 모입니다.`
-  } else if (active.length > 0) {
-    head = '확인이 필요합니다'
-    body = '연결은 되어 있지만 마지막 확인에서 정상으로 나오지 않았습니다. 아래 카드에서 ‘잘 연결됐는지 확인’을 눌러 보세요.'
-  }
-
+  if (active.some((c) => c.last_check_ok)) return null
+  const none = active.length === 0
   return (
-    <div className={`rounded-md border p-20 ${tone}`}>
-      <p className={`text-body-l-m font-bold md:text-body-l-d ${headTone}`}>{head}</p>
-      <p className="mt-8 text-body-m leading-[1.7] text-text-sec md:text-body-d">{body}</p>
+    <div className="flex items-start gap-12 rounded-md border border-state-error/40 bg-state-error/5 p-20">
+      <AlertTriangle size={20} className="mt-2 shrink-0 text-state-error" aria-hidden="true" />
+      <div>
+        <p className="text-body-l-m font-bold text-state-error md:text-body-l-d">{none ? '연결된 드라이브 없음' : '확인 필요'}</p>
+        <p className={`mt-4 ${NOTE}`}>
+          {none
+            ? '맨 아래 ‘새 계정 연결’에서 파일 수신 계정 연결'
+            : '마지막 확인에서 정상 결과 없음. 아래 카드의 ‘연결 확인’ 실행'}
+        </p>
+      </div>
     </div>
   )
 }
@@ -589,13 +670,13 @@ function StorageDriveAdmin() {
   // 구글 로그인 화면에서 돌아온 결과를 한 번만 읽고 주소에서 지운다.
   useEffect(() => {
     if (params.get('drive') === 'connected') {
-      setMessage('구글 계정을 연결했습니다. 아래에서 저장 폴더를 정하고 ‘잘 연결됐는지 확인’을 눌러 주세요.')
+      setMessage('구글 계정 연결 완료. 저장 폴더 지정 후 ‘연결 확인’ 실행')
       setParams({}, { replace: true })
       refetch()
     }
     const err = params.get('drive_error')
     if (err) {
-      setConnectError(CONNECT_ERROR[err] || `연결에 실패했습니다 (${err}). 개발 담당에게 알려 주세요.`)
+      setConnectError(CONNECT_ERROR[err] || `연결 실패 (${err}). 개발 담당에게 문의해 주세요.`)
       setParams({}, { replace: true })
     }
   }, [params, setParams, refetch])
@@ -612,17 +693,17 @@ function StorageDriveAdmin() {
     }
   }
 
-  // 구글 로그인 방식은 서버 설정이 끝난 경우에만 보여준다. 안 보이는 것이 정상이다.
+  // 구글 로그인 방식은 서버 설정이 끝난 경우에만 보인다. 안 보이는 것이 정상이다.
   const oauthReady = Boolean(config.oauth_app_ready && config.encryption_ready)
 
   return (
     <section className="flex min-w-0 flex-col gap-24">
       <PageHead
         title="파일 보관함 (구글 드라이브)"
-        desc="참가자가 올린 작품 파일이 어느 구글 드라이브에 쌓이는지 확인하고 바꾸는 곳입니다. 코드를 고칠 필요는 없습니다."
+        desc="참가자 업로드 작품 파일의 저장 위치 확인과 변경"
         actions={
           isOwner && oauthReady ? (
-            <div className="flex flex-wrap items-end gap-8">
+            <div className="flex flex-wrap items-center gap-8">
               <Input
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
@@ -632,37 +713,33 @@ function StorageDriveAdmin() {
               />
               <PrimaryButton onClick={connect} disabled={busy}>
                 <HardDrive size={16} aria-hidden="true" />
-                {busy ? '이동 중' : '구글 계정으로 연결하기'}
+                {busy ? '이동 중' : '구글 계정으로 연결'}
               </PrimaryButton>
             </div>
           ) : null
         }
       />
 
-      <StatusSummary connections={connections} loading={loading} />
-
       {message && (
-        <p className="flex items-start gap-8 rounded-sm border border-state-success/40 bg-state-success/5 p-12 text-small-m text-state-success">
-          <Check size={16} className="mt-2 shrink-0" aria-hidden="true" />
+        <p className="flex items-start gap-8 rounded-sm border border-state-success/40 bg-state-success/5 p-16 text-body-m font-semibold text-state-success">
+          <Check size={18} className="mt-2 shrink-0" aria-hidden="true" />
           {message}
         </p>
       )}
       <ErrorText>{connectError}</ErrorText>
 
+      <ProblemNotice connections={connections} loading={loading} />
+
       {!isOwner && (
-        <p className="rounded-sm border border-border-subtle bg-bg-elev p-12 text-small-m text-text-sec">
-          드라이브 계정을 연결하거나 끊는 일은 대표 관리자만 할 수 있습니다. 운영 관리자는 신청 폼을 만들 때 이미 연결된 드라이브를 골라 쓸 수 있습니다.
+        <p className="rounded-sm border border-border-subtle bg-bg-elev p-16 text-small-m text-text-sec">
+          계정 연결과 연결 끊기: 대표 관리자 전용. 운영 관리자는 신청 폼 제작 시 연결된 드라이브 선택 가능
         </p>
       )}
 
-      {loading && <p className="text-small-m text-text-meta">연결 상태를 확인하고 있습니다</p>}
+      {loading && <p className={NOTE}>연결 상태 확인 중</p>}
       <ErrorText>{error?.message}</ErrorText>
 
-      {!loading && connections.length === 0 && (
-        <EmptyNote>연결된 구글 드라이브가 없습니다. 맨 아래에서 계정을 연결해 주세요.</EmptyNote>
-      )}
-
-      <div className="flex flex-col gap-16">
+      <div className="flex flex-col gap-24">
         {connections.map((connection) => (
           <ConnectionCard
             key={`${connection.id}-${connection.account_email}`}
@@ -674,30 +751,27 @@ function StorageDriveAdmin() {
         ))}
       </div>
 
-      <section className={CARD}>
-        <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">신청 폼의 파일이 이 드라이브로 모이게 하려면</h3>
-        <p className="text-body-m leading-[1.7] text-text-sec md:text-body-d">
-          폼은 저절로 드라이브로 보내지 않습니다. 신청 폼을 만들 때 파일 질문마다 저장 위치를 <strong>구글 드라이브</strong>로 직접 골라야 합니다.
-          고르지 않으면 파일은 웹 전시용 임시 저장소로 들어가고, 이 보관함에는 쌓이지 않습니다.
-          드라이브 계정이 하나만 연결되어 있으면 어느 계정인지는 따로 고르지 않아도 그 계정으로 모입니다.
-        </p>
-      </section>
-
+      <FormLinkGuide />
       <PendingUploads isOwner={isOwner} />
 
-      {isOwner && <AppsScriptConnect ready={Boolean(config.apps_script_ready)} onDone={(msg) => { setMessage(msg); refetch() }} />}
-
-      <section className={CARD}>
-        <h3 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">담당자가 바뀔 때 할 일</h3>
-        <ol className="list-decimal pl-20 text-body-m leading-[1.8] text-text-sec md:text-body-d">
-          <li>새 담당자가 대표 관리자 계정으로 이 사이트에 로그인합니다.</li>
-          <li>파일을 모을 구글 계정을 정합니다. 예전 폴더를 계속 쓰려면 이전 담당자가 그 폴더를 새 계정에 ‘편집자’로 공유해 줍니다.</li>
-          <li>맨 아래 ‘새 계정으로 연결하기’를 펼쳐 안내대로 연결합니다.</li>
-          <li>‘잘 연결됐는지 확인’과 ‘시험 파일 올려보기’를 눌러 파일이 실제로 들어오는지 봅니다. 시험 파일은 지우지 않으니 필요 없으면 드라이브에서 직접 지우세요.</li>
-          <li>신청 폼의 파일 질문에서 저장 위치를 구글 드라이브로 고르고, 화면에 나오는 ‘예상 저장 경로’가 맞는지 본 뒤 공개합니다.</li>
-          <li>이전 계정은 ‘연결 끊기’로 정리합니다. 드라이브에 이미 있는 파일은 지워지지 않습니다.</li>
+      <Fold title="담당자 교체 절차" note="운영진이 바뀔 때 순서대로 진행">
+        <ol className="list-decimal pl-20 text-body-m leading-[1.9] text-text-sec">
+          <li>새 담당자의 대표 관리자 계정 로그인</li>
+          <li>
+            파일 수신 계정 결정
+            <span className={`block ${NOTE}`}>기존 폴더 계속 사용 시, 이전 담당자가 폴더를 새 계정에 ‘편집자’ 권한으로 공유</span>
+          </li>
+          <li>맨 아래 ‘새 계정 연결’ 진행</li>
+          <li>
+            동작 확인
+            <span className={`block ${NOTE}`}>‘연결 확인’ 후 ‘시험 파일 업로드’. 시험 파일은 자동 삭제 없음, 드라이브에서 직접 삭제</span>
+          </li>
+          <li>신청 폼 설정 확인: 파일 질문의 저장 위치 ‘구글 드라이브’ 선택, ‘예상 저장 경로’ 확인 후 공개</li>
+          <li>이전 계정 정리: ‘설정 변경’의 ‘연결 끊기’ (드라이브의 파일은 유지)</li>
         </ol>
-      </section>
+      </Fold>
+
+      {isOwner && <AppsScriptConnect ready={Boolean(config.apps_script_ready)} onDone={(msg) => { setMessage(msg); refetch() }} />}
     </section>
   )
 }
