@@ -40,7 +40,7 @@ function DatePicker({
   // 값이 비었을 때 캘린더를 열 기준 날짜('YYYY-MM-DD'). 종료일이 시작일 달에서 열리게 한다.
   viewDate,
   withTime = false,
-  placeholder = withTime ? '날짜·시간 선택' : '날짜 선택',
+  placeholder = withTime ? '날짜와 시간 선택' : '날짜 선택',
   disabled = false,
   min,
   max,

@@ -402,7 +402,7 @@ function FileStorageCard({
               />
             </Field>
 
-            <div className="md:col-span-2 flex flex-col gap-8 rounded-sm bg-[#eee9ff] px-12 py-10">
+            <div className="md:col-span-2 flex flex-col gap-8 rounded-sm bg-[#eee9ff] px-12 py-8">
               <p className="font-mono text-caption-m text-[#51486a]">
                 예상 저장 경로: {rootLabel} / {segments.join(' / ') || '(루트에 바로 저장)'}
               </p>
@@ -423,7 +423,7 @@ function FileStorageCard({
                   type="button"
                   onClick={loadSemesterCourses}
                   disabled={loadingCourses || !settings.drive_course_field_id}
-                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                 >
                   {loadingCourses ? '불러오는 중' : '개설된 과목 가져오기'}
                 </GhostButton>
@@ -431,7 +431,7 @@ function FileStorageCard({
                   type="button"
                   onClick={() => onPrepare(field.id, false)}
                   disabled={preparing || !formId}
-                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                   title={formId ? '' : '폼을 먼저 저장하세요'}
                 >
                   폴더가 어떻게 만들어질지 보기
@@ -440,7 +440,7 @@ function FileStorageCard({
                   type="button"
                   onClick={() => onPrepare(field.id, true)}
                   disabled={preparing || !formId}
-                  className="h-36 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
                 >
                   필요한 폴더 미리 만들기
                 </GhostButton>
@@ -472,7 +472,7 @@ function FileStorageCard({
         )}
 
         {!isDrive && (
-          <p className="md:col-span-2 rounded-sm bg-[#eee9ff] px-12 py-10 text-caption-m text-[#51486a]">
+          <p className="md:col-span-2 rounded-sm bg-[#eee9ff] px-12 py-8 text-caption-m text-[#51486a]">
             웹 전시용 이미지는 사이트에서 바로 보여줄 수 있게 크기를 줄여 저장합니다. 원본 파일이 필요하면 저장될 곳을
             구글 드라이브로 바꿔 주세요.
           </p>
@@ -837,7 +837,7 @@ function QuestionCard({
         rp.onDragEnd?.(e)
       }}
       onClick={() => !active && onActivate()}
-      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] border-l-[#7157d9]' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-[#7157d9]' : ''}`}
+      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] !border-l-[#7157d9]' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-[#7157d9]' : ''}`}
     >
       <span
         onPointerDown={() => rp.draggable && onArm(true)}
@@ -1006,7 +1006,7 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
       <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-[#5f43ce] px-16 py-8 text-small-m font-semibold text-white">
         {pageNo}페이지 시작
       </span>
-      <div className={`${CARD} ${active ? 'border-l-[6px] border-l-[#7157d9]' : ''} mt-32 rounded-tl-none border-t-8 border-t-[#5f43ce] ${over ? '!border-[#7157d9]' : ''}`}>
+      <div className={`${CARD} ${active ? 'border-l-[6px] !border-l-[#7157d9]' : ''} mt-32 rounded-tl-none border-t-8 !border-t-[#5f43ce] ${over ? '!border-[#7157d9]' : ''}`}>
         <span
           onPointerDown={() => rp.draggable && onArm(true)}
           onPointerUp={() => onArm(false)}
@@ -1575,7 +1575,7 @@ function FormEditor() {
               {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
               <span className="hidden md:inline">{copied ? '복사했습니다' : '주소 복사'}</span>
             </GhostButton>
-            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="!bg-[#7157d9] hover:!bg-[#5f43ce]">
+            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="!bg-[#7157d9] hover:!bg-[#5f43ce] disabled:!bg-[#e8eaed] disabled:!text-[#80868b]">
               <Save size={16} aria-hidden="true" />
               {busy ? '저장 중' : '저장'}
             </PrimaryButton>
@@ -1615,7 +1615,7 @@ function FormEditor() {
           {tab === 'questions' && (
             <>
               <div data-card-id="header" onClick={() => setActiveId('header')} className="relative">
-                <div className={`${CARD} gap-16 border-t-[10px] border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] border-l-[#7157d9]' : ''}`}>
+                <div className={`${CARD} gap-16 border-t-[10px] !border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] !border-l-[#7157d9]' : ''}`}>
                   <input
                     aria-label="폼 제목"
                     autoFocus={isNew}
