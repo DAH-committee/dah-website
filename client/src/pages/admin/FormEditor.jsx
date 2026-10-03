@@ -122,9 +122,9 @@ function normStorage(raw, formSettings = {}) {
   return { ...DEFAULT_STORAGE }
 }
 
-const CARD = 'form-editor-panel flex flex-col rounded-md border'
+const CARD = 'flex flex-col rounded-md border border-border-subtle bg-bg-panel'
 const TEXT_BTN =
-  'inline-flex h-11 cursor-pointer items-center gap-8 rounded-sm px-12 text-small-m font-semibold text-[#3c4043] transition hover:bg-[#f1f3f4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent'
+  'inline-flex h-11 cursor-pointer items-center gap-8 rounded-sm px-12 text-small-m font-semibold text-text-sec transition hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent'
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
 
@@ -306,13 +306,13 @@ function FileStorageCard({
   const rootLabel = selected?.root_folder_name || selected?.root_folder_id || '(저장 폴더를 아직 정하지 않았습니다)'
 
   return (
-    <div className="overflow-hidden rounded-md border border-[#d8d1ed] bg-[#faf9ff]">
-      <div className="flex flex-wrap items-center justify-between gap-12 border-b border-[#e5dff3] bg-white px-16 py-12">
+    <div className="overflow-hidden rounded-md border border-border-subtle bg-bg-elev">
+      <div className="flex flex-wrap items-center justify-between gap-12 border-b border-border-subtle bg-bg-panel px-16 py-12">
         <div className="flex items-center gap-8">
-          {isDrive ? <GoogleDriveIcon size={19} /> : <UploadCloud size={19} className="text-[#5f43ce]" />}
+          {isDrive ? <GoogleDriveIcon size={19} /> : <UploadCloud size={19} className="text-purple-light" />}
           <div>
-            <p className="text-small-m font-bold text-[#29253a]">이 파일 질문의 저장 위치</p>
-            <p className="text-caption-m text-[#6e6680]">
+            <p className="text-small-m font-bold text-text-pri">이 파일 질문의 저장 위치</p>
+            <p className="text-caption-m text-text-sec">
               {isDrive ? '구글 드라이브: 올린 원본을 그대로 보관합니다.' : '웹 전시용 임시 저장소: 사이트에 보여주기 좋게 줄여서 보관합니다. 드라이브에는 쌓이지 않습니다.'}
             </p>
           </div>
@@ -322,7 +322,7 @@ function FileStorageCard({
       <div className="grid grid-cols-1 gap-12 p-16 md:grid-cols-2">
         <Field label="파일이 저장될 곳" hint="원본을 받으려면 구글 드라이브로 바꿔야 합니다">
           <Select
-            tone="light"
+           
             value={storage.target}
             options={STORAGE_TARGETS}
             onChange={(e) => {
@@ -337,7 +337,7 @@ function FileStorageCard({
           />
         </Field>
         <Field label="파일의 쓰임">
-          <Select tone="light" value={storage.purpose} options={STORAGE_PURPOSES} onChange={(e) => set('purpose')(e.target.value)} />
+          <Select value={storage.purpose} options={STORAGE_PURPOSES} onChange={(e) => set('purpose')(e.target.value)} />
         </Field>
         <Field label="올릴 수 있는 파일 종류" hint="비워 두면 기본값을 씁니다. 여러 개는 쉼표로 나눕니다">
           <Input
@@ -366,7 +366,7 @@ function FileStorageCard({
           <>
             <Field label="파일을 모을 드라이브" hint={driveOptions.length ? '관리 메뉴의 파일 보관함에서 연결한 계정입니다' : '연결된 드라이브가 없습니다'}>
               <Select
-                tone="light"
+               
                 value={storage.connection_id == null ? '' : String(storage.connection_id)}
                 options={driveOptions}
                 placeholder={driveOptions.length ? '드라이브 고르기' : '연결된 드라이브가 없습니다'}
@@ -376,7 +376,7 @@ function FileStorageCard({
             </Field>
             <Field label="폴더를 나누는 방식">
               <Select
-                tone="light"
+               
                 value={storage.path_template}
                 options={templates.map((t) => ({ value: t.value, label: t.label }))}
                 onChange={(e) => set('path_template')(e.target.value)}
@@ -386,14 +386,14 @@ function FileStorageCard({
               <Input value={storage.folder_label} onChange={(e) => set('folder_label')(e.target.value)} placeholder="원본" />
             </Field>
             <Field label="파일 공개 범위" hint="학생 제출물과 원본은 ‘제한’을 권장합니다">
-              <Select tone="light" value={storage.share_mode} options={SHARE_MODES} onChange={(e) => set('share_mode')(e.target.value)} />
+              <Select value={storage.share_mode} options={SHARE_MODES} onChange={(e) => set('share_mode')(e.target.value)} />
             </Field>
             <Field label="학기 또는 연도" hint="이 폼 전체에 똑같이 적용됩니다. 예: 2026-2">
               <Input value={settings.drive_semester} onChange={setSettingInput('drive_semester')} placeholder="2026-2" />
             </Field>
             <Field label="과목을 고르는 질문" hint="이 질문에서 고른 과목 이름으로 폴더가 나뉩니다">
               <Select
-                tone="light"
+               
                 value={settings.drive_course_field_id}
                 options={courseFieldOptions}
                 placeholder={courseFieldOptions.length ? '질문 고르기' : '객관식이나 드롭다운 질문을 먼저 만들어 주세요'}
@@ -402,8 +402,8 @@ function FileStorageCard({
               />
             </Field>
 
-            <div className="md:col-span-2 flex flex-col gap-8 rounded-sm bg-[#eee9ff] px-12 py-8">
-              <p className="font-mono text-caption-m text-[#51486a]">
+            <div className="md:col-span-2 flex flex-col gap-8 rounded-sm bg-glass-bg px-12 py-8">
+              <p className="font-mono text-caption-m text-text-sec">
                 예상 저장 경로: {rootLabel} / {segments.join(' / ') || '(루트에 바로 저장)'}
               </p>
               {!selected && (
@@ -423,7 +423,7 @@ function FileStorageCard({
                   type="button"
                   onClick={loadSemesterCourses}
                   disabled={loadingCourses || !settings.drive_course_field_id}
-                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-border-subtle bg-bg-panel px-12 text-small-m text-purple-light"
                 >
                   {loadingCourses ? '불러오는 중' : '개설된 과목 가져오기'}
                 </GhostButton>
@@ -431,7 +431,7 @@ function FileStorageCard({
                   type="button"
                   onClick={() => onPrepare(field.id, false)}
                   disabled={preparing || !formId}
-                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-border-subtle bg-bg-panel px-12 text-small-m text-purple-light"
                   title={formId ? '' : '폼을 먼저 저장하세요'}
                 >
                   폴더가 어떻게 만들어질지 보기
@@ -440,13 +440,13 @@ function FileStorageCard({
                   type="button"
                   onClick={() => onPrepare(field.id, true)}
                   disabled={preparing || !formId}
-                  className="h-40 border-[#cfc5ed] bg-white px-12 text-small-m text-[#513aaf]"
+                  className="h-40 border-border-subtle bg-bg-panel px-12 text-small-m text-purple-light"
                 >
                   필요한 폴더 미리 만들기
                 </GhostButton>
               </div>
               {prepareResult && (
-                <div className="font-mono text-caption-m text-[#3f3857]">
+                <div className="font-mono text-caption-m text-text-sec">
                   {prepareResult.error ? (
                     <p className="text-state-error">{prepareResult.error}</p>
                   ) : (
@@ -472,7 +472,7 @@ function FileStorageCard({
         )}
 
         {!isDrive && (
-          <p className="md:col-span-2 rounded-sm bg-[#eee9ff] px-12 py-8 text-caption-m text-[#51486a]">
+          <p className="md:col-span-2 rounded-sm bg-glass-bg px-12 py-8 text-caption-m text-text-sec">
             웹 전시용 이미지는 사이트에서 바로 보여줄 수 있게 크기를 줄여 저장합니다. 원본 파일이 필요하면 저장될 곳을
             구글 드라이브로 바꿔 주세요.
           </p>
@@ -490,9 +490,9 @@ function FileStorageCard({
 // 간격은 토큰 스케일(4, 8, 12, 16, 20, 24, 32, 40, 48 ...)만 쓴다. 10, 28, 36, 44는 스케일 밖이라 금지.
 // ──────────────────────────────────────────────────────────────────────────
 
-const INK = 'text-[#202124]'
-const SUB = 'text-[#5f6368]'
-const LINE = 'border-[#dadce0]'
+const INK = 'text-text-pri'
+const SUB = 'text-text-sec'
+const LINE = 'border-border-subtle'
 
 // 질문 유형 정보. 이름은 비개발자가 한 번에 알아보는 말로, 설명은 한 줄 예시로 쓴다.
 const TYPE_META = {
@@ -556,16 +556,16 @@ function TypeMenu({ value, onChange, label }) {
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm border ${LINE} bg-white px-16 text-left text-body-m ${INK} transition hover:bg-[#f8f9fa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9]`}
+        className={`flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm border ${LINE} bg-bg-panel px-16 text-left text-body-m ${INK} transition hover:bg-glass-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus`}
       >
         <Icon size={18} className={`shrink-0 ${SUB}`} aria-hidden="true" />
         <span className="min-w-0 flex-1 truncate">{meta.label}</span>
         <ChevronDown size={16} className={SUB} aria-hidden="true" />
       </button>
       {open && (
-        <div role="listbox" aria-label="질문 유형" className={`absolute right-0 top-[calc(100%+4px)] z-40 max-h-[420px] w-[min(340px,86vw)] overflow-y-auto rounded-sm border ${LINE} bg-white py-8 shadow-[0_4px_16px_rgb(60_64_67/0.24)]`}>
+        <div role="listbox" aria-label="질문 유형" className={`absolute right-0 top-[calc(100%+4px)] z-40 max-h-[420px] w-[min(340px,86vw)] overflow-y-auto rounded-sm border ${LINE} bg-bg-panel py-8 shadow-card-glow`}>
           {TYPE_GROUPS.map((group, gi) => (
-            <div key={group.join('-')} className={gi ? `mt-8 border-t border-[#e8eaed] pt-8` : ''}>
+            <div key={group.join('-')} className={gi ? `mt-8 border-t border-border-subtle pt-8` : ''}>
               {group.map((t) => {
                 const m = TYPE_META[t]
                 const I = m.icon
@@ -579,9 +579,9 @@ function TypeMenu({ value, onChange, label }) {
                       onChange(t)
                       setOpen(false)
                     }}
-                    className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left transition hover:bg-[#f1f3f4] ${t === value ? 'bg-[#f3effd]' : ''}`}
+                    className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left transition hover:bg-glass-strong ${t === value ? 'bg-glass-strong' : ''}`}
                   >
-                    <I size={18} className={`shrink-0 ${t === value ? 'text-[#5f43ce]' : SUB}`} aria-hidden="true" />
+                    <I size={18} className={`shrink-0 ${t === value ? 'text-purple-light' : SUB}`} aria-hidden="true" />
                     <span className="min-w-0">
                       <span className={`block text-body-m ${INK}`}>{m.label}</span>
                       <span className={`block text-caption-m ${SUB}`}>{m.desc}</span>
@@ -622,7 +622,7 @@ function MoreMenu({ items, label }) {
         <EllipsisVertical size={18} />
       </button>
       {open && (
-        <div role="menu" className={`absolute bottom-[calc(100%+4px)] right-0 z-40 w-[220px] rounded-sm border ${LINE} bg-white py-8 shadow-[0_4px_16px_rgb(60_64_67/0.24)]`}>
+        <div role="menu" className={`absolute bottom-[calc(100%+4px)] right-0 z-40 w-[220px] rounded-sm border ${LINE} bg-bg-panel py-8 shadow-card-glow`}>
           {items.map((item) => (
             <button
               key={item.label}
@@ -633,7 +633,7 @@ function MoreMenu({ items, label }) {
                 item.onClick()
                 setOpen(false)
               }}
-              className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left text-body-m ${INK} transition hover:bg-[#f1f3f4] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent`}
+              className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left text-body-m ${INK} transition hover:bg-glass-strong disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent`}
             >
               {item.icon}
               {item.label}
@@ -650,9 +650,9 @@ function OptionList({ type, options, onChange }) {
   const refs = useRef([])
   const marker = (i) =>
     type === 'radio' ? (
-      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-full border-2 border-[#9aa0a6]" />
+      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-full border-2 border-border-strong" />
     ) : type === 'checkbox' ? (
-      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-sm border-2 border-[#9aa0a6]" />
+      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-sm border-2 border-border-strong" />
     ) : (
       <span aria-hidden="true" className={`w-20 shrink-0 text-center text-small-m ${SUB}`}>{i + 1}</span>
     )
@@ -700,7 +700,7 @@ function OptionList({ type, options, onChange }) {
               }
             }}
             aria-label={`보기 ${i + 1}`}
-            className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+            className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
           />
           <span className="flex shrink-0 items-center md:opacity-0 md:transition md:group-focus-within/opt:opacity-100 md:group-hover/opt:opacity-100">
             <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label={`보기 ${i + 1} 위로`} className={ICON_BTN}>
@@ -717,11 +717,10 @@ function OptionList({ type, options, onChange }) {
       ))}
       <div className="flex min-w-0 items-center gap-12">
         {marker(options.length)}
-        <button type="button" onClick={add} className={`h-40 cursor-pointer text-left text-body-m ${SUB} transition hover:text-[#5f43ce]`}>
+        <button type="button" onClick={add} className={`h-40 cursor-pointer text-left text-body-m ${SUB} transition hover:text-purple-light`}>
           옵션 추가
         </button>
       </div>
-      <p className={`mt-4 text-caption-m ${SUB}`}>엔터를 누르면 다음 보기가 생깁니다. 여러 줄을 한 번에 붙여넣으면 줄마다 보기가 됩니다.</p>
     </div>
   )
 }
@@ -730,7 +729,7 @@ function OptionList({ type, options, onChange }) {
 function FieldPreview({ field }) {
   const opts = Array.isArray(field.options) ? field.options : []
   const line = (text, wide = false) => (
-    <div className={`border-b border-dotted border-[#9aa0a6] pb-4 text-body-m ${SUB} ${wide ? 'w-full' : 'w-[min(100%,420px)]'}`}>{text}</div>
+    <div className={`border-b border-dotted border-border-strong pb-4 text-body-m ${SUB} ${wide ? 'w-full' : 'w-[min(100%,420px)]'}`}>{text}</div>
   )
   switch (field.type) {
     case 'textarea':
@@ -742,7 +741,7 @@ function FieldPreview({ field }) {
           {opts.length === 0 && <p className={`text-body-m ${SUB}`}>보기가 없습니다</p>}
           {opts.slice(0, 6).map((o, i) => (
             <div key={`${o}-${i}`} className={`flex items-center gap-12 text-body-m ${INK}`}>
-              <span aria-hidden="true" className={`h-20 w-20 shrink-0 border-2 border-[#9aa0a6] ${field.type === 'radio' ? 'rounded-full' : 'rounded-sm'}`} />
+              <span aria-hidden="true" className={`h-20 w-20 shrink-0 border-2 border-border-strong ${field.type === 'radio' ? 'rounded-full' : 'rounded-sm'}`} />
               <span className="min-w-0 break-words">{o || '(빈 보기)'}</span>
             </div>
           ))}
@@ -760,7 +759,7 @@ function FieldPreview({ field }) {
       )
     case 'file':
       return (
-        <span className={`inline-flex h-40 items-center gap-8 rounded-sm border ${LINE} px-16 text-body-m text-[#5f43ce]`}>
+        <span className={`inline-flex h-40 items-center gap-8 rounded-sm border ${LINE} px-16 text-body-m text-purple-light`}>
           <Upload size={16} aria-hidden="true" /> 파일 추가
         </span>
       )
@@ -773,7 +772,7 @@ function FieldPreview({ field }) {
           {nums.map((n) => (
             <span key={n} className="flex flex-col items-center gap-4">
               <span className={INK}>{n}</span>
-              <span aria-hidden="true" className="h-20 w-20 rounded-full border-2 border-[#9aa0a6]" />
+              <span aria-hidden="true" className="h-20 w-20 rounded-full border-2 border-border-strong" />
             </span>
           ))}
           {field.validation?.scaleMaxLabel && <span className={SUB}>{field.validation.scaleMaxLabel}</span>}
@@ -837,7 +836,7 @@ function QuestionCard({
         rp.onDragEnd?.(e)
       }}
       onClick={() => !active && onActivate()}
-      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] !border-l-[#7157d9]' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-[#7157d9]' : ''}`}
+      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] border-l-purple-primary' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-purple-primary' : ''}`}
     >
       <span
         onPointerDown={() => rp.draggable && onArm(true)}
@@ -845,7 +844,7 @@ function QuestionCard({
         onPointerCancel={() => onArm(false)}
         aria-label={`질문 ${index + 1} 순서 바꾸기. 끌어서 옮깁니다`}
         title="끌어서 순서 바꾸기"
-        className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-[#80868b] transition active:cursor-grabbing ${active ? '' : 'md:opacity-0 md:group-hover:opacity-100'}`}
+        className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-text-meta transition active:cursor-grabbing ${active ? '' : 'md:opacity-0 md:group-hover:opacity-100'}`}
       >
         <DragHandle />
       </span>
@@ -861,14 +860,14 @@ function QuestionCard({
               onActivate()
             }
           }}
-          className="flex min-w-0 flex-col gap-12 p-24 outline-none focus-visible:ring-2 focus-visible:ring-[#7157d9]"
+          className="flex min-w-0 flex-col gap-12 p-24 outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
         >
           <div className="flex items-start justify-between gap-12">
-            <p className={`min-w-0 break-words text-body-l-m font-medium md:text-body-l-d ${field.label_ko ? INK : 'text-[#80868b]'}`}>
+            <p className={`min-w-0 break-words text-body-l-m font-medium md:text-body-l-d ${field.label_ko ? INK : 'text-text-meta'}`}>
               {field.label_ko || '제목 없는 질문'}
-              {field.required && <span className="ml-4 text-[#d93025]" aria-label="필수">*</span>}
+              {field.required && <span className="ml-4 text-state-error" aria-label="필수">*</span>}
             </p>
-            <span className={`shrink-0 rounded-full bg-[#f1f3f4] px-12 py-4 text-caption-m ${SUB}`}>{meta.label}</span>
+            <span className={`shrink-0 rounded-full bg-bg-elev px-12 py-4 text-caption-m ${SUB}`}>{meta.label}</span>
           </div>
           {field.hint_ko && <p className={`whitespace-pre-wrap text-small-m ${SUB}`}>{field.hint_ko}</p>}
           <FieldPreview field={field} />
@@ -882,7 +881,7 @@ function QuestionCard({
               onChange={(e) => set('label_ko')(e.target.value)}
               placeholder="질문 제목"
               autoFocus={!field.label_ko}
-              className={`h-48 w-full !rounded-none !border-0 !border-b !border-[#80868b] !bg-[#f8f9fa] px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-body-l-d`}
+              className={`h-48 w-full !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
             />
             <TypeMenu value={field.type} onChange={changeType} label={`질문 ${index + 1} 유형 바꾸기. 지금은 ${meta.label}`} />
           </div>
@@ -893,15 +892,15 @@ function QuestionCard({
                 aria-label={`질문 ${index + 1} 설명`}
                 value={field.hint_ko}
                 onChange={(e) => set('hint_ko')(e.target.value)}
-                placeholder="질문 아래에 보여줄 설명 (예: 숫자만 입력)"
-                className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+                placeholder="설명"
+                className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
               />
               <button type="button" onClick={() => { set('hint_ko')(''); setShowHint(false) }} aria-label="설명 지우기" className={ICON_BTN}>
                 <X size={18} />
               </button>
             </div>
           ) : (
-            <button type="button" onClick={() => setShowHint(true)} className="-mt-8 flex h-40 w-fit cursor-pointer items-center gap-8 text-small-m font-semibold text-[#5f43ce] hover:underline">
+            <button type="button" onClick={() => setShowHint(true)} className="-mt-8 flex h-40 w-fit cursor-pointer items-center gap-8 text-small-m font-semibold text-purple-light hover:underline">
               <Plus size={16} aria-hidden="true" /> 설명 추가
             </button>
           )}
@@ -911,7 +910,7 @@ function QuestionCard({
           {(field.type === 'text' || field.type === 'textarea') && (
             <div className="flex flex-col gap-12">
               <FieldPreview field={field} />
-              <label className="flex flex-wrap items-center gap-8 text-small-m text-[#3c4043]">
+              <label className="flex flex-wrap items-center gap-8 text-small-m text-text-sec">
                 글자 수 제한
                 <input
                   type="number"
@@ -925,9 +924,9 @@ function QuestionCard({
                     set('validation')(next)
                   }}
                   placeholder="없음"
-                  className={`h-40 w-96 rounded-sm border ${LINE} px-12 text-body-m ${INK}`}
+                  className={`h-40 w-96 rounded-sm border ${LINE} bg-bg-elev px-12 text-body-m ${INK}`}
                 />
-                자 이하 <span className={SUB}>(비워 두면 제한 없음)</span>
+                자 이하
               </label>
             </div>
           )}
@@ -935,26 +934,25 @@ function QuestionCard({
           {['phone', 'email', 'studentid', 'date', 'time'].includes(field.type) && (
             <div className="flex flex-col gap-8">
               <FieldPreview field={field} />
-              <p className={`text-caption-m ${SUB}`}>{meta.desc}. 형식이 맞지 않으면 제출되지 않고 안내 문구가 나옵니다.</p>
             </div>
           )}
 
           {field.type === 'scale' && (
             <div className="flex flex-col gap-16">
-              <div className="flex flex-wrap items-center gap-12 text-body-m text-[#3c4043]">
-                <div className="w-80"><Select tone="light" value={String(sMin)} options={SCALE_FROM} onChange={(e) => setValidation({ scaleMin: Number(e.target.value) })} aria-label="시작 숫자" /></div>
+              <div className="flex flex-wrap items-center gap-12 text-body-m text-text-sec">
+                <div className="w-80"><Select value={String(sMin)} options={SCALE_FROM} onChange={(e) => setValidation({ scaleMin: Number(e.target.value) })} aria-label="시작 숫자" /></div>
                 <span>부터</span>
-                <div className="w-80"><Select tone="light" value={String(sMax)} options={SCALE_TO} onChange={(e) => setValidation({ scaleMax: Number(e.target.value) })} aria-label="끝 숫자" /></div>
+                <div className="w-80"><Select value={String(sMax)} options={SCALE_TO} onChange={(e) => setValidation({ scaleMax: Number(e.target.value) })} aria-label="끝 숫자" /></div>
                 <span>까지</span>
               </div>
               <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-                <label className="flex items-center gap-12 text-small-m text-[#3c4043]">
+                <label className="flex items-center gap-12 text-small-m text-text-sec">
                   <span className="w-48 shrink-0">{sMin}점 이름</span>
-                  <input value={field.validation?.scaleMinLabel || ''} onChange={(e) => setValidation({ scaleMinLabel: e.target.value })} placeholder="예: 전혀 아니다" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} px-12 text-body-m ${INK}`} />
+                  <input value={field.validation?.scaleMinLabel || ''} onChange={(e) => setValidation({ scaleMinLabel: e.target.value })} placeholder="이름" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} bg-bg-elev px-12 text-body-m ${INK}`} />
                 </label>
-                <label className="flex items-center gap-12 text-small-m text-[#3c4043]">
+                <label className="flex items-center gap-12 text-small-m text-text-sec">
                   <span className="w-48 shrink-0">{sMax}점 이름</span>
-                  <input value={field.validation?.scaleMaxLabel || ''} onChange={(e) => setValidation({ scaleMaxLabel: e.target.value })} placeholder="예: 매우 그렇다" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} px-12 text-body-m ${INK}`} />
+                  <input value={field.validation?.scaleMaxLabel || ''} onChange={(e) => setValidation({ scaleMaxLabel: e.target.value })} placeholder="이름" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} bg-bg-elev px-12 text-body-m ${INK}`} />
                 </label>
               </div>
               <FieldPreview field={field} />
@@ -963,16 +961,16 @@ function QuestionCard({
 
           {field.type === 'file' && <FileStorageCard field={field} storage={field.storage || DEFAULT_STORAGE} onStorage={set('storage')} {...driveProps} />}
 
-          <div className={`flex flex-wrap items-center justify-end gap-4 border-t border-[#e8eaed] pt-16`}>
+          <div className={`flex flex-wrap items-center justify-end gap-4 border-t border-border-subtle pt-16`}>
             <button type="button" onClick={onDuplicate} className={TEXT_BTN}>
               <Copy size={18} aria-hidden="true" /> 복제
             </button>
             <button type="button" onClick={onRemove} className={TEXT_BTN}>
               <Trash2 size={18} aria-hidden="true" /> 삭제
             </button>
-            <span className="mx-8 h-24 w-px bg-[#dadce0]" aria-hidden="true" />
+            <span className="mx-8 h-24 w-px bg-bg-elev" aria-hidden="true" />
             <span className={`text-small-m font-medium ${INK}`}>필수 질문</span>
-            <Toggle tone="light" checked={field.required} onChange={set('required')} label={`질문 ${index + 1} 필수 여부`} />
+            <Toggle checked={field.required} onChange={set('required')} label={`질문 ${index + 1} 필수 여부`} />
             <MoreMenu
               label={`질문 ${index + 1} 더보기`}
               items={[
@@ -1003,16 +1001,16 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
       onClick={() => !active && onActivate()}
       className={`group relative mt-16 ${dragging ? 'opacity-40' : ''}`}
     >
-      <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-[#5f43ce] px-16 py-8 text-small-m font-semibold text-white">
+      <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-purple-deep px-16 py-8 text-small-m font-semibold text-button-primaryText">
         {pageNo}페이지 시작
       </span>
-      <div className={`${CARD} ${active ? 'border-l-[6px] !border-l-[#7157d9]' : ''} mt-32 rounded-tl-none border-t-8 !border-t-[#5f43ce] ${over ? '!border-[#7157d9]' : ''}`}>
+      <div className={`${CARD} ${active ? 'border-l-[6px] border-l-purple-primary' : ''} mt-32 rounded-tl-none border-t-8 border-t-purple-deep ${over ? '!border-purple-primary' : ''}`}>
         <span
           onPointerDown={() => rp.draggable && onArm(true)}
           onPointerUp={() => onArm(false)}
           onPointerCancel={() => onArm(false)}
           aria-label={`페이지 나누기 ${pageNo} 순서 바꾸기`}
-          className="absolute left-1/2 top-12 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-[#80868b] active:cursor-grabbing"
+          className="absolute left-1/2 top-12 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-text-meta active:cursor-grabbing"
         >
           <DragHandle />
         </span>
@@ -1021,18 +1019,17 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
             aria-label={`${pageNo}페이지 제목`}
             value={field.label_ko}
             onChange={(e) => onChange({ ...field, label_ko: e.target.value })}
-            placeholder="페이지 제목 (예: 지원서 작성)"
-            className={`h-48 w-full !rounded-none !border-0 !border-b !border-[#80868b] !bg-[#f8f9fa] px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-body-l-d`}
+            placeholder="페이지 제목"
+            className={`h-48 w-full !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
           />
           <input
             aria-label={`${pageNo}페이지 설명`}
             value={field.hint_ko}
             onChange={(e) => onChange({ ...field, hint_ko: e.target.value })}
-            placeholder="페이지 설명 (선택)"
-            className={`h-40 w-full !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+            placeholder="페이지 설명"
+            className={`h-40 w-full !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
           />
-          <p className={`text-caption-m ${SUB}`}>신청 화면이 여기서 새 페이지로 넘어갑니다. 위의 질문은 앞 페이지, 아래 질문은 이 페이지에 나옵니다.</p>
-          <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8eaed] pt-16">
+          <div className="flex flex-wrap items-center justify-end gap-4 border-t border-border-subtle pt-16">
             <button type="button" onClick={() => onMove(-1)} disabled={index === 0} className={TEXT_BTN}>
               <ArrowUp size={18} aria-hidden="true" /> 위로
             </button>
@@ -1051,17 +1048,17 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
 
 /** 오른쪽(좁은 화면에서는 카드 아래) 추가 도구. 글자가 붙어 있어서 아이콘 뜻을 몰라도 된다 */
 function AddToolbar({ onAdd }) {
-  const btn = `flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm px-16 text-left text-small-m font-semibold ${INK} transition hover:bg-[#f3effd] hover:text-[#5f43ce] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#7157d9]`
+  const btn = `flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm px-16 text-left text-small-m font-semibold ${INK} transition hover:bg-glass-strong hover:text-purple-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-focus`
   return (
-    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md border ${LINE} bg-white p-4 shadow-[0_1px_2px_rgb(60_64_67/0.2)] sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
+    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md border ${LINE} bg-bg-panel p-4 shadow-card-glow sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
       <button type="button" onClick={() => onAdd('radio')} className={btn}>
-        <PlusCircle size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 질문 추가
+        <PlusCircle size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 질문 추가
       </button>
       <button type="button" onClick={() => onAdd('file')} className={btn}>
-        <Upload size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 파일 질문 추가
+        <Upload size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 파일 질문 추가
       </button>
       <button type="button" onClick={() => onAdd('section')} className={btn}>
-        <Rows3 size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 페이지 나누기
+        <Rows3 size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 페이지 나누기
       </button>
     </div>
   )
@@ -1070,57 +1067,42 @@ function AddToolbar({ onAdd }) {
 const TAB_LABEL = { questions: '질문', responses: '응답', settings: '설정' }
 
 const STATUS_TONE = {
-  ok: 'bg-[#e6f4ea] text-[#137333]',
-  warn: 'bg-[#fef7e0] text-[#b06000]',
-  info: 'bg-[#e8f0fe] text-[#1967d2]',
-  muted: 'bg-[#f1f3f4] text-[#5f6368]',
+  ok: 'border-state-success text-state-success',
+  warn: 'border-state-error text-state-error',
+  info: 'border-border-purple text-text-pri',
+  muted: 'border-border-subtle text-text-meta',
 }
 
-/** 설정 탭의 한 묶음. 제목과 한 줄 설명, 그 아래 내용 */
-function SettingGroup({ title, desc, children }) {
+/** 설정 탭의 한 묶음 */
+function SettingGroup({ title, children }) {
   return (
     <section className={`${CARD} gap-20 p-24 md:p-32`}>
-      <header>
-        <h3 className={`text-body-l-m font-bold md:text-body-l-d ${INK}`}>{title}</h3>
-        {desc && <p className={`mt-4 text-small-m ${SUB}`}>{desc}</p>}
-      </header>
+      <h3 className={`text-body-l-m font-bold md:text-body-l-d ${INK}`}>{title}</h3>
       {children}
     </section>
   )
 }
 
-/** 켜고 끄는 설정 한 줄. 이름과 쉬운 설명 + 스위치 */
-function SwitchRow({ title, desc, checked, onChange, label }) {
+/** 켜고 끄는 설정 한 줄 */
+function SwitchRow({ title, checked, onChange, label }) {
   return (
     <div className="flex items-center justify-between gap-16">
-      <div className="min-w-0">
-        <p className={`text-body-m font-semibold ${INK}`}>{title}</p>
-        {desc && <p className={`mt-4 text-small-m ${SUB}`}>{desc}</p>}
-      </div>
-      <Toggle tone="light" checked={checked} onChange={onChange} label={label} />
+      <p className={`text-body-m font-semibold ${INK}`}>{title}</p>
+      <Toggle checked={checked} onChange={onChange} label={label} />
     </div>
   )
 }
 
-function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy, copied, status }) {
+function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy, copied }) {
   const s = form.settings
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   return (
     <div className="flex flex-col gap-16">
-      <SettingGroup title="공개" desc="공개하면 주소를 아는 누구나 이 신청 폼을 열 수 있습니다. 저장해야 바뀝니다.">
-        <SwitchRow
-          title={form.published ? '공개 중' : '비공개 (나만 볼 수 있음)'}
-          desc={form.published ? '접수 기간 안에는 신청을 받을 수 있습니다.' : '준비가 끝나면 켜 주세요.'}
-          checked={form.published}
-          onChange={set('published')}
-          label="공개 여부"
-        />
-        <p className={`rounded-sm px-12 py-8 text-small-m font-semibold ${STATUS_TONE[status.tone]}`}>
-          지금 상태: {status.label}. {status.note}.
-        </p>
+      <SettingGroup title="공개">
+        <SwitchRow title={form.published ? '공개' : '비공개'} checked={form.published} onChange={set('published')} label="공개 여부" />
       </SettingGroup>
 
-      <SettingGroup title="접수 기간" desc="이 기간 안에만 신청할 수 있습니다. 시작과 마감을 둘 다 정해야 합니다.">
+      <SettingGroup title="접수 기간">
         <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
           <Field label="접수 시작">
             <DateInput withTime value={s.accept_start} onChange={setSettingInput('accept_start')} />
@@ -1128,61 +1110,49 @@ function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy
           <Field label="접수 마감">
             <DateInput withTime value={s.accept_end} viewDate={s.accept_start} onChange={setSettingInput('accept_end')} />
           </Field>
-          <Field label="제출 후 수정 가능한 기한" hint="비우면 접수 마감과 같습니다">
+          <Field label="수정 기한">
             <DateInput withTime value={s.edit_end} viewDate={s.accept_end} onChange={setSettingInput('edit_end')} />
           </Field>
-          <Field label="받을 수 있는 최대 응답 수" hint="비우면 제한 없음">
+          <Field label="최대 응답 수">
             <Input type="number" min="1" value={s.max_responses} onChange={setSettingInput('max_responses')} placeholder="제한 없음" />
           </Field>
         </div>
       </SettingGroup>
 
-      <SettingGroup title="응답자" desc="누가 어떻게 신청하는지 정합니다.">
-        <SwitchRow
-          title="구글 로그인 후 제출"
-          desc="켜면 구글 계정으로 로그인한 사람만 제출할 수 있고, 제출한 계정이 기록됩니다. 같은 계정으로 나중에 내용을 고칠 수 있습니다."
-          checked={s.require_google_auth}
-          onChange={setSetting('require_google_auth')}
-          label="구글 로그인 필요 여부"
-        />
+      <SettingGroup title="응답자">
+        <SwitchRow title="구글 로그인 후 제출" checked={s.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 로그인 필요 여부" />
       </SettingGroup>
 
-      <SettingGroup title="사이트에서 보이는 방식" desc="학생이 신청 폼을 어떻게 찾아오는지 정합니다.">
-        <SwitchRow
-          title="사이트 맨 위에 신청 버튼 표시"
-          desc="켜면 모든 페이지 상단에 이 폼으로 가는 버튼이 생깁니다."
-          checked={s.show_button_in_header}
-          onChange={setSetting('show_button_in_header')}
-          label="상단 버튼 표시 여부"
-        />
-        <Field label="버튼에 적을 글자" hint="비우면 ‘신청하기’">
+      <SettingGroup title="사이트 표시">
+        <SwitchRow title="상단 신청 버튼" checked={s.show_button_in_header} onChange={setSetting('show_button_in_header')} label="상단 버튼 표시 여부" />
+        <Field label="버튼 글자">
           <Input value={s.button_label_ko} onChange={setSettingInput('button_label_ko')} placeholder="신청하기" />
         </Field>
       </SettingGroup>
 
-      <SettingGroup title="주소와 분류" desc="목록에서 폼을 구분하고, 학생에게 알려줄 주소를 정합니다.">
-        <Field label="신청 페이지 주소" hint="영어 소문자, 숫자, 하이픈만 쓸 수 있습니다. 공개한 뒤에는 바꾸지 않는 것이 좋습니다.">
+      <SettingGroup title="주소와 분류">
+        <Field label="신청 페이지 주소">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-stretch">
-            <div className={`flex min-w-0 flex-1 items-center overflow-hidden rounded-md border ${LINE} bg-white`}>
-              <span className={`hidden shrink-0 bg-[#f1f3f4] px-12 py-12 text-small-m ${SUB} sm:block`}>{origin}/forms/</span>
+            <div className={`flex min-w-0 flex-1 items-center overflow-hidden rounded-md border ${LINE} bg-bg-panel`}>
+              <span className={`hidden shrink-0 bg-bg-elev px-12 py-12 text-small-m ${SUB} sm:block`}>{origin}/forms/</span>
               <input
                 value={form.slug}
                 onChange={(e) => set('slug')(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
                 placeholder="closing-2026-2"
                 aria-label="신청 페이지 주소"
-                className={`!rounded-none !border-0 min-w-0 flex-1 px-12 py-12 text-body-m ${INK} outline-none`}
+                className={`!rounded-none !border-0 min-w-0 flex-1 bg-transparent px-12 py-12 text-body-m ${INK} outline-none`}
               />
             </div>
             <GhostButton onClick={onCopy} disabled={!form.slug} className="shrink-0">
               {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
-              {copied ? '복사했습니다' : '주소 복사'}
+              {copied ? '복사됨' : '주소 복사'}
             </GhostButton>
           </div>
           {publicUrl && <span className={`break-all text-caption-m ${SUB}`}>{publicUrl}</span>}
         </Field>
-        <Field label="분류" hint="행사: 참가 신청, 모집: 부원이나 멘토 모집, 기타: 그 밖의 폼. 목록에서 구분하는 용도입니다.">
+        <Field label="분류">
           <div className="max-w-[320px]">
-            <Select tone="light" value={form.category} options={CATEGORY_OPTIONS} onChange={(e) => set('category')(e.target.value)} />
+            <Select value={form.category} options={CATEGORY_OPTIONS} onChange={(e) => set('category')(e.target.value)} />
           </div>
         </Field>
       </SettingGroup>
@@ -1222,8 +1192,7 @@ function ResponsesTab({ formId, fields, resp }) {
   if (!formId) {
     return (
       <div className={`${CARD} p-32 text-center`}>
-        <p className={`text-body-l-m font-bold ${INK}`}>아직 응답을 볼 수 없습니다</p>
-        <p className={`mt-8 text-small-m ${SUB}`}>먼저 오른쪽 위 ‘저장’을 눌러 폼을 만들어 주세요.</p>
+        <p className={`text-body-l-m font-bold ${INK}`}>저장 후 응답을 볼 수 있습니다</p>
       </div>
     )
   }
@@ -1247,26 +1216,24 @@ function ResponsesTab({ formId, fields, resp }) {
       <section className={`${CARD} gap-16 p-24 md:p-32`}>
         <div className="flex flex-wrap items-center justify-between gap-16">
           <div>
-            <p className={`text-small-m ${SUB}`}>지금까지 받은 응답</p>
+            <p className={`text-small-m ${SUB}`}>응답</p>
             <p className={`text-h2-m font-bold md:text-h2-d ${INK}`}>{loading ? '불러오는 중' : `${items.length}건`}</p>
           </div>
           <div className="flex flex-wrap items-center gap-8">
-            <a href={`/admin/forms/${formId}/responses/sheet`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-8 rounded-sm bg-[#7157d9] px-24 text-body-m font-semibold text-white transition hover:bg-[#5f43ce]">
+            <a href={`/admin/forms/${formId}/responses/sheet`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-8 rounded-sm bg-purple-primary px-24 text-body-m font-semibold text-button-primaryText transition hover:bg-purple-deep">
               <Table2 size={16} aria-hidden="true" /> 표로 보기
             </a>
-            <GhostButton onClick={download} disabled={busy || !items.length} className="border-[#dadce0] text-[#202124]">
+            <GhostButton onClick={download} disabled={busy || !items.length} className="border-border-subtle text-text-pri">
               <Download size={16} aria-hidden="true" /> {busy ? '내려받는 중' : '엑셀용 파일 받기'}
             </GhostButton>
           </div>
         </div>
-        <p className={`text-small-m ${SUB}`}>‘표로 보기’는 새 탭에서 열리고, 응답을 한 줄씩 보고 고치고 지울 수 있습니다. ‘엑셀용 파일 받기’는 CSV 파일로 저장됩니다.</p>
         <ErrorText>{dlError || error?.message}</ErrorText>
       </section>
 
       {!loading && items.length === 0 && (
         <div className={`${CARD} p-32 text-center`}>
-          <p className={`text-body-l-m font-bold ${INK}`}>아직 들어온 응답이 없습니다</p>
-          <p className={`mt-8 text-small-m ${SUB}`}>공개하고 접수 기간이 되면 여기에 쌓입니다.</p>
+          <p className={`text-body-l-m font-bold ${INK}`}>응답 없음</p>
         </div>
       )}
 
@@ -1284,8 +1251,8 @@ function ResponsesTab({ formId, fields, resp }) {
                 {rows.map((r) => (
                   <li key={r.label} className="grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_56px] items-center gap-12 text-small-m">
                     <span className={`truncate ${INK}`}>{r.label}</span>
-                    <span className="h-16 rounded-sm bg-[#f1f3f4]">
-                      <span className="block h-16 rounded-sm bg-[#7157d9]" style={{ width: `${(r.n / top) * 100}%` }} />
+                    <span className="h-16 rounded-sm bg-bg-elev">
+                      <span className="block h-16 rounded-sm bg-purple-primary" style={{ width: `${(r.n / top) * 100}%` }} />
                     </span>
                     <span className={`text-right ${SUB}`}>{r.n}명</span>
                   </li>
@@ -1434,7 +1401,7 @@ function FormEditor() {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
-      setSaveError('공개 링크를 복사하지 못했습니다. 설정 탭의 주소를 직접 복사해 주세요.')
+      setSaveError('주소를 복사하지 못했습니다')
     }
   }
 
@@ -1474,7 +1441,7 @@ function FormEditor() {
 
   const backTo = '/admin/forms'
   const leave = () => {
-    if (dirty && !window.confirm('저장하지 않은 변경이 있습니다. 저장하지 않고 나갈까요?')) return
+    if (dirty && !window.confirm('저장하지 않은 변경이 있습니다. 나갈까요?')) return
     navigate(backTo)
   }
 
@@ -1482,7 +1449,7 @@ function FormEditor() {
     e?.preventDefault()
     if (busy) return
     if (!canSaveForm) {
-      setSaveError('폼 제목을 먼저 적어 주세요. 질문 탭 맨 위 칸입니다.')
+      setSaveError('폼 제목이 필요합니다')
       setTab('questions')
       setActiveId('header')
       return
@@ -1550,32 +1517,32 @@ function FormEditor() {
   }
 
   return (
-    <section className="form-workspace isolate min-h-[100dvh] pb-80">
-      <header className="sticky top-0 z-30 border-b border-[#dadce0] bg-white">
+    <section className="isolate min-h-[100dvh] bg-bg-base pb-80 text-text-pri">
+      <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-panel">
         <div className="flex min-h-64 flex-wrap items-center justify-between gap-12 px-16 py-8 md:px-24">
           <div className="flex min-w-0 items-center gap-12">
-            <button type="button" onClick={leave} className="flex h-11 shrink-0 cursor-pointer items-center gap-8 rounded-sm px-12 text-body-m font-semibold text-[#3c4043] transition hover:bg-[#f1f3f4]" aria-label="신청 폼 목록으로 돌아가기">
+            <button type="button" onClick={leave} className="flex h-11 shrink-0 cursor-pointer items-center gap-8 rounded-sm px-12 text-body-m font-semibold text-text-sec transition hover:bg-glass-strong" aria-label="신청 폼 목록으로 돌아가기">
               <ArrowLeft size={18} aria-hidden="true" /> <span className="hidden sm:inline">목록</span>
             </button>
-            <FileText size={24} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
-            <p className={`min-w-0 max-w-[420px] truncate text-body-l-m font-medium ${form.title_ko ? INK : 'text-[#80868b]'}`}>{form.title_ko || '제목 없는 폼'}</p>
+            <FileText size={24} className="shrink-0 text-purple-light" aria-hidden="true" />
+            <p className={`min-w-0 max-w-[420px] truncate text-body-l-m font-medium ${form.title_ko ? INK : 'text-text-meta'}`}>{form.title_ko || '제목 없는 폼'}</p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-8">
-            <span aria-live="polite" className={`hidden text-small-m lg:block ${dirty ? 'font-semibold text-[#b06000]' : SUB}`}>
-              {busy ? '저장하는 중' : dirty ? '저장하지 않은 변경이 있습니다' : savedAt ? '저장했습니다' : ''}
+            <span aria-live="polite" className={`hidden text-small-m lg:block ${dirty ? 'font-semibold text-purple-light' : SUB}`}>
+              {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
             </span>
-            <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
+            <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-sm border bg-transparent px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
               {status.label}
             </button>
-            <GhostButton onClick={() => setPreview(true)} className="border-[#dadce0] text-[#3c4043]">
+            <GhostButton onClick={() => setPreview(true)} className="border-border-subtle text-text-sec">
               <Eye size={16} aria-hidden="true" />
               <span className="hidden sm:inline">미리보기</span>
             </GhostButton>
-            <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-[#dadce0] text-[#3c4043]" title="신청 페이지 주소 복사">
+            <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-border-subtle text-text-sec" title="신청 페이지 주소 복사">
               {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
-              <span className="hidden md:inline">{copied ? '복사했습니다' : '주소 복사'}</span>
+              <span className="hidden md:inline">{copied ? '복사됨' : '주소 복사'}</span>
             </GhostButton>
-            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="!bg-[#7157d9] hover:!bg-[#5f43ce] disabled:!bg-[#e8eaed] disabled:!text-[#80868b]">
+            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)}>
               <Save size={16} aria-hidden="true" />
               {busy ? '저장 중' : '저장'}
             </PrimaryButton>
@@ -1589,11 +1556,11 @@ function FormEditor() {
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`h-48 cursor-pointer border-b-[3px] px-16 text-body-m font-semibold transition ${tab === key ? 'border-[#7157d9] text-[#5f43ce]' : 'border-transparent text-[#5f6368] hover:bg-[#f8f9fa]'}`}
+              className={`h-48 cursor-pointer border-b-[3px] px-16 text-body-m font-semibold transition ${tab === key ? 'border-purple-primary text-purple-light' : 'border-transparent text-text-sec hover:bg-glass-strong'}`}
             >
               {label}
               {key === 'responses' && typeof responseCount === 'number' && (
-                <span className="ml-8 rounded-full bg-[#3c4043] px-8 py-4 text-caption-m text-white">{responseCount}</span>
+                <span className="ml-8 rounded-full bg-glass-strong px-8 py-4 text-caption-m text-button-primaryText">{responseCount}</span>
               )}
             </button>
           ))}
@@ -1616,24 +1583,23 @@ function FormEditor() {
             <>
               <div data-card-id="header" className="relative">
                 {/* 클릭 처리는 카드에만 건다. 추가 도구까지 감싸면 도구를 눌렀을 때 클릭이 위로 올라와 방금 만든 질문 대신 제목 카드가 다시 선택된다 */}
-                <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] !border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] !border-l-[#7157d9]' : ''}`}>
+                <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] border-t-purple-primary p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] border-l-purple-primary' : ''}`}>
                   <input
                     aria-label="폼 제목"
                     autoFocus={isNew}
                     value={form.title_ko}
                     onChange={setInput('title_ko')}
-                    placeholder="폼 제목 (예: 2026-2학기 종강 총회 참가 신청)"
-                    className={`w-full !rounded-none !border-0 !border-b !border-[#dadce0] !bg-transparent px-0 pb-8 text-h2-m font-bold ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-h2-d`}
+                    placeholder="폼 제목"
+                    className={`w-full !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-h2-m font-bold ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-h2-d`}
                   />
                   <textarea
                     aria-label="폼 안내문"
                     rows={4}
                     value={form.description_ko}
                     onChange={setInput('description_ko')}
-                    placeholder="안내문 (신청 대상, 일정, 문의처를 적어 주세요. 줄바꿈은 그대로 보입니다)"
-                    className={`w-full resize-y !rounded-none !border-0 !border-b !border-[#dadce0] !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+                    placeholder="폼 설명"
+                    className={`w-full resize-y !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
                   />
-                  <p className={`text-caption-m ${SUB}`}>이 제목과 안내문이 신청 화면 맨 위에 그대로 보입니다.</p>
                 </div>
                 {activeId === 'header' && <AddToolbar onAdd={addField} />}
               </div>
@@ -1642,9 +1608,9 @@ function FormEditor() {
                 <button
                   type="button"
                   onClick={() => addField('radio')}
-                  className={`flex min-h-160 w-full cursor-pointer flex-col items-center justify-center gap-12 rounded-md border-2 border-dashed border-[#c4b8f0] bg-white px-24 text-center ${INK} transition hover:border-[#7157d9] hover:bg-[#faf8ff]`}
+                  className={`flex min-h-160 w-full cursor-pointer flex-col items-center justify-center gap-12 rounded-md border-2 border-dashed border-border-purple bg-bg-panel px-24 text-center ${INK} transition hover:border-purple-primary hover:bg-glass-bg`}
                 >
-                  <span className="flex h-40 w-40 items-center justify-center rounded-full bg-[#eee9ff] text-[#5f43ce]">
+                  <span className="flex h-40 w-40 items-center justify-center rounded-full bg-glass-bg text-purple-light">
                     <Plus size={20} aria-hidden="true" />
                   </span>
                   <span className="text-body-m font-semibold">첫 질문 추가</span>
@@ -1714,13 +1680,12 @@ function FormEditor() {
               publicUrl={publicUrl}
               onCopy={copyPublicUrl}
               copied={copied}
-              status={status}
             />
           )}
 
           <ErrorText>{saveError}</ErrorText>
           {saveIssues.length > 0 && (
-            <ul className="flex flex-col gap-4 rounded-sm border border-[#d93025]/40 bg-[#fce8e6] p-12 text-small-m text-[#c5221f]">
+            <ul className="flex flex-col gap-4 rounded-sm border border-state-error/40 bg-bg-elev p-12 text-small-m text-state-error">
               {saveIssues.map((issue, i) => (
                 <li key={`${issue.code}-${i}`}>{issue.message}</li>
               ))}
@@ -1730,17 +1695,16 @@ function FormEditor() {
       )}
 
       {preview && (
-        <div role="dialog" aria-modal="true" aria-label="신청 화면 미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-[#202124]/50 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
-          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md bg-[#f0ebf8] shadow-[0_24px_64px_rgb(32_33_36/0.35)]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-12 rounded-t-md border-b border-[#dadce0] bg-white px-20 py-12">
+        <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/70 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
+          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md bg-bg-base shadow-card-glow" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-12 rounded-t-md border-b border-border-subtle bg-bg-panel px-20 py-12">
               <div className="min-w-0">
-                <p className={`text-body-m font-bold ${INK}`}>신청 화면 미리보기</p>
-                <p className={`truncate text-caption-m ${SUB}`}>학생에게 이렇게 보입니다. 여기서 입력해도 저장되지 않습니다.</p>
+                <p className={`text-body-m font-bold ${INK}`}>미리보기</p>
               </div>
               <button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button>
             </div>
             <div className="p-16 md:p-32">
-              <div className="rounded-md border-t-[10px] border-[#7157d9] bg-white p-24 shadow-sm md:p-32">
+              <div className="rounded-md border-t-[10px] border-purple-primary bg-bg-panel p-24 shadow-sm md:p-32">
                 <h2 className={`text-h2-m font-bold ${INK}`}>{form.title_ko || '제목 없는 폼'}</h2>
                 {form.description_ko && <p className={`mt-12 whitespace-pre-wrap text-body-m leading-relaxed ${SUB}`}>{form.description_ko}</p>}
                 <div className="mt-24">

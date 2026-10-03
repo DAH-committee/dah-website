@@ -32,7 +32,7 @@ const TONE = {
 function periodOf(settings) {
   const start = formatKst(settings?.accept_start)
   const end = formatKst(settings?.accept_end)
-  if (!start && !end) return '접수 기간을 아직 정하지 않았습니다'
+  if (!start && !end) return '접수 기간 미설정'
   return `${start || '시작 미정'} 부터 ${end || '마감 미정'} 까지`
 }
 
@@ -141,7 +141,6 @@ function FormsAdmin() {
     <section className="flex flex-col gap-24">
       <PageHead
         title="신청 폼 관리"
-        desc="행사 참가 신청, 부원 모집 같은 신청 폼을 만들고 받은 응답을 확인합니다"
         offline={offline}
         actions={
           <Link to="/admin/forms/new" className={NEW_LINK}>
@@ -158,7 +157,7 @@ function FormsAdmin() {
       )}
       {error && <ErrorText>{error.message}</ErrorText>}
       {loading && <p className="text-small-m text-text-meta">불러오는 중</p>}
-      {!loading && !items.length && <EmptyNote>아직 만든 신청 폼이 없습니다. 오른쪽 위 ‘새 폼 만들기’로 시작하세요</EmptyNote>}
+      {!loading && !items.length && <EmptyNote>신청 폼 없음</EmptyNote>}
 
       {items.length > 0 && (
         <ul className="flex flex-col gap-12">

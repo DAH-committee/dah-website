@@ -317,34 +317,6 @@ html[data-dah-easter-egg='on'] {
     scrollbar-color: rgb(var(--dah-purple-mid) / 0.95) rgb(var(--dah-bg-elev) / 0.52);
   }
 
-  /* 폼 빌더는 작업 도구다. 공개 사이트의 우주 테마와 분리해 Google Forms처럼 연한 라벤더
-     바탕 위에 흰 질문 카드를 쌓는다. 카드와 입력칸은 순백, 글자는 거의 검정으로 두어
-     밝은 화면에서도 글자가 흐리지 않게 한다. 범위를 .form-workspace로 제한해 다른 관리자 폼에는 영향 없다. */
-  .form-workspace {
-    /* 다크 사이트의 공용 text-* 토큰을 그대로 쓰는 내부 컨트롤도 밝은 작업면에서 읽힌다. */
-    --dah-bg-elev: 248 249 250;
-    --dah-bg-panel: 255 255 255;
-    --dah-text-pri: 32 33 36;
-    --dah-text-sec: 60 64 67;
-    --dah-text-meta: 95 99 104;
-    --dah-border-subtle: rgb(218 220 224);
-    color: #202124;
-    background: #f0ebf8;
-  }
-  .form-workspace input:not([type='checkbox']):not([type='radio']),
-  .form-workspace textarea {
-    border-color: #dadce0;
-    background: #fff;
-    color: #202124;
-  }
-  .form-workspace input::placeholder,
-  .form-workspace textarea::placeholder { color: #80868b; }
-  .form-workspace .form-editor-panel {
-    border-color: #dadce0;
-    background: #fff;
-    box-shadow: 0 1px 2px rgb(60 64 67 / 0.14), 0 1px 3px 1px rgb(60 64 67 / 0.08);
-  }
-
   /* K2-3의 .rich-bright(공지 상세 다크 본문 가독 상향)는 H3-5(37_SHEET_ROADMAP)에서
      공지·자료실 상세가 G4 밝은 읽기 표면 + RichBody tone="light"로 전환되면서
      유일한 사용처가 사라져 제거했다(우리 변경이 만든 고아 코드). */
