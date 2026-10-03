@@ -507,6 +507,20 @@ export default function SheetWorkspace({
       showToast(err.message || '행을 추가하지 못했습니다')
     }
   }
+  const deleteCustomColumns = () => {
+    if (!bounds) return showToast('먼저 열을 선택해 주세요')
+    const keys = columns.slice(bounds.c0, bounds.c1 + 1).filter((c) => c.custom).map((c) => c.key)
+    if (!keys.length) return showToast('선택한 열에 삭제할 메모 열이 없습니다')
+    if (!window.confirm(`메모 열 ${keys.length}개를 삭제할까요? 열에 적은 내용도 함께 지워집니다.`)) return
+    setUi((cur) => ({
+      ...cur,
+      customCols: cur.customCols.filter((c) => !keys.includes(c.key)),
+      customValues: Object.fromEntries(
+        Object.entries(cur.customValues).map(([id, v]) => [id, Object.fromEntries(Object.entries(v).filter(([k]) => !keys.includes(k)))])
+      ),
+    }))
+    setSel(null)
+  }
   const hideSelectedColumns = () => {
     if (!bounds) return showToast('먼저 열을 선택해 주세요')
     const keys = columns.slice(bounds.c0, bounds.c1 + 1).map((c) => c.key)
@@ -745,6 +759,7 @@ export default function SheetWorkspace({
           items: [
             { label: '셀 내용 지우기', shortcut: 'Delete', onSelect: clearSelection, disabled: !hasSel || !sheet.editable },
             { label: '선택한 행 삭제', onSelect: deleteSelectedRows, disabled: !hasSel || !onDeleteRows },
+            { label: '선택한 메모 열 삭제', onSelect: deleteCustomColumns, disabled: !hasSel || !sheet.allowCustom },
           ],
         },
         { type: 'divider' },
