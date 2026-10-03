@@ -1614,8 +1614,9 @@ function FormEditor() {
         <form id="form-editor" onSubmit={save} onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault() }} className="mx-auto mt-24 flex w-full max-w-[770px] flex-col gap-16 px-16 md:px-0">
           {tab === 'questions' && (
             <>
-              <div data-card-id="header" onClick={() => setActiveId('header')} className="relative">
-                <div className={`${CARD} gap-16 border-t-[10px] !border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] !border-l-[#7157d9]' : ''}`}>
+              <div data-card-id="header" className="relative">
+                {/* 클릭 처리는 카드에만 건다. 추가 도구까지 감싸면 도구를 눌렀을 때 클릭이 위로 올라와 방금 만든 질문 대신 제목 카드가 다시 선택된다 */}
+                <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] !border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] !border-l-[#7157d9]' : ''}`}>
                   <input
                     aria-label="폼 제목"
                     autoFocus={isNew}
