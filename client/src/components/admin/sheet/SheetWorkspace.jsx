@@ -49,7 +49,7 @@ function Divider() {
 }
 
 /** 작은 팝업(색 고르기, 확대 비율). 바깥을 누르면 닫힌다 */
-function Pop({ label, trigger, children }) {
+function Pop({ label, trigger, children, wide = false }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -67,7 +67,7 @@ function Pop({ label, trigger, children }) {
   }, [open])
   return (
     <div ref={ref} className="relative">
-      <button type="button" aria-label={label} title={label} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={TB_BTN}>
+      <button type="button" aria-label={label} title={label} aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={`${TB_BTN} ${wide ? '!w-auto whitespace-nowrap px-8' : ''}`}>
         {trigger}
       </button>
       {open && (
@@ -226,6 +226,7 @@ export default function SheetWorkspace({
   latest.current = { rows: sheet.rows, allCols, ui, setUi }
 
   // ── 선택, 편집 ─────────────────────────────────────────────
+  const [dialog, setDialog] = useState(null) // { type:'text', ... } | { type:'find' } | { type:'export' }
   const [sel, setSel] = useState(null) // { anchor:{r,c}, focus:{r,c} }
   const [editing, setEditingState] = useState(null) // { r, c, value, orig }
   // 확정과 흐림(blur)이 거의 동시에 와도 한 번만 저장하도록 ref에도 둔다
@@ -235,6 +236,8 @@ export default function SheetWorkspace({
     setEditingState(v)
   }
   const gridRef = useRef(null)
+  // 선택한 칸 안에 늘 들어 있는 입력칸. 키 입력(한글 조합 포함)을 받아 편집 모드로 바꾼다
+  const proxyRef = useRef(null)
   const dragging = useRef(false)
 
   const bounds = useMemo(
@@ -344,7 +347,7 @@ export default function SheetWorkspace({
     setEditing({ r, c, value: initial ?? orig, orig })
   }
 
-  const focusGrid = () => gridRef.current?.focus({ preventScroll: true })
+  const focusGrid = () => (proxyRef.current || gridRef.current)?.focus({ preventScroll: true })
 
   const select = (r, c, extend = false) => {
     const nr = clamp(r, 0, Math.max(0, visibleRows.length - 1))
@@ -368,6 +371,15 @@ export default function SheetWorkspace({
     setEditing(null)
     focusGrid()
   }
+
+  // 선택한 칸이 바뀌거나 편집이 시작되면 그 칸의 입력칸이 키보드를 받는다(대화상자가 열려 있으면 건드리지 않는다)
+  useEffect(() => {
+    if (!active || dialog) return
+    const el = proxyRef.current
+    if (!el) return
+    el.focus({ preventScroll: true })
+    if (editing) el.setSelectionRange(el.value.length, el.value.length)
+  }, [active?.r, active?.c, editing?.r, editing?.c, dialog]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 선택한 칸을 화면 안으로
   useEffect(() => {
@@ -504,7 +516,6 @@ export default function SheetWorkspace({
   }
 
   // ── 대화상자 ───────────────────────────────────────────────
-  const [dialog, setDialog] = useState(null) // { type:'text', title, label, value, onOk } | { type:'find' } | { type:'export' }
   const askText = (opts) => setDialog({ type: 'text', ...opts })
   const addCustomColumn = () =>
     askText({
@@ -616,10 +627,7 @@ export default function SheetWorkspace({
     if (k === 'Enter' || k === 'F2') return e.preventDefault(), startEdit(active.r, active.c)
     if (k === 'Delete' || k === 'Backspace') return e.preventDefault(), clearSelection()
     if (k === 'Escape') return setSel(null)
-    if (k.length === 1 && !e.altKey) {
-      e.preventDefault()
-      startEdit(active.r, active.c, k)
-    }
+    // 글자 키는 막지 않는다. 입력칸이 받아서 onChange에서 편집 모드로 바뀐다(한글 조합도 끊기지 않는다)
   }
 
   // 드래그 선택은 표 밖에서 놓아도 끝나도록 window에 건다
@@ -843,7 +851,7 @@ export default function SheetWorkspace({
         <button type="button" aria-label="인쇄" title="인쇄" onClick={() => window.print()} className={TB_BTN}><Printer size={18} /></button>
         <button type="button" aria-label="새로고침" title="새로고침" onClick={onRefresh} className={TB_BTN}><RefreshCw size={18} /></button>
         <Divider />
-        <Pop label={`확대/축소 ${ui.zoom}%`} trigger={<span className="text-small-m font-semibold">{ui.zoom}%</span>}>
+        <Pop wide label={`확대/축소 ${ui.zoom}%`} trigger={<span className="text-small-m font-semibold">{ui.zoom}%</span>}>
           {(close) => (
             <div className="flex flex-col">
               {ZOOMS.map((z) => (
@@ -1065,53 +1073,65 @@ export default function SheetWorkspace({
                           data-cell={`${r}-${c}`}
                           role="gridcell"
                           aria-selected={on || undefined}
-                          className={`p-0 align-top ${ui.grid ? CELL_LINE : 'border-b border-r border-transparent'} ${frozen ? 'sticky z-10 bg-reading-surface' : ''} ${fill}`}
+                          className={`relative p-0 align-top ${ui.grid ? CELL_LINE : 'border-b border-r border-transparent'} ${frozen ? 'sticky z-10 bg-reading-surface' : ''} ${fill}`}
                           style={frozen ? { left: frozenLeft[c] } : undefined}
                         >
-                          {isEditing ? (
+                          {isActive && (
                             <input
-                              autoFocus
-                              aria-label={`${a1(r, c)} 입력`}
-                              value={editing.value}
-                              onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                              ref={proxyRef}
+                              aria-label={`${a1(r, c)} ${isEditing ? '입력' : '선택한 칸'}`}
+                              value={isEditing ? editing.value : ''}
+                              autoComplete="off"
+                              onChange={(e) => {
+                                if (isEditing) setEditing({ ...editing, value: e.target.value })
+                                else if (e.target.value) startEdit(r, c, e.target.value)
+                              }}
                               onBlur={() => commitEdit(0, 0, { move: false })}
                               onKeyDown={(e) => {
                                 e.stopPropagation()
-                                if (e.key === 'Enter') { e.preventDefault(); commitEdit(1, 0) }
-                                else if (e.key === 'Tab') { e.preventDefault(); commitEdit(0, e.shiftKey ? -1 : 1) }
-                                else if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+                                if (isEditing) {
+                                  if (e.nativeEvent.isComposing) return
+                                  if (e.key === 'Enter') { e.preventDefault(); commitEdit(1, 0) }
+                                  else if (e.key === 'Tab') { e.preventDefault(); commitEdit(0, e.shiftKey ? -1 : 1) }
+                                  else if (e.key === 'Escape') { e.preventDefault(); cancelEdit() }
+                                  return
+                                }
+                                onGridKeyDown(e)
                               }}
-                              className="block h-full w-full bg-reading-surface px-12 py-8 text-small-m text-reading-text outline outline-2 outline-offset-[-2px] outline-reading-accent"
-                              style={f.size ? { fontSize: f.size } : undefined}
+                              className={
+                                isEditing
+                                  ? 'absolute inset-0 z-[1] block h-full w-full bg-reading-surface px-12 py-8 text-small-m text-reading-text outline outline-2 outline-offset-[-2px] outline-reading-accent'
+                                  : 'pointer-events-none absolute inset-0 block h-full w-full opacity-0'
+                              }
+                              style={isEditing && f.size ? { fontSize: f.size } : undefined}
                             />
-                          ) : (
-                            <div
-                              title={note ? `메모: ${note}` : value}
-                              onMouseDown={(e) => {
-                                e.preventDefault()
-                                if (editingRef.current) commitEdit(0, 0, { move: false })
-                                focusGrid()
-                                dragging.current = true
-                                if (e.shiftKey && sel) setSel({ anchor: sel.anchor, focus: { r, c } })
-                                else setSel({ anchor: { r, c }, focus: { r, c } })
-                              }}
-                              onMouseEnter={() => dragging.current && setSel((prev) => (prev ? { ...prev, focus: { r, c } } : prev))}
-                              onDoubleClick={() => startEdit(r, c)}
-                              className={`relative block min-h-[37px] w-full cursor-cell px-12 py-8 ${ALIGN_CLASS[f.align] || 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
-                                isActive
-                                  ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
-                                  : on
-                                    ? 'bg-reading-accent/10'
-                                    : matchSet.has(`${r}-${c}`)
-                                      ? 'bg-state-success/10'
-                                      : 'hover:bg-reading-subtle/60'
-                              } ${on && !isActive ? 'bg-reading-accent/10' : ''}`}
-                              style={f.size ? { fontSize: f.size } : undefined}
-                            >
-                              {value}
-                              {note && <span aria-hidden="true" className="absolute right-0 top-0 h-8 w-8 bg-reading-accent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />}
-                            </div>
                           )}
+                          <div
+                            title={note ? `메모: ${note}` : value}
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              if (editingRef.current) commitEdit(0, 0, { move: false })
+                              focusGrid()
+                              dragging.current = true
+                              if (e.shiftKey && sel) setSel({ anchor: sel.anchor, focus: { r, c } })
+                              else setSel({ anchor: { r, c }, focus: { r, c } })
+                            }}
+                            onMouseEnter={() => dragging.current && setSel((prev) => (prev ? { ...prev, focus: { r, c } } : prev))}
+                            onDoubleClick={() => startEdit(r, c)}
+                            className={`relative block min-h-[37px] w-full cursor-cell px-12 py-8 ${ALIGN_CLASS[f.align] || 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
+                              isActive
+                                ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
+                                : on
+                                  ? 'bg-reading-accent/10'
+                                  : matchSet.has(`${r}-${c}`)
+                                    ? 'bg-state-success/10'
+                                    : 'hover:bg-reading-subtle/60'
+                            }`}
+                            style={f.size ? { fontSize: f.size } : undefined}
+                          >
+                            {value}
+                            {note && <span aria-hidden="true" className="absolute right-0 top-0 h-8 w-8 bg-reading-accent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />}
+                          </div>
                         </td>
                       )
                     })}

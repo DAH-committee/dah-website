@@ -13,9 +13,9 @@ export function colLetter(index) {
   return out
 }
 
-/** 셀 주소. 예: (0, 0) -> A1 */
+/** 셀 주소. 1행은 머리글이라 데이터 첫 행(r=0)은 2행이다. 예: (0, 0) -> A2 */
 export function a1(r, c) {
-  return `${colLetter(c)}${r + 1}`
+  return `${colLetter(c)}${r + 2}`
 }
 
 /** 선택 범위 이름. 한 칸이면 A1, 여러 칸이면 A1:C3 */
