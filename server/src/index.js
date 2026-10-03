@@ -1,7 +1,7 @@
 // DAH API 서버 진입점. 앱 구성은 src/app.js(createApp), DB는 src/db.js. 12_BACKEND.md 참조.
 import 'dotenv/config'
 import { createApp } from './app.js'
-import { isConfigured, ensurePublicAuthSchema, ensureDriveSchema } from './db.js'
+import { isConfigured, ensurePublicAuthSchema, ensureDriveSchema, ensureSheetStateSchema } from './db.js'
 
 const PORT = process.env.PORT || 4000
 const app = createApp()
@@ -17,5 +17,6 @@ app.listen(PORT, async () => {
   console.log('[dah-server] public auth 스키마 확인 완료')
   // 53_DRIVE_STORAGE: Drive 연결 프로필·업로드 기록 스키마도 재배포만으로 자가 복구한다.
   await ensureDriveSchema()
+  await ensureSheetStateSchema()
   console.log('[dah-server] google drive 저장소 스키마 확인 완료')
 })

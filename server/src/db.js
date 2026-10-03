@@ -84,3 +84,18 @@ export async function ensureDriveSchema() {
     }
   }
 }
+
+// 관리자 시트의 화면 상태(열 너비, 숨긴 열, 서식, 메모 열)를 저장하는 표. 부팅 때 멱등 보장한다.
+export async function ensureSheetStateSchema() {
+  const impl = injected || pool
+  if (!impl) return
+  try {
+    await impl.query(`CREATE TABLE IF NOT EXISTS admin_sheet_state (
+      key        TEXT PRIMARY KEY,
+      value      JSONB NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`)
+  } catch (err) {
+    console.error('[schema] ensureSheetStateSchema 실패(계속 진행):', err.message)
+  }
+}

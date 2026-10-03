@@ -61,6 +61,8 @@ function doPost(e) {
         return json(share(body.fileId, body.type, body.role));
       case 'trash':
         return json(trash(body.fileId));
+      case 'createSheet':
+        return json(createSheet(body));
       default:
         return json({ error: '알 수 없는 action입니다: ' + body.action, status: 400 });
     }
@@ -177,4 +179,25 @@ function share(fileId, type, role) {
 function trash(fileId) {
   DriveApp.getFileById(fileId).setTrashed(true);
   return { ok: true, id: fileId };
+}
+
+/**
+ * 관리자 시트를 새 구글 시트로 만든다. 이 동작을 쓰려면 릴레이를 새 버전으로 다시 배포하고
+ * 스프레드시트 권한 승인 창에서 허용해야 한다.
+ */
+function createSheet(body) {
+  var values = body.values || [];
+  var ss = SpreadsheetApp.create(String(body.name || '접수 현황'));
+  var sheet = ss.getSheets()[0];
+  if (values.length && values[0].length) {
+    sheet.getRange(1, 1, values.length, values[0].length).setValues(values);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, values[0].length).setFontWeight('bold');
+  }
+  if (body.parentId) {
+    var file = DriveApp.getFileById(ss.getId());
+    DriveApp.getFolderById(body.parentId).addFile(file);
+    DriveApp.getRootFolder().removeFile(file);
+  }
+  return { id: ss.getId(), url: ss.getUrl() };
 }

@@ -14,6 +14,7 @@ import submitRoutes from './routes/submit.js'
 import settingsRoutes from './routes/settings.js'
 import exportRoutes from './routes/export.js'
 import adminExtraRoutes from './routes/adminExtra.js'
+import sheetsRoutes from './routes/sheets.js'
 import tagsRoutes from './routes/tags.js'
 import consultRoutes from './routes/consult.js'
 import offeringsRoutes from './routes/offerings.js'
@@ -65,6 +66,7 @@ export function createApp(options = {}) {
   app.use(settingsRoutes) // GET /settings/public, PUT /admin/settings
   app.use(exportRoutes) // GET /export/all
   app.use(adminExtraRoutes) // /admin/users, /admin/exhibition/entries (13_CMS 6절)
+  app.use(sheetsRoutes) // 관리자 시트: 접수 칸 편집, 화면 상태, 구글 시트로 내보내기
   app.use(tagsRoutes) // GET /tags, POST /admin/tags, DELETE /admin/tags/:name (Phase 9 K1-1)
   app.use(consultRoutes) // POST /consult, GET /admin/consultations (Phase 9 K1-9)
   app.use(offeringsRoutes) // GET /offerings, /offerings/semesters, /admin/offerings (H3-3)

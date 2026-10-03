@@ -167,6 +167,8 @@ export function createAppsScriptDriveClient({ url, secret, fetchImpl, timeoutMs 
         return { data: { id: fileId } }
       },
     },
+    // 관리자 시트를 구글 시트로 내보낼 때 쓴다. 릴레이를 새로 배포하기 전에는 알 수 없는 action 오류가 난다.
+    createSheet: async ({ name, values, parentId } = {}) => call('createSheet', { name, values, parentId }),
     permissions: {
       create: async ({ fileId, requestBody = {} } = {}) => {
         const data = await call('share', {
