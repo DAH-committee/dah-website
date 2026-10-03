@@ -36,7 +36,7 @@ const NAV_GROUPS = [
     label: 'SYSTEM',
     items: [
       { to: '/admin/exhibition', label: '전시회 설정', role: 'manager' },
-      { to: '/admin/forms', label: '행사 설정', role: 'manager' },
+      { to: '/admin/forms', label: '신청 폼 관리', role: 'manager' },
       { to: '/admin/settings', label: '사이트 설정', role: 'manager' },
       { to: '/admin/storage/drive', label: '파일 보관함 (구글 드라이브)', role: 'manager' },
     ],

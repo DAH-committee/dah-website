@@ -1,20 +1,27 @@
-// FormEditor.jsx: 폼 편집기 (39_FORM_BUILDER P1-3)
-// 기본 정보 + 접수 설정 + 필드 편집기 + FormRenderer 미리보기.
+// FormEditor.jsx: 신청 폼 편집기 (39_FORM_BUILDER P1-3)
+// 구글 폼과 같은 구조: 위쪽 탭(질문 / 응답 / 설정), 질문은 선택한 카드 1장만 펼침,
+// 질문 카드 아래 줄에 복제, 삭제, 필수, 더보기. 비개발자가 설명 없이 쓸 수 있는 말로 쓴다.
 //
 // 폼 내용은 전부 DB(custom_forms)에 있다. 새 폼을 만들 때 코드를 고치지 않아도 되게 하는 것이
 // 이 화면의 목적이다. 저장 계약은 서버(routes/forms.js)의 PUT/POST /admin/forms.
 //
-// 공개 토글은 화면 상태만 바꾼다. 저장 버튼을 눌러야 반영된다(P1-3).
+// 공개 토글은 화면 상태만 바꾼다. 저장 버튼을 눌러야 반영된다(P1-3). 저장하지 않은 변경이 있으면 위쪽에 알린다.
 // 네이티브 select, date, radio, checkbox 금지. 전부 공용 커스텀 컴포넌트로 그린다.
 
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { Check, ChevronDown, ChevronUp, Copy, Eye, FileText, Link, ListPlus, Plus, Save, Settings2, SlidersHorizontal, Trash2, UploadCloud, X } from 'lucide-react'
-import { useApi, api } from '../../hooks/useApi'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  AlignLeft, ArrowDown, ArrowLeft, ArrowUp, Calendar, Check, ChevronDown, ChevronDownCircle, ChevronUp,
+  CircleDot, Clock, Copy, Download, EllipsisVertical, Eye, FileText, GraduationCap, Link as LinkIcon, Mail,
+  Phone, Plus, PlusCircle, Rows3, Save, SlidersHorizontal, SquareCheck, Table2, Text, TextCursorInput,
+  Trash2, Upload, UploadCloud, X,
+} from 'lucide-react'
+import { API_BASE, useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
+import { formStatus } from './formStatus'
 import {
   DateInput,
   ErrorText,
@@ -23,7 +30,6 @@ import {
   Input,
   PrimaryButton,
   Select,
-  TextArea,
   Toggle,
 } from '../../components/admin/FormControls'
 
@@ -42,9 +48,10 @@ const TYPE_LABEL = {
   studentid: '학번',
   file: '파일',
   date: '날짜',
+  time: '시간',
+  scale: '선형 배율',
   section: '섹션',
 }
-const TYPE_OPTIONS = Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label }))
 const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
 // 53_DRIVE_STORAGE: 파일 질문별 저장소. 값은 서버 lib/formStorage.js와 같은 화이트리스트다.
@@ -115,9 +122,9 @@ function normStorage(raw, formSettings = {}) {
   return { ...DEFAULT_STORAGE }
 }
 
-const PANEL = 'form-editor-panel flex flex-col gap-16 rounded-md border p-24 md:p-32'
-const QUESTION_CARD =
-  'form-editor-panel relative flex flex-col gap-20 rounded-md border border-l-4 border-l-[#7157d9] bg-white p-20 shadow-sm md:p-24'
+const CARD = 'form-editor-panel flex flex-col rounded-md border'
+const TEXT_BTN =
+  'inline-flex h-11 cursor-pointer items-center gap-8 rounded-sm px-12 text-small-m font-semibold text-[#3c4043] transition hover:bg-[#f1f3f4] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent'
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
 
@@ -253,63 +260,6 @@ function toPayload(form) {
       drive_connection_id: s.drive_connection_id === '' ? null : Number(s.drive_connection_id),
     },
   }
-}
-
-/** 보기 목록 편집. select, radio, checkbox 전용. 추가, 삭제, 순서 변경 */
-function OptionsEditor({ options, onChange }) {
-  const move = (from, to) => {
-    if (to < 0 || to >= options.length) return
-    const next = [...options]
-    const [moved] = next.splice(from, 1)
-    next.splice(to, 0, moved)
-    onChange(next)
-  }
-
-  return (
-    <div className="flex min-w-0 flex-col gap-8">
-      {options.map((opt, i) => (
-        <div key={i} className="flex min-w-0 items-center gap-8">
-          <Input
-            value={opt}
-            onChange={(e) => onChange(options.map((o, idx) => (idx === i ? e.target.value : o)))}
-            aria-label={`보기 ${i + 1}`}
-          />
-          <button
-            type="button"
-            onClick={() => move(i, i - 1)}
-            disabled={i === 0}
-            aria-label={`보기 ${i + 1} 위로`}
-            className={ICON_BTN}
-          >
-            <ChevronUp size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => move(i, i + 1)}
-            disabled={i === options.length - 1}
-            aria-label={`보기 ${i + 1} 아래로`}
-            className={ICON_BTN}
-          >
-            <ChevronDown size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onChange(options.filter((_, idx) => idx !== i))}
-            aria-label={`보기 ${i + 1} 삭제`}
-            className={ICON_BTN}
-          >
-            <Trash2 size={16} />
-          </button>
-        </div>
-      ))}
-      <div>
-        <GhostButton onClick={() => onChange([...options, ''])}>
-          <Plus size={16} aria-hidden="true" />
-          보기 추가
-        </GhostButton>
-      </div>
-    </div>
-  )
 }
 
 /**
@@ -532,128 +482,831 @@ function FileStorageCard({
   )
 }
 
-/** 필드 카드 1장 */
-function FieldCard({ field, index, onChange, onRemove, onDuplicate, dragging, over, rowProps, armed, onArm, driveProps }) {
-  const set = (key) => (v) => onChange({ ...field, [key]: v })
-  const setInput = (key) => (e) => set(key)(e.target.value)
-  const max = field.validation?.maxLength
-  const rp = rowProps(index)
+// ──────────────────────────────────────────────────────────────────────────
+// 화면 부품. 구글 폼의 구조를 그대로 따른다.
+//   위: 폼 이름 + 탭(질문 / 응답 / 설정) + 저장
+//   질문 탭: 제목 카드, 질문 카드(선택한 1장만 펼침), 오른쪽 추가 도구
+//   질문 카드 아래 줄: 복제, 삭제, 필수, 더보기
+// 간격은 토큰 스케일(4, 8, 12, 16, 20, 24, 32, 40, 48 ...)만 쓴다. 10, 28, 36, 44는 스케일 밖이라 금지.
+// ──────────────────────────────────────────────────────────────────────────
 
-  if (field.type === 'section') {
-    return (
-      <li {...rp} className={`${QUESTION_CARD} ${dragging ? 'opacity-40' : ''} ${over ? 'border-border-purple' : ''}`}>
-        <div className="flex items-center justify-center text-[#81789a]"><span onPointerDown={() => rp.draggable && onArm(true)} onPointerUp={() => onArm(false)} className="flex cursor-grab"><DragHandle /></span></div>
-        <Input aria-label={`섹션 ${index + 1} 제목`} value={field.label_ko} onChange={setInput('label_ko')} placeholder="섹션 제목" className="border-0 border-b border-[#cfc7e1] rounded-none px-0 text-body-l-m font-semibold focus:border-[#7157d9] focus:ring-0" />
-        <TextArea aria-label={`섹션 ${index + 1} 설명`} value={field.hint_ko} onChange={setInput('hint_ko')} placeholder="섹션 설명 (선택)" rows={3} />
-        <div className="flex justify-end border-t border-[#e8e3f4] pt-12"><button type="button" onClick={onRemove} aria-label={`섹션 ${index + 1} 삭제`} className={ICON_BTN}><Trash2 size={17} /></button></div>
-      </li>
+const INK = 'text-[#202124]'
+const SUB = 'text-[#5f6368]'
+const LINE = 'border-[#dadce0]'
+
+// 질문 유형 정보. 이름은 비개발자가 한 번에 알아보는 말로, 설명은 한 줄 예시로 쓴다.
+const TYPE_META = {
+  text: { label: '단답형', desc: '이름처럼 짧은 한 줄 답', icon: TextCursorInput },
+  textarea: { label: '서술형', desc: '소감, 지원 동기처럼 긴 글', icon: AlignLeft },
+  radio: { label: '객관식', desc: '보기 중 하나만 고르기', icon: CircleDot },
+  checkbox: { label: '체크박스', desc: '보기 중 여러 개 고르기', icon: SquareCheck },
+  select: { label: '드롭다운', desc: '목록을 펼쳐서 하나 고르기', icon: ChevronDownCircle },
+  phone: { label: '연락처', desc: '010-0000-0000 형식만 입력 가능', icon: Phone },
+  email: { label: '이메일', desc: '이메일 주소 형식만 입력 가능', icon: Mail },
+  studentid: { label: '학번', desc: '숫자 8자리만 입력 가능', icon: GraduationCap },
+  file: { label: '파일 올리기', desc: '이미지, PDF 같은 파일 받기', icon: Upload },
+  scale: { label: '선형 배율', desc: '1점부터 5점처럼 점수 매기기', icon: SlidersHorizontal },
+  date: { label: '날짜', desc: '달력에서 날짜 고르기', icon: Calendar },
+  time: { label: '시간', desc: '14:30처럼 시각 입력', icon: Clock },
+}
+// 드롭다운 안에서 줄로 나누는 묶음
+const TYPE_GROUPS = [
+  ['text', 'textarea'],
+  ['radio', 'checkbox', 'select'],
+  ['phone', 'email', 'studentid'],
+  ['file'],
+  ['scale'],
+  ['date', 'time'],
+]
+
+/** 새 질문의 기본값. 객관식은 보기 1개를 미리 넣어 바로 입력할 수 있게 한다 */
+function defaultsFor(type) {
+  return {
+    options: OPTION_TYPES.includes(type) ? ['옵션 1'] : [],
+    validation: type === 'scale' ? { scaleMin: 1, scaleMax: 5, scaleMinLabel: '', scaleMaxLabel: '' } : {},
+  }
+}
+
+/** 질문 유형 고르기. 아이콘과 한 줄 설명이 붙은 팝업이다 */
+function TypeMenu({ value, onChange, label }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return undefined
+    const down = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    const key = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', down)
+    document.addEventListener('keydown', key)
+    return () => {
+      document.removeEventListener('mousedown', down)
+      document.removeEventListener('keydown', key)
+    }
+  }, [open])
+  const meta = TYPE_META[value] || TYPE_META.text
+  const Icon = meta.icon
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-label={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={`flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm border ${LINE} bg-white px-16 text-left text-body-m ${INK} transition hover:bg-[#f8f9fa] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9]`}
+      >
+        <Icon size={18} className={`shrink-0 ${SUB}`} aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate">{meta.label}</span>
+        <ChevronDown size={16} className={SUB} aria-hidden="true" />
+      </button>
+      {open && (
+        <div role="listbox" aria-label="질문 유형" className={`absolute right-0 top-[calc(100%+4px)] z-40 max-h-[420px] w-[min(340px,86vw)] overflow-y-auto rounded-sm border ${LINE} bg-white py-8 shadow-[0_4px_16px_rgb(60_64_67/0.24)]`}>
+          {TYPE_GROUPS.map((group, gi) => (
+            <div key={group.join('-')} className={gi ? `mt-8 border-t border-[#e8eaed] pt-8` : ''}>
+              {group.map((t) => {
+                const m = TYPE_META[t]
+                const I = m.icon
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    role="option"
+                    aria-selected={t === value}
+                    onClick={() => {
+                      onChange(t)
+                      setOpen(false)
+                    }}
+                    className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left transition hover:bg-[#f1f3f4] ${t === value ? 'bg-[#f3effd]' : ''}`}
+                  >
+                    <I size={18} className={`shrink-0 ${t === value ? 'text-[#5f43ce]' : SUB}`} aria-hidden="true" />
+                    <span className="min-w-0">
+                      <span className={`block text-body-m ${INK}`}>{m.label}</span>
+                      <span className={`block text-caption-m ${SUB}`}>{m.desc}</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 더보기(점 세 개) 메뉴. 질문 카드 아래 줄에 붙는다 */
+function MoreMenu({ items, label }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return undefined
+    const down = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    const key = (e) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', down)
+    document.addEventListener('keydown', key)
+    return () => {
+      document.removeEventListener('mousedown', down)
+      document.removeEventListener('keydown', key)
+    }
+  }, [open])
+  return (
+    <div ref={ref} className="relative">
+      <button type="button" aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)} className={ICON_BTN}>
+        <EllipsisVertical size={18} />
+      </button>
+      {open && (
+        <div role="menu" className={`absolute bottom-[calc(100%+4px)] right-0 z-40 w-[220px] rounded-sm border ${LINE} bg-white py-8 shadow-[0_4px_16px_rgb(60_64_67/0.24)]`}>
+          {items.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              role="menuitem"
+              disabled={item.disabled}
+              onClick={() => {
+                item.onClick()
+                setOpen(false)
+              }}
+              className={`flex w-full cursor-pointer items-center gap-12 px-16 py-8 text-left text-body-m ${INK} transition hover:bg-[#f1f3f4] disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 보기 목록. 줄마다 동그라미 또는 네모 표시가 붙고, 여러 줄을 붙여넣으면 줄마다 보기가 된다 */
+function OptionList({ type, options, onChange }) {
+  const refs = useRef([])
+  const marker = (i) =>
+    type === 'radio' ? (
+      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-full border-2 border-[#9aa0a6]" />
+    ) : type === 'checkbox' ? (
+      <span aria-hidden="true" className="h-20 w-20 shrink-0 rounded-sm border-2 border-[#9aa0a6]" />
+    ) : (
+      <span aria-hidden="true" className={`w-20 shrink-0 text-center text-small-m ${SUB}`}>{i + 1}</span>
     )
+  const update = (i, v) => onChange(options.map((o, idx) => (idx === i ? v : o)))
+  const move = (from, to) => {
+    if (to < 0 || to >= options.length) return
+    const next = [...options]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    onChange(next)
+  }
+  const onPaste = (i, e) => {
+    const text = e.clipboardData?.getData('text') || ''
+    if (!/[\r\n]/.test(text)) return
+    e.preventDefault()
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+    if (!lines.length) return
+    const next = [...options]
+    next.splice(i, 1, ...lines)
+    onChange(next)
+  }
+  const add = () => {
+    onChange([...options, `옵션 ${options.length + 1}`])
+    window.setTimeout(() => refs.current[options.length]?.select(), 30)
   }
   return (
-    <li
+    <div className="flex min-w-0 flex-col gap-4">
+      {options.map((opt, i) => (
+        <div key={i} className="group/opt flex min-w-0 items-center gap-12">
+          {marker(i)}
+          <input
+            ref={(el) => {
+              refs.current[i] = el
+            }}
+            value={opt}
+            onChange={(e) => update(i, e.target.value)}
+            onPaste={(e) => onPaste(i, e)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const next = [...options]
+                next.splice(i + 1, 0, '')
+                onChange(next)
+                window.setTimeout(() => refs.current[i + 1]?.focus(), 30)
+              }
+            }}
+            aria-label={`보기 ${i + 1}`}
+            className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+          />
+          <span className="flex shrink-0 items-center md:opacity-0 md:transition md:group-focus-within/opt:opacity-100 md:group-hover/opt:opacity-100">
+            <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label={`보기 ${i + 1} 위로`} className={ICON_BTN}>
+              <ChevronUp size={16} />
+            </button>
+            <button type="button" onClick={() => move(i, i + 1)} disabled={i === options.length - 1} aria-label={`보기 ${i + 1} 아래로`} className={ICON_BTN}>
+              <ChevronDown size={16} />
+            </button>
+          </span>
+          <button type="button" onClick={() => onChange(options.filter((_, idx) => idx !== i))} aria-label={`보기 ${i + 1} 삭제`} className={ICON_BTN}>
+            <X size={18} />
+          </button>
+        </div>
+      ))}
+      <div className="flex min-w-0 items-center gap-12">
+        {marker(options.length)}
+        <button type="button" onClick={add} className={`h-40 cursor-pointer text-left text-body-m ${SUB} transition hover:text-[#5f43ce]`}>
+          옵션 추가
+        </button>
+      </div>
+      <p className={`mt-4 text-caption-m ${SUB}`}>엔터를 누르면 다음 보기가 생깁니다. 여러 줄을 한 번에 붙여넣으면 줄마다 보기가 됩니다.</p>
+    </div>
+  )
+}
+
+/** 선택하지 않은 질문 카드에 보이는 응답 모양 미리보기 */
+function FieldPreview({ field }) {
+  const opts = Array.isArray(field.options) ? field.options : []
+  const line = (text, wide = false) => (
+    <div className={`border-b border-dotted border-[#9aa0a6] pb-4 text-body-m ${SUB} ${wide ? 'w-full' : 'w-[min(100%,420px)]'}`}>{text}</div>
+  )
+  switch (field.type) {
+    case 'textarea':
+      return line('서술형 텍스트', true)
+    case 'radio':
+    case 'checkbox':
+      return (
+        <div className="flex flex-col gap-8">
+          {opts.length === 0 && <p className={`text-body-m ${SUB}`}>보기가 없습니다</p>}
+          {opts.slice(0, 6).map((o, i) => (
+            <div key={`${o}-${i}`} className={`flex items-center gap-12 text-body-m ${INK}`}>
+              <span aria-hidden="true" className={`h-20 w-20 shrink-0 border-2 border-[#9aa0a6] ${field.type === 'radio' ? 'rounded-full' : 'rounded-sm'}`} />
+              <span className="min-w-0 break-words">{o || '(빈 보기)'}</span>
+            </div>
+          ))}
+          {opts.length > 6 && <p className={`text-caption-m ${SUB}`}>외 {opts.length - 6}개</p>}
+        </div>
+      )
+    case 'select':
+      return (
+        <div className="flex flex-col gap-4">
+          {opts.slice(0, 4).map((o, i) => (
+            <p key={`${o}-${i}`} className={`text-body-m ${INK}`}>{i + 1}. {o || '(빈 보기)'}</p>
+          ))}
+          {opts.length > 4 && <p className={`text-caption-m ${SUB}`}>외 {opts.length - 4}개</p>}
+        </div>
+      )
+    case 'file':
+      return (
+        <span className={`inline-flex h-40 items-center gap-8 rounded-sm border ${LINE} px-16 text-body-m text-[#5f43ce]`}>
+          <Upload size={16} aria-hidden="true" /> 파일 추가
+        </span>
+      )
+    case 'scale': {
+      const { min, max } = scaleBounds(field.validation)
+      const nums = Array.from({ length: max - min + 1 }, (_, i) => min + i)
+      return (
+        <div className="flex flex-wrap items-center gap-12 text-body-m">
+          {field.validation?.scaleMinLabel && <span className={SUB}>{field.validation.scaleMinLabel}</span>}
+          {nums.map((n) => (
+            <span key={n} className="flex flex-col items-center gap-4">
+              <span className={INK}>{n}</span>
+              <span aria-hidden="true" className="h-20 w-20 rounded-full border-2 border-[#9aa0a6]" />
+            </span>
+          ))}
+          {field.validation?.scaleMaxLabel && <span className={SUB}>{field.validation.scaleMaxLabel}</span>}
+        </div>
+      )
+    }
+    case 'date':
+      return line('연도-월-일')
+    case 'time':
+      return line('시 : 분')
+    case 'phone':
+      return line('010-0000-0000')
+    case 'email':
+      return line('이메일 주소')
+    case 'studentid':
+      return line('학번 8자리')
+    default:
+      return line('단답형 텍스트')
+  }
+}
+
+function scaleBounds(validation) {
+  const lo = Number(validation?.scaleMin) === 0 ? 0 : 1
+  const hiRaw = Number(validation?.scaleMax)
+  const hi = Number.isInteger(hiRaw) && hiRaw >= 2 && hiRaw <= 10 ? hiRaw : 5
+  return { min: lo, max: hi }
+}
+
+const SCALE_FROM = [{ value: '0', label: '0' }, { value: '1', label: '1' }]
+const SCALE_TO = Array.from({ length: 9 }, (_, i) => ({ value: String(i + 2), label: String(i + 2) }))
+
+/** 질문 카드 한 장. 선택하면 펼쳐지고 나머지는 접힌 미리보기로 보인다 */
+function QuestionCard({
+  field, index, total, active, onActivate, onChange, onRemove, onDuplicate, onMove,
+  dragging, over, rowProps, armed, onArm, driveProps,
+}) {
+  const [showHint, setShowHint] = useState(Boolean(field.hint_ko))
+  const set = (key) => (v) => onChange({ ...field, [key]: v })
+  const rp = rowProps(index)
+  const meta = TYPE_META[field.type] || TYPE_META.text
+  const max = field.validation?.maxLength
+  const setValidation = (patch) => onChange({ ...field, validation: { ...field.validation, ...patch } })
+  const changeType = (type) => {
+    const base = defaultsFor(type)
+    const next = { ...field, type }
+    if (OPTION_TYPES.includes(type) && !field.options.length) next.options = base.options
+    if (type === 'scale') next.validation = { ...base.validation, ...field.validation }
+    if (type === 'file') next.storage = normStorage(field.storage, driveProps.settings)
+    onChange(next)
+  }
+  const { min: sMin, max: sMax } = scaleBounds(field.validation)
+
+  return (
+    <div
       {...rp}
+      data-card-id={field.id}
       // 핸들을 누르는 동안에만 draggable. 카드 안 입력창의 텍스트 선택을 막지 않는다
       draggable={armed}
       onDragEnd={(e) => {
         onArm(false)
         rp.onDragEnd?.(e)
       }}
-      className={`${QUESTION_CARD} transition duration-fast ease-out ${dragging ? 'opacity-40' : ''} ${
-        over ? 'border-border-purple' : ''
-      }`}
+      onClick={() => !active && onActivate()}
+      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] border-l-[#7157d9]' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-[#7157d9]' : ''}`}
     >
-      <div className="flex items-center justify-center text-[#81789a]">
+      <span
+        onPointerDown={() => rp.draggable && onArm(true)}
+        onPointerUp={() => onArm(false)}
+        onPointerCancel={() => onArm(false)}
+        aria-label={`질문 ${index + 1} 순서 바꾸기. 끌어서 옮깁니다`}
+        title="끌어서 순서 바꾸기"
+        className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-[#80868b] transition active:cursor-grabbing ${active ? '' : 'md:opacity-0 md:group-hover:opacity-100'}`}
+      >
+        <DragHandle />
+      </span>
+
+      {!active ? (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`질문 ${index + 1} 펼쳐서 고치기`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onActivate()
+            }
+          }}
+          className="flex min-w-0 flex-col gap-12 p-24 outline-none focus-visible:ring-2 focus-visible:ring-[#7157d9]"
+        >
+          <div className="flex items-start justify-between gap-12">
+            <p className={`min-w-0 break-words text-body-l-m font-medium md:text-body-l-d ${field.label_ko ? INK : 'text-[#80868b]'}`}>
+              {field.label_ko || '제목 없는 질문'}
+              {field.required && <span className="ml-4 text-[#d93025]" aria-label="필수">*</span>}
+            </p>
+            <span className={`shrink-0 rounded-full bg-[#f1f3f4] px-12 py-4 text-caption-m ${SUB}`}>{meta.label}</span>
+          </div>
+          {field.hint_ko && <p className={`whitespace-pre-wrap text-small-m ${SUB}`}>{field.hint_ko}</p>}
+          <FieldPreview field={field} />
+        </div>
+      ) : (
+        <div className="flex min-w-0 flex-col gap-20 p-24 pt-32">
+          <div className="grid grid-cols-1 items-start gap-16 md:grid-cols-[minmax(0,1fr)_260px]">
+            <input
+              aria-label={`질문 ${index + 1} 제목`}
+              value={field.label_ko}
+              onChange={(e) => set('label_ko')(e.target.value)}
+              placeholder="질문 제목"
+              autoFocus={!field.label_ko}
+              className={`h-48 w-full !rounded-none !border-0 !border-b !border-[#80868b] !bg-[#f8f9fa] px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-body-l-d`}
+            />
+            <TypeMenu value={field.type} onChange={changeType} label={`질문 ${index + 1} 유형 바꾸기. 지금은 ${meta.label}`} />
+          </div>
+
+          {showHint ? (
+            <div className="flex items-center gap-8">
+              <input
+                aria-label={`질문 ${index + 1} 설명`}
+                value={field.hint_ko}
+                onChange={(e) => set('hint_ko')(e.target.value)}
+                placeholder="질문 아래에 보여줄 설명 (예: 숫자만 입력)"
+                className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+              />
+              <button type="button" onClick={() => { set('hint_ko')(''); setShowHint(false) }} aria-label="설명 지우기" className={ICON_BTN}>
+                <X size={18} />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setShowHint(true)} className="-mt-8 flex h-40 w-fit cursor-pointer items-center gap-8 text-small-m font-semibold text-[#5f43ce] hover:underline">
+              <Plus size={16} aria-hidden="true" /> 설명 추가
+            </button>
+          )}
+
+          {OPTION_TYPES.includes(field.type) && <OptionList type={field.type} options={field.options} onChange={set('options')} />}
+
+          {(field.type === 'text' || field.type === 'textarea') && (
+            <div className="flex flex-col gap-12">
+              <FieldPreview field={field} />
+              <label className="flex flex-wrap items-center gap-8 text-small-m text-[#3c4043]">
+                글자 수 제한
+                <input
+                  type="number"
+                  min="1"
+                  value={max ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    const next = { ...field.validation }
+                    if (v === '') delete next.maxLength
+                    else next.maxLength = Number(v)
+                    set('validation')(next)
+                  }}
+                  placeholder="없음"
+                  className={`h-40 w-96 rounded-sm border ${LINE} px-12 text-body-m ${INK}`}
+                />
+                자 이하 <span className={SUB}>(비워 두면 제한 없음)</span>
+              </label>
+            </div>
+          )}
+
+          {['phone', 'email', 'studentid', 'date', 'time'].includes(field.type) && (
+            <div className="flex flex-col gap-8">
+              <FieldPreview field={field} />
+              <p className={`text-caption-m ${SUB}`}>{meta.desc}. 형식이 맞지 않으면 제출되지 않고 안내 문구가 나옵니다.</p>
+            </div>
+          )}
+
+          {field.type === 'scale' && (
+            <div className="flex flex-col gap-16">
+              <div className="flex flex-wrap items-center gap-12 text-body-m text-[#3c4043]">
+                <div className="w-80"><Select tone="light" value={String(sMin)} options={SCALE_FROM} onChange={(e) => setValidation({ scaleMin: Number(e.target.value) })} aria-label="시작 숫자" /></div>
+                <span>부터</span>
+                <div className="w-80"><Select tone="light" value={String(sMax)} options={SCALE_TO} onChange={(e) => setValidation({ scaleMax: Number(e.target.value) })} aria-label="끝 숫자" /></div>
+                <span>까지</span>
+              </div>
+              <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+                <label className="flex items-center gap-12 text-small-m text-[#3c4043]">
+                  <span className="w-48 shrink-0">{sMin}점 이름</span>
+                  <input value={field.validation?.scaleMinLabel || ''} onChange={(e) => setValidation({ scaleMinLabel: e.target.value })} placeholder="예: 전혀 아니다" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} px-12 text-body-m ${INK}`} />
+                </label>
+                <label className="flex items-center gap-12 text-small-m text-[#3c4043]">
+                  <span className="w-48 shrink-0">{sMax}점 이름</span>
+                  <input value={field.validation?.scaleMaxLabel || ''} onChange={(e) => setValidation({ scaleMaxLabel: e.target.value })} placeholder="예: 매우 그렇다" className={`h-40 min-w-0 flex-1 rounded-sm border ${LINE} px-12 text-body-m ${INK}`} />
+                </label>
+              </div>
+              <FieldPreview field={field} />
+            </div>
+          )}
+
+          {field.type === 'file' && <FileStorageCard field={field} storage={field.storage || DEFAULT_STORAGE} onStorage={set('storage')} {...driveProps} />}
+
+          <div className={`flex flex-wrap items-center justify-end gap-4 border-t border-[#e8eaed] pt-16`}>
+            <button type="button" onClick={onDuplicate} className={TEXT_BTN}>
+              <Copy size={18} aria-hidden="true" /> 복제
+            </button>
+            <button type="button" onClick={onRemove} className={TEXT_BTN}>
+              <Trash2 size={18} aria-hidden="true" /> 삭제
+            </button>
+            <span className="mx-8 h-24 w-px bg-[#dadce0]" aria-hidden="true" />
+            <span className={`text-small-m font-medium ${INK}`}>필수 질문</span>
+            <Toggle tone="light" checked={field.required} onChange={set('required')} label={`질문 ${index + 1} 필수 여부`} />
+            <MoreMenu
+              label={`질문 ${index + 1} 더보기`}
+              items={[
+                { label: '위로 옮기기', icon: <ArrowUp size={16} aria-hidden="true" />, onClick: () => onMove(-1), disabled: index === 0 },
+                { label: '아래로 옮기기', icon: <ArrowDown size={16} aria-hidden="true" />, onClick: () => onMove(1), disabled: index === total - 1 },
+                { label: showHint ? '설명 숨기기' : '설명 추가', icon: <Text size={16} aria-hidden="true" />, onClick: () => setShowHint((v) => !v) },
+              ]}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 섹션(페이지 나누기) 카드 */
+function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRemove, onMove, total, dragging, over, rowProps, armed, onArm }) {
+  const rp = rowProps(index)
+  return (
+    <div
+      {...rp}
+      data-card-id={field.id}
+      draggable={armed}
+      onDragEnd={(e) => {
+        onArm(false)
+        rp.onDragEnd?.(e)
+      }}
+      onClick={() => !active && onActivate()}
+      className={`group relative mt-16 ${dragging ? 'opacity-40' : ''}`}
+    >
+      <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-[#5f43ce] px-16 py-8 text-small-m font-semibold text-white">
+        {pageNo}페이지 시작
+      </span>
+      <div className={`${CARD} ${active ? 'border-l-[6px] border-l-[#7157d9]' : ''} mt-32 rounded-tl-none border-t-8 border-t-[#5f43ce] ${over ? '!border-[#7157d9]' : ''}`}>
         <span
           onPointerDown={() => rp.draggable && onArm(true)}
           onPointerUp={() => onArm(false)}
           onPointerCancel={() => onArm(false)}
-          className="flex cursor-grab touch-none active:cursor-grabbing"
-          aria-label={`필드 ${index + 1} 순서 변경`}
+          aria-label={`페이지 나누기 ${pageNo} 순서 바꾸기`}
+          className="absolute left-1/2 top-12 z-10 flex -translate-x-1/2 rotate-90 cursor-grab touch-none text-[#80868b] active:cursor-grabbing"
         >
           <DragHandle />
         </span>
+        <div className="flex flex-col gap-12 p-24 pt-32">
+          <input
+            aria-label={`${pageNo}페이지 제목`}
+            value={field.label_ko}
+            onChange={(e) => onChange({ ...field, label_ko: e.target.value })}
+            placeholder="페이지 제목 (예: 지원서 작성)"
+            className={`h-48 w-full !rounded-none !border-0 !border-b !border-[#80868b] !bg-[#f8f9fa] px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-body-l-d`}
+          />
+          <input
+            aria-label={`${pageNo}페이지 설명`}
+            value={field.hint_ko}
+            onChange={(e) => onChange({ ...field, hint_ko: e.target.value })}
+            placeholder="페이지 설명 (선택)"
+            className={`h-40 w-full !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-[#80868b] focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
+          />
+          <p className={`text-caption-m ${SUB}`}>신청 화면이 여기서 새 페이지로 넘어갑니다. 위의 질문은 앞 페이지, 아래 질문은 이 페이지에 나옵니다.</p>
+          <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8eaed] pt-16">
+            <button type="button" onClick={() => onMove(-1)} disabled={index === 0} className={TEXT_BTN}>
+              <ArrowUp size={18} aria-hidden="true" /> 위로
+            </button>
+            <button type="button" onClick={() => onMove(1)} disabled={index === total - 1} className={TEXT_BTN}>
+              <ArrowDown size={18} aria-hidden="true" /> 아래로
+            </button>
+            <button type="button" onClick={onRemove} className={TEXT_BTN}>
+              <Trash2 size={18} aria-hidden="true" /> 삭제
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
+  )
+}
 
-      <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-[minmax(0,1fr)_240px]">
-        <Input
-          aria-label={`필드 ${index + 1} 질문`}
-          value={field.label_ko}
-          onChange={setInput('label_ko')}
-          placeholder="질문"
-          className="border-0 border-b border-[#cfc7e1] rounded-none px-0 text-body-l-m font-semibold focus:border-[#7157d9] focus:ring-0 md:text-body-l-d"
+/** 오른쪽(좁은 화면에서는 카드 아래) 추가 도구. 글자가 붙어 있어서 아이콘 뜻을 몰라도 된다 */
+function AddToolbar({ onAdd }) {
+  const btn = `flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm px-16 text-left text-small-m font-semibold ${INK} transition hover:bg-[#f3effd] hover:text-[#5f43ce] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#7157d9]`
+  return (
+    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md border ${LINE} bg-white p-4 shadow-[0_1px_2px_rgb(60_64_67/0.2)] sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
+      <button type="button" onClick={() => onAdd('radio')} className={btn}>
+        <PlusCircle size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 질문 추가
+      </button>
+      <button type="button" onClick={() => onAdd('file')} className={btn}>
+        <Upload size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 파일 질문 추가
+      </button>
+      <button type="button" onClick={() => onAdd('section')} className={btn}>
+        <Rows3 size={20} className="shrink-0 text-[#5f43ce]" aria-hidden="true" /> 페이지 나누기
+      </button>
+    </div>
+  )
+}
+
+const TAB_LABEL = { questions: '질문', responses: '응답', settings: '설정' }
+
+const STATUS_TONE = {
+  ok: 'bg-[#e6f4ea] text-[#137333]',
+  warn: 'bg-[#fef7e0] text-[#b06000]',
+  info: 'bg-[#e8f0fe] text-[#1967d2]',
+  muted: 'bg-[#f1f3f4] text-[#5f6368]',
+}
+
+/** 설정 탭의 한 묶음. 제목과 한 줄 설명, 그 아래 내용 */
+function SettingGroup({ title, desc, children }) {
+  return (
+    <section className={`${CARD} gap-20 p-24 md:p-32`}>
+      <header>
+        <h3 className={`text-body-l-m font-bold md:text-body-l-d ${INK}`}>{title}</h3>
+        {desc && <p className={`mt-4 text-small-m ${SUB}`}>{desc}</p>}
+      </header>
+      {children}
+    </section>
+  )
+}
+
+/** 켜고 끄는 설정 한 줄. 이름과 쉬운 설명 + 스위치 */
+function SwitchRow({ title, desc, checked, onChange, label }) {
+  return (
+    <div className="flex items-center justify-between gap-16">
+      <div className="min-w-0">
+        <p className={`text-body-m font-semibold ${INK}`}>{title}</p>
+        {desc && <p className={`mt-4 text-small-m ${SUB}`}>{desc}</p>}
+      </div>
+      <Toggle tone="light" checked={checked} onChange={onChange} label={label} />
+    </div>
+  )
+}
+
+function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy, copied, status }) {
+  const s = form.settings
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  return (
+    <div className="flex flex-col gap-16">
+      <SettingGroup title="공개" desc="공개하면 주소를 아는 누구나 이 신청 폼을 열 수 있습니다. 저장해야 바뀝니다.">
+        <SwitchRow
+          title={form.published ? '공개 중' : '비공개 (나만 볼 수 있음)'}
+          desc={form.published ? '접수 기간 안에는 신청을 받을 수 있습니다.' : '준비가 끝나면 켜 주세요.'}
+          checked={form.published}
+          onChange={set('published')}
+          label="공개 여부"
         />
-        <Select
-          tone="light"
-          value={field.type}
-          options={TYPE_OPTIONS}
-          onChange={(e) => set('type')(e.target.value)}
-          aria-label={`필드 ${index + 1} 질문 유형`}
-        />
-      </div>
+        <p className={`rounded-sm px-12 py-8 text-small-m font-semibold ${STATUS_TONE[status.tone]}`}>
+          지금 상태: {status.label}. {status.note}.
+        </p>
+      </SettingGroup>
 
-      <div className="grid grid-cols-1 gap-12">
-        <Field label="설명 (선택)">
-          <Input value={field.hint_ko} onChange={setInput('hint_ko')} placeholder="응답자에게 보여줄 안내" />
-        </Field>
-      </div>
-
-      {OPTION_TYPES.includes(field.type) && (
-        <div className="border-t border-[#e8e3f4] pt-16">
-          <Field label="보기">
-            <OptionsEditor options={field.options} onChange={set('options')} />
+      <SettingGroup title="접수 기간" desc="이 기간 안에만 신청할 수 있습니다. 시작과 마감을 둘 다 정해야 합니다.">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
+          <Field label="접수 시작">
+            <DateInput withTime value={s.accept_start} onChange={setSettingInput('accept_start')} />
           </Field>
+          <Field label="접수 마감">
+            <DateInput withTime value={s.accept_end} viewDate={s.accept_start} onChange={setSettingInput('accept_end')} />
+          </Field>
+          <Field label="제출 후 수정 가능한 기한" hint="비우면 접수 마감과 같습니다">
+            <DateInput withTime value={s.edit_end} viewDate={s.accept_end} onChange={setSettingInput('edit_end')} />
+          </Field>
+          <Field label="받을 수 있는 최대 응답 수" hint="비우면 제한 없음">
+            <Input type="number" min="1" value={s.max_responses} onChange={setSettingInput('max_responses')} placeholder="제한 없음" />
+          </Field>
+        </div>
+      </SettingGroup>
+
+      <SettingGroup title="응답자" desc="누가 어떻게 신청하는지 정합니다.">
+        <SwitchRow
+          title="구글 로그인 후 제출"
+          desc="켜면 구글 계정으로 로그인한 사람만 제출할 수 있고, 제출한 계정이 기록됩니다. 같은 계정으로 나중에 내용을 고칠 수 있습니다."
+          checked={s.require_google_auth}
+          onChange={setSetting('require_google_auth')}
+          label="구글 로그인 필요 여부"
+        />
+      </SettingGroup>
+
+      <SettingGroup title="사이트에서 보이는 방식" desc="학생이 신청 폼을 어떻게 찾아오는지 정합니다.">
+        <SwitchRow
+          title="사이트 맨 위에 신청 버튼 표시"
+          desc="켜면 모든 페이지 상단에 이 폼으로 가는 버튼이 생깁니다."
+          checked={s.show_button_in_header}
+          onChange={setSetting('show_button_in_header')}
+          label="상단 버튼 표시 여부"
+        />
+        <Field label="버튼에 적을 글자" hint="비우면 ‘신청하기’">
+          <Input value={s.button_label_ko} onChange={setSettingInput('button_label_ko')} placeholder="신청하기" />
+        </Field>
+      </SettingGroup>
+
+      <SettingGroup title="주소와 분류" desc="목록에서 폼을 구분하고, 학생에게 알려줄 주소를 정합니다.">
+        <Field label="신청 페이지 주소" hint="영어 소문자, 숫자, 하이픈만 쓸 수 있습니다. 공개한 뒤에는 바꾸지 않는 것이 좋습니다.">
+          <div className="flex flex-col gap-8 sm:flex-row sm:items-stretch">
+            <div className={`flex min-w-0 flex-1 items-center overflow-hidden rounded-md border ${LINE} bg-white`}>
+              <span className={`hidden shrink-0 bg-[#f1f3f4] px-12 py-12 text-small-m ${SUB} sm:block`}>{origin}/forms/</span>
+              <input
+                value={form.slug}
+                onChange={(e) => set('slug')(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
+                placeholder="closing-2026-2"
+                aria-label="신청 페이지 주소"
+                className={`!rounded-none !border-0 min-w-0 flex-1 px-12 py-12 text-body-m ${INK} outline-none`}
+              />
+            </div>
+            <GhostButton onClick={onCopy} disabled={!form.slug} className="shrink-0">
+              {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
+              {copied ? '복사했습니다' : '주소 복사'}
+            </GhostButton>
+          </div>
+          {publicUrl && <span className={`break-all text-caption-m ${SUB}`}>{publicUrl}</span>}
+        </Field>
+        <Field label="분류" hint="행사: 참가 신청, 모집: 부원이나 멘토 모집, 기타: 그 밖의 폼. 목록에서 구분하는 용도입니다.">
+          <div className="max-w-[320px]">
+            <Select tone="light" value={form.category} options={CATEGORY_OPTIONS} onChange={(e) => set('category')(e.target.value)} />
+          </div>
+        </Field>
+      </SettingGroup>
+    </div>
+  )
+}
+
+/** 응답 탭: 개수와 문항별 요약. 자세한 표는 응답 시트에서 본다 */
+function ResponsesTab({ formId, fields, resp }) {
+  const { data, loading, error } = resp
+  const [busy, setBusy] = useState(false)
+  const [dlError, setDlError] = useState(null)
+  const items = data?.items || []
+
+  const download = async () => {
+    setBusy(true)
+    setDlError(null)
+    try {
+      const res = await fetch(`${API_BASE}/admin/forms/${formId}/responses/export`, { credentials: 'include' })
+      if (!res.ok) throw new Error(`내려받지 못했습니다 (${res.status})`)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `form-${formId}-responses.csv`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setDlError(err.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!formId) {
+    return (
+      <div className={`${CARD} p-32 text-center`}>
+        <p className={`text-body-l-m font-bold ${INK}`}>아직 응답을 볼 수 없습니다</p>
+        <p className={`mt-8 text-small-m ${SUB}`}>먼저 오른쪽 위 ‘저장’을 눌러 폼을 만들어 주세요.</p>
+      </div>
+    )
+  }
+
+  const summarizable = fields.filter((f) => ['radio', 'select', 'checkbox', 'scale'].includes(f.type))
+  const countsFor = (f) => {
+    const map = new Map()
+    for (const r of items) {
+      const v = r.data?.[f.id]
+      const list = Array.isArray(v) ? v : v == null || v === '' ? [] : [String(v)]
+      for (const x of list) map.set(x, (map.get(x) || 0) + 1)
+    }
+    const order = f.type === 'scale'
+      ? (() => { const { min, max } = scaleBounds(f.validation); return Array.from({ length: max - min + 1 }, (_, i) => String(min + i)) })()
+      : f.options
+    return order.map((label) => ({ label, n: map.get(label) || 0 }))
+  }
+
+  return (
+    <div className="flex flex-col gap-16">
+      <section className={`${CARD} gap-16 p-24 md:p-32`}>
+        <div className="flex flex-wrap items-center justify-between gap-16">
+          <div>
+            <p className={`text-small-m ${SUB}`}>지금까지 받은 응답</p>
+            <p className={`text-h2-m font-bold md:text-h2-d ${INK}`}>{loading ? '불러오는 중' : `${items.length}건`}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-8">
+            <a href={`/admin/forms/${formId}/responses/sheet`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-8 rounded-sm bg-[#7157d9] px-24 text-body-m font-semibold text-white transition hover:bg-[#5f43ce]">
+              <Table2 size={16} aria-hidden="true" /> 표로 보기
+            </a>
+            <GhostButton onClick={download} disabled={busy || !items.length} className="border-[#dadce0] text-[#202124]">
+              <Download size={16} aria-hidden="true" /> {busy ? '내려받는 중' : '엑셀용 파일 받기'}
+            </GhostButton>
+          </div>
+        </div>
+        <p className={`text-small-m ${SUB}`}>‘표로 보기’는 새 탭에서 열리고, 응답을 한 줄씩 보고 고치고 지울 수 있습니다. ‘엑셀용 파일 받기’는 CSV 파일로 저장됩니다.</p>
+        <ErrorText>{dlError || error?.message}</ErrorText>
+      </section>
+
+      {!loading && items.length === 0 && (
+        <div className={`${CARD} p-32 text-center`}>
+          <p className={`text-body-l-m font-bold ${INK}`}>아직 들어온 응답이 없습니다</p>
+          <p className={`mt-8 text-small-m ${SUB}`}>공개하고 접수 기간이 되면 여기에 쌓입니다.</p>
         </div>
       )}
 
-      {field.type === 'textarea' && (
-        <Field label="최대 글자 수" hint="비우면 제한 없음">
-          <Input
-            type="number"
-            min="1"
-            value={max ?? ''}
-            onChange={(e) => {
-              const v = e.target.value
-              const next = { ...field.validation }
-              if (v === '') delete next.maxLength
-              else next.maxLength = Number(v)
-              set('validation')(next)
-            }}
-          />
-        </Field>
-      )}
-
-      {field.type === 'file' && (
-        <FileStorageCard
-          field={field}
-          storage={field.storage || DEFAULT_STORAGE}
-          onStorage={set('storage')}
-          {...driveProps}
-        />
-      )}
-
-      <div className="flex flex-wrap items-center justify-end gap-4 border-t border-[#e8e3f4] pt-12">
-        <button type="button" onClick={onDuplicate} aria-label={`필드 ${index + 1} 복제`} className={ICON_BTN}>
-          <Copy size={17} />
-        </button>
-        <button type="button" onClick={onRemove} aria-label={`필드 ${index + 1} 삭제`} className={ICON_BTN}>
-          <Trash2 size={17} />
-        </button>
-        <span className="mx-8 h-24 w-px bg-[#ddd6eb]" aria-hidden="true" />
-        <span className="text-small-m font-medium text-[#51486a]">필수 입력</span>
-        <Toggle tone="light" checked={field.required} onChange={set('required')} label={`필드 ${index + 1} 필수 여부`} />
-      </div>
-    </li>
+      {items.length > 0 &&
+        summarizable.map((f) => {
+          const rows = countsFor(f)
+          const top = Math.max(1, ...rows.map((r) => r.n))
+          return (
+            <section key={f.id} className={`${CARD} gap-16 p-24 md:p-32`}>
+              <header>
+                <h3 className={`break-words text-body-l-m font-medium md:text-body-l-d ${INK}`}>{f.label_ko || '제목 없는 질문'}</h3>
+                <p className={`mt-4 text-small-m ${SUB}`}>{TYPE_META[f.type]?.label}, 응답 {rows.reduce((a, r) => a + r.n, 0)}개</p>
+              </header>
+              <ul className="flex flex-col gap-12">
+                {rows.map((r) => (
+                  <li key={r.label} className="grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_56px] items-center gap-12 text-small-m">
+                    <span className={`truncate ${INK}`}>{r.label}</span>
+                    <span className="h-16 rounded-sm bg-[#f1f3f4]">
+                      <span className="block h-16 rounded-sm bg-[#7157d9]" style={{ width: `${(r.n / top) * 100}%` }} />
+                    </span>
+                    <span className={`text-right ${SUB}`}>{r.n}명</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        })}
+    </div>
   )
 }
 
 function FormEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const isNew = !id
-  useTitle(isNew ? '폼 만들기' : '폼 수정')
+  useTitle(isNew ? '신청 폼 만들기' : '신청 폼 고치기')
 
   const { data, loading, error, refetch } = useApi(isNew ? null : `/admin/forms/${id}`)
-  // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 상단에서 바로 편집한다.
+  // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 질문 탭 맨 위에서 바로 편집한다.
   const [form, setForm] = useState(() =>
     isNew ? { ...EMPTY, slug: `form-${Date.now().toString(36)}` } : EMPTY
   )
@@ -662,23 +1315,42 @@ function FormEditor() {
   const [saveError, setSaveError] = useState(null)
   const [courseLoadError, setCourseLoadError] = useState(null)
   const [loadingCourses, setLoadingCourses] = useState(false)
-  const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
   const [preview, setPreview] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const [previewValue, setPreviewValue] = useState({})
+  const [tab, setTab] = useState('questions')
+  const [activeId, setActiveId] = useState('header')
   const [armed, setArmed] = useState(null) // 드래그 준비된 필드 index
   const [copied, setCopied] = useState(false)
+  const [savedAt, setSavedAt] = useState(location.state?.justSaved ? new Date() : null)
   // 53_DRIVE_STORAGE: 연결 프로필·경로 템플릿은 서버가 단일 원본이다. 화면은 그것을 그린다.
   const { data: driveStatus } = useApi('/admin/drive/status')
+  const resp = useApi(isNew ? null : `/admin/forms/${id}/responses`)
   const [saveIssues, setSaveIssues] = useState([])
   const [preparing, setPreparing] = useState(false)
   const [prepareResults, setPrepareResults] = useState({})
+  // 저장된 시점의 내용. 지금 내용과 다르면 "저장하지 않은 변경"으로 알린다.
+  const savedSnap = useRef(isNew ? JSON.stringify({ ...EMPTY, slug: '' }) : '')
 
   useEffect(() => {
     if (hydrated || !data?.item) return
-    setForm(fromItem(data.item))
+    const next = fromItem(data.item)
+    setForm(next)
+    savedSnap.current = JSON.stringify(next)
     setHydrated(true)
   }, [hydrated, data])
+
+  const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
+  const dirty = hydrated && (isNew ? form.title_ko !== '' || form.fields.length > 0 : JSON.stringify(form) !== savedSnap.current)
+
+  useEffect(() => {
+    if (!dirty) return undefined
+    const warn = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [dirty])
 
   const set = (key) => (v) => setForm((prev) => ({ ...prev, [key]: v }))
   const setInput = (key) => (e) => set(key)(e.target.value)
@@ -690,11 +1362,33 @@ function FormEditor() {
   const courseFieldOptions = form.fields
     .filter((field) => ['select', 'radio'].includes(field.type))
     .map((field) => ({ value: field.id, label: field.label_ko || field.label_en || field.id }))
-  const addField = (type = 'text') =>
-    setFields([
-      ...form.fields,
-      normField({ id: `f${Date.now().toString(36)}`, type }, form.fields.length, form.settings),
-    ])
+
+  // 지금 선택한 카드 바로 아래에 새 질문을 넣고 그 카드를 펼친다(구글 폼과 같은 동작)
+  const addField = (type = 'radio') => {
+    const at = form.fields.findIndex((f) => f.id === activeId)
+    const insertAt = at < 0 ? form.fields.length : at + 1
+    const fresh = normField(
+      { id: `f${Date.now().toString(36)}`, type, ...defaultsFor(type) },
+      insertAt,
+      form.settings
+    )
+    const next = [...form.fields]
+    next.splice(insertAt, 0, fresh)
+    setFields(next)
+    setActiveId(fresh.id)
+    window.setTimeout(() => {
+      document.querySelector(`[data-card-id="${fresh.id}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 60)
+  }
+
+  const moveField = (from, delta) => {
+    const to = from + delta
+    if (to < 0 || to >= form.fields.length) return
+    const next = [...form.fields]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    setFields(next)
+  }
 
   /**
    * 폴더 구조 미리보기(create=false)와 누락 폴더 준비(create=true).
@@ -740,7 +1434,7 @@ function FormEditor() {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
-      setSaveError('공개 링크를 복사하지 못했습니다. 주소 입력란의 값을 직접 복사해 주세요.')
+      setSaveError('공개 링크를 복사하지 못했습니다. 설정 탭의 주소를 직접 복사해 주세요.')
     }
   }
 
@@ -779,18 +1473,33 @@ function FormEditor() {
   })
 
   const backTo = '/admin/forms'
+  const leave = () => {
+    if (dirty && !window.confirm('저장하지 않은 변경이 있습니다. 저장하지 않고 나갈까요?')) return
+    navigate(backTo)
+  }
 
   const save = async (e) => {
-    e.preventDefault()
-    if (!canSaveForm || busy) return
+    e?.preventDefault()
+    if (busy) return
+    if (!canSaveForm) {
+      setSaveError('폼 제목을 먼저 적어 주세요. 질문 탭 맨 위 칸입니다.')
+      setTab('questions')
+      setActiveId('header')
+      return
+    }
     setBusy(true)
     setSaveError(null)
     setSaveIssues([])
     try {
       const payload = toPayload(form)
-      if (isNew) await api.post('/admin/forms', payload)
-      else await api.put(`/admin/forms/${id}`, payload)
-      navigate(backTo)
+      if (isNew) {
+        const res = await api.post('/admin/forms', payload)
+        navigate(`/admin/forms/${res.item.id}/edit`, { replace: true, state: { justSaved: true } })
+        return
+      }
+      await api.put(`/admin/forms/${id}`, payload)
+      savedSnap.current = JSON.stringify(form)
+      setSavedAt(new Date())
     } catch (err) {
       setSaveError(err.hint ? `${err.message} (${err.hint})` : err.message)
       // 공개 사전검사 실패(422)는 해결법이 담긴 목록을 함께 돌려주므로 그대로 보여준다.
@@ -816,49 +1525,84 @@ function FormEditor() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const status = formStatus(form.published, {
+    accept_start: fromLocalInput(form.settings.accept_start),
+    accept_end: fromLocalInput(form.settings.accept_end),
+  })
+  const responseCount = resp.data?.total
+  let pageNo = 1
+
+  const driveProps = {
+    settings: form.settings,
+    setSetting,
+    setSettingInput,
+    courseFieldOptions,
+    loadSemesterCourses,
+    loadingCourses,
+    courseError: courseLoadError,
+    connections: driveStatus?.connections ?? [],
+    templates: driveStatus?.templates ?? DEFAULT_TEMPLATES,
+    formTitle: form.title_ko,
+    category: form.category,
+    formId: id ? Number(id) : null,
+    onPrepare: runPrepare,
+    preparing,
+  }
+
   return (
-    <section className="form-workspace isolate min-h-[100dvh] bg-[#eee8fb] px-16 py-16 md:px-32 md:py-24">
-      <header className="sticky top-0 z-20 -mx-16 mb-24 flex min-h-64 items-center justify-between gap-16 border-b border-[#c9c2d4] bg-[#eee8fb]/95 px-16 py-12 backdrop-blur md:-mx-32 md:px-32">
-        <div className="flex min-w-0 items-center gap-12">
-          <FileText size={22} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
-          <div className="min-w-0">
-            <input
-              aria-label="폼 제목"
-              autoFocus={isNew}
-              value={form.title_ko}
-              onChange={setInput('title_ko')}
-              placeholder="새 신청 폼"
-              className="w-full min-w-0 rounded-sm border border-transparent bg-transparent px-8 py-4 text-body-l-m font-bold text-[#29253a] outline-none transition placeholder:text-[#756d88] hover:border-[#d8d1ed] focus:border-[#7157d9] focus:bg-white focus:ring-2 focus:ring-[#7157d9]/20 md:w-[min(42vw,540px)] md:text-body-l-d"
-            />
-            <p className="hidden text-caption-m text-[#756d88] sm:block">제목을 바로 고치고, 아래에서 질문을 추가하세요</p>
+    <section className="form-workspace isolate min-h-[100dvh] pb-80">
+      <header className="sticky top-0 z-30 border-b border-[#dadce0] bg-white">
+        <div className="flex min-h-64 flex-wrap items-center justify-between gap-12 px-16 py-8 md:px-24">
+          <div className="flex min-w-0 items-center gap-12">
+            <button type="button" onClick={leave} className="flex h-11 shrink-0 cursor-pointer items-center gap-8 rounded-sm px-12 text-body-m font-semibold text-[#3c4043] transition hover:bg-[#f1f3f4]" aria-label="신청 폼 목록으로 돌아가기">
+              <ArrowLeft size={18} aria-hidden="true" /> <span className="hidden sm:inline">목록</span>
+            </button>
+            <FileText size={24} className="shrink-0 text-[#7157d9]" aria-hidden="true" />
+            <p className={`min-w-0 max-w-[420px] truncate text-body-l-m font-medium ${form.title_ko ? INK : 'text-[#80868b]'}`}>{form.title_ko || '제목 없는 폼'}</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-8">
+            <span aria-live="polite" className={`hidden text-small-m lg:block ${dirty ? 'font-semibold text-[#b06000]' : SUB}`}>
+              {busy ? '저장하는 중' : dirty ? '저장하지 않은 변경이 있습니다' : savedAt ? '저장했습니다' : ''}
+            </span>
+            <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
+              {status.label}
+            </button>
+            <GhostButton onClick={() => setPreview(true)} className="border-[#dadce0] text-[#3c4043]">
+              <Eye size={16} aria-hidden="true" />
+              <span className="hidden sm:inline">미리보기</span>
+            </GhostButton>
+            <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-[#dadce0] text-[#3c4043]" title="신청 페이지 주소 복사">
+              {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
+              <span className="hidden md:inline">{copied ? '복사했습니다' : '주소 복사'}</span>
+            </GhostButton>
+            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="!bg-[#7157d9] hover:!bg-[#5f43ce]">
+              <Save size={16} aria-hidden="true" />
+              {busy ? '저장 중' : '저장'}
+            </PrimaryButton>
           </div>
         </div>
-          <div className="flex shrink-0 items-center gap-8">
-          <GhostButton onClick={() => setSettingsOpen(true)} aria-haspopup="dialog" className="border-[#d8d1ed] text-[#463d5b]">
-            <Settings2 size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">설정</span>
-          </GhostButton>
-          <GhostButton onClick={() => setPreview((v) => !v)} aria-pressed={preview} className="border-[#d8d1ed] text-[#463d5b]">
-            <Eye size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">미리보기</span>
-          </GhostButton>
-          <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-[#bdb5ca] bg-[#f7f6fa] text-[#3f384f]" title="공개 링크 복사">
-            {copied ? <Check size={16} aria-hidden="true" /> : <Link size={16} aria-hidden="true" />}
-            <span className="hidden lg:inline">{copied ? '링크 복사됨' : '링크'}</span>
-          </GhostButton>
-          <GhostButton onClick={() => navigate(backTo)} className="border-[#d8d1ed] text-[#463d5b]">목록</GhostButton>
-          <PrimaryButton type="submit" form="form-editor" disabled={busy || !canSaveForm}>
-            <Save size={16} aria-hidden="true" />
-            {busy ? '저장 중' : '저장'}
-          </PrimaryButton>
+        <div role="tablist" aria-label="폼 편집 구역" className="flex justify-center gap-8 px-16">
+          {Object.entries(TAB_LABEL).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              onClick={() => setTab(key)}
+              className={`h-48 cursor-pointer border-b-[3px] px-16 text-body-m font-semibold transition ${tab === key ? 'border-[#7157d9] text-[#5f43ce]' : 'border-transparent text-[#5f6368] hover:bg-[#f8f9fa]'}`}
+            >
+              {label}
+              {key === 'responses' && typeof responseCount === 'number' && (
+                <span className="ml-8 rounded-full bg-[#3c4043] px-8 py-4 text-caption-m text-white">{responseCount}</span>
+              )}
+            </button>
+          ))}
         </div>
       </header>
 
       {!isNew && !hydrated ? (
-        <div className="flex flex-col items-start gap-16">
-          {loading && (
-            <p className="font-mono text-caption-m text-text-meta">기존 내용을 불러오는 중</p>
-          )}
+        <div className="flex flex-col items-start gap-16 p-24">
+          {loading && <p className={`text-small-m ${SUB}`}>기존 내용을 불러오는 중</p>}
           {error && (
             <>
               <ErrorText>{error.message}</ErrorText>
@@ -867,168 +1611,142 @@ function FormEditor() {
           )}
         </div>
       ) : (
-        <form id="form-editor" onSubmit={save} className="mx-auto flex w-full max-w-5xl flex-col gap-24 pb-40">
-          <div className={`${PANEL} border-t-4 border-t-[#7157d9]`}>
-            <div className="flex flex-wrap items-start justify-between gap-12 border-b border-[#e8e3f4] pb-16">
-              <div>
-                <p className="font-mono text-caption-m font-semibold tracking-label text-[#7157d9]">01 · 기본 설정</p>
-                <h3 className="mt-4 text-h3-m font-bold text-text-pri md:text-h3-d">폼 정보</h3>
-              </div>
-              <span className="rounded-full bg-[#eee9ff] px-12 py-4 text-caption-m font-semibold text-[#5640b5]">공개 제목은 상단에서 바로 수정</span>
-            </div>
-            <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
-              <Field label="주소" hint="공개 주소는 /forms/여기에-입력한-값">
-                <Input
-                  value={form.slug}
-                  onChange={setInput('slug')}
-                  placeholder="closing-2026-1"
-                  required
-                />
-              </Field>
-              <Field label="분류">
-                <Select
-                  tone="light"
-                  value={form.category}
-                  options={CATEGORY_OPTIONS}
-                  onChange={(e) => set('category')(e.target.value)}
-                />
-              </Field>
-              <div className="md:col-span-2">
-                <Field label="안내문 (국문)" hint="줄바꿈은 그대로 유지됩니다">
-                  <TextArea
-                    rows={5}
+        <form id="form-editor" onSubmit={save} onKeyDown={(e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault() }} className="mx-auto mt-24 flex w-full max-w-[770px] flex-col gap-16 px-16 md:px-0">
+          {tab === 'questions' && (
+            <>
+              <div data-card-id="header" onClick={() => setActiveId('header')} className="relative">
+                <div className={`${CARD} gap-16 border-t-[10px] border-t-[#7157d9] p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] border-l-[#7157d9]' : ''}`}>
+                  <input
+                    aria-label="폼 제목"
+                    autoFocus={isNew}
+                    value={form.title_ko}
+                    onChange={setInput('title_ko')}
+                    placeholder="폼 제목 (예: 2026-2학기 종강 총회 참가 신청)"
+                    className={`w-full !rounded-none !border-0 !border-b !border-[#dadce0] !bg-transparent px-0 pb-8 text-h2-m font-bold ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0 md:text-h2-d`}
+                  />
+                  <textarea
+                    aria-label="폼 안내문"
+                    rows={4}
                     value={form.description_ko}
                     onChange={setInput('description_ko')}
+                    placeholder="안내문 (신청 대상, 일정, 문의처를 적어 주세요. 줄바꿈은 그대로 보입니다)"
+                    className={`w-full resize-y !rounded-none !border-0 !border-b !border-[#dadce0] !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-[#7157d9] focus:ring-0`}
                   />
-                </Field>
+                  <p className={`text-caption-m ${SUB}`}>이 제목과 안내문이 신청 화면 맨 위에 그대로 보입니다.</p>
+                </div>
+                {activeId === 'header' && <AddToolbar onAdd={addField} />}
               </div>
-            </div>
-          </div>
 
+              {form.fields.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => addField('radio')}
+                  className={`flex min-h-160 w-full cursor-pointer flex-col items-center justify-center gap-12 rounded-md border-2 border-dashed border-[#c4b8f0] bg-white px-24 text-center ${INK} transition hover:border-[#7157d9] hover:bg-[#faf8ff]`}
+                >
+                  <span className="flex h-40 w-40 items-center justify-center rounded-full bg-[#eee9ff] text-[#5f43ce]">
+                    <Plus size={20} aria-hidden="true" />
+                  </span>
+                  <span className="text-body-m font-semibold">첫 질문 추가</span>
+                  <span className={`text-small-m ${SUB}`}>이름, 학번, 참석 여부처럼 받고 싶은 내용을 하나씩 만듭니다</span>
+                </button>
+              )}
 
-          <div className="flex flex-col gap-16">
-            <div className="flex flex-wrap items-center justify-between gap-16 border-b border-[#ded8ef] pb-16">
-              <div>
-                <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">질문</h3>
-                <p className="mt-4 text-small-m text-text-sec">보라색 버튼을 눌러 질문 카드를 추가합니다.</p>
-              </div>
-              <span className="text-caption-m text-[#625b70]">오른쪽 도구막대에서 질문·파일·섹션을 추가합니다.</span>
-            </div>
-
-            <p className="font-mono text-caption-m text-text-meta">
-              핸들을 끌어 순서를 바꿉니다. 바뀐 순서는 저장할 때 반영됩니다.
-            </p>
-
-            {form.fields.length === 0 && (
-              <button
-                type="button"
-                onClick={addField}
-                className="flex min-h-160 w-full flex-col items-center justify-center gap-12 rounded-md border-2 border-dashed border-[#cfc6e6] bg-white px-24 text-center text-[#51486a] transition hover:border-[#7157d9] hover:bg-[#faf8ff] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7157d9]"
-              >
-                <span className="flex h-40 w-40 items-center justify-center rounded-full bg-[#eee9ff] text-[#5f43ce]">
-                  <Plus size={20} aria-hidden="true" />
-                </span>
-                <span className="text-body-m font-semibold">첫 질문 추가</span>
-                <span className="text-caption-m text-[#756d88]">객관식, 단답형, 파일 업로드 등 필요한 질문을 만드세요</span>
-              </button>
-            )}
-
-            {form.fields.length > 0 && (
-              <div className="relative">
-              <ul className="flex flex-col gap-16 md:pr-72">
-                {form.fields.map((field, i) => (
-                  <FieldCard
-                    key={field.id}
-                    field={field}
-                    index={i}
-                    dragging={dragIndex === i}
-                    over={overIndex === i && dragIndex !== null && dragIndex !== i}
-                    rowProps={rowProps}
-                    armed={armed === i}
-                    onArm={(on) => setArmed(on ? i : null)}
-                    onChange={(next) =>
-                      setFields(form.fields.map((f, idx) => (idx === i ? next : f)))
-                    }
-                    onRemove={() => setFields(form.fields.filter((_, idx) => idx !== i))}
-                    onDuplicate={() => {
-                      const next = [...form.fields]
-                      next.splice(i + 1, 0, normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1, form.settings))
-                      setFields(next)
-                    }}
-                    driveProps={{
-                      settings: form.settings,
-                      setSetting,
-                      setSettingInput,
-                      courseFieldOptions,
-                      loadSemesterCourses,
-                      loadingCourses,
-                      courseError: courseLoadError,
-                      connections: driveStatus?.connections ?? [],
-                      templates: driveStatus?.templates ?? DEFAULT_TEMPLATES,
-                      formTitle: form.title_ko,
-                      category: form.category,
-                      formId: id ? Number(id) : null,
-                      onPrepare: runPrepare,
-                      preparing,
-                      prepareResult: prepareResults[field.id],
-                    }}
-                  />
-                ))}
+              <ul className="flex flex-col gap-16">
+                {form.fields.map((field, i) => {
+                  const common = {
+                    field,
+                    index: i,
+                    total: form.fields.length,
+                    active: activeId === field.id,
+                    onActivate: () => setActiveId(field.id),
+                    onChange: (next) => setFields(form.fields.map((f, idx) => (idx === i ? next : f))),
+                    onRemove: () => {
+                      setFields(form.fields.filter((_, idx) => idx !== i))
+                      setActiveId('header')
+                    },
+                    onMove: (d) => moveField(i, d),
+                    dragging: dragIndex === i,
+                    over: overIndex === i && dragIndex !== null && dragIndex !== i,
+                    rowProps,
+                    armed: armed === i,
+                    onArm: (on) => setArmed(on ? i : null),
+                  }
+                  const toolbar = activeId === field.id ? <AddToolbar onAdd={addField} /> : null
+                  if (field.type === 'section') {
+                    pageNo += 1
+                    return (
+                      <li key={field.id} className="relative list-none">
+                        <SectionCard {...common} pageNo={pageNo} />
+                        {toolbar}
+                      </li>
+                    )
+                  }
+                  return (
+                    <li key={field.id} className="relative list-none">
+                      <QuestionCard
+                        {...common}
+                        onDuplicate={() => {
+                          const copy = normField({ ...field, id: `f${Date.now().toString(36)}` }, i + 1, form.settings)
+                          const next = [...form.fields]
+                          next.splice(i + 1, 0, copy)
+                          setFields(next)
+                          setActiveId(copy.id)
+                        }}
+                        driveProps={{ ...driveProps, prepareResult: prepareResults[field.id] }}
+                      />
+                      {toolbar}
+                    </li>
+                  )
+                })}
               </ul>
-              <aside aria-label="폼 작성 도구" className="mt-16 flex w-fit gap-8 rounded-md border border-[#c5bdd2] bg-[#f8f7fa] p-8 shadow-[0_3px_12px_rgb(47_39_65/0.15)] md:absolute md:right-0 md:top-12 md:mt-0 md:flex-col">
-                <button type="button" onClick={() => addField('text')} title="질문 추가" aria-label="질문 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><Plus size={21} /></button>
-                <button type="button" onClick={() => addField('file')} title="파일 업로드 질문 추가" aria-label="파일 업로드 질문 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><UploadCloud size={19} /></button>
-                <button type="button" onClick={() => addField('section')} title="섹션 추가" aria-label="섹션 추가" className="flex h-[44px] w-[44px] items-center justify-center rounded-sm text-[#5c45bd] transition hover:bg-[#e8e2f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5c45bd]"><ListPlus size={20} /></button>
-              </aside>
-              </div>
-            )}
-          </div>
+            </>
+          )}
 
-          <div className="flex flex-wrap items-center gap-24 border-t border-[#ded8ef] pt-24">
-            {/* 토글은 화면 상태만 바꾼다. 저장을 눌러야 서버에 반영된다 */}
-            <div className="flex items-center gap-12 rounded-md border border-[#cfc5ed] bg-white px-16 py-10 shadow-sm">
-              <span className="text-small-m font-semibold text-[#3e3556]">공개</span>
-              <Toggle tone="light" checked={form.published} onChange={set('published')} label="공개 여부" />
-              <span className="text-caption-m text-[#6e6680]">저장 후 반영</span>
-            </div>
-          </div>
+          {tab === 'responses' && <ResponsesTab formId={id ? Number(id) : null} fields={form.fields} resp={resp} />}
+
+          {tab === 'settings' && (
+            <SettingsTab
+              form={form}
+              set={set}
+              setSetting={setSetting}
+              setSettingInput={setSettingInput}
+              publicUrl={publicUrl}
+              onCopy={copyPublicUrl}
+              copied={copied}
+              status={status}
+            />
+          )}
 
           <ErrorText>{saveError}</ErrorText>
           {saveIssues.length > 0 && (
-            <ul className="flex flex-col gap-4 rounded-sm border border-state-error/40 bg-[#fdf4f4] p-12 text-small-m text-state-error">
+            <ul className="flex flex-col gap-4 rounded-sm border border-[#d93025]/40 bg-[#fce8e6] p-12 text-small-m text-[#c5221f]">
               {saveIssues.map((issue, i) => (
                 <li key={`${issue.code}-${i}`}>{issue.message}</li>
               ))}
             </ul>
           )}
-          <div className="flex items-center gap-8"><GhostButton onClick={() => navigate(backTo)}>저장하지 않고 나가기</GhostButton></div>
         </form>
       )}
-      {settingsOpen && (
-        <div role="dialog" aria-modal="true" aria-label="접수 설정" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#4b435c]/25 px-16 py-40 backdrop-blur-[2px]" onMouseDown={() => setSettingsOpen(false)}>
-          <div className="w-full max-w-3xl rounded-md border border-[#bdb5ca] bg-[#f8f7fa] shadow-[0_24px_64px_rgb(38_28_68/0.22)]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-[#e8e3f4] px-24 py-16">
-              <div className="flex items-center gap-8"><SlidersHorizontal size={20} className="text-[#5f43ce]" /><div><h2 className="text-body-l-m font-bold text-[#29253a]">접수 설정</h2><p className="text-caption-m text-[#6e6680]">공개·접수 기간·로그인 정책을 한곳에서 관리합니다.</p></div></div>
-              <button type="button" onClick={() => setSettingsOpen(false)} aria-label="접수 설정 닫기" className={ICON_BTN}><X size={18} /></button>
-            </div>
-            <div className="grid grid-cols-1 gap-16 p-24 md:grid-cols-2">
-              <Field label="접수 시작"><DateInput withTime value={form.settings.accept_start} onChange={setSettingInput('accept_start')} /></Field>
-              <Field label="접수 마감"><DateInput withTime value={form.settings.accept_end} viewDate={form.settings.accept_start} onChange={setSettingInput('accept_end')} /></Field>
-              <Field label="수정 마감" hint="비우면 접수 마감과 같습니다"><DateInput withTime value={form.settings.edit_end} viewDate={form.settings.accept_end} onChange={setSettingInput('edit_end')} /></Field>
-              <Field label="응답 상한" hint="비우면 제한 없음"><Input type="number" min="1" value={form.settings.max_responses} onChange={setSettingInput('max_responses')} /></Field>
-              <div className="flex items-center justify-between rounded-sm border border-[#bdb5ca] bg-[#fdfcff] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">구글 로그인</p><p className="text-caption-m text-[#6e6680]">제출자 본인 확인</p></div><Toggle tone="light" checked={form.settings.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 인증 요구" /></div>
-              <div className="flex items-center justify-between rounded-sm border border-[#bdb5ca] bg-[#fdfcff] px-16 py-12"><div><p className="text-small-m font-semibold text-[#3e3556]">헤더 버튼 노출</p><p className="text-caption-m text-[#6e6680]">사이트 상단에 신청 링크 표시</p></div><Toggle tone="light" checked={form.settings.show_button_in_header} onChange={setSetting('show_button_in_header')} label="헤더 버튼 노출" /></div>
-              <div className="md:col-span-2"><Field label="신청 버튼 문구"><Input value={form.settings.button_label_ko} onChange={setSettingInput('button_label_ko')} placeholder="신청하기" /></Field></div>
-            </div>
-            <div className="flex justify-end border-t border-[#e8e3f4] px-24 py-16"><PrimaryButton onClick={() => setSettingsOpen(false)}>완료</PrimaryButton></div>
-          </div>
-        </div>
-      )}
+
       {preview && (
-        <div role="dialog" aria-modal="true" aria-label="공개 폼 미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-[#4b435c]/35 p-16 backdrop-blur-[2px] md:p-32" onMouseDown={() => setPreview(false)}>
-          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md border border-[#bdb5ca] bg-[#eeecf3] shadow-[0_24px_64px_rgb(38_28_68/0.25)]" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#c9c2d4] bg-[#f8f7fa]/95 px-20 py-12 backdrop-blur"><div><p className="text-body-m font-bold text-[#29253a]">공개 폼 미리보기</p><p className="text-caption-m text-[#625b70]">{publicUrl || '주소를 입력하면 공개 링크가 생성됩니다.'}</p></div><button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button></div>
-            <div className="p-20 md:p-32"><div className="rounded-md border-t-8 border-[#7157d9] bg-[#faf9fc] p-20 shadow-sm md:p-32"><h2 className="text-h2-m font-bold text-[#29253a]">{form.title_ko || '새 신청 폼'}</h2>{form.description_ko && <p className="mt-12 whitespace-pre-wrap text-body-m leading-relaxed text-[#514a60]">{form.description_ko}</p>}<div className="mt-28"><FormRenderer fields={form.fields} value={previewValue} onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))} /></div></div></div>
+        <div role="dialog" aria-modal="true" aria-label="신청 화면 미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-[#202124]/50 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
+          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md bg-[#f0ebf8] shadow-[0_24px_64px_rgb(32_33_36/0.35)]" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-12 rounded-t-md border-b border-[#dadce0] bg-white px-20 py-12">
+              <div className="min-w-0">
+                <p className={`text-body-m font-bold ${INK}`}>신청 화면 미리보기</p>
+                <p className={`truncate text-caption-m ${SUB}`}>학생에게 이렇게 보입니다. 여기서 입력해도 저장되지 않습니다.</p>
+              </div>
+              <button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button>
+            </div>
+            <div className="p-16 md:p-32">
+              <div className="rounded-md border-t-[10px] border-[#7157d9] bg-white p-24 shadow-sm md:p-32">
+                <h2 className={`text-h2-m font-bold ${INK}`}>{form.title_ko || '제목 없는 폼'}</h2>
+                {form.description_ko && <p className={`mt-12 whitespace-pre-wrap text-body-m leading-relaxed ${SUB}`}>{form.description_ko}</p>}
+                <div className="mt-24">
+                  <FormRenderer fields={form.fields} value={previewValue} onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))} />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

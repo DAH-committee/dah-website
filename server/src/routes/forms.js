@@ -26,7 +26,7 @@ const router = Router()
 
 const FIELD_TYPES = [
   'text', 'textarea', 'select', 'radio', 'checkbox',
-  'phone', 'email', 'studentid', 'file', 'date', 'section',
+  'phone', 'email', 'studentid', 'file', 'date', 'time', 'scale', 'section',
 ]
 const CATEGORIES = ['event', 'recruit', 'other']
 
@@ -34,6 +34,16 @@ const PHONE_RE = /^010-\d{4}-\d{4}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const STUDENT_ID_RE = /^\d{8}$/
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
+
+/** 선형 배율의 범위. 저장된 값이 이상해도 1~5로 되돌려 검증이 깨지지 않게 한다 */
+export function scaleRange(validation) {
+  const lo = Number(validation?.scaleMin)
+  const hi = Number(validation?.scaleMax)
+  const min = lo === 0 ? 0 : 1
+  const max = Number.isInteger(hi) && hi >= 2 && hi <= 10 ? hi : 5
+  return { min, max }
+}
 
 function asArray(v) {
   return Array.isArray(v) ? v : []
@@ -121,6 +131,16 @@ export function validateResponse(fields, data) {
     }
     if (f.type === 'date' && !DATE_RE.test(value)) {
       errors.push({ field: f.id, error: 'date', label: f.label_ko })
+    }
+    if (f.type === 'time' && !TIME_RE.test(value)) {
+      errors.push({ field: f.id, error: 'time', label: f.label_ko })
+    }
+    if (f.type === 'scale') {
+      const { min, max } = scaleRange(f.validation)
+      const n = Number(value)
+      if (!Number.isInteger(n) || n < min || n > max) {
+        errors.push({ field: f.id, error: 'scale', label: f.label_ko })
+      }
     }
     // 선택지형은 정의된 보기 안의 값만 받는다 — 임의 값 주입 차단
     if (['select', 'radio'].includes(f.type) && f.options.length && !f.options.includes(value)) {

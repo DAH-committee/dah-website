@@ -22,6 +22,47 @@ import { inputCls, labelCls } from '../../pages/submit/exhibitFormShared'
 const COURSE_LOCK_NOTE =
   '이미 업로드한 파일이 있어 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하고, 이미 제출했다면 운영진에게 파일 이동을 요청하세요.'
 
+/** 선형 배율. 숫자 버튼 한 줄과 양 끝 이름. 실제 input은 sr-only로 남겨 키보드를 지킨다 */
+function ScaleGroup({ name, min, max, value, onChange, minLabel, maxLabel, invalid = false, describedBy }) {
+  const nums = Array.from({ length: max - min + 1 }, (_, i) => min + i)
+  return (
+    <div role="radiogroup" aria-invalid={invalid || undefined} aria-describedby={describedBy} className="flex flex-col gap-8">
+      <div className="flex flex-wrap items-center gap-8">
+        {nums.map((n) => {
+          const checked = String(value) === String(n)
+          return (
+            <label
+              key={n}
+              className={`flex h-48 min-w-48 cursor-pointer items-center justify-center rounded-md border px-12 text-body-m font-semibold transition duration-fast ease-out has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-border-focus ${
+                checked
+                  ? 'border-border-purple bg-purple-primary text-text-invert'
+                  : invalid
+                    ? 'border-state-error bg-bg-panel text-text-pri hover:border-border-strong'
+                    : 'border-border-subtle bg-bg-panel text-text-pri hover:border-border-strong'
+              }`}
+            >
+              <input type="radio" name={name} value={n} checked={checked} onChange={() => onChange(String(n))} className="sr-only" />
+              {n}
+            </label>
+          )
+        })}
+      </div>
+      {(minLabel || maxLabel) && (
+        <div className="flex items-center justify-between gap-12 text-caption-m text-text-meta">
+          <span>{minLabel}</span>
+          <span className="text-right">{maxLabel}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** 시간 입력 보조: 숫자만 받아 14:30 모양으로 맞춘다 */
+function formatTime(raw) {
+  const d = String(raw).replace(/\D/g, '').slice(0, 4)
+  return d.length > 2 ? `${d.slice(0, 2)}:${d.slice(2)}` : d
+}
+
 /** 다중 선택. 네이티브 체크박스 대신 카드형이고 실제 input은 sr-only로 남긴다 */
 function CheckboxGroup({ name, options, value = [], onChange, invalid = false, describedBy }) {
   const selected = Array.isArray(value) ? value : []
@@ -234,6 +275,44 @@ function FormField({
         </FieldShell>
       )
 
+    case 'time':
+      return (
+        <FieldShell field={field} error={error} errorId={errorId}>
+          <input
+            type="text"
+            inputMode="numeric"
+            maxLength={5}
+            value={str}
+            required={field.required}
+            {...errorProps}
+            placeholder={field.placeholder_ko || '14:30'}
+            onChange={(e) => set(formatTime(e.target.value))}
+            className={inputCls}
+          />
+        </FieldShell>
+      )
+
+    case 'scale': {
+      const lo = Number(field.validation?.scaleMin) === 0 ? 0 : 1
+      const hiRaw = Number(field.validation?.scaleMax)
+      const hi = Number.isInteger(hiRaw) && hiRaw >= 2 && hiRaw <= 10 ? hiRaw : 5
+      return (
+        <FieldShell field={field} error={error} errorId={errorId} as="div">
+          <ScaleGroup
+            name={field.id}
+            min={lo}
+            max={hi}
+            value={str}
+            onChange={set}
+            minLabel={field.validation?.scaleMinLabel}
+            maxLabel={field.validation?.scaleMaxLabel}
+            invalid={Boolean(error)}
+            describedBy={error ? errorId : undefined}
+          />
+        </FieldShell>
+      )
+    }
+
     case 'file': {
       // 53_DRIVE_STORAGE: 저장 위치·허용 확장자·상한은 질문마다 다르다. 서버가 내려준 값만 신뢰한다.
       const storage = field.storage || {}
@@ -355,11 +434,11 @@ function FormRenderer({ fields = [], value = {}, onChange, errors = {}, onUpload
       ))}
       {pages.length > 1 && (
         <div className="flex items-center justify-between gap-12 border-t border-border-subtle pt-20">
-          <button type="button" onClick={() => setPageIndex((i) => Math.max(0, i - 1))} disabled={pageIndex === 0} className="inline-flex h-44 items-center gap-4 rounded-sm border border-border-subtle px-12 text-small-m font-semibold disabled:opacity-40">
+          <button type="button" onClick={() => setPageIndex((i) => Math.max(0, i - 1))} disabled={pageIndex === 0} className="inline-flex h-11 items-center gap-4 rounded-sm border border-border-subtle px-12 text-small-m font-semibold disabled:opacity-40">
             <ChevronLeft size={16} /> 이전
           </button>
           <span className="text-caption-m text-text-meta">{pageIndex + 1} / {pages.length}</span>
-          <button type="button" onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))} disabled={pageIndex === pages.length - 1} className="inline-flex h-44 items-center gap-4 rounded-sm bg-purple-primary px-12 text-small-m font-semibold text-text-invert disabled:opacity-40">
+          <button type="button" onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))} disabled={pageIndex === pages.length - 1} className="inline-flex h-11 items-center gap-4 rounded-sm bg-purple-primary px-12 text-small-m font-semibold text-text-invert disabled:opacity-40">
             다음 <ChevronRight size={16} />
           </button>
         </div>

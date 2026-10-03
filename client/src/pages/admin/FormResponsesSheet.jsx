@@ -41,6 +41,8 @@ const TYPE_WIDTH = {
   phone: 140,
   studentid: 120,
   date: 130,
+  time: 100,
+  scale: 100,
 }
 
 // 인적사항 탭에 담을 필드는 타입으로 판별하고, 이름은 타입이 없어 라벨로 본다.
