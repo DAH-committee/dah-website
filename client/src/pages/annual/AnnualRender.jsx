@@ -51,7 +51,7 @@ export default function AnnualRender() {
   }, [manifest])
 
   return (
-    <div className="ap-render" style={only === null ? { background: '#444', padding: 20, display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'flex-start' } : { background: '#fff', position: 'fixed', left: 0, top: 0 }}>
+    <div className="ap-render" style={only === null ? { background: '#444', padding: 20, display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'flex-start' } : { background: '#fff', position: 'absolute', left: 0, top: 0 }}>
       {pages.map((p, i) => {
         const tone = p.tone || 'paper'
         const side = i === 0 || i === pages.length - 1 ? 'right' : i % 2 === 1 ? 'left' : 'right'

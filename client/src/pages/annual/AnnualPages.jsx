@@ -6,6 +6,7 @@ import { curriculum } from '../../data/curriculum'
 import { tracks } from '../../data/tracks'
 import { nanodegree } from '../../data/nanodegree'
 import { professors } from '../../data/professors'
+import { exAwards } from '../../data/annualAwards'
 import {
   IMG,
   SITE_URL,
@@ -16,18 +17,19 @@ import {
   talent,
   vision,
   facultyDetail,
-  councilCube,
   regularEvents,
   yearFlow,
   axCompare,
   axNew,
   submitFlow,
   exhibitionArchive,
-  exhibition261Schedule,
-  exhibition261Programs,
-  exhibition261Awards,
+  exhibition261Facts,
+  exhibition261Concept,
+  exhibition261Prep,
+  posterAwards,
+  bookplateAwards,
   characterWorks,
-  achievements2026,
+  achievements21,
   clubsInfo,
 } from '../../data/annualContent'
 
@@ -37,18 +39,12 @@ const src = (s) => (s.startsWith('/') ? s : `${IMG}/${s}`)
 
 const Img = ({ s, alt = '', style, className = '' }) => <img src={src(s)} alt={alt} className={`ap-img ${className}`} style={style} draggable="false" />
 
-const Head = ({ id, title, sub }) => {
-  const c = ch(id)
-  return (
-    <header className="ap-head">
-      <p className="ap-run">
-        <span>{c.no}</span> {c.en}
-      </p>
-      <h2 className="ap-title">{title}</h2>
-      {sub && <p className="ap-sub">{sub}</p>}
-    </header>
-  )
-}
+const Head = ({ title, sub }) => (
+  <header className="ap-head">
+    <h2 className="ap-title">{title}</h2>
+    {sub && <p className="ap-sub">{sub}</p>}
+  </header>
+)
 
 const H3 = ({ children, en }) => (
   <h3 className="ap-h3">
@@ -128,17 +124,18 @@ const Opener = ({ id, lead }) => {
   )
 }
 
-const Photo = ({ s, h, cap, alt }) => (
-  <figure className="ap-photo" style={{ height: h }}>
-    <Img s={s} alt={alt || cap || ''} />
+// 사진 한 장. shot이면 화면 캡처(위쪽 기준 정렬로 머리글이 잘리지 않게 한다)
+const Photo = ({ s, h, cap, alt, shot, contain }) => (
+  <figure className={`ap-photo ${shot ? 'ap-photo--shot' : ''}`} style={{ height: h }}>
+    <Img s={s} alt={alt || cap || ''} className={contain ? 'ap-img--contain' : ''} />
     {cap && <figcaption>{cap}</figcaption>}
   </figure>
 )
 
-const Cell = ({ s, cap, sub, ratio = '4 / 5' }) => (
+const Cell = ({ s, cap, sub, ratio = '3 / 4', contain }) => (
   <figure className="ap-cell">
     <div className="ap-cell__img" style={{ aspectRatio: ratio }}>
-      <Img s={s} />
+      <Img s={s} className={contain ? 'ap-img--contain' : ''} />
     </div>
     {cap && <figcaption>{cap}</figcaption>}
     {sub && <small>{sub}</small>}
@@ -151,24 +148,41 @@ const Grid = ({ cols, gap = 8, children, style, dense }) => (
   </div>
 )
 
-// 최상위 수상작 한 쪽 전체
-const BigWinner = ({ rank, title, meta, img, note }) => (
-  <div className="ap-big">
-    <div className="ap-big__img">
-      <Img s={img} alt={`${rank} ${title}`} />
+// 수상작 카드: 원본 비율(A 규격)로 자르지 않고 보여 주고 아래에 등급, 작품명, 팀과 수상자를 적는다
+const topGrade = (g) => g === '최우수상' || g === '1등'
+const Award = ({ img, grade, line, title, who, desc }) => (
+  <article className="ap-aw">
+    <div className="ap-aw__img">
+      <Img s={img} alt={`${grade} ${title}`} />
     </div>
-    <div className="ap-big__cap">
-      <span>{rank}</span>
-      <strong>{title}</strong>
-      <p>{meta}</p>
-      {note && <p className="ap-big__note">{note}</p>}
+    <div className="ap-aw__tx">
+      <span className={`ap-aw__g ${topGrade(grade) ? 'is-top' : ''}`}>{grade}</span>
+      {line && <p className="ap-aw__c">{line}</p>}
+      <h3 className="ap-aw__t">{title}</h3>
+      {who && <p className="ap-aw__w">{who}</p>}
+      {desc && <p className="ap-aw__d">{desc}</p>}
     </div>
-  </div>
+  </article>
+)
+const AwardPair = ({ children }) => <div className="ap-awpair">{children}</div>
+
+const exAward = (a) => (
+  <Award
+    key={a.id}
+    img={`ex-awards/${a.id}.webp`}
+    grade={a.grade}
+    line={a.course}
+    title={a.title}
+    who={`${a.team ? a.team + ', ' : ''}${a.members.join(', ')}`}
+    desc={a.desc}
+  />
 )
 
 const prof = (id) => professors.find((p) => p.id === id)
-const roleOf = (p) => (p.id === 'han-soomi' ? '주임교수' : p.role.replace('디지털인문예술전공 ', '') || '교수')
+const roleOf = (p) => (p.id === 'han-soomi' ? '주임교수' : p.role.replace('디지털인문예술전공', '').trim() || '디지털인문예술전공')
 const sortedHistory = [...history].sort((a, b) => a.date.localeCompare(b.date))
+// 한수미 주임교수를 가장 먼저 둔다
+const facultyOrder = ['han-soomi', 'kim-yongsoo', 'kim-sungwoo', 'yoo-inseon', 'song-injae', 'yang-taegeun', 'lee-junggeun', 'lee-eunsol', 'kim-jeehyun', 'song-hanna', 'seo-joohee']
 
 const Prof = ({ id }) => {
   const p = prof(id)
@@ -183,7 +197,7 @@ const Prof = ({ id }) => {
           {p.nameKr} <small>{roleOf(p)}</small>
         </h3>
         <p className="ap-prof__en">
-          {d.en}
+          {p.nameEn}
           {p.affiliation ? `, ${p.affiliation}` : ''}
         </p>
         <dl>
@@ -207,6 +221,19 @@ const Prof = ({ id }) => {
           </dd>
         </dl>
       </div>
+    </article>
+  )
+}
+
+const RosterCell = ({ id }) => {
+  const p = prof(id)
+  return (
+    <article>
+      <div className="ap-roster__photo">
+        <Img s={`faculty/${id}.webp`} alt={`${p.nameKr}`} />
+      </div>
+      <strong>{p.nameKr}</strong>
+      <span>{roleOf(p)}</span>
     </article>
   )
 }
@@ -240,33 +267,44 @@ const NanoBlock = ({ p, i }) => (
   </section>
 )
 
+// 인재상 벤 다이어그램(SVG): 세 원의 중심과 글자를 좌표로 맞춘다
+const Venn = () => (
+  <svg className="ap-venn" viewBox="0 0 512 346" role="img" aria-label="Digital, Creative, Human 세 영역이 겹치는 인재상">
+    <circle cx="186" cy="120" r="106" />
+    <circle cx="326" cy="120" r="106" />
+    <circle cx="256" cy="232" r="106" />
+    <text x="140" y="104" className="v-en">Digital</text>
+    <text x="140" y="124" className="v-ko">디지털 역량</text>
+    <text x="140" y="140" className="v-sub">기술, 디자인</text>
+    <text x="372" y="104" className="v-en">Creative</text>
+    <text x="372" y="124" className="v-ko">창의적인 발상</text>
+    <text x="256" y="262" className="v-en">Human</text>
+    <text x="256" y="282" className="v-ko">인문사회적 소양</text>
+    <text x="256" y="162" className="v-core">DAH</text>
+  </svg>
+)
+
+const SiteShot = ({ k, cap, h = 296 }) => <Photo s={`site/${k}.webp`} h={h} cap={cap} shot />
+
 // 쪽 정의 ---------------------------------------------------------------------------------
 // ch: 장 id, tone: paper | dark | opener | cover, alt: 접근성 대체 문구
 export const pages = [
-  // 0 표지
+  // 0 표지: 로고만
   {
     id: 'cover',
     tone: 'cover',
     alt: '2026 디지털 애뉴얼 리포트 표지',
     render: () => (
       <div className="ap-cover">
-        <p className="ap-cover__org">{reportMeta.org}</p>
-        <p className="ap-cover__year">2026</p>
-        <h1>
-          DIGITAL
-          <br />
-          ANNUAL REPORT
-        </h1>
-        <p className="ap-cover__sub">디지털 애뉴얼 리포트</p>
-        <div className="ap-cover__mosaic">
-          {[
-            'works/3.webp', 'results-1/8.webp', 'works/9.webp', 'characters/disoong-i.webp', 'awards-1/5.webp', 'works/14.webp',
-            'results-1/1.webp', 'works/5.webp', 'awards-1/3.webp', 'works/12.webp', 'results-1/9.webp', 'works/18.webp',
-          ].map((s) => (
-            <Img key={s} s={s} />
-          ))}
+        <div className="ap-mark">
+          <img src="/images/decade/lucid-mark.svg" alt="LUCID 로고" draggable="false" />
         </div>
-        <p className="ap-cover__council">{reportMeta.council}</p>
+        <h1>2026 Digital Annual Report</h1>
+        <p className="ap-cover__org">
+          {reportMeta.org}
+          <br />
+          {reportMeta.council}
+        </p>
       </div>
     ),
   },
@@ -276,23 +314,21 @@ export const pages = [
     alt: '발간사',
     render: () => (
       <>
-        <header className="ap-head">
-          <p className="ap-run">Foreword</p>
-          <h2 className="ap-title">발간사</h2>
-        </header>
+        <Head title="발간사" />
         <div className="ap-prose">
+          <p>한림대학교 디지털인문예술전공 제1대 운영위원회 LUCID는 2026년 한 해의 활동과 성과를 이 리포트에 담았습니다.</p>
           <p>
-            한림대학교 디지털인문예술전공 제1대 운영위원회 LUCID는 2026년 한 해의 활동과 성과를 이 리포트에 담았습니다.
+            2026년은 학생회가 운영위원회로 바뀌어 첫 대를 시작한 해입니다. 프로젝트 전시회 운영, 신규 캐릭터 공모전 신설, 공모전 전용
+            사이트 제작, 인스타그램 디자인 통일, 전공 웹사이트 제작과 전시회 접수 통합이 이어졌습니다.
           </p>
           <p>
-            2026년은 학생회가 운영위원회로 바뀌어 첫 대를 시작한 해입니다. 프로젝트 전시회 두 학기 운영, 신규 캐릭터 공모전 신설,
-            공모전 전용 사이트 제작, 인스타그램 디자인 통일, 전공 웹사이트 제작과 전시회 접수 통합이 이어졌습니다.
+            2025 리포트의 구성인 전공 소개, 교과목, 교수진, 행사, 학생 활동을 그대로 이어받고 2026년의 변화를 더했습니다. 형식은 인쇄본(PDF)에서
+            웹에서 넘겨 보는 디지털 판으로 바뀌었습니다.
           </p>
           <p>
-            2025 리포트의 구성인 전공 소개, 교과목, 교수진, 행사, 학생 활동을 그대로 이어받고 2026년의 변화를 더했습니다. 형식은
-            인쇄본(PDF)에서 웹에서 넘겨 보는 디지털 판으로 바뀌었습니다.
+            2학기에는 11월 18일 전공 박람회, 12월 2일부터 4일까지 프로젝트 전시회, 12월 4일 종강 총회가 예정되어 있습니다. 행사가 끝나는 대로 결과를 이어서
+            수록합니다.
           </p>
-          <p>2학기 프로젝트 전시회는 현재 접수 중이며, 전시가 끝나면 결과를 이어서 수록합니다.</p>
           <p className="ap-sign">{reportMeta.council}</p>
         </div>
         <div className="ap-qr">
@@ -317,8 +353,8 @@ export const pages = [
     alt: '전공 소개',
     render: () => (
       <>
-        <Head id="about" title="전공 소개" sub="“한림대학교 디지털인문예술전공을 소개합니다”" />
-        <Photo s="gaechong/5.webp" h={196} cap="2026.03.11 개강 총회" />
+        <Head title="전공 소개" sub="“한림대학교 디지털인문예술전공을 소개합니다”" />
+        <Photo s="gaechong/5.webp" h={250} cap="2026.03.11 개강 총회" />
         <H3 en="What is DAH?">전공 정의</H3>
         <p className="ap-body">{aboutText.what}</p>
         <H3 en="Why is DAH?">설립 취지</H3>
@@ -350,21 +386,20 @@ export const pages = [
     alt: '트랙 소개',
     render: () => (
       <>
-        <Head id="about" title="트랙 소개" />
+        <Head title="트랙 소개" />
         <div className="ap-tracks">
           {tracks.map((t) => (
             <section key={t.id}>
               <h3>
-                <span>{t.no}</span> {t.name}
+                <span>{t.no.replace('TRACK ', '')}</span> {t.name}
               </h3>
               <p>{t.summary}</p>
-              <div className="ap-chips">
-                {t.keywords.map((k) => (
-                  <i key={k}>{k}</i>
-                ))}
-              </div>
-              <h4>관련 진로</h4>
-              <Bullets items={trackCareers[t.id]} />
+              <dl className="ap-trk">
+                <dt>키워드</dt>
+                <dd>{t.keywords.join(', ')}</dd>
+                <dt>관련 진로</dt>
+                <dd>{trackCareers[t.id].join(' / ')}</dd>
+              </dl>
             </section>
           ))}
         </div>
@@ -377,22 +412,8 @@ export const pages = [
     alt: '인재상',
     render: () => (
       <>
-        <Head id="about" title="인재상" sub={talent.lead} />
-        <div className="ap-venn" aria-hidden="true">
-          <div className="ap-venn__c ap-venn__c--a">
-            <b>Digital</b>
-            <span>디지털 역량</span>
-            <small>기술, 디자인</small>
-          </div>
-          <div className="ap-venn__c ap-venn__c--b">
-            <b>Creative</b>
-            <span>창의적인 발상</span>
-          </div>
-          <div className="ap-venn__c ap-venn__c--c">
-            <b>Human</b>
-            <span>인문사회적 소양</span>
-          </div>
-        </div>
+        <Head title="인재상" sub={talent.lead} />
+        <Venn />
         <H3>인재상 유형</H3>
         <Bullets items={talent.roles} />
       </>
@@ -404,7 +425,7 @@ export const pages = [
     alt: '비전',
     render: () => (
       <>
-        <Head id="about" title="비전" />
+        <Head title="비전" />
         <ol className="ap-vision">
           {vision.map(([t, d], i) => (
             <li key={t}>
@@ -426,7 +447,7 @@ export const pages = [
     alt: '연혁',
     render: () => (
       <>
-        <Head id="about" title="연혁" sub="2017년 설립 이후의 주요 기록" />
+        <Head title="연혁" sub="2017년 설립 이후의 주요 기록" />
         <ol className="ap-timeline">
           {sortedHistory.map((h) => (
             <li key={h.date + h.text}>
@@ -447,7 +468,7 @@ export const pages = [
     alt: '교과목 편성표 공통기초와 디자인 트랙',
     render: () => (
       <>
-        <Head id="curriculum" title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
+        <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
         <H3>공통기초</H3>
         <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('common')} small />
         <H3>디자인 트랙</H3>
@@ -461,7 +482,7 @@ export const pages = [
     alt: '교과목 편성표 AI 트랙과 엔터컬쳐 트랙',
     render: () => (
       <>
-        <Head id="curriculum" title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
+        <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
         <H3>AI 트랙</H3>
         <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('track-2')} small />
         <H3>엔터컬쳐 트랙</H3>
@@ -475,7 +496,7 @@ export const pages = [
     alt: '2025에서 2026으로 바뀐 교과목 구성',
     render: () => (
       <>
-        <Head id="curriculum" title="2025에서 2026으로" sub="2025 리포트와 2026 사이트 기준의 교과목 구성 비교" />
+        <Head title="2025에서 2026으로" sub="2025 리포트와 2026 사이트 기준의 교과목 구성 비교" />
         <H3>트랙 명칭</H3>
         <Table
           head={['2025', '2026']}
@@ -506,7 +527,7 @@ export const pages = [
     alt: '나노디그리 1',
     render: () => (
       <>
-        <Head id="curriculum" title="나노디그리" sub="디지털인문예술전공 나노디그리 안내" />
+        <Head title="나노디그리" sub="디지털인문예술전공 나노디그리 안내" />
         <dl className="ap-def">
           <div>
             <dt>정의</dt>
@@ -533,7 +554,7 @@ export const pages = [
     alt: '나노디그리 2',
     render: () => (
       <>
-        <Head id="curriculum" title="나노디그리" sub="과정별 인정 교과목" />
+        <Head title="나노디그리" sub="과정별 인정 교과목" />
         {nanodegree.programs.slice(2).map((p, i) => (
           <NanoBlock key={p.name} p={p} i={i + 3} />
         ))}
@@ -546,38 +567,44 @@ export const pages = [
   {
     id: 'fac-list',
     ch: 'faculty',
-    alt: '교수진 구성',
+    alt: '교수진 구성 11명',
     render: () => (
       <>
-        <Head id="faculty" title="교수진 구성" sub="디지털인문예술전공 교수진 11명" />
-        <Table
-          head={['이름', '직함', '소속']}
-          cols={['22%', '38%', '40%']}
-          rows={professors.map((p) => [p.nameKr, roleOf(p), p.affiliation || '디지털인문예술전공'])}
-        />
-        <p className="ap-note">2026.09.01 한수미 교수 전공주임교수 취임</p>
+        <Head title="교수진 구성" />
+        <div className="ap-roster">
+          {facultyOrder.map((id) => (
+            <RosterCell key={id} id={id} />
+          ))}
+          <p className="ap-roster__note">
+            2026.09.01
+            <br />
+            한수미 교수
+            <br />
+            전공주임교수 취임
+          </p>
+        </div>
       </>
     ),
   },
-  { id: 'fac-1', ch: 'faculty', alt: '교수 소개 김용수, 김성우', render: () => <><Head id="faculty" title="교수 소개" /><div className="ap-profs"><Prof id="kim-yongsoo" /><Prof id="kim-sungwoo" /></div></> },
-  { id: 'fac-2', ch: 'faculty', alt: '교수 소개 유인선, 한수미', render: () => <><Head id="faculty" title="교수 소개" /><div className="ap-profs"><Prof id="yoo-inseon" /><Prof id="han-soomi" /></div></> },
-  { id: 'fac-3', ch: 'faculty', alt: '교수 소개 양태근, 이정근', render: () => <><Head id="faculty" title="교수 소개" /><div className="ap-profs"><Prof id="yang-taegeun" /><Prof id="lee-junggeun" /></div></> },
+  { id: 'fac-1', ch: 'faculty', alt: '교수 소개 한수미, 김용수', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="han-soomi" /><Prof id="kim-yongsoo" /></div></> },
+  { id: 'fac-2', ch: 'faculty', alt: '교수 소개 김성우, 유인선', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="kim-sungwoo" /><Prof id="yoo-inseon" /></div></> },
+  { id: 'fac-3', ch: 'faculty', alt: '교수 소개 송인재, 양태근', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="song-injae" /><Prof id="yang-taegeun" /></div></> },
   {
     id: 'fac-4',
     ch: 'faculty',
-    alt: '교수 소개 송인재와 겸임교수',
+    alt: '교수 소개 이정근과 겸임교수',
     render: () => (
       <>
-        <Head id="faculty" title="교수 소개" />
+        <Head title="교수 소개" />
         <div className="ap-profs">
-          <Prof id="song-injae" />
+          <Prof id="lee-junggeun" />
         </div>
         <H3>겸임교수와 지원</H3>
-        <Table
-          head={['이름', '직함']}
-          cols={['30%', '70%']}
-          rows={['lee-eunsol', 'seo-joohee', 'kim-jeehyun', 'song-hanna'].map((id) => [prof(id).nameKr, prof(id).role])}
-        />
+        <div className="ap-adjunct">
+          {['lee-eunsol', 'kim-jeehyun', 'song-hanna', 'seo-joohee'].map((id) => (
+            <RosterCellLite key={id} id={id} />
+          ))}
+        </div>
       </>
     ),
   },
@@ -590,17 +617,9 @@ export const pages = [
     alt: '학생회의 역사',
     render: () => (
       <>
-        <Head id="council" title="학생회의 역사" sub="2017년 전공 설립과 함께 시작한 학생 조직" />
-        <Table
-          head={['연도', '학생 조직']}
-          cols={['22%', '78%']}
-          rows={councils.map((c) => [String(c.year), c.title])}
-        />
-        <H3>{councilCube.title}</H3>
-        <p className="ap-body">{councilCube.intro}</p>
-        <p className="ap-body">
-          {councilCube.work} {councilCube.workEx}
-        </p>
+        <Head title="학생회의 역사" sub="2017년 전공 설립과 함께 시작한 학생 조직" />
+        <Table head={['연도', '학생 조직']} cols={['22%', '78%']} rows={councils.map((c) => [String(c.year), c.title])} />
+        <p className="ap-note">2017년에 전공이 설립되고 학생 조직의 역사가 시작되었으며, 2026년부터 학생회가 제1대 운영위원회 LUCID로 바뀌었습니다.</p>
       </>
     ),
   },
@@ -610,24 +629,21 @@ export const pages = [
     alt: '학생회에서 운영위원회로',
     render: () => (
       <>
-        <Head id="council" title="학생회에서 운영위원회로" sub="2026, 이름과 구조가 바뀐 첫 해" />
+        <Head title="학생회에서 운영위원회로" sub="2026, 이름과 구조가 바뀐 첫 해" />
         <div className="ap-prose">
-          <p>
-            2025년까지 전공의 학생 대표 조직은 학생회였고 마지막 대는 제7대 CUBE였습니다. 2026년에 학생회라는 이름을 제1대 운영위원회
-            LUCID로 바꾸고 대수를 새로 시작했습니다.
-          </p>
+          <p>2026년에 전공의 학생 대표 조직 이름이 학생회에서 운영위원회 LUCID로 바뀌었고, 대수도 제1대로 새로 시작했습니다.</p>
           <p>학생회의 역할을 이어받으면서 전시회 접수, 공모전, 전공 웹사이트 운영 등 전공 운영 실무를 위원회가 직접 맡는 구조입니다.</p>
         </div>
         <Table
-          head={['', '2025', '2026']}
-          cols={['16%', '40%', '44%']}
+          head={['', '2026 운영위원회']}
+          cols={['22%', '78%']}
           rows={[
-            ['명칭', '제7대 학생회 CUBE', '제1대 운영위원회 LUCID'],
-            ['인원', '12명', '10명'],
-            ['구성', '학회장, 부학회장, 전시, 대외, 홍보, 기획', '위원장, 부위원장, 기획부, 홍보부, 웹전시부'],
+            ['명칭', '제1대 운영위원회 LUCID'],
+            ['인원', '10명'],
+            ['구성', '위원장, 부위원장, 기획부, 홍보부, 웹전시부'],
+            ['웹전시부', '전시회 사이트와 웹 전시 담당'],
           ]}
         />
-        <p className="ap-note">웹전시부는 2025 학생회 구성에 없던 부서로, 전시회 사이트와 웹 전시를 맡습니다.</p>
       </>
     ),
   },
@@ -637,7 +653,7 @@ export const pages = [
     alt: 'LUCID 소개',
     render: () => (
       <>
-        <Head id="council" title="LUCID" sub="2026 1st Student Council" />
+        <Head title="LUCID" sub="2026 1st Student Council" />
         <div className="ap-mark">
           <img src="/images/decade/lucid-mark.svg" alt="LUCID 로고" draggable="false" />
         </div>
@@ -651,7 +667,7 @@ export const pages = [
     alt: '조직',
     render: () => (
       <>
-        <Head id="council" title="조직" sub="위원장, 부위원장과 세 개 부서 총 10명" />
+        <Head title="조직" sub="위원장, 부위원장과 세 개 부서 총 10명" />
         <dl className="ap-org">
           {['위원장', '부위원장', '기획부', '홍보부', '웹전시부'].map((g) => (
             <div key={g}>
@@ -670,7 +686,7 @@ export const pages = [
     alt: '정기 운영 행사 7종',
     render: () => (
       <>
-        <Head id="council" title="정기 운영 행사" sub="한 학기의 시작부터 끝까지 운영하는 전공 공식 행사 7종" />
+        <Head title="정기 운영 행사" sub="한 학기의 시작부터 끝까지 운영하는 전공 공식 행사 7종" />
         <Numbered items={regularEvents} />
       </>
     ),
@@ -681,7 +697,7 @@ export const pages = [
     alt: '2026년의 흐름',
     render: () => (
       <>
-        <Head id="council" title="2026년의 흐름" sub="공지, 행사 일정, 개발 기록 기준" />
+        <Head title="2026년의 흐름" sub="공지, 행사 일정, 개발 기록 기준. 11월 이후는 예정" />
         <ol className="ap-timeline">
           {yearFlow.map(([d, t]) => (
             <li key={d + t}>
@@ -699,7 +715,7 @@ export const pages = [
     alt: '개강 총회 현장 사진',
     render: () => (
       <>
-        <Head id="council" title="개강 총회" sub="2026.03.11 C.square Blue" />
+        <Head title="개강 총회" sub="2026.03.11 C.square Blue" />
         <div className="ap-stackp">
           <Photo s="gaechong/1.webp" h={188} alt="개강 총회 발표" />
           <Photo s="gaechong/4.webp" h={188} alt="개강 총회 뒤풀이" />
@@ -717,7 +733,7 @@ export const pages = [
     alt: '작년과 올해',
     render: () => (
       <>
-        <Head id="ax" title="작년과 올해" sub="전공 운영 도구가 구글 문서에서 전공 웹사이트로 이동" />
+        <Head title="작년과 올해" sub="전공 운영 도구가 구글 문서에서 전공 웹사이트로 이동" />
         <Table head={['', '2025', '2026']} cols={['20%', '38%', '42%']} rows={axCompare} />
       </>
     ),
@@ -728,7 +744,7 @@ export const pages = [
     alt: '전공 웹사이트',
     render: () => (
       <>
-        <Head id="ax" title="전공 웹사이트" sub="구글 사이트 운영에서 자체 개발 사이트로 전환" />
+        <Head title="전공 웹사이트" sub="구글 사이트 운영에서 자체 개발 사이트로 전환" />
         <p className="ap-body">구글 사이트로 운영하던 전공 웹사이트를 자체 개발한 사이트로 교체하였습니다. 한국어와 영어를 함께 지원합니다.</p>
         <Bullets
           items={[
@@ -738,7 +754,7 @@ export const pages = [
             '개발 기록 2026.07.06 시작, 10월 현재 진행 중',
           ]}
         />
-        <Photo s="site/home.webp" h={200} cap="전공 웹사이트 첫 화면" />
+        <SiteShot k="home" cap="전공 웹사이트 첫 화면" h={300} />
       </>
     ),
   },
@@ -748,7 +764,7 @@ export const pages = [
     alt: '전시회 접수 통합',
     render: () => (
       <>
-        <Head id="ax" title="전시회 접수 통합" sub="구글 폼과 앱스 스크립트로 나뉘어 있던 접수를 전공 웹사이트 한 곳으로 통합" />
+        <Head title="전시회 접수 통합" sub="구글 폼과 앱스 스크립트로 나뉘어 있던 접수를 전공 웹사이트 한 곳으로 통합" />
         <ol className="ap-steps">
           {submitFlow.map(([t, d], i) => (
             <li key={t}>
@@ -768,7 +784,7 @@ export const pages = [
             '과목 선택 드롭다운, 개인과 팀 참가 구분',
           ]}
         />
-        <Photo s="site/submit.webp" h={190} cap="전시회 접수 화면" />
+        <SiteShot k="submit" cap="전시회 접수 화면" h={250} />
       </>
     ),
   },
@@ -778,7 +794,7 @@ export const pages = [
     alt: '신청 폼',
     render: () => (
       <>
-        <Head id="ax" title="신청 폼 편집기" sub="종강 총회, 부원 모집 등 각종 신청을 구글 폼 없이 사이트 안에서 운영" />
+        <Head title="신청 폼 편집기" sub="종강 총회, 부원 모집 등 각종 신청을 구글 폼 없이 사이트 안에서 운영" />
         <Bullets
           items={[
             '구글 폼과 같은 방식의 질문 편집기',
@@ -788,17 +804,7 @@ export const pages = [
             '폼 복사로 다음 학기 신청 폼 즉시 생성',
           ]}
         />
-        <Photo s="site/exhibitions.webp" h={200} cap="프로젝트 전시회 페이지" />
-      </>
-    ),
-  },
-  {
-    id: 'ax-new',
-    ch: 'ax',
-    alt: '올해 새로 생긴 기능',
-    render: () => (
-      <>
-        <Head id="ax" title="올해 새로 생긴 기능" />
+        <H3>올해 새로 생긴 기능</H3>
         <Table head={['기능', '내용']} cols={['28%', '72%']} rows={axNew} />
         <p className="ap-note">전시 원본은 인쇄용 파일 그대로 구글 드라이브에 보관하고, 웹 노출용 이미지는 용량을 줄인 웹용으로 별도 제작합니다.</p>
       </>
@@ -807,24 +813,36 @@ export const pages = [
   {
     id: 'ax-shots-1',
     ch: 'ax',
-    alt: '전공 웹사이트 화면',
+    alt: '전공 웹사이트 화면 프로젝트 전시회와 공모전',
     render: () => (
       <>
-        <Head id="ax" title="화면 모음" sub="전공 웹사이트" />
-        <Photo s="site/home.webp" h={248} cap="첫 화면" />
-        <Photo s="site/exhibitions.webp" h={248} cap="프로젝트 전시회" />
+        <Head title="화면 모음" sub="프로젝트 전시회와 공모전" />
+        <SiteShot k="exhibitions" cap="프로젝트 전시회" h={292} />
+        <SiteShot k="contests" cap="공모전 회차별 포스터 기록" h={292} />
       </>
     ),
   },
   {
     id: 'ax-shots-2',
     ch: 'ax',
-    alt: '공모전과 접수 화면',
+    alt: '전공 웹사이트 화면 학생 성과와 동아리',
     render: () => (
       <>
-        <Head id="ax" title="화면 모음" sub="공모전과 접수" />
-        <Photo s="site/contests.webp" h={248} cap="공모전 회차별 포스터 기록" />
-        <Photo s="site/submit.webp" h={248} cap="전시회 접수 화면" />
+        <Head title="화면 모음" sub="학생 성과와 동아리" />
+        <SiteShot k="achievements" cap="학생 성과" h={292} />
+        <SiteShot k="clubs" cap="동아리" h={292} />
+      </>
+    ),
+  },
+  {
+    id: 'ax-shots-3',
+    ch: 'ax',
+    alt: '전공 웹사이트 화면 교수진',
+    render: () => (
+      <>
+        <Head title="화면 모음" sub="교수진과 운영위원회" />
+        <SiteShot k="people" cap="교수진과 멘토" h={292} />
+        <SiteShot k="council" cap="운영위원회" h={292} />
       </>
     ),
   },
@@ -837,7 +855,7 @@ export const pages = [
     alt: '전시회 18회의 기록',
     render: () => (
       <>
-        <Head id="exhibition" title="전시회 18회의 기록" sub="2017년 2학기 제1회부터 2026년 1학기 제18회까지 전공 최대 행사" />
+        <Head title="전시회 18회의 기록" sub="2017년 2학기 제1회부터 2026년 1학기 제18회까지 전공 최대 행사" />
         <Grid cols={6} gap={8}>
           {exhibitionArchive.map((k) => (
             <Cell key={k} s={`/images/exhibitions/${k}.webp`} cap={k} ratio="3 / 4" />
@@ -849,93 +867,36 @@ export const pages = [
   {
     id: 'ex-261',
     ch: 'exhibition',
-    alt: '2026 1학기 전시회 개요',
+    alt: '2026 1학기 전시회 Against the Flow 개요',
     render: () => (
       <>
-        <Head id="exhibition" title="2026 1학기 전시회" sub="제18회 디지털인문예술전공 프로젝트 전시회, 2026.06.02 ~ 06.04, 캠퍼스라이프센터" />
-        <Table head={['일정', '내용']} cols={['30%', '70%']} rows={exhibition261Schedule} />
-        <p className="ap-body">디지털인문예술전공 전공 수업과 동아리의 기말 프로젝트 작품 전시. 인쇄 작품 오프라인 전시와 작품 사이트 온라인 전시 병행.</p>
-        <Photo s="exhibit/poster.webp" h={250} cap="1학기 전시회 포스터" />
+        <Head title="Against the Flow" sub="제18회 디지털인문예술전공 프로젝트 전시회, 2026 1학기" />
+        <div className="ap-awone" style={{ gridTemplateColumns: '216px 1fr' }}>
+          <div className="ap-aw__img">
+            <Img s="poster-awards/against-the-flow.webp" alt="Against the Flow 전시 포스터" />
+          </div>
+          <Table head={['구분', '내용']} cols={['26%', '74%']} rows={exhibition261Facts} />
+        </div>
+        <H3>준비와 운영 일정</H3>
+        <Table head={['일정', '내용']} cols={['28%', '72%']} rows={exhibition261Prep} small />
       </>
     ),
   },
   {
     id: 'ex-concept',
     ch: 'exhibition',
-    alt: '전시 컨셉 기획',
+    alt: 'Against the Flow 전시 컨셉',
     render: () => (
       <>
-        <Head id="exhibition" title="전시 컨셉 기획" sub="418 I'M A TEAPOT, 휴먼 터치 (CON:NECT 기획안)" />
-        <dl className="ap-def">
-          <div>
-            <dt>슬로건</dt>
-            <dd>커피를 요구하는 세상, 따뜻한 차 한 잔</dd>
-          </div>
-          <div>
-            <dt>주제</dt>
-            <dd>휴먼 터치(Human touch)</dd>
-          </div>
-        </dl>
+        <Head title="전시 컨셉" sub="Against the Flow, 기술의 흐름 위에서 사람의 방향으로" />
         <div className="ap-prose">
-          <p>
-            기술이 고도화될수록 기술이 흉내 낼 수 없는 인간의 흔적이 주목받는 흐름에서, 디지털 시스템의 틈새에서 발견되는 인간다움을
-            탐구하는 전시입니다.
-          </p>
-          <p>
-            418은 1998년 만우절 농담에서 유래한 기술 표준으로, 커피를 내리라는 요청에 서버가 찻주전자라서 할 수 없다고 답하는 상황입니다.
-            정체성에 맞지 않는 요청에 유쾌하게 자기다움을 밝히는 태도를 상징합니다.
-          </p>
-        </div>
-        <Photo s="poster-photos/16.webp" h={230} cap="전시 포스터 설치 현장" />
-      </>
-    ),
-  },
-  {
-    id: 'ex-programs',
-    ch: 'exhibition',
-    alt: '전시 프로그램',
-    render: () => (
-      <>
-        <Head id="exhibition" title="전시 프로그램" sub="기획안 기준 현장 프로그램 5종" />
-        <Numbered items={exhibition261Programs} />
-      </>
-    ),
-  },
-  {
-    id: 'ex-posters',
-    ch: 'exhibition',
-    alt: '전시 포스터 설치 현장',
-    render: () => (
-      <>
-        <Head id="exhibition" title="전시 현장" sub="전시회 포스터 공모전 수상작이 전시 얼굴로 활용" />
-        <Grid cols={2} gap={10}>
-          <Cell s="poster-photos/4.webp" ratio="1 / 1.1" />
-          <Cell s="poster-photos/7.webp" ratio="1 / 1.1" />
-          <Cell s="poster-photos/13.webp" ratio="1 / 1.1" />
-          <Cell s="poster-photos/21.webp" ratio="1 / 1.1" />
-        </Grid>
-      </>
-    ),
-  },
-  {
-    id: 'ex-top',
-    ch: 'exhibition',
-    tone: 'dark',
-    alt: '2026 1학기 프로젝트 전시회 최우수상 403: Bypass',
-    render: () => <BigWinner rank="최우수상" title="403: Bypass" meta="디지털인문예술입문" img="big/exhibit-top.webp" note="2026 1학기 프로젝트 전시회" />,
-  },
-  {
-    id: 'ex-rest',
-    ch: 'exhibition',
-    alt: '우수상 13점',
-    render: () => (
-      <>
-        <Head id="exhibition" title="우수상" sub="2026 1학기 프로젝트 전시회 우수상 13점" />
-        <Grid cols={5} gap={8} dense>
-          {exhibition261Awards.slice(1).map(([course, title], i) => (
-            <Cell key={title} s={`awards-1/${[7, 6, 5, 4, 3, 2, 15, 14, 13, 12, 11, 10, 9][i]}.webp`} ratio="1 / 1" cap={title} sub={course} />
+          {exhibition261Concept.lines.map((t) => (
+            <p key={t}>{t}</p>
           ))}
-        </Grid>
+        </div>
+        <Numbered items={exhibition261Concept.points} />
+        <H3>AI 활용과 학생의 기여</H3>
+        <Table cols={['28%', '72%']} rows={exhibition261Concept.credits} small />
       </>
     ),
   },
@@ -945,7 +906,7 @@ export const pages = [
     alt: '전시된 작품들',
     render: () => (
       <>
-        <Head id="exhibition" title="전시 작품" sub="수업과 동아리의 프로젝트 작품을 온라인 전시 사이트에 게시" />
+        <Head title="전시 작품" sub="12개 수업과 동아리, 자율 부문 출품작 81점 중 일부" />
         <Grid cols={5} gap={7}>
           {Array.from({ length: 20 }, (_, i) => (
             <Cell key={i} s={`works/${i + 1}.webp`} ratio="3 / 4" />
@@ -954,13 +915,24 @@ export const pages = [
       </>
     ),
   },
+  ...Array.from({ length: 7 }, (_, i) => ({
+    id: `ex-award-${i + 1}`,
+    ch: 'exhibition',
+    alt: `프로젝트 전시회 수상작 ${exAwards[i * 2].title}${exAwards[i * 2 + 1] ? ', ' + exAwards[i * 2 + 1].title : ''}`,
+    render: () => (
+      <>
+        <Head title="수상작" sub={`2026 1학기 프로젝트 전시회, 최우수상 1점과 우수상 13점 (${i * 2 + 1}~${i * 2 + 2} / 14)`} />
+        <AwardPair>{exAwards.slice(i * 2, i * 2 + 2).map(exAward)}</AwardPair>
+      </>
+    ),
+  })),
   {
     id: 'ex-ceremony',
     ch: 'exhibition',
     alt: '시상식',
     render: () => (
       <>
-        <Head id="exhibition" title="시상식" sub="2026.06.04 18:00 C.square Blue, 종강 총회 병행" />
+        <Head title="시상식" sub="2026.06.04 18:00 C.square Blue, 종강 총회 병행" />
         <div className="ap-stackp">
           <Photo s="jongchong/2.webp" h={188} />
           <Photo s="jongchong/1.webp" h={188} />
@@ -970,23 +942,41 @@ export const pages = [
     ),
   },
   {
+    id: 'ex-install',
+    ch: 'exhibition',
+    alt: '전시 포스터 설치 현장',
+    render: () => (
+      <>
+        <Head title="전시 현장" sub="전시회 포스터 공모전 수상작이 전시의 얼굴로 활용되었습니다" />
+        <Grid cols={2} gap={10}>
+          <Cell s="poster-photos/4.webp" ratio="5 / 6" />
+          <Cell s="poster-photos/7.webp" ratio="5 / 6" />
+          <Cell s="poster-photos/13.webp" ratio="5 / 6" />
+          <Cell s="poster-photos/21.webp" ratio="5 / 6" />
+        </Grid>
+      </>
+    ),
+  },
+  {
     id: 'ex-262',
     ch: 'exhibition',
     alt: '2026 2학기 전시회',
     render: () => (
       <>
-        <Head id="exhibition" title="2026 2학기 전시회" sub="제19회 디지털인문예술전공 프로젝트 전시회, 작품 접수 중" />
+        <Head title="2026 2학기 전시회" sub="제19회 디지털인문예술전공 프로젝트 전시회" />
         <Table
           head={['구분', '일정']}
           cols={['30%', '70%']}
           rows={[
-            ['접수 시작', '2026.10.01'],
-            ['접수 마감', '2026.11.13'],
+            ['작품 접수', '2026.10.01 ~ 11.13'],
             ['수정 마감', '2026.11.24'],
+            ['전공 박람회', '2026.11.18 (예정)'],
+            ['프로젝트 전시회', '2026.12.02 ~ 12.04 (예정)'],
+            ['종강 총회', '2026.12.04 (예정)'],
           ]}
         />
-        <p className="ap-body">서비스 디자인, UI 디자인, 디자인 씽킹, 캡스톤디자인 등 2학기 과목과 전공 동아리, 자율 참가 접수. 전시 일정과 결과는 전시 종료 후 이어서 수록합니다.</p>
-        <Photo s="site/exhibitions.webp" h={230} cap="전공 웹사이트의 프로젝트 전시회 페이지" />
+        <p className="ap-body">서비스 디자인, UI 디자인, 디자인 씽킹, 캡스톤디자인 등 2학기 과목과 전공 동아리, 자율 참가 접수. 전시 장소와 결과는 행사가 끝난 뒤 이어서 수록합니다.</p>
+        <SiteShot k="exhibitions" cap="전공 웹사이트의 프로젝트 전시회 페이지" h={290} />
       </>
     ),
   },
@@ -996,7 +986,7 @@ export const pages = [
     alt: '2학기 접수 방식',
     render: () => (
       <>
-        <Head id="exhibition" title="접수 방식의 변화" sub="2학기 전시회부터 전공 웹사이트에서 작품 접수" />
+        <Head title="접수 방식의 변화" sub="2학기 전시회부터 전공 웹사이트에서 작품 접수" />
         <Table
           head={['항목', '내용']}
           cols={['26%', '74%']}
@@ -1009,6 +999,7 @@ export const pages = [
             ['파일', '학기와 과목별 폴더로 자동 정리'],
           ]}
         />
+        <SiteShot k="submit" cap="전시회 접수 화면" h={290} />
       </>
     ),
   },
@@ -1021,7 +1012,7 @@ export const pages = [
     alt: '공모전 전용 사이트',
     render: () => (
       <>
-        <Head id="contest" title="공모전 전용 사이트" sub="안내, 출품, 투표, 결과를 한 사이트에서 확인" />
+        <Head title="공모전 전용 사이트" sub="안내, 출품, 투표, 결과를 한 사이트에서 확인" />
         <Bullets
           items={[
             '신규 캐릭터 공모전 사이트: 출품작 포스터, 온라인 투표, 결과 확인',
@@ -1030,85 +1021,193 @@ export const pages = [
             '전공 웹사이트의 공모전 회차별 기록으로 연결',
           ]}
         />
-        <Photo s="site/contests.webp" h={250} cap="공모전 회차별 포스터 기록" />
+        <SiteShot k="contests" cap="공모전 회차별 포스터 기록" h={300} />
       </>
     ),
   },
   {
-    id: 'ct-char-top',
+    id: 'ct-char-1',
     ch: 'contest',
-    tone: 'dark',
-    alt: '신규 캐릭터 공모전 1등 디숭이',
-    render: () => <BigWinner rank="1등" title="디숭이" meta="온라인 투표 12표, 김지연" img="big/character-top.webp" note="2026 신규 캐릭터 공모전" />,
-  },
-  {
-    id: 'ct-char-rest',
-    ch: 'contest',
-    alt: '신규 캐릭터 공모전 나머지 출품작',
+    alt: '신규 캐릭터 공모전 1등 디숭이, 2등 디푸',
     render: () => (
       <>
-        <Head id="contest" title="신규 캐릭터 공모전" sub="2026년 신설, 출품작 7점" />
-        <Table
-          head={['구분', '일정']}
-          cols={['30%', '70%']}
-          rows={[
-            ['접수', '2026.03.23 ~ 04.30'],
-            ['온라인 투표', '2026.05.02 공지'],
-            ['결과 발표', '2026.05.08'],
-          ]}
-          small
-        />
-        <Grid cols={3} gap={10} style={{ marginTop: 8 }}>
-          {characterWorks.slice(1).map((c) => (
-            <Cell key={c.k} s={`characters/${c.k}.webp`} ratio="1 / 1.1" cap={`${c.r ? c.r + ' ' : ''}${c.n}${c.v ? ' ' + c.v : ''}`} sub={c.by} />
+        <Head title="신규 캐릭터 공모전" sub="2026년 신설, 출품작 9점 중 투표 1등과 2등" />
+        <AwardPair>
+          {characterWorks.slice(0, 2).map((c) => (
+            <Award key={c.k} img={`characters/${c.k}.webp`} grade={c.r} line={`온라인 투표 ${c.v}`} title={c.n} who={`${c.by}, ${c.major}`} desc={`${c.d}${c.note ? ' ' + c.note + '.' : ''}`} />
           ))}
-        </Grid>
+        </AwardPair>
       </>
     ),
   },
   {
-    id: 'ct-poster-top',
+    id: 'ct-char-2',
     ch: 'contest',
-    tone: 'dark',
-    alt: '전시회 포스터 공모전 최우수상',
-    render: () => <BigWinner rank="최우수상" title="Against the Flow" meta="2026 1학기 프로젝트 전시회 포스터 공모전" img="big/poster-top.webp" />,
+    alt: '신규 캐릭터 공모전 3등 도도와 나머지 출품작',
+    render: () => {
+      const c = characterWorks[2]
+      return (
+        <>
+          <Head title="신규 캐릭터 공모전" sub="투표 3등과 나머지 출품작" />
+          <Table
+            head={['구분', '내용']}
+            cols={['26%', '74%']}
+            rows={[
+              ['일정', '2026.03.23 접수 시작, 05.02 온라인 투표, 05.08 결과 발표'],
+              ['심사', '투표 100% (주전공생, 복수전공생, 교수진 투표 합산)'],
+              ['시상', '1등 30만원, 2등과 3등 각 10만원'],
+            ]}
+            small
+          />
+          <div className="ap-awone" style={{ gridTemplateColumns: '176px 1fr', gap: 20 }}>
+            <div className="ap-aw__img">
+              <Img s={`characters/${c.k}.webp`} alt={`${c.r} ${c.n}`} />
+            </div>
+            <div className="ap-aw__tx">
+              <span className="ap-aw__g">{c.r}</span>
+              <p className="ap-aw__c">온라인 투표 {c.v}</p>
+              <h3 className="ap-aw__t">{c.n}</h3>
+              <p className="ap-aw__w">{c.by}, {c.major}</p>
+              <p className="ap-aw__d">{c.d}</p>
+            </div>
+          </div>
+          <H3>그 밖의 출품작 6점</H3>
+          <Grid cols={6} gap={8} dense>
+            {characterWorks.slice(3).map((x) => (
+              <Cell key={x.k} s={`characters/${x.k}.webp`} ratio="1 / 1.4142" cap={x.n} sub={x.by} contain />
+            ))}
+          </Grid>
+        </>
+      )
+    },
   },
   {
-    id: 'ct-poster-rest',
+    id: 'ct-poster-1',
     ch: 'contest',
-    alt: '전시회 포스터 공모전 우수상과 장려상',
+    alt: '전시회 포스터 공모전 최우수상 Against the Flow, 우수상 Un-formatted',
     render: () => (
       <>
-        <Head id="contest" title="전시회 포스터 공모전" sub="2026 1학기 전시회 포스터, 최우수상 1점, 우수상 3점, 장려상 1점" />
-        <Grid cols={2} gap={10}>
-          {[9, 10, 11, 12].map((n) => (
-            <Cell key={n} s={`results-1/${n}.webp`} ratio="1 / 1.1" cap={n === 12 ? '장려상' : '우수상'} />
+        <Head title="전시회 포스터 공모전" sub="2026 1학기 프로젝트 전시회 포스터, 수상작 5점 중 1~2" />
+        <AwardPair>
+          {posterAwards.slice(0, 2).map((a) => (
+            <Award key={a.title} img={a.img} grade={a.grade} title={a.title} who={`${a.who}, ${a.major}`} />
           ))}
-        </Grid>
+        </AwardPair>
       </>
     ),
   },
   {
-    id: 'ct-book-top',
+    id: 'ct-poster-2',
     ch: 'contest',
-    tone: 'dark',
-    alt: '장서표 디자인 공모전 최우수상',
-    render: () => <BigWinner rank="최우수상" title="인제 기적의 도서관 장서표" meta="2026 강원과 함께 하는 도서관 장서표 디자인 공모전" img="big/bookplate-top.webp" />,
-  },
-  {
-    id: 'ct-book-rest',
-    ch: 'contest',
-    alt: '장서표 디자인 공모전 우수상과 장려상',
+    alt: '전시회 포스터 공모전 우수상 에러 418, 개화',
     render: () => (
       <>
-        <Head id="contest" title="장서표 디자인 공모전" sub="인제 기적의 도서관, 최우수상 1점, 우수상 3점, 장려상 1점" />
-        <Grid cols={2} gap={10}>
-          {[2, 3, 4, 5].map((n) => (
-            <Cell key={n} s={`results-1/${n}.webp`} ratio="1 / 1.1" cap={n === 5 ? '장려상' : '우수상'} />
+        <Head title="전시회 포스터 공모전" sub="수상작 5점 중 3~4" />
+        <AwardPair>
+          {posterAwards.slice(2, 4).map((a) => (
+            <Award key={a.title} img={a.img} grade={a.grade} title={a.title} who={`${a.who}, ${a.major}`} />
           ))}
-        </Grid>
+        </AwardPair>
       </>
     ),
+  },
+  {
+    id: 'ct-poster-3',
+    ch: 'contest',
+    alt: '전시회 포스터 공모전 장려상 흔열',
+    render: () => {
+      const a = posterAwards[4]
+      return (
+        <>
+          <Head title="전시회 포스터 공모전" sub="수상작 5점 중 5" />
+          <div className="ap-awone">
+            <div className="ap-aw__img">
+              <Img s={a.img} alt={`${a.grade} ${a.title}`} />
+            </div>
+            <div className="ap-aw__tx">
+              <span className="ap-aw__g">{a.grade}</span>
+              <h3 className="ap-aw__t">{a.title}</h3>
+              <p className="ap-aw__w">{a.who}, {a.major}</p>
+            </div>
+          </div>
+          <Table
+            head={['구분', '내용']}
+            cols={['26%', '74%']}
+            rows={[
+              ['공모', '2026학년도 1학기 디지털인문예술전공 전시회 포스터 공모전, 2026.05.02 공지'],
+              ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
+              ['수상', '최우수상 1점, 우수상 3점, 장려상 1점'],
+              ['활용', '최우수상 포스터는 1학기 전시회의 포스터로 쓰였습니다'],
+            ]}
+            small
+          />
+        </>
+      )
+    },
+  },
+  {
+    id: 'ct-book-1',
+    ch: 'contest',
+    alt: '장서표 디자인 공모전 최우수상 고요한 기적, 우수상 온고지신',
+    render: () => (
+      <>
+        <Head title="장서표 디자인 공모전" sub="인제 기적의 도서관, 수상작 5점 중 1~2" />
+        <AwardPair>
+          {bookplateAwards.slice(0, 2).map((a) => (
+            <Award key={a.title} img={a.img} grade={a.grade} title={a.title} who={`${a.who}, ${a.major}`} />
+          ))}
+        </AwardPair>
+      </>
+    ),
+  },
+  {
+    id: 'ct-book-2',
+    ch: 'contest',
+    alt: '장서표 디자인 공모전 우수상 사이의 서가, 방황하는 페이지들의 이정표',
+    render: () => (
+      <>
+        <Head title="장서표 디자인 공모전" sub="수상작 5점 중 3~4" />
+        <AwardPair>
+          {bookplateAwards.slice(2, 4).map((a) => (
+            <Award key={a.title} img={a.img} grade={a.grade} title={a.title} who={`${a.who}, ${a.major}`} />
+          ))}
+        </AwardPair>
+      </>
+    ),
+  },
+  {
+    id: 'ct-book-3',
+    ch: 'contest',
+    alt: '장서표 디자인 공모전 장려상 첵의 물길',
+    render: () => {
+      const a = bookplateAwards[4]
+      return (
+        <>
+          <Head title="장서표 디자인 공모전" sub="수상작 5점 중 5" />
+          <div className="ap-awone">
+            <div className="ap-aw__img">
+              <Img s={a.img} alt={`${a.grade} ${a.title}`} />
+            </div>
+            <div className="ap-aw__tx">
+              <span className="ap-aw__g">{a.grade}</span>
+              <h3 className="ap-aw__t">{a.title}</h3>
+              <p className="ap-aw__w">{a.who}, {a.major}</p>
+            </div>
+          </div>
+          <Table
+            head={['구분', '내용']}
+            cols={['26%', '74%']}
+            rows={[
+              ['공모', '2026 강원과 함께 하는 도서관 장서표 디자인 공모전, 2026.05.02 공지'],
+              ['대상 도서관', '인제 기적의 도서관'],
+              ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
+              ['수상', '최우수상 1점, 우수상 3점, 장려상 1점'],
+            ]}
+            small
+          />
+        </>
+      )
+    },
   },
 
   // ===== 08 Branding =====
@@ -1119,11 +1218,11 @@ export const pages = [
     alt: '인스타그램 디자인 통일',
     render: () => (
       <>
-        <Head id="brand" title="디자인 통일" sub="@hallym_lucid" />
+        <Head title="디자인 통일" sub="@hallym_lucid" />
         <p className="ap-body">모집, 행사 안내, 공모전, 전시회 수상작, 동아리 홍보까지 모든 게시물을 LUCID의 하나의 디자인으로 통일하여 정비하였습니다. 게시물 한 장만으로 전공 운영위원회 계정임을 알아볼 수 있는 구성입니다.</p>
         <Grid cols={3} gap={10}>
           {['insta/recruit-1.webp', 'insta/gaechong-1.webp', 'insta/character-1.webp', 'insta/event-1.webp', 'insta/fair-1.webp', 'insta/closing-1.webp'].map((s) => (
-            <Cell key={s} s={s} ratio="4 / 5" />
+            <Cell key={s} s={s} ratio="3 / 4" />
           ))}
         </Grid>
       </>
@@ -1135,10 +1234,10 @@ export const pages = [
     alt: '전시 안내 게시물 시리즈',
     render: () => (
       <>
-        <Head id="brand" title="전시 안내 시리즈" sub="전시회 접수, 안내, 동아리 전시 게시물" />
+        <Head title="전시 안내 시리즈" sub="전시회 접수, 안내, 작품 제출 게시물" />
         <Grid cols={3} gap={10}>
-          {['exhibit-info/3-1.webp', 'exhibit-info/1-1.webp', 'exhibit-info/2-1.webp', 'exhibit-info/2-7.webp', 'exhibit-info/3-3.webp', 'exhibit-info/2-5.webp'].map((s) => (
-            <Cell key={s} s={s} ratio="4 / 5" />
+          {['exhibit-info/1-1.webp', 'exhibit-info/1-2.webp', 'exhibit-info/1-3.webp', 'exhibit-info/2-1.webp', 'exhibit-info/2-5.webp', 'exhibit-info/2-7.webp'].map((s) => (
+            <Cell key={s} s={s} ratio="3 / 4" />
           ))}
         </Grid>
       </>
@@ -1150,10 +1249,10 @@ export const pages = [
     alt: '동아리 홍보 게시물',
     render: () => (
       <>
-        <Head id="brand" title="동아리 홍보 시리즈" sub="동아리 전시회와 동아리 홍보 카드뉴스" />
+        <Head title="동아리 홍보 시리즈" sub="동아리 전시회와 동아리 홍보 카드뉴스" />
         <Grid cols={3} gap={10}>
-          {['insta2/club-exhibit-1.webp', 'insta2/club-exhibit-3.webp', 'insta2/club-exhibit-4.webp', 'insta2/club-exhibit-5.webp', 'insta2/DS4H-1.webp', 'insta2/더인스-1.webp'].map((s) => (
-            <Cell key={s} s={s} ratio="4 / 5" />
+          {['exhibit-info/3-1.webp', 'exhibit-info/3-2.webp', 'exhibit-info/3-3.webp', 'clubs/ds4h-1.webp', 'clubs/theins-1.webp', 'clubs/iso-1.webp'].map((s) => (
+            <Cell key={s} s={s} ratio="3 / 4" />
           ))}
         </Grid>
       </>
@@ -1165,16 +1264,18 @@ export const pages = [
   {
     id: 'out-in',
     ch: 'outreach',
-    alt: '전공 행사',
+    alt: '전공 행사와 일정',
     render: () => (
       <>
-        <Head id="outreach" title="전공 행사" />
+        <Head title="전공 행사와 일정" sub="2026 1학기 진행 행사와 2학기 일정" />
         <Numbered
           items={[
             ['개강 총회와 비전 설명회', '2026.03.11 C.square Blue. 운영위원회와 동아리 소개, 전공 비전 설명'],
-            ['전공 박람회', '2026 1학기 전공 소개와 홍보'],
+            ['전공 박람회', '2026 1학기 전공 소개와 홍보. 2학기 전공 박람회는 2026.11.18 예정'],
             ['미래융합스쿨 교류와 연합 엠티', '미래융합스쿨 학생회 교류, 연합 엠티에서 전공 동아리 4곳 소개'],
-            ['시상식과 종강 총회', '2026.06.04 C.square Blue. 프로젝트 전시회 시상식과 학기 마무리'],
+            ['시상식과 1학기 종강 총회', '2026.06.04 C.square Blue. 프로젝트 전시회 시상식과 학기 마무리'],
+            ['2학기 프로젝트 전시회', '2026.12.02 ~ 12.04 예정'],
+            ['2학기 종강 총회', '2026.12.04 예정'],
           ]}
         />
       </>
@@ -1186,7 +1287,7 @@ export const pages = [
     alt: '대외 활동',
     render: () => (
       <>
-        <Head id="outreach" title="대외 활동" sub="전공을 알리고 연결한 활동" />
+        <Head title="대외 활동" sub="전공을 알리고 연결한 활동" />
         <Numbered
           items={[
             ['2026 Hallym Local Branding Camp', 'Team LUCID 참가, Station C 방문 외빈을 위한 브랜드 경험 제안'],
@@ -1203,7 +1304,7 @@ export const pages = [
     alt: '행사 사진',
     render: () => (
       <>
-        <Head id="outreach" title="행사 사진" sub="개강 총회, 시상식과 종강 총회" />
+        <Head title="행사 사진" sub="개강 총회, 시상식과 종강 총회" />
         <Grid cols={2} gap={10}>
           <Cell s="gaechong/2.webp" ratio="16 / 9" />
           <Cell s="gaechong/3.webp" ratio="16 / 9" />
@@ -1226,7 +1327,7 @@ export const pages = [
     alt: '대표 성과',
     render: () => (
       <>
-        <Head id="achievements" title="대표 성과" sub="전공 웹사이트에 2026년으로 기록된 성과 21건 중 대상 6건" />
+        <Head title="대표 성과" sub="전공 웹사이트에 2026년으로 기록된 학생 성과 21건 중 대상 6건" />
         <div className="ap-feats">
           <section>
             <b>4년 연속</b>
@@ -1241,48 +1342,42 @@ export const pages = [
           <section>
             <b>대상 6건</b>
             <strong>2026년 대상 수상</strong>
-            <p>Town MICE 아이디어톤, 한림 로컬 창업 빌드업, 동해시 AI 아이디어톤, 한림 AI 교육 포털 오픈 공모전, 지역사회 문제해결 PBL 경진대회, 커리어 인바디 아이디어 공모전.</p>
+            <p>동해시 AI 아이디어톤, 한림 AI 교육 포털 오픈 공모전, 지역사회 문제해결 PBL 경진대회, 커리어 인바디 아이디어 공모전, 한림 로컬 창업 빌드업, Town MICE 아이디어톤.</p>
           </section>
         </div>
       </>
     ),
   },
-  {
-    id: 'ach-1',
+  ...[
+    [0, 6],
+    [6, 12],
+    [12, 17],
+    [17, 21],
+  ].map(([a, b], i) => ({
+    id: `ach-${i + 1}`,
     ch: 'achievements',
-    alt: '2026 수상과 선발 1',
+    alt: `2026 수상과 선발 ${a + 1}번부터 ${b}번`,
     render: () => (
       <>
-        <Head id="achievements" title="2026 수상과 선발" sub="1 / 2" />
-        <ul className="ap-ach">
-          {achievements2026.slice(0, 7).map((a) => (
-            <li key={a.t}>
-              <strong>{a.t}</strong>
-              <span>{a.a}</span>
+        <Head title="2026 수상과 선발" sub={`${a + 1}~${b} / 21`} />
+        <ul className="ap-acl">
+          {achievements21.slice(a, b).map((x) => (
+            <li key={x.c + x.t + x.w + x.g}>
+              <span className={`ap-acl__g ${x.g === '대상' ? 'is-top' : ''}`}>{x.g}</span>
+              <div>
+                <strong>{x.c}</strong>
+                {x.t && <p>{x.t}</p>}
+                <em>
+                  {x.w}
+                  {x.x ? `, ${x.x}` : ''}
+                </em>
+              </div>
             </li>
           ))}
         </ul>
       </>
     ),
-  },
-  {
-    id: 'ach-2',
-    ch: 'achievements',
-    alt: '2026 수상과 선발 2',
-    render: () => (
-      <>
-        <Head id="achievements" title="2026 수상과 선발" sub="2 / 2" />
-        <ul className="ap-ach">
-          {achievements2026.slice(7).map((a) => (
-            <li key={a.t}>
-              <strong>{a.t}</strong>
-              <span>{a.a}</span>
-            </li>
-          ))}
-        </ul>
-      </>
-    ),
-  },
+  })),
 
   // ===== 11 Activities =====
   { id: 'op-clubs', ch: 'clubs', tone: 'opener', alt: '11 Activities 전공 동아리', render: () => <Opener id="clubs" lead="학생이 직접 기획하고 운영하는 4개 분야의 동아리" /> },
@@ -1292,33 +1387,64 @@ export const pages = [
     alt: '전공 동아리 4곳',
     render: () => (
       <>
-        <Head id="clubs" title="전공 동아리" sub="4개 분야의 동아리를 학생들이 직접 기획하고 운영하며 다양한 분야의 지식과 역량 축적" />
+        <Head title="전공 동아리" sub="4개 분야의 동아리를 학생들이 직접 기획하고 운영하며 다양한 분야의 지식과 역량 축적" />
         <div className="ap-clubs">
           {clubsInfo.map((c) => (
-            <article key={c.name}>
+            <article key={c.id}>
+              <div className="ap-logo">
+                <Img s={c.logo} alt={`${c.name} 로고`} />
+              </div>
               <h3>
-                {c.name} <small>{c.field}</small>
+                {c.name}
+                <small>{c.field}</small>
               </h3>
               <p>{c.lead}</p>
-              <Bullets items={c.items} />
             </article>
           ))}
         </div>
       </>
     ),
   },
+  ...clubsInfo.map((c) => ({
+    id: `club-${c.id}`,
+    ch: 'clubs',
+    alt: `동아리 ${c.name}`,
+    render: () => (
+      <>
+        <Head title={c.name} sub={`${c.nameEn}, ${c.field} 동아리`} />
+        <div className="ap-club">
+          <div className="ap-club__top">
+            <div className="ap-logo" style={{ width: 88, height: 88 }}>
+              <Img s={c.logo} alt={`${c.name} 로고`} />
+            </div>
+            <p>{c.lead}</p>
+          </div>
+          <div>
+            <H3>활동</H3>
+            <Bullets items={c.items} />
+          </div>
+          <Table head={['구분', '내용']} cols={['24%', '76%']} rows={c.info} small />
+          <div className="ap-club__imgs">
+            {c.imgs.map((s) => (
+              <Cell key={s} s={s} ratio="4 / 5" />
+            ))}
+          </div>
+        </div>
+      </>
+    ),
+  })),
   {
-    id: 'clubs-photos',
+    id: 'clubs-record',
     ch: 'clubs',
     alt: '동아리 활동 기록',
     render: () => (
       <>
-        <Head id="clubs" title="활동 기록" sub="2026 동아리 전시회, 연합 엠티 발표, 홍보 카드뉴스" />
-        <Grid cols={2} gap={10}>
-          <Cell s="/images/clubs-deck/theinstudio-2.webp" ratio="1 / 1" cap="더 인스튜디오" />
-          <Cell s="/images/clubs-deck/iso-2.webp" ratio="1 / 1" cap="I-SO" />
-          <Cell s="/images/clubs-deck/connect-2.webp" ratio="1 / 1" cap="CON:NECT" />
-          <Cell s="/images/clubs-deck/ds4h-2.webp" ratio="1 / 1" cap="DS4H" />
+        <Head title="활동 기록" sub="연합 엠티 동아리 소개와 동아리 전시회" />
+        <Photo s="clubs/mt-overview.webp" h={288} cap="연합 엠티 동아리 소개 발표" contain />
+        <Grid cols={3} gap={10}>
+          {['exhibit-info/3-1.webp', 'exhibit-info/3-2.webp', 'exhibit-info/3-3.webp'].map((s) => (
+            <Cell key={s} s={s} ratio="3 / 4" />
+          ))}
         </Grid>
       </>
     ),
@@ -1329,13 +1455,10 @@ export const pages = [
     alt: '맺음말과 제작 정보',
     render: () => (
       <>
-        <header className="ap-head">
-          <p className="ap-run">Closing</p>
-          <h2 className="ap-title">맺음말</h2>
-        </header>
+        <Head title="맺음말" />
         <div className="ap-prose">
           <p>2026년은 학생회에서 운영위원회로 바뀐 첫 해이자 전공 운영이 웹으로 옮겨 간 해입니다.</p>
-          <p>2학기 프로젝트 전시회, 종강 총회, 새 성과는 이 리포트에 이어서 수록합니다.</p>
+          <p>2학기 전공 박람회, 프로젝트 전시회, 종강 총회와 새 성과는 이 리포트에 이어서 수록합니다.</p>
           <p className="ap-sign">{reportMeta.council}</p>
         </div>
         <H3>제작 정보</H3>
@@ -1358,7 +1481,7 @@ export const pages = [
     alt: '뒷표지',
     render: () => (
       <div className="ap-cover ap-cover--back">
-        <div className="ap-mark ap-mark--light">
+        <div className="ap-mark">
           <img src="/images/decade/lucid-mark.svg" alt="" draggable="false" />
         </div>
         <p className="ap-cover__org">{reportMeta.org}</p>
@@ -1372,13 +1495,26 @@ export const pages = [
   },
 ]
 
+// 사진과 이름만 있는 작은 인물 칸
+function RosterCellLite({ id }) {
+  const p = prof(id)
+  return (
+    <article>
+      <div className="ap-roster__photo">
+        <Img s={`faculty/${id}.webp`} alt={p.nameKr} />
+      </div>
+      <div className="ap-roster" style={{ display: 'block' }}>
+        <strong>{p.nameKr}</strong>
+        <span>{roleOf(p)}</span>
+      </div>
+    </article>
+  )
+}
+
 function Toc({ toc }) {
   return (
     <>
-      <header className="ap-head">
-        <p className="ap-run">Contents</p>
-        <h2 className="ap-title">목차</h2>
-      </header>
+      <Head title="목차" />
       <ol className="ap-toc">
         {toc.map((c) => (
           <li key={c.id}>
