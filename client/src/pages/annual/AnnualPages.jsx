@@ -1,22 +1,15 @@
 // AnnualPages.jsx: 애뉴얼 리포트의 모든 쪽(600 x 800 고정 판형). 렌더 화면(/annual-report/render)에서만 쓴다.
 // 이 쪽들을 이미지로 구워 책 화면(/annual-report)이 캔버스로 넘긴다.
-import { councils } from '../../data/council'
-import { history } from '../../data/history'
-import { curriculum } from '../../data/curriculum'
+// 사이트 데이터는 라이브 API 스냅샷(siteSnapshot.json, scripts/annual-snapshot.mjs로 갱신)만 쓴다.
+// 트랙 요약과 키워드는 사이트 홈과 교육과정 화면이 직접 렌더하는 data/tracks.js를 그대로 쓴다.
+import snap from './siteSnapshot.json'
 import { tracks } from '../../data/tracks'
-import { nanodegree } from '../../data/nanodegree'
-import { professors } from '../../data/professors'
 import { exAwards } from '../../data/annualAwards'
 import {
   IMG,
   SITE_URL,
   reportMeta,
   chapters,
-  aboutText,
-  trackCareers,
-  talent,
-  vision,
-  facultyDetail,
   regularEvents,
   yearFlow,
   axCompare,
@@ -33,7 +26,14 @@ import {
   clubsInfo,
 } from '../../data/annualContent'
 
-const council2026 = councils.find((c) => c.year === 2026)
+const about = snap.settings.about
+const history = snap.settings.history
+const councils = [...snap.council].sort((a, b) => Number(b.year_label) - Number(a.year_label))
+const council2026 = councils.find((c) => c.year_label === '2026')
+const nanodegree = snap.nanodegree[0].body
+const codesharing = snap.codesharing[0].body
+const curriculum = snap.curriculum
+const professors = [...snap.professors].filter((p) => p.active !== false).sort((a, b) => a.sort - b.sort)
 const ch = (id) => chapters.find((c) => c.id === id)
 const src = (s) => (s.startsWith('/') ? s : `${IMG}/${s}`)
 
@@ -105,12 +105,16 @@ const Numbered = ({ items }) => (
   </ol>
 )
 
+// 장 표지: 2025 판처럼 단색 보라 바탕, 은은한 큰 원, 오른쪽 정렬 영문 제목과 하위 목록
 const Opener = ({ id, lead }) => {
   const c = ch(id)
   return (
     <div className="ap-opener">
-      <span className="ap-opener__no">{c.no}</span>
+      <span className="ap-opener__ring ap-opener__ring--a" />
+      <span className="ap-opener__ring ap-opener__ring--b" />
+      <span className="ap-opener__ring ap-opener__ring--c" />
       <div className="ap-opener__body">
+        <span className="ap-opener__no">{c.no}</span>
         <h2>{c.en}</h2>
         <p className="ap-opener__kr">{c.title}</p>
         {lead && <p className="ap-opener__lead">{lead}</p>}
@@ -173,76 +177,85 @@ const exAward = (a) => (
     grade={a.grade}
     line={a.course}
     title={a.title}
-    who={`${a.team ? a.team + ', ' : ''}${a.members.join(', ')}`}
+    who={a.members.join(', ')}
     desc={a.desc}
   />
 )
 
-const prof = (id) => professors.find((p) => p.id === id)
-const roleOf = (p) => (p.id === 'han-soomi' ? '주임교수' : p.role.replace('디지털인문예술전공', '').trim() || '디지털인문예술전공')
+// 사진 파일 이름은 영문 이름에서 만든다(Soomi Han -> han-soomi)
+const slug = (p) => {
+  const [first, ...rest] = p.name_en.trim().split(/\s+/)
+  return `${rest.join('-')}-${first}`.toLowerCase()
+}
+const roleOf = (p) => p.title_ko.replace('디지털인문예술전공', '').trim() || '디지털인문예술전공'
+const linkOf = (p, label) => (Array.isArray(p.links) ? p.links.find((l) => l.label === label)?.url : null) || null
+const shortUrl = (u) => {
+  const t = u.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  return t.length > 44 ? t.split('/')[0] : t
+}
 const sortedHistory = [...history].sort((a, b) => a.date.localeCompare(b.date))
-// 한수미 주임교수를 가장 먼저 둔다
-const facultyOrder = ['han-soomi', 'kim-yongsoo', 'kim-sungwoo', 'yoo-inseon', 'song-injae', 'yang-taegeun', 'lee-junggeun', 'lee-eunsol', 'kim-jeehyun', 'song-hanna', 'seo-joohee']
 
-const Prof = ({ id }) => {
-  const p = prof(id)
-  const d = facultyDetail[id]
+const Prof = ({ p }) => {
+  const aff = linkOf(p, 'affiliation')
+  const web = linkOf(p, 'website')
   return (
     <article className="ap-prof">
       <div className="ap-prof__photo">
-        <Img s={`faculty/${id}.webp`} alt={`${p.nameKr} 교수`} />
+        <Img s={`faculty/${slug(p)}.webp`} alt={`${p.name_ko} 교수`} />
       </div>
       <div className="ap-prof__body">
         <h3>
-          {p.nameKr} <small>{roleOf(p)}</small>
+          {p.name_ko} <small>{roleOf(p)}</small>
         </h3>
-        <p className="ap-prof__en">
-          {p.nameEn}
-          {p.affiliation ? `, ${p.affiliation}` : ''}
-        </p>
+        <p className="ap-prof__en">{p.name_en}</p>
         <dl>
-          <dt>학력</dt>
-          <dd>
-            {d.edu.map((t) => (
-              <span key={t}>{t}</span>
-            ))}
-          </dd>
-          <dt>전공</dt>
-          <dd>
-            {d.field.map((t) => (
-              <span key={t}>{t}</span>
-            ))}
-          </dd>
-          <dt>연구관심사</dt>
-          <dd>
-            {d.interest.map((t) => (
-              <span key={t}>{t}</span>
-            ))}
-          </dd>
+          <dt>직함</dt>
+          <dd>{p.title_ko}</dd>
+          {aff && (
+            <>
+              <dt>소속</dt>
+              <dd>{aff}</dd>
+            </>
+          )}
+          {p.email && (
+            <>
+              <dt>이메일</dt>
+              <dd>{p.email}</dd>
+            </>
+          )}
+          {web && (
+            <>
+              <dt>웹사이트</dt>
+              <dd>{shortUrl(web)}</dd>
+            </>
+          )}
         </dl>
       </div>
     </article>
   )
 }
 
-const RosterCell = ({ id }) => {
-  const p = prof(id)
-  return (
-    <article>
-      <div className="ap-roster__photo">
-        <Img s={`faculty/${id}.webp`} alt={`${p.nameKr}`} />
-      </div>
-      <strong>{p.nameKr}</strong>
-      <span>{roleOf(p)}</span>
-    </article>
-  )
-}
+const RosterCell = ({ p }) => (
+  <article>
+    <div className="ap-roster__photo">
+      <Img s={`faculty/${slug(p)}.webp`} alt={p.name_ko} />
+    </div>
+    <strong>{p.name_ko}</strong>
+    <span>{roleOf(p)}</span>
+  </article>
+)
 
 const courseRows = (track) =>
   curriculum
     .filter((c) => c.track === track)
-    .sort((a, b) => a.semester - b.semester || a.year - b.year)
-    .map((c) => [`${c.semester}학기`, c.year === 1 && track === 'common' ? '공통' : `${c.year}학년`, c.name, c.credit])
+    .sort((a, b) => a.semester - b.semester || a.grade - b.grade || a.sort - b.sort)
+    .map((c) => [`${c.semester}학기`, track === 'common' ? '공통' : `${c.grade}수준`, c.name_ko, c.credit])
+const commonNames = (sem) =>
+  curriculum
+    .filter((c) => c.track === 'common' && c.semester === sem)
+    .sort((a, b) => a.sort - b.sort)
+    .map((c) => c.name_ko)
+    .join(', ')
 
 const NanoBlock = ({ p, i }) => (
   <section className="ap-nano">
@@ -267,44 +280,25 @@ const NanoBlock = ({ p, i }) => (
   </section>
 )
 
-// 인재상 벤 다이어그램(SVG): 세 원의 중심과 글자를 좌표로 맞춘다
-const Venn = () => (
-  <svg className="ap-venn" viewBox="0 0 512 346" role="img" aria-label="Digital, Creative, Human 세 영역이 겹치는 인재상">
-    <circle cx="186" cy="120" r="106" />
-    <circle cx="326" cy="120" r="106" />
-    <circle cx="256" cy="232" r="106" />
-    <text x="140" y="104" className="v-en">Digital</text>
-    <text x="140" y="124" className="v-ko">디지털 역량</text>
-    <text x="140" y="140" className="v-sub">기술, 디자인</text>
-    <text x="372" y="104" className="v-en">Creative</text>
-    <text x="372" y="124" className="v-ko">창의적인 발상</text>
-    <text x="256" y="262" className="v-en">Human</text>
-    <text x="256" y="282" className="v-ko">인문사회적 소양</text>
-    <text x="256" y="162" className="v-core">DAH</text>
-  </svg>
-)
-
 const SiteShot = ({ k, cap, h = 296 }) => <Photo s={`site/${k}.webp`} h={h} cap={cap} shot />
 
 // 쪽 정의 ---------------------------------------------------------------------------------
 // ch: 장 id, tone: paper | dark | opener | cover, alt: 접근성 대체 문구
 export const pages = [
-  // 0 표지: 로고만
+  // 0 표지: 2025 표지 구성(가로선, 연도와 제목, 알약 라벨, 기하 타일 그리드)을 사진 없이 이어받는다
   {
     id: 'cover',
     tone: 'cover',
-    alt: '2026 디지털 애뉴얼 리포트 표지',
+    alt: '2026 애뉴얼 리포트 표지',
     render: () => (
       <div className="ap-cover">
-        <div className="ap-mark">
-          <img src="/images/decade/lucid-mark.svg" alt="LUCID 로고" draggable="false" />
-        </div>
-        <h1>2026 Digital Annual Report</h1>
-        <p className="ap-cover__org">
-          {reportMeta.org}
-          <br />
-          {reportMeta.council}
-        </p>
+        <div className="ap-cover__rule" />
+        <h1 className="ap-cover__title">
+          <span>2026</span>
+          <b>ANNUAL REPORT</b>
+        </h1>
+        <p className="ap-cover__pill">한림대학교 디지털인문예술전공 애뉴얼 리포트</p>
+        <CoverTiles />
       </div>
     ),
   },
@@ -325,10 +319,7 @@ export const pages = [
             2025 리포트의 구성인 전공 소개, 교과목, 교수진, 행사, 학생 활동을 그대로 이어받고 2026년의 변화를 더했습니다. 형식은 인쇄본(PDF)에서
             웹에서 넘겨 보는 디지털 판으로 바뀌었습니다.
           </p>
-          <p>
-            2학기에는 11월 18일 전공 박람회, 12월 2일부터 4일까지 프로젝트 전시회, 12월 4일 종강 총회가 예정되어 있습니다. 행사가 끝나는 대로 결과를 이어서
-            수록합니다.
-          </p>
+          <p>2학기 행사는 끝나는 대로 결과를 이어서 수록합니다.</p>
           <p className="ap-sign">{reportMeta.council}</p>
         </div>
         <div className="ap-qr">
@@ -356,25 +347,25 @@ export const pages = [
         <Head title="전공 소개" sub="“한림대학교 디지털인문예술전공을 소개합니다”" />
         <Photo s="gaechong/5.webp" h={250} cap="2026.03.11 개강 총회" />
         <H3 en="What is DAH?">전공 정의</H3>
-        <p className="ap-body">{aboutText.what}</p>
+        <p className="ap-body">{about.what}</p>
         <H3 en="Why is DAH?">설립 취지</H3>
-        <p className="ap-body">{aboutText.why}</p>
+        <p className="ap-body">{about.why}</p>
         <div className="ap-stats">
           <div>
             <b>2017</b>
             <span>전공 설립</span>
           </div>
           <div>
-            <b>262명</b>
-            <span>재적학생(2026 1학기)</span>
-          </div>
-          <div>
-            <b>11명</b>
+            <b>{professors.length}명</b>
             <span>교수진</span>
           </div>
           <div>
-            <b>18회</b>
+            <b>{snap.exhibitions.length}회</b>
             <span>프로젝트 전시회</span>
+          </div>
+          <div>
+            <b>{snap.club.length}개</b>
+            <span>전공 동아리</span>
           </div>
         </div>
       </>
@@ -397,8 +388,6 @@ export const pages = [
               <dl className="ap-trk">
                 <dt>키워드</dt>
                 <dd>{t.keywords.join(', ')}</dd>
-                <dt>관련 진로</dt>
-                <dd>{trackCareers[t.id].join(' / ')}</dd>
               </dl>
             </section>
           ))}
@@ -407,15 +396,16 @@ export const pages = [
     ),
   },
   {
-    id: 'about-talent',
+    id: 'about-mission',
     ch: 'about',
-    alt: '인재상',
+    alt: '미션',
     render: () => (
       <>
-        <Head title="인재상" sub={talent.lead} />
-        <Venn />
-        <H3>인재상 유형</H3>
-        <Bullets items={talent.roles} />
+        <Head title="미션" />
+        <div className="ap-mission">
+          <p className="ap-mission__kr">{about.mission.kr}</p>
+          <p className="ap-mission__en">{about.mission.en}</p>
+        </div>
       </>
     ),
   },
@@ -427,17 +417,16 @@ export const pages = [
       <>
         <Head title="비전" />
         <ol className="ap-vision">
-          {vision.map(([t, d], i) => (
-            <li key={t}>
+          {about.vision.map((v, i) => (
+            <li key={v.title}>
               <span>{i + 1}</span>
               <div>
-                <strong>{t}</strong>
-                <p>{d}</p>
+                <strong>{v.title}</strong>
+                <p>{v.body}</p>
               </div>
             </li>
           ))}
         </ol>
-        <div className="ap-pull">디지털 기술 활용 능력으로 창의적 아이디어를 표현하는 21세기형 인문 인재 양성</div>
       </>
     ),
   },
@@ -470,9 +459,9 @@ export const pages = [
       <>
         <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
         <H3>공통기초</H3>
-        <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('common')} small />
+        <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('common')} small />
         <H3>디자인 트랙</H3>
-        <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('track-1')} small />
+        <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('design')} small />
       </>
     ),
   },
@@ -484,9 +473,9 @@ export const pages = [
       <>
         <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
         <H3>AI 트랙</H3>
-        <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('track-2')} small />
+        <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('ai')} small />
         <H3>엔터컬쳐 트랙</H3>
-        <Table head={['학기', '수준', '과목명', '학점']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('track-3')} small />
+        <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['14%', '14%', '58%', '14%']} rows={courseRows('culture')} small />
       </>
     ),
   },
@@ -511,13 +500,13 @@ export const pages = [
           head={['', '2025', '2026']}
           cols={['16%', '42%', '42%']}
           rows={[
-            ['1학기', '디지털인문예술입문, 문화콘텐츠 기초, 융합형 인재를 위한 코딩 기초', '디지털인문예술입문, 문화콘텐츠 기초'],
-            ['2학기', '디자인 씽킹 기초, 스토리텔링 기초, AI이해의 기초', '디자인 씽킹, AI 활용 데이터 리터러시, 서브컬처 가이드'],
+            ['1학기', '디지털인문예술입문, 문화콘텐츠 기초, 융합형 인재를 위한 코딩 기초', commonNames(1)],
+            ['2학기', '디자인 씽킹 기초, 스토리텔링 기초, AI이해의 기초', commonNames(2)],
           ]}
         />
         <H3>코드쉐어링</H3>
-        <p className="ap-body">타과 교과목 중 기준에 충족하는 과목에 한해서 디지털인문예술전공의 과목으로 인정하는 시스템입니다.</p>
-        <p className="ap-note">이미 취득한 학점에 한하며, 졸업 전까지 코드쉐어링 인정원 작성 후 미래융합스쿨 교학팀의 승인 필요</p>
+        <p className="ap-body">{codesharing.definition}</p>
+        <p className="ap-note">{codesharing.note.trim()}</p>
       </>
     ),
   },
@@ -531,7 +520,7 @@ export const pages = [
         <dl className="ap-def">
           <div>
             <dt>정의</dt>
-            <dd>전공 심화 역량 함양과 전공별 현장 실무 중심의 역량 배양을 위하여 운영하는 집중 교육 과정</dd>
+            <dd>{nanodegree.intro}</dd>
           </div>
           <div>
             <dt>기준</dt>
@@ -539,7 +528,7 @@ export const pages = [
           </div>
           <div>
             <dt>운영</dt>
-            <dd>4개 과정</dd>
+            <dd>{nanodegree.programs.length}개 과정</dd>
           </div>
         </dl>
         {nanodegree.programs.slice(0, 2).map((p, i) => (
@@ -567,47 +556,36 @@ export const pages = [
   {
     id: 'fac-list',
     ch: 'faculty',
-    alt: '교수진 구성 11명',
+    alt: `교수진 구성 ${professors.length}명`,
     render: () => (
       <>
         <Head title="교수진 구성" />
         <div className="ap-roster">
-          {facultyOrder.map((id) => (
-            <RosterCell key={id} id={id} />
-          ))}
-          <p className="ap-roster__note">
-            2026.09.01
-            <br />
-            한수미 교수
-            <br />
-            전공주임교수 취임
-          </p>
-        </div>
-      </>
-    ),
-  },
-  { id: 'fac-1', ch: 'faculty', alt: '교수 소개 한수미, 김용수', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="han-soomi" /><Prof id="kim-yongsoo" /></div></> },
-  { id: 'fac-2', ch: 'faculty', alt: '교수 소개 김성우, 유인선', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="kim-sungwoo" /><Prof id="yoo-inseon" /></div></> },
-  { id: 'fac-3', ch: 'faculty', alt: '교수 소개 송인재, 양태근', render: () => <><Head title="교수 소개" /><div className="ap-profs"><Prof id="song-injae" /><Prof id="yang-taegeun" /></div></> },
-  {
-    id: 'fac-4',
-    ch: 'faculty',
-    alt: '교수 소개 이정근과 겸임교수',
-    render: () => (
-      <>
-        <Head title="교수 소개" />
-        <div className="ap-profs">
-          <Prof id="lee-junggeun" />
-        </div>
-        <H3>겸임교수와 지원</H3>
-        <div className="ap-adjunct">
-          {['lee-eunsol', 'kim-jeehyun', 'song-hanna', 'seo-joohee'].map((id) => (
-            <RosterCellLite key={id} id={id} />
+          {professors.map((p) => (
+            <RosterCell key={p.id} p={p} />
           ))}
         </div>
       </>
     ),
   },
+  ...[0, 3, 6, 9].map((start) => {
+    const group = professors.slice(start, start + 3)
+    return {
+      id: `fac-${start / 3 + 1}`,
+      ch: 'faculty',
+      alt: `교수 소개 ${group.map((p) => p.name_ko).join(', ')}`,
+      render: () => (
+        <>
+          <Head title="교수 소개" />
+          <div className="ap-profs">
+            {group.map((p) => (
+              <Prof key={p.id} p={p} />
+            ))}
+          </div>
+        </>
+      ),
+    }
+  }),
 
   // ===== 04 Council =====
   { id: 'op-council', ch: 'council', tone: 'opener', alt: '04 Council 운영위원회 LUCID', render: () => <Opener id="council" /> },
@@ -618,7 +596,7 @@ export const pages = [
     render: () => (
       <>
         <Head title="학생회의 역사" sub="2017년 전공 설립과 함께 시작한 학생 조직" />
-        <Table head={['연도', '학생 조직']} cols={['22%', '78%']} rows={councils.map((c) => [String(c.year), c.title])} />
+        <Table head={['연도', '학생 조직']} cols={['22%', '78%']} rows={councils.map((c) => [c.year_label, c.name])} />
         <p className="ap-note">2017년에 전공이 설립되고 학생 조직의 역사가 시작되었으며, 2026년부터 학생회가 제1대 운영위원회 LUCID로 바뀌었습니다.</p>
       </>
     ),
@@ -639,7 +617,7 @@ export const pages = [
           cols={['22%', '78%']}
           rows={[
             ['명칭', '제1대 운영위원회 LUCID'],
-            ['인원', '10명'],
+            ['인원', `${council2026.members.length}명`],
             ['구성', '위원장, 부위원장, 기획부, 홍보부, 웹전시부'],
             ['웹전시부', '전시회 사이트와 웹 전시 담당'],
           ]}
@@ -667,7 +645,7 @@ export const pages = [
     alt: '조직',
     render: () => (
       <>
-        <Head title="조직" sub="위원장, 부위원장과 세 개 부서 총 10명" />
+        <Head title="조직" sub={`위원장, 부위원장과 세 개 부서 총 ${council2026.members.length}명`} />
         <dl className="ap-org">
           {['위원장', '부위원장', '기획부', '홍보부', '웹전시부'].map((g) => (
             <div key={g}>
@@ -1478,36 +1456,55 @@ export const pages = [
   {
     id: 'back',
     tone: 'cover',
-    alt: '뒷표지',
+    alt: '뒤표지',
     render: () => (
       <div className="ap-cover ap-cover--back">
-        <div className="ap-mark">
-          <img src="/images/decade/lucid-mark.svg" alt="" draggable="false" />
-        </div>
-        <p className="ap-cover__org">{reportMeta.org}</p>
-        <p className="ap-cover__sub">{reportMeta.title}</p>
-        <div className="ap-qr ap-qr--back">
-          <img src={`${IMG}/site-qr.svg`} alt="" />
-          <p>{SITE_URL}</p>
-        </div>
+        <p className="ap-back__top">2026 운영위원회 LUCID</p>
+        <h2 className="ap-cover__title ap-cover__title--back">
+          <span>2026</span>
+          <b>ANNUAL REPORT</b>
+        </h2>
       </div>
     ),
   },
 ]
 
-// 사진과 이름만 있는 작은 인물 칸
-function RosterCellLite({ id }) {
-  const p = prof(id)
+// 표지 타일: 5열 4행 정사각, 사진 없이 공식 보라 단색과 흰 선의 기하 패턴
+const TILE = ['diag', 'half-r', 'solid', 'quarter', 'vstripe', 'solid', 'tri', 'grid4', 'circle', 'hstripe', 'quarter-b', 'vstripe', 'half-b', 'diag-r', 'solid', 'hstripe', 'solid', 'arch', 'tri-d', 'split']
+function Tile({ k }) {
+  const L = { stroke: '#fff', strokeWidth: 1.4, fill: 'none' }
+  const n = Array.from({ length: 7 }, (_, i) => (i + 1) * 12.5)
+  const body = {
+    solid: null,
+    diag: n.map((v) => <line key={v} x1={0} y1={v} x2={v} y2={0} {...L} />).concat(n.map((v) => <line key={'b' + v} x1={v} y1={100} x2={100} y2={v} {...L} />)),
+    'diag-r': n.map((v) => <line key={v} x1={100 - v} y1={0} x2={100} y2={v} {...L} />).concat(n.map((v) => <line key={'b' + v} x1={0} y1={100 - v} x2={v} y2={100} {...L} />)),
+    vstripe: [60, 70, 80, 90].map((v) => <line key={v} x1={v} y1={0} x2={v} y2={100} {...L} />),
+    hstripe: [55, 66, 77, 88].map((v) => <line key={v} x1={0} y1={v} x2={100} y2={v} {...L} />),
+    'half-r': <path d="M50 0 A50 50 0 0 1 50 100" {...L} />,
+    'half-b': <path d="M0 50 A50 50 0 0 0 100 50" {...L} />,
+    arch: <path d="M0 100 A50 50 0 0 1 100 100" {...L} />,
+    quarter: <path d="M0 100 A100 100 0 0 1 100 0" {...L} />,
+    'quarter-b': <path d="M0 0 A100 100 0 0 0 100 100" {...L} />,
+    tri: <path d="M50 0 L100 100 L0 100 Z" {...L} />,
+    'tri-d': <path d="M0 0 L100 0 L50 100 Z" {...L} />,
+    circle: <circle cx="50" cy="50" r="38" {...L} />,
+    grid4: [<line key="v" x1={50} y1={0} x2={50} y2={100} {...L} />, <line key="h" x1={0} y1={50} x2={100} y2={50} {...L} />],
+    split: [<line key="v" x1={50} y1={0} x2={50} y2={100} {...L} />, <line key="a" x1={50} y1={50} x2={100} y2={0} {...L} />],
+  }[k]
   return (
-    <article>
-      <div className="ap-roster__photo">
-        <Img s={`faculty/${id}.webp`} alt={p.nameKr} />
-      </div>
-      <div className="ap-roster" style={{ display: 'block' }}>
-        <strong>{p.nameKr}</strong>
-        <span>{roleOf(p)}</span>
-      </div>
-    </article>
+    <svg viewBox="0 0 100 100" className="ap-tile" aria-hidden="true">
+      <rect width="100" height="100" className="ap-tile__bg" />
+      {body}
+    </svg>
+  )
+}
+function CoverTiles() {
+  return (
+    <div className="ap-cover__tiles">
+      {TILE.map((k, i) => (
+        <Tile key={i} k={k} />
+      ))}
+    </div>
   )
 }
 

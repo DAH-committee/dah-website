@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, FileText } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { useAuth } from '../../context/AuthContext'
@@ -176,6 +176,23 @@ function Dashboard() {
   return (
     <section className="flex flex-col gap-32">
       <PageHead title="대시보드" desc="콘텐츠 현황 요약" actions={<ExportButton />} />
+
+      {/* 운영위원회 인수인계 문서: 관리자는 비밀번호 없이 바로 연다 */}
+      <div>
+        <p className="font-mono text-label-m uppercase tracking-label text-text-meta">HANDOVER</p>
+        <Link
+          to="/handover/1"
+          className="mt-16 flex items-center gap-16 rounded-glass border border-glass-line bg-glass-bg p-16 backdrop-blur-glass-mobile transition duration-fast ease-out hover:bg-glass-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus"
+        >
+          <span className="inline-grid h-40 w-40 shrink-0 place-items-center rounded-sm bg-[#4285f4] text-white">
+            <FileText size={20} aria-hidden="true" />
+          </span>
+          <span className="flex flex-col gap-4">
+            <span className="text-body-m font-semibold text-text-pri">운영위원회 인수인계 문서</span>
+            <span className="text-caption-m text-text-meta">연간 일정, 행사별 절차, 계정, 여백 댓글 · 자료실에서는 비밀번호 열람</span>
+          </span>
+        </Link>
+      </div>
 
       {/* 유형별 카운트 */}
       <div>

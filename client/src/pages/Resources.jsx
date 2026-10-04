@@ -12,6 +12,18 @@ import { majorCompassResource } from '../data/majorCompass'
 
 const PAGE_SIZE = 10
 
+// 운영위원회 인수인계 문서: 비로그인 비밀번호, 관리자 로그인 직행
+const HANDOVER = {
+  id: 'handover',
+  no: '—',
+  tag: '운영위원회',
+  title: '운영위원회 인수인계 문서 (비밀번호)',
+  author: '운영위원회',
+  date: '2026-10-05',
+  pinned: true,
+  to: '/resources/handover',
+}
+
 const MAJOR_COMPASS = {
   ...majorCompassResource,
   no: '—',
@@ -49,7 +61,8 @@ function Resources() {
     toRow(post, remoteTotal - (page - 1) * pageSize - idx, isEn)
   )
   const includeCompass = page === 1 && (!q || MAJOR_COMPASS.title.includes(q))
-  const rows = includeCompass ? [MAJOR_COMPASS, ...remoteRows] : remoteRows
+  const includeHandover = page === 1 && (!q || HANDOVER.title.includes(q))
+  const rows = [...(includeHandover ? [HANDOVER] : []), ...(includeCompass ? [MAJOR_COMPASS] : []), ...remoteRows]
   // CMS 게시물 수와 페이지네이션은 서버 값만 사용한다. 고정 소개 자료는 첫 페이지의 안내 행이다.
   const total = remoteTotal
 

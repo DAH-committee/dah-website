@@ -1,0 +1,3729 @@
+{
+ "source": "https://dah-website-72a4.onrender.com",
+ "fetchedAt": "2026-10-04T16:56:48.018Z",
+ "professors": [
+  {
+   "id": 4,
+   "name_ko": "한수미",
+   "name_en": "Soomi Han",
+   "title_ko": "디지털인문예술전공 주임교수",
+   "title_en": "",
+   "email": "sumihan20@gmail.com",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468133654-abb54f52.webp",
+   "links": [
+    {
+     "url": "https://sites.google.com/glab.hallym.ac.kr/sumihan",
+     "label": "website"
+    },
+    {
+     "url": "영어영문학과 교수",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 0,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 1,
+   "name_ko": "김용수",
+   "name_en": "Yongsoo Kim",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "vadoropupille@gmail.com",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468082876-47d8b3e9.webp",
+   "links": [
+    {
+     "url": "https://jazzy-timpani-51c.notion.site/CV-720152021c234c4baa3d610be64cbc1d",
+     "label": "website"
+    },
+    {
+     "url": "영어영문학과 교수",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 1,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 2,
+   "name_ko": "김성우",
+   "name_en": "Sungwoo Kim",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "caerang@gmail.com",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468107981-54fef921.webp",
+   "links": [
+    {
+     "url": "https://www.hallym.ac.kr/future/3527/subview.do?enc=Zm5jdDF8QEB8JTJGcHJvZkluZm8lMkZmdXR1cmUlMkY2NiUyRjQ0MjAzJTJGdmlldy5kbyUzRmZpbmRUeXBlJTNEJTI2",
+     "label": "website"
+    }
+   ],
+   "sort": 2,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 3,
+   "name_ko": "유인선",
+   "name_en": "Inseon Yoo",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "insun710@glab.hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468119856-d13e210f.webp",
+   "links": [
+    {
+     "url": "국어국문학전공 교수",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 3,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 5,
+   "name_ko": "송인재",
+   "name_en": "Injae Song",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "tanksong@hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468144557-1f7874f1.webp",
+   "links": [
+    {
+     "url": "한림과학원",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 4,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 6,
+   "name_ko": "양태근",
+   "name_en": "Taegeun Yang",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "ytk@hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468184777-e0b2311e.webp",
+   "links": [
+    {
+     "url": "중국학과 교수",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 5,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 7,
+   "name_ko": "이정근",
+   "name_en": "Junggeun Lee",
+   "title_ko": "디지털인문예술전공 교수",
+   "title_en": "",
+   "email": "jeonggun.lee@hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468175155-d9110e74.webp",
+   "links": [
+    {
+     "url": "SW소프트웨어전공 교수",
+     "label": "affiliation"
+    }
+   ],
+   "sort": 6,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 8,
+   "name_ko": "이은솔",
+   "name_en": "Eunsol Lee",
+   "title_ko": "디지털인문예술전공 겸임교수",
+   "title_en": "",
+   "email": "eunsol_erin@naver.com",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468194262-5e5e9719.webp",
+   "links": [],
+   "sort": 7,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 9,
+   "name_ko": "김지현",
+   "name_en": "Jeehyun Kim",
+   "title_ko": "디지털인문예술전공",
+   "title_en": "",
+   "email": "41986@hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468204686-12dba2b7.webp",
+   "links": [],
+   "sort": 8,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 10,
+   "name_ko": "송한나",
+   "name_en": "Hanna Song",
+   "title_ko": "디지털인문예술전공",
+   "title_en": "",
+   "email": "89570@gmail.hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468213576-cd37a016.webp",
+   "links": [
+    {
+     "url": "https://www.cognitumlab.com/",
+     "label": "website"
+    }
+   ],
+   "sort": 9,
+   "active": true,
+   "has_bg": false
+  },
+  {
+   "id": 11,
+   "name_ko": "서주희",
+   "name_en": "Joohee Seo",
+   "title_ko": "디지털인문예술전공 겸임교수",
+   "title_en": "",
+   "email": "seojoohee@hallym.ac.kr",
+   "photo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783468221562-5fbda167.webp",
+   "links": [],
+   "sort": 10,
+   "active": true,
+   "has_bg": false
+  }
+ ],
+ "mentors": [
+  {
+   "id": 1,
+   "name": "강남구",
+   "company": "광고회사 (주)나스미디어",
+   "title": "본부장/상무",
+   "link": "https://www.nasmedia.co.kr/",
+   "sort": 0,
+   "active": true
+  },
+  {
+   "id": 2,
+   "name": "김태경",
+   "company": "한화그룹 한화 S&C",
+   "title": "부장",
+   "link": "https://www.hanwhasystems.com/kr/index.do",
+   "sort": 1,
+   "active": true
+  },
+  {
+   "id": 3,
+   "name": "송경수",
+   "company": "주식회사 퓨어랜드",
+   "title": "대표이사",
+   "link": null,
+   "sort": 2,
+   "active": true
+  },
+  {
+   "id": 4,
+   "name": "심상진",
+   "company": "네이버 CLOVA",
+   "title": "연구원",
+   "link": "https://clova.ai/",
+   "sort": 3,
+   "active": true
+  },
+  {
+   "id": 5,
+   "name": "여병상",
+   "company": "파이미디어랩",
+   "title": "CEO",
+   "link": "https://www.paimedialab.com/",
+   "sort": 4,
+   "active": true
+  },
+  {
+   "id": 6,
+   "name": "이득영",
+   "company": "wework Korea",
+   "title": null,
+   "link": "https://www.wework.com/ko-KR?_gl=1*1qm05ax*_up*MQ..*_gs*MQ..",
+   "sort": 5,
+   "active": true
+  },
+  {
+   "id": 7,
+   "name": "최우식",
+   "company": "H9 (UX 디자인 에이전시)",
+   "title": "대표",
+   "link": "https://www.hnine.com/",
+   "sort": 6,
+   "active": true
+  },
+  {
+   "id": 8,
+   "name": "김건식",
+   "company": "Scanline VFX, Vancouver",
+   "title": "컴퓨터 그래픽 아티스트",
+   "link": "https://scanlinevfx.com/",
+   "sort": 7,
+   "active": true
+  },
+  {
+   "id": 9,
+   "name": "박성준",
+   "company": "상명대 감성공학과/감성 콘텐츠 기술 연구소",
+   "title": "교수",
+   "link": "https://www.smu.ac.kr/ee/index.do",
+   "sort": 8,
+   "active": true
+  },
+  {
+   "id": 10,
+   "name": "송치성",
+   "company": "엔씨소프트",
+   "title": "연구원",
+   "link": "https://www.nc.com/",
+   "sort": 9,
+   "active": true
+  },
+  {
+   "id": 11,
+   "name": "양혜원",
+   "company": "글로벌 비지니스 오랑앤오랑",
+   "title": "대표",
+   "link": "https://orang.co.kr/",
+   "sort": 10,
+   "active": true
+  },
+  {
+   "id": 12,
+   "name": "오온욱",
+   "company": "University of Colorado at Denver",
+   "title": "경영학과 교수",
+   "link": "https://www.ucdenver.edu/institutes/international-business",
+   "sort": 11,
+   "active": true
+  },
+  {
+   "id": 13,
+   "name": "천수경",
+   "company": "studio x.it (UX 컨설팅)",
+   "title": "대표",
+   "link": "https://studio-x.it/",
+   "sort": 12,
+   "active": true
+  },
+  {
+   "id": 14,
+   "name": "황미진",
+   "company": "(주)엘리스",
+   "title": "마케팅 팀장",
+   "link": "https://elice.io/ko",
+   "sort": 13,
+   "active": true
+  }
+ ],
+ "curriculum": [
+  {
+   "id": 36,
+   "grade": 1,
+   "semester": 1,
+   "track": "common",
+   "name_ko": "디지털인문예술입문",
+   "name_en": "Introduction to Digital Arts and Humanities",
+   "sort": 0,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 37,
+   "grade": 1,
+   "semester": 1,
+   "track": "common",
+   "name_ko": "문화콘텐츠 기초",
+   "name_en": "Foundations of Cultural Content",
+   "sort": 1,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 38,
+   "grade": 1,
+   "semester": 2,
+   "track": "common",
+   "name_ko": "디자인 씽킹",
+   "name_en": "Design Thinking",
+   "sort": 2,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 39,
+   "grade": 1,
+   "semester": 2,
+   "track": "common",
+   "name_ko": "AI 활용 데이터 리터러시",
+   "name_en": "Data Literacy with AI",
+   "sort": 3,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 40,
+   "grade": 1,
+   "semester": 2,
+   "track": "common",
+   "name_ko": "서브컬처 가이드",
+   "name_en": "Guide to Subculture",
+   "sort": 4,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 41,
+   "grade": 2,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "UX디자인",
+   "name_en": "UX Design",
+   "sort": 5,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 42,
+   "grade": 2,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "디지털 디자인1",
+   "name_en": "Digital Design 1",
+   "sort": 6,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 47,
+   "grade": 2,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "디지털 디자인2",
+   "name_en": "Digital Design 2",
+   "sort": 11,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 48,
+   "grade": 2,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "서비스 디자인",
+   "name_en": "Service Design",
+   "sort": 12,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 49,
+   "grade": 2,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "사회혁신디자인",
+   "name_en": "Social Innovation Design",
+   "sort": 13,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 54,
+   "grade": 2,
+   "semester": 1,
+   "track": "ai",
+   "name_ko": "빅데이터인문학",
+   "name_en": "Big Data Humanities",
+   "sort": 18,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 59,
+   "grade": 2,
+   "semester": 2,
+   "track": "ai",
+   "name_ko": "AI 서비스와 DB",
+   "name_en": "AI Services and Databases",
+   "sort": 23,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 64,
+   "grade": 2,
+   "semester": 1,
+   "track": "culture",
+   "name_ko": "디지털문화콘텐츠마케팅",
+   "name_en": "Digital Cultural Content Marketing",
+   "sort": 28,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 65,
+   "grade": 2,
+   "semester": 1,
+   "track": "culture",
+   "name_ko": "문화원형과 고전콘텐츠",
+   "name_en": "Cultural Archetypes and Classical Content",
+   "sort": 29,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 69,
+   "grade": 2,
+   "semester": 2,
+   "track": "culture",
+   "name_ko": "플랫폼 콘텐츠 기획과 전략",
+   "name_en": "Platform Content Planning and Strategy",
+   "sort": 33,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 43,
+   "grade": 3,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "AI디자인",
+   "name_en": "AI Design",
+   "sort": 7,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 44,
+   "grade": 3,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "경험 디자인의 고급과정1",
+   "name_en": "Advanced Experience Design 1",
+   "sort": 8,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 45,
+   "grade": 3,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "디지털 디자인 3",
+   "name_en": "Digital Design 3",
+   "sort": 9,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 50,
+   "grade": 3,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "AI 중심의 경험 디자인",
+   "name_en": "AI-Driven Experience Design",
+   "sort": 14,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 51,
+   "grade": 3,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "UI 디자인",
+   "name_en": "UI Design",
+   "sort": 15,
+   "credit": "3-2-2"
+  },
+  {
+   "id": 52,
+   "grade": 3,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "경험디자인특강",
+   "name_en": "Special Topics in Experience Design",
+   "sort": 16,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 55,
+   "grade": 3,
+   "semester": 1,
+   "track": "ai",
+   "name_ko": "공간 인문학",
+   "name_en": "Spatial Humanities",
+   "sort": 19,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 56,
+   "grade": 3,
+   "semester": 1,
+   "track": "ai",
+   "name_ko": "인문데이터마이닝",
+   "name_en": "Humanities Data Mining",
+   "sort": 20,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 57,
+   "grade": 3,
+   "semester": 1,
+   "track": "ai",
+   "name_ko": "지역혁신연구방법론",
+   "name_en": "Research Methods for Regional Innovation",
+   "sort": 21,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 60,
+   "grade": 3,
+   "semester": 2,
+   "track": "ai",
+   "name_ko": "AI 활용 리서치 2",
+   "name_en": "Research with AI 2",
+   "sort": 24,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 61,
+   "grade": 3,
+   "semester": 2,
+   "track": "ai",
+   "name_ko": "AI 서비스 기획과 프로토타이핑",
+   "name_en": "AI Service Planning and Prototyping",
+   "sort": 25,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 62,
+   "grade": 3,
+   "semester": 2,
+   "track": "ai",
+   "name_ko": "생성형AI와 지역문화데이터",
+   "name_en": "Generative AI and Local Culture Data",
+   "sort": 26,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 66,
+   "grade": 3,
+   "semester": 1,
+   "track": "culture",
+   "name_ko": "스토리텔링 창작실습",
+   "name_en": "Storytelling Writing Practice",
+   "sort": 30,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 67,
+   "grade": 3,
+   "semester": 1,
+   "track": "culture",
+   "name_ko": "한국문화와 콘텐츠개발",
+   "name_en": "Korean Culture and Content Development",
+   "sort": 31,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 70,
+   "grade": 3,
+   "semester": 2,
+   "track": "culture",
+   "name_ko": "AI 크리에이터 스튜디오 2",
+   "name_en": "AI Creator Studio 2",
+   "sort": 34,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 71,
+   "grade": 3,
+   "semester": 2,
+   "track": "culture",
+   "name_ko": "게임과 스포테인먼트 콘텐츠",
+   "name_en": "Game and Sportainment Content",
+   "sort": 35,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 72,
+   "grade": 3,
+   "semester": 2,
+   "track": "culture",
+   "name_ko": "엔터컬처와 K-콘텐츠",
+   "name_en": "Enter-Culture and K-Content",
+   "sort": 36,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 46,
+   "grade": 4,
+   "semester": 1,
+   "track": "design",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 10,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 53,
+   "grade": 4,
+   "semester": 2,
+   "track": "design",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 17,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 58,
+   "grade": 4,
+   "semester": 1,
+   "track": "ai",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 22,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 63,
+   "grade": 4,
+   "semester": 2,
+   "track": "ai",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 27,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 68,
+   "grade": 4,
+   "semester": 1,
+   "track": "culture",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 32,
+   "credit": "3-3-0"
+  },
+  {
+   "id": 73,
+   "grade": 4,
+   "semester": 2,
+   "track": "culture",
+   "name_ko": "캡스톤디자인:디인예프로젝트",
+   "name_en": "Capstone Design: DAH Project",
+   "sort": 37,
+   "credit": "3-3-0"
+  }
+ ],
+ "nanodegree": [
+  {
+   "id": 1,
+   "body": {
+    "cert": "각 과정별 인정 교과목 9학점 취득 시 이수증 발급",
+    "intro": "디지털인문예술에서는 전공 심화역량 함양과 전공별 현장 실무 중심의 역량 배양을 위하여 운영하는 집중 교육과정인 4개의 나노디그리 과정이 운영되고 있습니다.",
+    "programs": [
+     {
+      "name": "AI 디자인",
+      "courses": [
+       {
+        "code": "713014",
+        "name": "UX디자인",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713037",
+        "name": "AI디자인",
+        "credit": "3-3-0"
+       },
+       {
+        "code": "713031",
+        "name": "서비스디자인",
+        "credit": "3-3-0"
+       },
+       {
+        "code": "713035",
+        "name": "AI 활용 데이터 리터러시",
+        "credit": "3-3-0"
+       }
+      ],
+      "partner": "파이미디어",
+      "criteria": "9학점",
+      "completion": "4과목 중 3과목 이수하면 수료"
+     },
+     {
+      "name": "UX 디자인",
+      "courses": [
+       {
+        "code": "713014",
+        "name": "UX디자인",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713044",
+        "name": "경험디자인의 고급과정1",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713031",
+        "name": "서비스디자인",
+        "credit": "3-3-0"
+       },
+       {
+        "code": "713033",
+        "name": "경험디자인특강",
+        "credit": "3-3-0"
+       }
+      ],
+      "partner": "H9",
+      "criteria": "9학점",
+      "completion": "4과목 중 3과목 이수하면 수료"
+     },
+     {
+      "name": "디지털 디자인",
+      "courses": [
+       {
+        "code": "713010",
+        "name": "디지털디자인1",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713007",
+        "name": "디지털디자인2",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713043",
+        "name": "디지털디자인3",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713042",
+        "name": "UI 디자인",
+        "credit": "3-2-2"
+       }
+      ],
+      "partner": "루아흐 스튜디오",
+      "criteria": "9학점",
+      "completion": "4과목 중 3과목 이수하면 수료"
+     },
+     {
+      "name": "AI와 길 정보 구축 (HUSS)",
+      "courses": [
+       {
+        "code": "108522",
+        "name": "도시의 탄생과 인간 삶의 이해",
+        "credit": "3-2-2"
+       },
+       {
+        "code": "713035",
+        "name": "AI 활용 데이터 리터러시",
+        "credit": "3-3-0"
+       },
+       {
+        "code": "713045",
+        "name": "생성형AI와 지역문화데이터",
+        "credit": "3-3-0"
+       }
+      ],
+      "partner": "파이미디어",
+      "criteria": "9학점",
+      "completion": "인정교과목 모두 이수하면 수료"
+     }
+    ]
+   }
+  }
+ ],
+ "codesharing": [
+  {
+   "id": 1,
+   "body": {
+    "note": "이미 취득한 학점에 대해서만 가능하며, 졸업 전까지 코드쉐어링 인정원 작성 후 미래융합스쿨 교학팀의 승인을 받아야 인정됩니다. ",
+    "steps": [
+     "타과 교과목 이수",
+     "학점 취득",
+     "코드쉐어링 인정원 작성",
+     "학과행정실 제출(통합스쿨 교학팀)"
+    ],
+    "types": [
+     {
+      "name": "교과목 대체형 코드쉐어링 (교과목 1:1 매칭)",
+      "detail": "해당 없음"
+     },
+     {
+      "name": "타과교과목 인정형 코드쉐어링",
+      "detail": "아래 교과목을 최대 9학점 이내에서 전공으로 인정합니다."
+     },
+     {
+      "name": "학점인정형 코드쉐어링 교과목",
+      "detail": "해당 학과의 교과목을 최대 9학점 이내에서 전공으로 인정합니다."
+     }
+    ],
+    "definition": "타과 교과목 중 기준에 충족하는 과목과 전공에 한해서 디지털인문예술전공의 과목으로 인정하는 시스템",
+    "graduation": [],
+    "substitute": "",
+    "recognizedCourses": []
+   },
+   "depts": [
+    "국어국문학전공",
+    "철학전공",
+    "사학전공",
+    "영어영문학과",
+    "중국학과",
+    "일본학과",
+    "러시아학과",
+    "소프트웨어학부",
+    "데이터사이언스학부",
+    "데이터테크전공",
+    "임상의학통계전공",
+    "디지털금융정보전공",
+    "미디어스쿨",
+    "언론방송융합미디어전공",
+    "디지털미디어콘텐츠전공",
+    "글로벌협력전공",
+    "인문콘텐츠융합전공",
+    "MICE기획경영전공",
+    "스타트업비즈니스전공"
+   ],
+   "hwp_url": null
+  }
+ ],
+ "council": [
+  {
+   "id": 21,
+   "ordinal": null,
+   "name": "제1대 운영위원회 LUCID",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783442883391-ce36a111.webp",
+   "intro": "물감은 섞일수록 어두워지지만, 빛은 섞일수록 밝고 투명해집니다. LUCID는 인문과 기술, 다양한 전공이 모인 이곳에서 나다움을 잃지 않으면서도 서로를 빛내주는 시너지를 만들고자 합니다. 다양한 색이 모여 만드는 가장 눈부신 가능성을 마음껏 펼칠 수 있도록 2026년 한 해 동안 여러분의 길잡이가 되겠습니다.",
+   "members": [
+    {
+     "name": "주현호",
+     "role": "위원장",
+     "majors": "Digital Arts & Humanities 22",
+     "nameEn": "Hyun Ho Ju",
+     "roleEn": "Chair",
+     "majorsEn": "Digital Arts & Humanities 22"
+    },
+    {
+     "name": "윤현아",
+     "role": "부위원장",
+     "majors": "Digital Arts & Humanities 23",
+     "nameEn": "Hyun A Yoon",
+     "roleEn": "Vice Chair",
+     "majorsEn": "Digital Arts & Humanities 23"
+    },
+    {
+     "name": "한수빈",
+     "role": "기획부",
+     "nameEn": "Su Bin Han",
+     "roleEn": "Planning"
+    },
+    {
+     "name": "김소연",
+     "role": "기획부",
+     "nameEn": "So Yeon Kim",
+     "roleEn": "Planning"
+    },
+    {
+     "name": "여동규",
+     "role": "홍보부",
+     "nameEn": "Dong Gyu Yeo",
+     "roleEn": "PR"
+    },
+    {
+     "name": "김지연",
+     "role": "홍보부",
+     "nameEn": "Ji Yeon Kim",
+     "roleEn": "PR"
+    },
+    {
+     "name": "송은채",
+     "role": "홍보부",
+     "nameEn": "Eun Chae Song",
+     "roleEn": "PR"
+    },
+    {
+     "name": "정민서",
+     "role": "홍보부",
+     "nameEn": "Min Seo Jeong",
+     "roleEn": "PR"
+    },
+    {
+     "name": "임지우",
+     "role": "웹전시부",
+     "nameEn": "Ji Woo Im",
+     "roleEn": "Web Exhibition"
+    },
+    {
+     "name": "임세연",
+     "role": "웹전시부",
+     "nameEn": "Se Yeon Im",
+     "roleEn": "Web Exhibition"
+    }
+   ],
+   "year_label": "2026",
+   "sort": 0,
+   "has_bg": false
+  },
+  {
+   "id": 22,
+   "ordinal": null,
+   "name": "제7대 학생회 CUBE",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783467316356-b39aca5e.webp",
+   "intro": "안녕하세요. 디지털인문예술전공 제7대 학생회 'CUBE'입니다. CUBE는 하나, 둘씩 조각을 맞춰가는 큐브처럼 학우분들께 빛나는 학교 생활의 조각을 맞춰 드리고자 하는 다짐을 담았습니다. 여러분이 디인예에서 겪게 되는 순간들의 조각이 모여 반짝이고 찬란하게 빛나는 디인예의 미래가 되길 바라며 더욱 발전하고 찬란한 경험으로 가득 찰 2025년을 약속 드리겠습니다. 앞으로도 디지털인문예술전공에 많은 기대와 관심 부탁 드립니다. 감사합니다.",
+   "members": [
+    {
+     "name": "권서영",
+     "role": "학회장",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Seo Young Kwon",
+     "roleEn": "President",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "최서연",
+     "role": "부학회장",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Seo Yeon Choi",
+     "roleEn": "Vice President",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "감주희",
+     "role": "전시",
+     "nameEn": "Ju Hee Gam",
+     "roleEn": "Exhibition"
+    },
+    {
+     "name": "강대승",
+     "role": "전시",
+     "nameEn": "Dae Seung Kang",
+     "roleEn": "Exhibition"
+    },
+    {
+     "name": "김소연",
+     "role": "전시",
+     "nameEn": "So Yeon Kim",
+     "roleEn": "Exhibition"
+    },
+    {
+     "name": "주현호",
+     "role": "전시",
+     "nameEn": "Hyun Ho Ju",
+     "roleEn": "Exhibition"
+    },
+    {
+     "name": "김찬민",
+     "role": "대외",
+     "nameEn": "Chan Min Kim",
+     "roleEn": "External Affairs"
+    },
+    {
+     "name": "윤현아",
+     "role": "대외",
+     "nameEn": "Hyun A Yoon",
+     "roleEn": "External Affairs"
+    },
+    {
+     "name": "신현서",
+     "role": "홍보",
+     "nameEn": "Hyun Seo Shin",
+     "roleEn": "PR"
+    },
+    {
+     "name": "송은채",
+     "role": "홍보",
+     "nameEn": "Eun Chae Song",
+     "roleEn": "PR"
+    },
+    {
+     "name": "우세희",
+     "role": "기획",
+     "nameEn": "Se Hee Woo",
+     "roleEn": "Planning"
+    },
+    {
+     "name": "김채린",
+     "role": "기획",
+     "nameEn": "Chae Rin Kim",
+     "roleEn": "Planning"
+    }
+   ],
+   "year_label": "2025",
+   "sort": 1,
+   "has_bg": false
+  },
+  {
+   "id": 23,
+   "ordinal": null,
+   "name": "제6대 학생회 채움",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783467330861-7bc9ce22.webp",
+   "intro": "안녕하세요. 디지털인문예술전공 제 6대 학생회 '채움'입니다. 채움은 '채우다'에서 의미를 가져와 학우분들께 학교 생활의 경험과 좋은 추억을 채워주고자 하는 다짐을 담았습니다. 여러분의 디인예 생활이 좋은 기억만 남기고 여러분들이 발전할 수 있도록 부족했지만 최선을 다한 채움은 이번 학기를 끝으로 막을 내립니다. 한 해 동안 정말 수고 많으셨습니다. 더욱 발전할 디지털인문예술전공 많은 기대와 관심 부탁드립니다. 감사합니다.",
+   "members": [
+    {
+     "name": "송유경",
+     "role": "학회장",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Yu Kyung Song",
+     "roleEn": "President",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "심재연",
+     "role": "부학회장",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Jae Yeon Sim",
+     "roleEn": "Vice President",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "권서영",
+     "role": "홍보",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Seo Young Kwon",
+     "roleEn": "PR",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "최도윤",
+     "role": "홍보",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Do Yoon Choi",
+     "roleEn": "PR",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "최서연",
+     "role": "디자인",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Seo Yeon Choi",
+     "roleEn": "Design",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "이예린",
+     "role": "디자인",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Ye Rin Lee",
+     "roleEn": "Design",
+     "majorsEn": "Digital Arts & Humanities"
+    },
+    {
+     "name": "정재훈",
+     "role": "기획",
+     "majors": "Digital Arts & Humanities",
+     "nameEn": "Jae Hoon Jeong",
+     "roleEn": "Planning",
+     "majorsEn": "Digital Arts & Humanities"
+    }
+   ],
+   "year_label": "2024",
+   "sort": 2,
+   "has_bg": true
+  },
+  {
+   "id": 24,
+   "ordinal": null,
+   "name": "제5대 학생회 DX",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783467344054-c73f5284.webp",
+   "intro": "안녕하세요. 디지털인문예술전공 제 5대 학생회 'DX'입니다. DX는 User experience에서 의미를 가져와 '디인예 학우님들께 더 나은 경험을 제공해드리자'는 의미를 가지고 있습니다. 여러분의 디인예 생활이 좋은 기억만 남기고 여러분들이 발전할 수 있도록 DX가 성실히 활동할 것을 약속드리겠습니다. 디지털인문예술을 이해하고 학우님들을 배려하고 전공을 발전시키도록 하겠습니다. 한 해 동안 잘 부탁드립니다.",
+   "members": [
+    {
+     "name": "윤호용",
+     "role": "학회장",
+     "majors": "Digital Arts & Humanities 19",
+     "nameEn": "Ho Yong Yoon",
+     "roleEn": "President",
+     "majorsEn": "Digital Arts & Humanities 19"
+    },
+    {
+     "name": "원수정",
+     "role": "부학회장",
+     "majors": "Digital Arts & Humanities 21",
+     "nameEn": "Su Jeong Won",
+     "roleEn": "Vice President",
+     "majorsEn": "Digital Arts & Humanities 21"
+    },
+    {
+     "name": "정민주",
+     "role": "홍보",
+     "majors": "Digital Arts & Humanities 22",
+     "nameEn": "Min Ju Jeong",
+     "roleEn": "PR",
+     "majorsEn": "Digital Arts & Humanities 22"
+    },
+    {
+     "name": "송유경",
+     "role": "총괄",
+     "majors": "Digital Arts & Humanities 22",
+     "nameEn": "Yu Kyung Song",
+     "roleEn": "Coordination",
+     "majorsEn": "Digital Arts & Humanities 22"
+    },
+    {
+     "name": "심재연",
+     "role": "기획",
+     "majors": "Digital Arts & Humanities 21",
+     "nameEn": "Jae Yeon Sim",
+     "roleEn": "Planning",
+     "majorsEn": "Digital Arts & Humanities 21"
+    },
+    {
+     "name": "최선",
+     "role": "기획",
+     "majors": "Digital Arts & Humanities 22",
+     "nameEn": "Seon Choi",
+     "roleEn": "Planning",
+     "majorsEn": "Digital Arts & Humanities 22"
+    }
+   ],
+   "year_label": "2023",
+   "sort": 3,
+   "has_bg": false
+  },
+  {
+   "id": 25,
+   "ordinal": null,
+   "name": "제4대 학생회 OPEN",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783467358166-29b461b2.webp",
+   "intro": "안녕하세요. 디지털인문예술전공 제 4대 학생회 'OPEN'입니다. OPEN은 학우님들에게 저희 모든 것을 보여드리고 공유하는 마음으로 학생회를 만들어 가겠다는 의미를 가지고 있습니다. 여러분의 디인예 생활이 즐겁고 유익하도록 OPEN이 성실히 활동할 것을 약속드리겠습니다. 언제나 학생들의 목소리에 귀 기울이고 자유로운 논의가 가능해질 수 있는 전공을 만들겠습니다. 한 해 동안 잘 부탁드립니다.",
+   "members": [
+    {
+     "name": "곽선재",
+     "role": "학회장",
+     "majors": "Digital Arts & Humanities 19",
+     "nameEn": "Seon Jae Kwak",
+     "roleEn": "President",
+     "majorsEn": "Digital Arts & Humanities 19"
+    },
+    {
+     "name": "윤숙영",
+     "role": "부학회장",
+     "majors": "사회학과 19",
+     "nameEn": "Suk Young Yoon",
+     "roleEn": "Vice President",
+     "majorsEn": "Sociology 19"
+    },
+    {
+     "name": "허민",
+     "role": "기획팀",
+     "majors": "사회학과 19",
+     "nameEn": "Min Heo",
+     "roleEn": "Planning Team",
+     "majorsEn": "Sociology 19"
+    },
+    {
+     "name": "김희경",
+     "role": "홍보팀",
+     "majors": "경영학과 20",
+     "nameEn": "Hee Kyung Kim",
+     "roleEn": "PR Team",
+     "majorsEn": "Business Administration 20"
+    },
+    {
+     "name": "박시영",
+     "role": "홍보팀",
+     "majors": "Digital Arts & Humanities 20",
+     "nameEn": "Si Young Park",
+     "roleEn": "PR Team",
+     "majorsEn": "Digital Arts & Humanities 20"
+    }
+   ],
+   "year_label": "2022",
+   "sort": 4,
+   "has_bg": false
+  },
+  {
+   "id": 26,
+   "ordinal": null,
+   "name": "제3대 학생회 DEAR",
+   "logo_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/general/1783467368861-c152cce2.webp",
+   "intro": "안녕하세요. 디지털인문예술전공 제3대 학생회 DEAR입니다. DEAR는 두 가지의 의미를 담고 있습니다. 첫째는 '친애하는'이란 뜻으로 학우님들과 자유롭게 의견을 주고 받을 수 있는 친밀한 관계를 조성하겠다는 뜻입니다. 둘째는 DAH의 소리를 듣는다(EAR)라는 뜻으로 언제나 학우님들의 소리에 경청하겠다는 다짐입니다. 언제나 학생들의 목소리에 귀 기울이고 자유로운 논의가 가능해질 수 있는 전공을 만들고자 합니다. DEAR의 활동이 본 전시회를 끝으로 마무리됩니다. 한 학기 동안 감사했습니다.",
+   "members": [
+    {
+     "name": "안유미",
+     "role": "학회장",
+     "majors": "디지털미디어콘텐츠18",
+     "nameEn": "Yu Mi An",
+     "roleEn": "President",
+     "majorsEn": "Digital Media Contents 18"
+    },
+    {
+     "name": "오소민",
+     "role": "부학회장",
+     "majors": "광고홍보19",
+     "nameEn": "So Min Oh",
+     "roleEn": "Vice President",
+     "majorsEn": "Advertising & PR 19"
+    },
+    {
+     "name": "오유진",
+     "role": "기획국장",
+     "majors": "광고홍보19",
+     "nameEn": "Yu Jin Oh",
+     "roleEn": "Planning Director",
+     "majorsEn": "Advertising & PR 19"
+    },
+    {
+     "name": "박민주",
+     "role": "홍보국장",
+     "majors": "광고홍보19",
+     "nameEn": "Min Ju Park",
+     "roleEn": "PR Director",
+     "majorsEn": "Advertising & PR 19"
+    }
+   ],
+   "year_label": "2021",
+   "sort": 5,
+   "has_bg": false
+  },
+  {
+   "id": 27,
+   "ordinal": null,
+   "name": "제2대 학생회 HARMONIES",
+   "logo_url": null,
+   "intro": "안녕하세요 디지털인문예술 전공 제2대 학생회 HARMONIES입니다. 여러분들의 노력이 더 빛날 수 있게 디인예 활동 및 전시회 기획, 유치 등을 할 수 있는 기회를 주신 모든 분들께 감사드립니다. 저희 이름대로 항상 어우러져서 저희만의 독특한 장점을 가지는 디인예가 되길 바랍니다. 감사합니다.",
+   "members": [
+    {
+     "name": "김도경",
+     "role": "학회장",
+     "nameEn": "Do Kyung Kim",
+     "roleEn": "President"
+    },
+    {
+     "name": "정예찬",
+     "role": "부학회장",
+     "nameEn": "Ye Chan Jeong",
+     "roleEn": "Vice President"
+    },
+    {
+     "name": "유이상",
+     "role": "기획국장",
+     "nameEn": "Yi Sang Yoo",
+     "roleEn": "Planning Director"
+    },
+    {
+     "name": "이나라",
+     "role": "총무국장",
+     "nameEn": "Na Ra Lee",
+     "roleEn": "General Affairs Director"
+    },
+    {
+     "name": "최단비",
+     "role": "홍보국장",
+     "nameEn": "Dan Bi Choi",
+     "roleEn": "PR Director"
+    },
+    {
+     "name": "윤호용",
+     "role": "기획부장",
+     "nameEn": "Ho Yong Yoon",
+     "roleEn": "Planning Manager"
+    }
+   ],
+   "year_label": "2020",
+   "sort": 6,
+   "has_bg": false
+  },
+  {
+   "id": 28,
+   "ordinal": null,
+   "name": "제1대 학생회 Curtain Up",
+   "logo_url": null,
+   "intro": null,
+   "members": [
+    {
+     "name": "송채원",
+     "role": "회장",
+     "nameEn": "Chae Won Song",
+     "roleEn": "President"
+    },
+    {
+     "name": "박재정",
+     "role": "부회장",
+     "nameEn": "Jae Jeong Park",
+     "roleEn": "Vice President"
+    }
+   ],
+   "year_label": "2019",
+   "sort": 7,
+   "has_bg": false
+  },
+  {
+   "id": 29,
+   "ordinal": null,
+   "name": "임시학생회",
+   "logo_url": null,
+   "intro": null,
+   "members": [
+    {
+     "name": "주영훈",
+     "role": "회장",
+     "nameEn": "Young Hoon Ju",
+     "roleEn": "President"
+    },
+    {
+     "name": "김도경",
+     "role": "부회장",
+     "nameEn": "Do Kyung Kim",
+     "roleEn": "Vice President"
+    }
+   ],
+   "year_label": "2018",
+   "sort": 8,
+   "has_bg": false
+  },
+  {
+   "id": 30,
+   "ordinal": null,
+   "name": "임시학생회",
+   "logo_url": null,
+   "intro": null,
+   "members": [
+    {
+     "name": "신소령",
+     "role": "회장",
+     "nameEn": "So Ryeong Shin",
+     "roleEn": "President"
+    },
+    {
+     "name": "이해솔",
+     "role": "부회장",
+     "nameEn": "Hae Sol Lee",
+     "roleEn": "Vice President"
+    }
+   ],
+   "year_label": "2017",
+   "sort": 9,
+   "has_bg": false
+  }
+ ],
+ "exhibitions": [
+  {
+   "id": 2,
+   "semester_label": "2026-1",
+   "title": "Against the Flow",
+   "poster_url": "/images/exhibitions/2026-1.webp",
+   "site_url": "https://26-1-dah-exhibition.vercel.app/",
+   "intro": "디지털 시대의 도시에서 모두는 어떤 디바이스를 통해 세상과 연결되어 있다. 휴대폰의 화면, 헤드폰 속의 소리.\n그러나 단 두 사람 \"부모와 아이\" 만은 어떤 디지털 매개도 거치지 않고, 군중과 반대 방향으로 서로의 손을 잡고 함께 걷는다.\n휴먼 터치는 시스템이 합성하지 못하는 인간과 인간 사이의 직접 연결이며, 글로벌 디지털 시스템과 로컬 신체 접촉이 한 횡단보도 위에서 교차하는 연결의 자리다.",
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph"
+     }
+    ]
+   },
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2026-06-02T00:00:00.000Z",
+   "end_date": "2026-06-04T00:00:00.000Z",
+   "is_featured": true,
+   "ordinal": 18,
+   "cta_show": true,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Against the Flow",
+   "intro_en": "In a city shaped by the digital age, everyone is connected to the world through a device—a smartphone screen, the sound within a pair of headphones.\n\nYet only two people, a parent and child, walk hand in hand without any digital intermediary, moving together against the flow of the crowd. Their connection exists beyond the mediation of technology.\n\nHuman Touch represents a direct bond between people that no system can synthesize. It is a moment where the global digital network intersects with the intimacy of physical human contact, transforming a single crosswalk into a space where two forms of connection coexist.\n",
+   "body_en": null
+  },
+  {
+   "id": 3,
+   "semester_label": "2025-2",
+   "title": "흐르는 경계: DAH",
+   "poster_url": "/images/exhibitions/2025-2.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah-2025-2/about?authuser=1",
+   "intro": "빛을 반사하는 유동적인 금속 재질의 인물은 디자인, 인문학, 예술의 경계를 허물고 융합하는 DAH(Digital Arts & Humanities) 전공의 정체성을 표현합니다. 흘러내리는 듯한 질감은 기존의 영역을 벗어나 새로운 형태를 모색하는 역동성을 상징하며, 정면의 응시와 애절한 포즈는 디지털 시대의 인간성 회복에 대한 깊은 질문을 던집니다.\n\n이는 미래 지향적 사고와 인간 중심적 가치를 결합하려는 이번 전시의 핵심을 보여줍니다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2025-12-02T00:00:00.000Z",
+   "end_date": "2025-12-04T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 17,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Fluid Boundaries: DAH",
+   "intro_en": "The figure, rendered in a fluid reflective metallic material, embodies the identity of the Digital Arts & Humanities (DAH) program, where the boundaries between design, the humanities, and the arts dissolve and converge. Its flowing, liquid-like texture symbolizes a dynamic pursuit of new forms beyond conventional disciplines, while its direct gaze and poignant pose invite reflection on the restoration of humanity in the digital age.\n\nThis work encapsulates the central vision of the exhibition: bringing together future-oriented thinking and human-centered values.",
+   "body_en": null
+  },
+  {
+   "id": 4,
+   "semester_label": "2025-1",
+   "title": "Pulse",
+   "poster_url": "/images/exhibitions/2025-1.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah-2025-1/home?authuser=0",
+   "intro": "중앙의 구(球)는 살아 있는 하나의 생명체처럼 반응하며 끊임없이 변화한다. \n\n오늘날 세계 곳곳에서 이어지고 있는 보이지 않는 진동 — 사람과 사람, 지역과 지역, 문화와 문화 사이에서 흐르고 겹쳐지는 파동—을 시각적으로 담아낸다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2025-06-03T00:00:00.000Z",
+   "end_date": "2025-06-05T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 16,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Pulse",
+   "intro_en": "At the center of the installation, a sphere behaves as a living entity, continuously responding and transforming. It visualizes the invisible vibrations that shape our world today—the overlapping waves that flow between people, places, and cultures, revealing the connections that bind them together.",
+   "body_en": null
+  },
+  {
+   "id": 5,
+   "semester_label": "2024-2",
+   "title": "NEXUS: 연결의 시작",
+   "poster_url": "/images/exhibitions/2024-2.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah2024-2/home?authuser=0",
+   "intro": "글로컬 문화 의식 및 지역과 세계문화의 '연결성' 이라는 키워드에 맞게\n서로 연결이 되어있다는 의미로 가운데에 각각 고리로 연결되어있는 모습을 형상화 하였습니다.\n\n또한, 원형의 도넛 모양으로 한 이유는 끝 없이 연결되고\n다른 곳으로 통하는 터널이라는 의미를 담아 통로 형태로 표현하였습니다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2024-12-03T00:00:00.000Z",
+   "end_date": "2024-12-06T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 14,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "NEXUS: Where Connections Begin",
+   "intro_en": "Inspired by the theme of glocal cultural awareness and the idea of connectivity between local and global cultures, the central forms are linked together through interlocking rings, symbolizing the relationships that unite diverse people, places, and cultures.\n\nThe circular, torus-like form further reinforces this concept, representing an endless connection and a passage that extends beyond boundaries. Conceived as a tunnel, it embodies continuous movement, exchange, and the possibility of new connections.",
+   "body_en": null
+  },
+  {
+   "id": 6,
+   "semester_label": "2024-1",
+   "title": "Free-child",
+   "poster_url": "/images/exhibitions/2024-1.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah-2024-1",
+   "intro": "”지평선 너머로 펼쳐질 너의 간절한 소망을 그려봐“ DAH를 새로운 단어 Draw, Aspire,Horizon로 구성하여 포스터를 제작했습니다.한계를 정하기 보다 지평선 너머의 세상을 그리던 어린시절의 우리처럼 전시회를 통해 DAH 친구들이 자신만의 반짝이는 달란트를 찾아가는 소중한 과정이 되길 바랍니다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2024-06-03T00:00:00.000Z",
+   "end_date": "2024-06-05T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 13,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Free-child",
+   "intro_en": "\"Imagine the aspirations that lie beyond the horizon.\"\nThis poster reinterprets DAH as Draw, Aspire, and Horizon, expressing the journey of envisioning possibilities beyond perceived limits. Inspired by the boundless imagination of childhood—when we freely dreamed of worlds beyond the horizon—it reflects the hope that this exhibition will become a meaningful journey for every DAH student to discover and embrace their own unique talents.",
+   "body_en": null
+  },
+  {
+   "id": 7,
+   "semester_label": "2023-2",
+   "title": "무한",
+   "poster_url": "/images/exhibitions/2023-2.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah-2023-2/home?authuser=0",
+   "intro": "3D 오브제가 돌아가는 무빙포스터입니다. 포스터 속의 오브제가 계속해서 매끄럽게 돌아가며 Digital Arts & Humanities라는 글씨가 보이는 디자인입니다. 학생회 멤버인 저는 선후배 간의 관계가 계속해서 생기고 이어지는 모습을 봐왔습니다. 이 점에서 무한이라는 워딩을 뽑아냈고 다음과 같은 포스터를 제작하게 되었습니다. ",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2023-11-28T00:00:00.000Z",
+   "end_date": "2023-11-30T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 13,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Infinity",
+   "intro_en": "This moving poster features a rotating 3D object that continuously and seamlessly reveals the words “Digital Arts & Humanities.” As a member of the student council, I have witnessed how connections between students across different years continue to form and grow over time. From this idea, I drew the concept of “Infinite” and developed the poster around the notion of connections that continuously emerge and endure.",
+   "body_en": null
+  },
+  {
+   "id": 8,
+   "semester_label": "2023-1",
+   "title": "흐름",
+   "poster_url": "/images/exhibitions/2023-1.webp",
+   "site_url": "https://sites.google.com/glab.hallym.ac.kr/dah2023-1/home?authuser=0",
+   "intro": "각자의 근원으로부터 흐르다가 교차점에서 자연스럽게 융합하고, 또 다시 \n흐르는 디지털인문예술전공을 표현하였습니다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2023-05-30T00:00:00.000Z",
+   "end_date": "2023-06-01T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 12,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Flow",
+   "intro_en": "The work represents Digital Arts & Humanities as a continuous flow—each stream emerging from its own origin, naturally converging and merging at points of intersection, before flowing onward once again.",
+   "body_en": null
+  },
+  {
+   "id": 9,
+   "semester_label": "2022-2",
+   "title": "Display 공존",
+   "poster_url": "/images/exhibitions/2022-2.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/dah2022-2",
+   "intro": "다양한 형태와 질감의 속성을 가진 학생들이 \n모여 하나의 하모니를 이루는 \n디지털인문예술 전공을 표현하였다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2022-12-29T00:00:00.000Z",
+   "end_date": "2022-12-01T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 11,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Display Coexistence",
+   "intro_en": "The work portrays Digital Arts & Humanities as a collective harmony formed by students with diverse forms, textures, and individual qualities coming together as one.",
+   "body_en": null
+  },
+  {
+   "id": 10,
+   "semester_label": "2022-1",
+   "title": "팔레트",
+   "poster_url": "/images/exhibitions/2022-1.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/dah2022-1/%ED%99%88?authuser=0",
+   "intro": "팔레트 위의 물감처럼, 다양한 개성을 가진 우리가 하나가 되어 다채로운 색을 내는 디지털인문예술 전시회를 표현하였다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2022-05-31T00:00:00.000Z",
+   "end_date": "2022-06-02T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 10,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Palette",
+   "intro_en": "Like colors on a palette, the work represents the Digital Arts & Humanities exhibition as a space where individuals with diverse identities come together to create a vibrant spectrum of possibilities.",
+   "body_en": null
+  },
+  {
+   "id": 11,
+   "semester_label": "2021-2",
+   "title": "샛별",
+   "poster_url": "/images/exhibitions/2021-2.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/dah2021-2/home?authuser=1",
+   "intro": "샛별은 새벽녘에 동쪽에서 빛나는 금성을 의미합니다. 금성은 지구의 바로 안쪽에서 태양 주위를 돌며 선명한 빛을 내뿜는 행성으로 밤하늘에서 달 다음으로 가장 환합니다. 또한, 샛별은 장래에 큰 발전을 이룩할 만한 사람을 비유적으로 이루는 말입니다. 디지털인문예술전공 학생들도 샛별과 같이 여러분의 다양한 재능을 통해 언제나 밝게 빛나길 바랍니다.",
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2021-11-23T00:00:00.000Z",
+   "end_date": "2021-11-25T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 9,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Saetbyeol",
+   "intro_en": "Saetbyeol, or the “morning star,” refers to Venus shining in the eastern sky at dawn. As the planet that orbits the Sun just inside Earth’s orbit, Venus appears with a brilliant light and is the brightest object in the night sky after the Moon. The term “Saetbyeol” also carries a metaphorical meaning, referring to someone with the potential to achieve remarkable growth and success in the future.\n\nLike the morning star, may the students of Digital Arts & Humanities continue to shine brightly, guided by their diverse talents and unique potential.",
+   "body_en": null
+  },
+  {
+   "id": 12,
+   "semester_label": "2021-1",
+   "title": "모두 DAH 함께",
+   "poster_url": "/images/exhibitions/2021-1.webp",
+   "site_url": "https://sites.google.com/view/dah2021-1/home",
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2021-05-25T00:00:00.000Z",
+   "end_date": "2021-05-27T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 8,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Together, We Are DAH",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 13,
+   "semester_label": "2020-2",
+   "title": "전시회, 우리들의 축제",
+   "poster_url": "/images/exhibitions/2020-2.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/dah-20202-exhibition",
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2020-11-24T00:00:00.000Z",
+   "end_date": "2020-11-26T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 7,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "Our Exhibition, Our Celebration",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 14,
+   "semester_label": "2020-1",
+   "title": "내 손 안의 작은 전시회",
+   "poster_url": "/images/exhibitions/2020-1.webp",
+   "site_url": null,
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2020-06-09T00:00:00.000Z",
+   "end_date": "2020-06-11T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 6,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "An Exhibition in the Palm of My Hand",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 15,
+   "semester_label": "2019-2",
+   "title": "그래서 우리는 DAH다",
+   "poster_url": "/images/exhibitions/2019-2.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/hallym-dah-exhibition/dah-2019_2%ED%95%99%EA%B8%B0-archive?authuser=0",
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2019-11-26T00:00:00.000Z",
+   "end_date": "2016-11-28T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 5,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "That’s Why We Are DAH",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 16,
+   "semester_label": "2019-1",
+   "title": "DAH:다",
+   "poster_url": "/images/exhibitions/2019-1.webp",
+   "site_url": "https://sites.google.com/g-mail.hallym.ac.kr/dah2019-1",
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": "2019-05-28T00:00:00.000Z",
+   "end_date": "2019-05-30T00:00:00.000Z",
+   "is_featured": false,
+   "ordinal": 4,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "DAH: All",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 17,
+   "semester_label": "2018-2",
+   "title": "DAH EXHIBITION",
+   "poster_url": "/images/exhibitions/2018-2.webp",
+   "site_url": null,
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": null,
+   "end_date": null,
+   "is_featured": false,
+   "ordinal": 3,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "DAH EXHIBITION",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 18,
+   "semester_label": "2018-1",
+   "title": "DAH EXHIBITION",
+   "poster_url": "/images/exhibitions/2018-1.webp",
+   "site_url": null,
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": null,
+   "end_date": null,
+   "is_featured": false,
+   "ordinal": 2,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "DAH EXHIBITION",
+   "intro_en": null,
+   "body_en": null
+  },
+  {
+   "id": 19,
+   "semester_label": "2017-2",
+   "title": "DAH EXHIBITION",
+   "poster_url": "/images/exhibitions/2017-2.webp",
+   "site_url": null,
+   "intro": null,
+   "body": null,
+   "gallery": [],
+   "held_at": null,
+   "published": true,
+   "start_date": null,
+   "end_date": null,
+   "is_featured": false,
+   "ordinal": 1,
+   "cta_show": false,
+   "cta_label": null,
+   "cta_url": null,
+   "title_en": "DAH EXHIBITION",
+   "intro_en": null,
+   "body_en": null
+  }
+ ],
+ "contest": [
+  {
+   "id": 194,
+   "type": "contest",
+   "title_ko": "인제 기적의 도서관 장서표 디자인 공모전",
+   "title_en": "Library Bookplate Design Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/bookplate-contest-2026-1.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-library-bookplate-2026-1",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2026-1",
+   "period": null,
+   "host": "한림대학교 도서관",
+   "category": "도서관 장서표 디자인 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 190,
+   "type": "contest",
+   "title_ko": "2026-1 디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "title_en": "DAH Project Exhibition Poster Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/poster-contest-2026-1.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-dah-poster-2026-1",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2026-1",
+   "period": null,
+   "host": "디지털인문예술전공 운영위원회",
+   "category": "디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 193,
+   "type": "contest",
+   "title_ko": "정선군립도서관 장서표 디자인 공모전",
+   "title_en": "Library Bookplate Design Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/bookplate-contest-2025-2.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-library-bookplate-2025-2",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2025-2",
+   "period": null,
+   "host": "한림대학교 도서관",
+   "category": "도서관 장서표 디자인 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 189,
+   "type": "contest",
+   "title_ko": "2025-2 디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "title_en": "DAH Project Exhibition Poster Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/poster-contest-2025-2.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-dah-poster-2025-2",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2025-2",
+   "period": null,
+   "host": "디지털인문예술전공 운영위원회",
+   "category": "디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 192,
+   "type": "contest",
+   "title_ko": "일송기념도서관 장서표 디자인 공모전",
+   "title_en": "Library Bookplate Design Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/bookplate-contest-2025-1.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:06:34.804Z",
+   "attachments": null,
+   "seed_key": "contest-library-bookplate-2025-1",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2025-1",
+   "period": null,
+   "host": "한림대학교 도서관",
+   "category": "도서관 장서표 디자인 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 188,
+   "type": "contest",
+   "title_ko": "2025-1 디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "title_en": "DAH Project Exhibition Poster Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/poster-contest-2025-1.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-dah-poster-2025-1",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2025-1",
+   "period": null,
+   "host": "디지털인문예술전공 운영위원회",
+   "category": "디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 191,
+   "type": "contest",
+   "title_ko": "일송기념도서관 장서표 디자인 공모전",
+   "title_en": "Library Bookplate Design Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/bookplate-contest-2024-2.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-library-bookplate-2024-2",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2024-2",
+   "period": null,
+   "host": "한림대학교 도서관",
+   "category": "도서관 장서표 디자인 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 187,
+   "type": "contest",
+   "title_ko": "2024-2 디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "title_en": "DAH Project Exhibition Poster Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "/images/contests/poster-contest-2024-2.webp",
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-13T14:03:27.494Z",
+   "updated_at": "2026-08-13T14:03:27.494Z",
+   "attachments": null,
+   "seed_key": "contest-dah-poster-2024-2",
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": "2024-2",
+   "period": null,
+   "host": "디지털인문예술전공 운영위원회",
+   "category": "디지털인문예술 프로젝트 전시회 포스터 공모전",
+   "category_etc": null
+  },
+  {
+   "id": 23,
+   "type": "contest",
+   "title_ko": "디지털인문예술전공 신규 캐릭터 공모전",
+   "title_en": "DAH New Character Contest",
+   "body": null,
+   "tag": null,
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1783467638861-0c6ee24a.webp",
+   "gallery": [],
+   "external_url": "https://dah-new-character-contest.vercel.app/",
+   "event_start": "2026-03-23T00:00:00.000Z",
+   "event_end": "2026-04-30T00:00:00.000Z",
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-01-01T00:00:00.000Z",
+   "updated_at": "2026-08-13T14:38:06.263Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": "기타",
+   "category_etc": "신규 캐릭터 공모전"
+  }
+ ],
+ "achievement": [
+  {
+   "id": 200,
+   "type": "achievement",
+   "title_ko": "2026 영수증 플랫폼 기반 Town MICE 아이디어톤 대상 수상",
+   "title_en": "2026 Town MICE Ideathon Grand Prize",
+   "body": {
+    "desc": "박채빈 학생이 2026 한림대학교 Town MICE 연구소에서 개최한 (주)더픽트의 영수증 플랫폼을 활용한 화천군 관광 문제 해결을 주제로 진행한 아이디어톤에서 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Chae Bin Park received the Grand Prize at the 2026 Town MICE Ideathon, hosted by the Hallym University Town MICE Research Institute.\n\nThe ideathon focused on developing solutions to tourism challenges in Hwacheon County by utilizing The Pict’s receipt-based platform. Her project presented a practical approach to connecting digital platform technology with local tourism needs.",
+    "awardees": "박채빈",
+    "awardeesEn": "Chae Bin Park"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-09-28T15:31:47.293Z",
+   "updated_at": "2026-09-28T15:34:14.097Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -5,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 199,
+   "type": "achievement",
+   "title_ko": "2026 영수증 플랫폼 기반 Town MICE 아이디어톤 우수상 수상",
+   "title_en": "2026 Town MICE Ideathon Excellence Award",
+   "body": {
+    "desc": "주현호 학생이 2026 한림대학교 Town MICE 연구소에서 개최한 (주)더픽트의 영수증 플랫폼을 활용한 화천군 관광 문제 해결을 주제로 진행한 아이디어톤에서 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju received the Excellence Award at the 2026 Town MICE Ideathon, hosted by the Hallym University Town MICE Research Institute.\n\nThe ideathon focused on developing solutions to tourism challenges in Hwacheon County by utilizing The Pict’s receipt-based platform. His project proposed a practical idea for connecting digital platform technology with local tourism needs.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-09-28T15:30:56.625Z",
+   "updated_at": "2026-09-28T15:34:25.661Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -4,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 198,
+   "type": "achievement",
+   "title_ko": "2026 앵커 참여 대학(원)생 우수사례 경진대회 최우수상 수상(한국연구재단 이사장상)",
+   "title_en": "2026 ANCHOR Outstanding Student Case Competition – Grand Prize(Chairman’s Award, National Research Foundation of Korea)",
+   "body": {
+    "desc": "주현호 학생이 2026 한국연구재단과 전국 앵커 사업단에서 주최한 앵커 참여 대학(원)생 우수사례 경진대회 참여 후기 영상 공모전 부문에서 '창업 교과목 수강을 통한 지역 산업체 디지털 소외 문제 해결'을 주제로 최우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju received the Grand Prize in the video testimonial category of the 2026 ANCHOR Outstanding Student Case Competition, hosted by the National Research Foundation of Korea and ANCHOR project groups nationwide.\n\nHis award-winning entry, “Addressing Digital Exclusion in Local Industries Through an Entrepreneurship Course,” highlighted his experience of identifying and tackling digital accessibility challenges faced by local businesses through project-based learning and entrepreneurial practice.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-09-14T06:51:27.115Z",
+   "updated_at": "2026-09-14T17:05:56.027Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -3,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 196,
+   "type": "achievement",
+   "title_ko": "2026 한림 로컬 창업 빌드업 대상 수상",
+   "title_en": "2026 Hallym Local Startup Build-Up Grand Prize",
+   "body": {
+    "desc": "주현호, 조영은, 김서영 학생이 2026 한림대학교 앵커 사업단에서 개최한 한림 로컬 창업 빌드업에서 '축제에 녹아드는 여정을 담은 캐릭터 IP 비즈니스: 마에로와 삐삐로'를 주제로 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyunho Ju, Young Eun Cho, and Seo Young Kim received the Grand Prize at the 2026 Hallym Local Startup Build-Up, hosted by Hallym University’s ANCHOR Project Group.\n\nTheir award-winning project, “Maero & Ppippiro: A Character IP Business Built Around the Journey of Becoming Part of a Festival,” explored a character IP business concept designed to naturally blend into the festival experience and create a more engaging connection with visitors.",
+    "awardees": "주현호, 조영은, 김서영",
+    "awardeesEn": "Hyunho Ju, Young Eun Cho, and Seo Young Kim"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-09-06T01:30:26.752Z",
+   "updated_at": "2026-09-06T01:32:15.852Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -2,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 195,
+   "type": "achievement",
+   "title_ko": "2026 (앵커 AI-Solution) AI 활용 지역문제 현안 해결 경진대회 우수상 수상(한국연구재단 이사장상)",
+   "title_en": "2026 Excellence Award at the AI-Solution Competition for Addressing Regional Challenges Using AI  (Chairman’s Award, National Research Foundation of Korea)",
+   "body": {
+    "desc": "주현호 학생이 2026 한국연구재단과 전국 앵커 사업단에서 개최한 (앵커 AI-Solution) AI 활용 지역문제 현안 해결 경진대회에서 '내 돈이 내 편인 앱, 강릉페이 UX 개선 프로젝트'를 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju received the Excellence Award at the 2026 AI-Solution Competition for Addressing Regional Challenges Using AI, organized by the National Research Foundation of Korea and the nationwide ANCHOR project consortium.\n\nHis award-winning project, “GangneungPay UX Improvement Project: An App That Puts My Money on My Side,” proposed an improved user experience for GangneungPay by applying AI-driven approaches to address local community needs.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-29T13:05:39.398Z",
+   "updated_at": "2026-09-14T17:06:04.874Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 171,
+   "type": "achievement",
+   "title_ko": "2026 Station C 글로컬 솔버톤 @춘천 우수상 수상",
+   "title_en": "Outstanding Award at the 2026 Station C Glocal Solverthon @ Chuncheon",
+   "body": {
+    "desc": "주현호 학생이 2026년 한림대, 태국 탐마삿대, 미국 뉴욕시립대가 공동으로 개최한 Station C 솔버톤 @춘천에서 '춘천 관광을 위한 개인 맞춤형 이동 경로를 제공하는 스마트 모빌리티 플랫폼'를 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju  received the Outstanding Award at the 2026 Station C Glocal Solverthon @ Chuncheon, jointly organized by Hallym University, Thammasat University (Thailand), and the City University of New York (CUNY).\n\nHis team was recognized for its project, \"A Smart Mobility Platform Providing Personalized Travel Routes for Tourism in Chuncheon.\"",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-27T09:48:31.670Z",
+   "updated_at": "2026-07-27T18:30:25.523Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 172,
+   "type": "achievement",
+   "title_ko": "2026 University Impact Alliance(UIA) 임팩톤 @춘천 우수상 수상",
+   "title_en": "Excellence Award at the 2026 University Impact Alliance (UIA) Impactthon @ Chuncheon",
+   "body": {
+    "desc": "주현호 학생이 2026년 한림대, 가톨릭대, 건국대, 고려대(서울·세종), 서강대, 서울여대, 한동대, 한신대, 한양대(서울·ERICA) 등 전국 9개 대학 11개 캠퍼스가 공동으로 개최한 University Impact Alliance(UIA) 임팩톤 @춘천에서 '청소년 도서관 활성화'를 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju received the Excellence Award at the 2026 University Impact Alliance (UIA) Impactthon @ Chuncheon, jointly organized by Hallym University, The Catholic University of Korea, Konkuk University, Korea University (Seoul & Sejong), Sogang University, Seoul Women's University, Handong Global University, Hanshin University, and Hanyang University (Seoul & ERICA), representing 11 campuses across 9 universities nationwide.\n\nHis team was recognized for its project on \"Revitalizing Youth Libraries.\"",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-27T10:28:06.979Z",
+   "updated_at": "2026-07-27T18:30:29.509Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 141,
+   "type": "achievement",
+   "title_ko": "2026 동해시 AI 지역 문제 해결 아이디어톤 대상 수상",
+   "title_en": "Grand Prize at the 2026 Donghae City AI Regional Problem-Solving Ideathon",
+   "body": {
+    "desc": "주현호 학생이 2026년 개최된 동해시 AI 지역 문제 해결 아이디어톤에서 '동해시 디지털·AI 전환 부작용'를 주제로 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju won the Grand Prize at the Donghae City AI Regional Problem-Solving Ideathon held in 2026, on the theme of 'the side effects of Donghae City's digital and AI transition'.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-27T18:30:29.263Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 2,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 142,
+   "type": "achievement",
+   "title_ko": "2026 동해시 AI 지역 문제 해결 아이디어톤 최우수상 수상",
+   "title_en": "First Prize at the 2026 Donghae City AI Regional Problem-Solving Ideathon",
+   "body": {
+    "desc": "조영은, 최은영 학생이 2026년 개최된 동해시 AI 지역 문제 해결 아이디어톤에서 '단기 방문 위주의 관광 증가'를 주제로 최우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Young Eun Cho and Eun Young Choi won the First Prize at the Donghae City AI Regional Problem-Solving Ideathon held in 2026, on the theme of 'the increase in short-stay-oriented tourism'.",
+    "awardees": "조영은, 최은영",
+    "awardeesEn": "Young Eun Cho and Eun Young Choi "
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-28T11:36:44.449Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 3,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 143,
+   "type": "achievement",
+   "title_ko": "2026 동해시 AI 지역 문제 해결 아이디어톤 우수상 수상",
+   "title_en": "Excellence Award at the 2026 Donghae City AI Regional Problem-Solving Ideathon",
+   "body": {
+    "desc": "이무원, 허준희 학생이 2026년 개최된 동해시 AI 지역 문제 해결 아이디어톤에서 '한중대학교 폐교'를 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Mu Won Lee and Jun Hee Heo won the Excellence Award at the Donghae City AI Regional Problem-Solving Ideathon held in 2026, on the theme of 'the closure of Hanjung University (한중대학교)'.",
+    "awardees": "이무원, 허준희",
+    "awardeesEn": "Mu Won Lee and Jun Hee Heo"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-28T11:36:53.715Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 4,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 144,
+   "type": "achievement",
+   "title_ko": "2026 동해시 AI 지역 문제 해결 아이디어톤 우수상 수상",
+   "title_en": "Excellence Award at the 2026 Donghae City AI Regional Problem-Solving Ideathon",
+   "body": {
+    "desc": "김민우, 김서영 학생이 2026년 개최된 동해시 AI 지역 문제 해결 아이디어톤에서 '단기 방문 위주의 관광 증가'를 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Min Woo Kim and Seo Young Kim won the Excellence Award at the Donghae City AI Regional Problem-Solving Ideathon held in 2026, on the theme of 'the increase in short-stay-oriented tourism'.",
+    "awardees": "김민우, 김서영",
+    "awardeesEn": "Min Woo Kim and Seo Young Kim"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-28T11:36:35.950Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 5,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 145,
+   "type": "achievement",
+   "title_ko": "2026 한림 AI 교육 포털 오픈 공모전 대상 수상",
+   "title_en": "Grand Prize at the 2026 Hallym AI Education Portal Open Competition",
+   "body": {
+    "desc": "손예빈 학생이 2026년 개최된 한림 AI 교육 포털 오픈 공모전(AI or Nothing: 당신의 상상이 한림의 이미지가 되다)에서 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Ye Bin Son won the Grand Prize at the Hallym AI Education Portal Open Competition (AI or Nothing: Your Imagination Becomes Hallym's Image) held in 2026.",
+    "awardees": "손예빈",
+    "awardeesEn": "Ye Bin Son"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-28T11:36:16.972Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 6,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 173,
+   "type": "achievement",
+   "title_ko": "2026 University Impact Alliance(UIA) 1기 한림대학교 대표 선발",
+   "title_en": "Selected as Hallym University Representative for the 2026 University Impact Alliance (UIA) Cohort 1",
+   "body": {
+    "desc": "주현호 학생이 2026년 한림대, 가톨릭대, 건국대, 고려대(서울·세종), 서강대, 서울여대, 한동대, 한신대, 한양대(서울·ERICA) 등 전국 9개 대학 11개 캠퍼스가  운영하는 University Impact Alliance(UIA) 1기 한림대학교 대표로 선발됐습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju was selected as Hallym University's representative for the inaugural 2026 University Impact Alliance (UIA). The alliance brings together 11 campuses across nine universities in Korea, including Hallym University, The Catholic University of Korea, Konkuk University, Korea University (Seoul and Sejong Campuses), Sogang University, Seoul Women's University, Handong Global University, Hanshin University, and Hanyang University (Seoul and ERICA Campus).",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-04T04:20:09.496Z",
+   "updated_at": "2026-08-04T04:20:25.298Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 7,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 146,
+   "type": "achievement",
+   "title_ko": "2026 AI 활용 대학생 로컬임팩트 포럼 최우수상 수상",
+   "title_en": "First Prize at the 2026 AI-Powered University Student Local Impact Forum",
+   "body": {
+    "desc": "주현호 학생이 2026년 한림대와 경북대, 국립순천대에서 공동 개최한 AI 활용 대학생 로컬임팩트 포럼에서 최우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju won the First Prize at the AI-Powered University Student Local Impact Forum, jointly held in 2026 by Hallym University, Kyungpook National University, and Sunchon National University.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.475Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 8,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 147,
+   "type": "achievement",
+   "title_ko": "2026 지역사회 문제해결 PBL 경진대회 우수상 수상",
+   "title_en": "Excellence Award at the 2026 Community Problem-Solving PBL Competition",
+   "body": {
+    "desc": "주현호, 윤현아, 조영은, 김성경, 김호진 학생이 2026년 개최된 지역사회 문제해결 PBL 경진대회에서 'UX 디자인'을 주제로 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju, Hyun A Yoon, Young Eun Cho, Sung Kyung Kim, and Ho Jin Kim won the Excellence Award at the Community Problem-Solving PBL Competition held in 2026, on the theme of 'UX Design'.",
+    "awardees": "주현호, 윤현아, 조영은, 김성경, 김호진",
+    "awardeesEn": "Hyun Ho Ju, Hyun A Yoon"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.455Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 9,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 148,
+   "type": "achievement",
+   "title_ko": "2026 지역사회 문제해결 PBL 경진대회 최우수상 수상",
+   "title_en": "First Prize at the 2026 Community Problem-Solving PBL Competition",
+   "body": {
+    "desc": "주현호 학생이 2026년 개최된 지역사회 문제해결 PBL 경진대회에서 '기업가 정신과 디자인 씽킹'을 주제로 최우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju won the First Prize at the Community Problem-Solving PBL Competition held in 2026, on the theme of 'Entrepreneurship and Design Thinking'.",
+    "awardees": "주현호",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.306Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 10,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 149,
+   "type": "achievement",
+   "title_ko": "2026 지역사회 문제해결 PBL 경진대회 대상 수상",
+   "title_en": "Grand Prize at the 2026 Community Problem-Solving PBL Competition",
+   "body": {
+    "desc": "최나연 학생이 2026년 개최된 지역사회 문제해결 PBL 경진대회에서 '로컬문화관광콘텐츠론'을 주제로 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Na Yeon Choi won the Grand Prize at the Community Problem-Solving PBL Competition held in 2026, on the theme of 'Local Cultural Tourism Content Studies'.",
+    "awardees": "최나연",
+    "awardeesEn": "Na Yeon Choi"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.542Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 11,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 150,
+   "type": "achievement",
+   "title_ko": "2026 커리어 인바디 아이디어 공모전 대상 수상",
+   "title_en": "Grand Prize at the 2026 Career InBody Idea Competition",
+   "body": {
+    "desc": "박근영, 홍지윤, 허준희 학생이 2026년 개최된 커리어 인바디 아이디어 공모전에서 대상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Geun Young Park, Ji Yoon Hong, and Jun Hee Heo won the Grand Prize at the Career InBody Idea Competition held in 2026.",
+    "awardees": "박근영, 홍지윤, 허준희",
+    "awardeesEn": "Geun Young Park, Ji Yoon Hong, and Jun Hee Heo"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.465Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 12,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 151,
+   "type": "achievement",
+   "title_ko": "2026 커리어 인바디 아이디어 공모전 우수상 수상",
+   "title_en": "Excellence Award at the 2026 Career InBody Idea Competition",
+   "body": {
+    "desc": "김서영 학생이 2026년 개최된 커리어 인바디 아이디어 공모전에서 우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Seo Young Kim won the Excellence Award at the Career InBody Idea Competition held in 2026.",
+    "awardees": "김서영",
+    "awardeesEn": "Seo Young Kim"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.466Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 13,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 152,
+   "type": "achievement",
+   "title_ko": "2026 세계일류 디자이너 양성사업(KDM+) 선발",
+   "title_en": "Selected for the 2026 World-Class Designer Development Program (KDM+)",
+   "body": {
+    "desc": "Korea Design Membership Plus(KDM+) 7기에 주현호, 허준희 학생이 선발되었습니다.\n4년 연속 KDM+ 프로그램에 합격하는 성과이며, 두 명이 동시에 선발된 쾌거입니다.",
+    "year": 2026,
+    "descEn": "Hyun Ho Ju and Jun Hee Heo were selected for Korea Design Membership Plus (KDM+) 7th.\nThis marks a fourth consecutive year of acceptance into the KDM+ program, and a remarkable feat of two students being selected at the same time.",
+    "awardees": "주현호, 허준희",
+    "awardeesEn": "Hyun Ho Ju"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T15:09:23.056Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 14,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 153,
+   "type": "achievement",
+   "title_ko": "HUSS 지산학 아카데미(여수) 비교과 아이디어 공모전 공감상 수상",
+   "title_en": "Empathy Award at the HUSS Industry-University-Research Academy (Yeosu) Extracurricular Idea Competition",
+   "body": {
+    "desc": "박근영, 홍지윤 학생이 2026년 개최된 HUSS 지산학 아카데미(여수) 비교과 아이디어 공모전에서 공감상을 수상했습니다.\n「블록체인 기반 모바일-웨어러블 연동형 해양 상생 플랫폼 YE:ON」\n",
+    "year": 2026,
+    "descEn": "Geun Young Park and Ji Yoon Hong won the Empathy Award at the HUSS Industry-University-Research Academy (Yeosu) Extracurricular Idea Competition held in 2026.\n「블록체인 기반 모바일-웨어러블 연동형 해양 상생 플랫폼 YE:ON」 (YE:ON, a blockchain-based mobile-wearable linked marine coexistence platform)\n",
+    "awardees": "박근영, 홍지윤",
+    "awardeesEn": "Geun Young Park, Ji Yoon Hong"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-08-04T04:20:25.479Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 15,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 154,
+   "type": "achievement",
+   "title_ko": "2025-2 캡스톤디자인·PBL 경진대회 대상 수상",
+   "title_en": "Grand Prize at the 2025-2 Capstone Design & PBL Competition",
+   "body": {
+    "desc": "진유진, 임수민, 류나린, 손아연, 이채원 학생이 2025년 개최된 캡스톤디자인·PBL 경진대회에서 '디자인 씽킹 기초' 과목을 주제로 대상을 수상했습니다.",
+    "year": 2025,
+    "descEn": "Yu Jin Jin, Su Min Im, Na Rin Ryu, A Yeon Son, and Chae Won Lee won the Grand Prize at the Capstone Design & PBL Competition held in 2025, on the theme of the course 'Introduction to Design Thinking'.",
+    "awardees": "진유진, 임수민, 류나린, 손아연, 이채원",
+    "awardeesEn": ""
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 155,
+   "type": "achievement",
+   "title_ko": "2025-2 지역사회 문제해결 PBL·캡스톤디자인(종합설계) PT 경진대회 최우수상 수상",
+   "title_en": "First Prize at the 2025-2 Community Problem-Solving PBL & Capstone Design (Comprehensive Design) Presentation Competition",
+   "body": {
+    "desc": "심혜련, 임수민, 김수민, 김서영 학생이 2025년 개최된 지역사회문제해결 PBL·캡스톤디자인(종합설계) PT 경진대회에서 '사회혁신 디자인' 과목을 주제로 최우수상을 수상했습니다.",
+    "year": 2025,
+    "descEn": "Hye Ryeon Sim, Su Min Im, Su Min Kim, and Seo Young Kim won the First Prize at the Community Problem-Solving PBL & Capstone Design (Comprehensive Design) Presentation Competition held in 2025, on the theme of the course 'Social Innovation Design'.",
+    "awardees": "심혜련, 임수민, 김수민, 김서영",
+    "awardeesEn": ""
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 156,
+   "type": "achievement",
+   "title_ko": "2025 제8회 Hallym SW Week 디지털인문예술전공 우수작품 수상",
+   "title_en": "Outstanding Works at the 2025 8th Hallym SW Week, Digital Arts & Humanities",
+   "body": {
+    "desc": "다수의 학생이 2025년 개최된 제8회 Hallym SW Week 디지털인문예술전공 우수작품 부문에서 우수상과 창의은상, 혁신상을 수상했습니다.\n우수상\n「지역의 현재를 데이터로 마주하다: 춘천 일자리 미스매치와 정주 대안」\n김도희, 우세희, 이준석, 정재훈, 함가연\n창의은상\n「향유(香有)」\n김찬민, 감주희, 김채린, 임효은, 장현민\n혁신상\n「카카오 회의록 : AI 에이전트 서비스 개발 연구」\n장현지, 허동균, 진유진, 김준원, 이윤환, 이진아",
+    "year": 2025,
+    "descEn": "Multiple students won the Excellence Award, the Creative Silver Award, and the Innovation Award in the Digital Arts & Humanities Outstanding Works category at the 8th Hallym SW Week held in 2025.\nExcellence Award\n「지역의 현재를 데이터로 마주하다: 춘천 일자리 미스매치와 정주 대안」 (Facing the Region's Present through Data: Job Mismatch and Settlement Alternatives in Chuncheon)\nDo Hee Kim, Se Hee Woo, Jun Seok Lee, Jae Hoon Jeong, Ga Yeon Ham\nCreative Silver Award\n「향유(香有)」 (Hyangyu)\nChan Min Kim, Ju Hee Gam, Chae Rin Kim, Hyo Eun Im, Hyun Min Jang\nInnovation Award\n「카카오 회의록 : AI 에이전트 서비스 개발 연구」 (Kakao Meeting Minutes: A Study on Developing an AI Agent Service)\nHyun Ji Jang, Dong Gyun Heo, Yu Jin Jin, Jun Won Kim, Yoon Hwan Lee, Jin A Lee",
+    "awardees": "김도희, 우세희, 이준석, 정재훈, 함가연, 김찬민, 감주희, 김채린, 임효은, 장현민, 장현지, 허동균, 진유진, 김준원, 이윤환, 이진아",
+    "awardeesEn": "Do Hee Kim, Se Hee Woo, Jae Hoon Jeong, Chan Min Kim, Ju Hee Gam, Chae Rin Kim"
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 2,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 157,
+   "type": "achievement",
+   "title_ko": "2025 제4회 강원디자인전람회 입선 & 특별상(사단법인 강원디자인협회장상) 수상 ",
+   "title_en": "Selection & Special Award (Award of the Chairperson of the Gangwon Design Association) at the 2025 4th Gangwon Design Exhibition",
+   "body": {
+    "desc": "주현호, 윤현아, 김지연, 박근영 학생이 2025년 개최된 제4회 강원디자인전람회 시각정보·디지털미디어·서비스디자인 분야에서 입선 및 특별상(사단법인 강원디자인협회장상)을 수상했습니다.\n특별상(사단법인 강원디자인협회장상)\n「강원디자인랩: 누구나 배우는 공공 디자인 교육 플랫폼 UX UI 리디자인」\n주현호, 윤현아\n입선\n「강원디자인진흥원 역량 강화 교육 플랫폼 서포터즈 '강아디'」\n김지연, 박근영\n입선\n「강원디자인진흥원 온라인 역량 강화 플랫폼 '강원디자인랩' CI 디자인」\n주현호\n입선\n「강원디자인랩 통합 안내 리플렛 디자인」\n주현호, 윤현아",
+    "year": 2025,
+    "descEn": "Hyun Ho Ju, Hyun A Yoon, Ji Yeon Kim, and Geun Young Park received Selections and a Special Award (Award of the Chairperson of the Gangwon Design Association) in the Visual Information, Digital Media, and Service Design categories at the 4th Gangwon Design Exhibition held in 2025.\nSpecial Award (Award of the Chairperson of the Gangwon Design Association)\n「강원디자인랩: 누구나 배우는 공공 디자인 교육 플랫폼 UX UI 리디자인」 (Gangwon Design Lab: UX/UI Redesign of a Public Design Education Platform for Everyone)\nHyun Ho Ju, Hyun A Yoon\nSelection\n「강원디자인진흥원 역량 강화 교육 플랫폼 서포터즈 '강아디'」 ('Gangadi', the Supporters of the Gangwon Design Promotion Agency's Capacity-Building Education Platform)\nJi Yeon Kim, Geun Young Park\nSelection\n「강원디자인진흥원 온라인 역량 강화 플랫폼 '강원디자인랩' CI 디자인」 (CI Design for 'Gangwon Design Lab', the Gangwon Design Promotion Agency's Online Capacity-Building Platform)\nHyun Ho Ju\nSelection\n「강원디자인랩 통합 안내 리플렛 디자인」 (Integrated Guide Leaflet Design for Gangwon Design Lab)\nHyun Ho Ju, Hyun A Yoon",
+    "awardees": "주현호, 윤현아, 김지연, 박근영",
+    "awardeesEn": "Hyun Ho Ju, Hyun A Yoon, Ji Yeon Kim"
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 3,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 158,
+   "type": "achievement",
+   "title_ko": "2025 AI 에듀테크 소프트랩 해커톤 대상 수상",
+   "title_en": "Grand Prize at the 2025 AI EduTech SoftLab Hackathon",
+   "body": {
+    "desc": "김도희, 감주희, 박근영, 홍지윤 학생이 2025년 개최된 AI 에듀테크 소프트랩 해커톤에서 대상을 수상했습니다.\n「AI 저수율 알리미 : 실시간 저수율 데이터로 하는 강릉 가뭄 대비」\n김도희, 감주희, 박근영, 홍지윤",
+    "year": 2025,
+    "descEn": "Do Hee Kim, Ju Hee Gam, Geun Young Park, and Ji Yoon Hong won the Grand Prize at the AI EduTech SoftLab Hackathon held in 2025.\n「AI 저수율 알리미 : 실시간 저수율 데이터로 하는 강릉 가뭄 대비」 (AI Reservoir Level Notifier: Preparing for Drought in Gangneung with Real-Time Reservoir Data)\nDo Hee Kim, Ju Hee Gam, Geun Young Park, Ji Yoon Hong",
+    "awardees": "김도희, 감주희, 박근영, 홍지윤",
+    "awardeesEn": "Do Hee Kim, Ju Hee Gam"
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 4,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 159,
+   "type": "achievement",
+   "title_ko": "2025 AI 에듀테크 소프트랩 해커톤 우수상 수상",
+   "title_en": "Excellence Award at the 2025 AI EduTech SoftLab Hackathon",
+   "body": {
+    "desc": "이규해, 강대승, 우세희 학생이 2025년 개최된 AI 에듀테크 소프트랩 해커톤에서 우수상을 수상했습니다.\n「같이:가치, 춘천 쓰레기 문제 해결 기획」\n이규해, 강대승, 우세희",
+    "year": 2025,
+    "descEn": "Gyu Hae Lee, Dae Seung Kang, and Se Hee Woo won the Excellence Award at the AI EduTech SoftLab Hackathon held in 2025.\n「같이:가치, 춘천 쓰레기 문제 해결 기획」 (Together:Value, a plan to solve Chuncheon's waste problem)\nGyu Hae Lee, Dae Seung Kang, Se Hee Woo",
+    "awardees": "이규해, 강대승, 우세희",
+    "awardeesEn": "Dae Seung Kang, Se Hee Woo"
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 5,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 160,
+   "type": "achievement",
+   "title_ko": "2025 한국디지털콘텐츠학회 하계종합학술대회 대학생 논문경진대회 동상 수상",
+   "title_en": "Bronze Award at the 2025 Korea Digital Contents Society Summer Conference University Student Paper Competition",
+   "body": {
+    "desc": "이도희 학생이 2025년 개최된 한국디지털콘텐츠학회 하계종합학술대회 대학생 논문경진대회 발표논문 부문에서 동상을 수상했습니다.\n「뉴스 빅데이터를 활용한 한국 게임산업 동향 분석: 1991년부터 2024년까지」\n이도희",
+    "year": 2025,
+    "descEn": "Do Hee Lee won the Bronze Award in the Presented Paper category of the University Student Paper Competition at the Korea Digital Contents Society Summer Conference held in 2025.\n「뉴스 빅데이터를 활용한 한국 게임산업 동향 분석: 1991년부터 2024년까지」 (Analysis of Korean Game Industry Trends Using News Big Data: From 1991 to 2024)\nDo Hee Lee",
+    "awardees": "이도희",
+    "awardeesEn": ""
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 6,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 161,
+   "type": "achievement",
+   "title_ko": "2025 세계일류 디자이너 양성사업(KDM+) 선발",
+   "title_en": "Selected for the 2025 World-Class Designer Development Program (KDM+)",
+   "body": {
+    "desc": "Korea Design Membership Plus(KDM+)에 이예린 학생이 선발되었습니다.\n이로써 한림대학교 디지털인문예술전공에서 3년 연속 KDM+ 선발자가 나오게 되었습니다.",
+    "year": 2025,
+    "descEn": "Ye Rin Lee was selected for Korea Design Membership Plus (KDM+).\nThis marks the third consecutive year that Digital Arts & Humanities at Hallym University has produced a KDM+ selectee.",
+    "awardees": "이예린",
+    "awardeesEn": "Ye Rin Lee"
+   },
+   "tag": "2025",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 7,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 162,
+   "type": "achievement",
+   "title_ko": "2024 세계일류 디자이너 양성사업(KDM+) 선발",
+   "title_en": "Selected for the 2024 World-Class Designer Development Program (KDM+)",
+   "body": {
+    "desc": "Korea Design Membership Plus(KDM+)에 원수정 학생이 선발되었습니다.\n이로써 한림대학교 디지털인문예술전공에서 2년 연속 KDM+ 선발자가 나오게 되었습니다.",
+    "year": 2024,
+    "descEn": "Su Jeong Won was selected for Korea Design Membership Plus (KDM+).\nThis marks the second consecutive year that Digital Arts & Humanities at Hallym University has produced a KDM+ selectee.",
+    "awardees": "원수정",
+    "awardeesEn": "Su Jeong Won"
+   },
+   "tag": "2024",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 163,
+   "type": "achievement",
+   "title_ko": "2023 디지털인문학대회 논문 포스터 게재",
+   "title_en": "Paper Posters Presented at the 2023 Digital Humanities Conference",
+   "body": {
+    "desc": "한국디지털인문학협의회(KADH)에서 주최한 디지털인문학대회에서 최지우, 김도희, 김종태, 최정음 총 4명의 학생이 논문 포스터를 게재했습니다.\n「Parliamentary Bill Network Visualization: Towards Enhanced Political Engagement」\n김도희, 김종태, 최정음\n「Character and Context in The Great Gatsby: A Network Analysis Approach」\n최지우",
+    "year": 2023,
+    "descEn": "At the Digital Humanities Conference hosted by the Korean Association for Digital Humanities (KADH), a total of four students - Ji Woo Choi, Do Hee Kim, Jong Tae Kim, and Jeong Eum Choi - presented paper posters.\n「Parliamentary Bill Network Visualization: Towards Enhanced Political Engagement」\nDo Hee Kim, Jong Tae Kim, Jeong Eum Choi\n「Character and Context in The Great Gatsby: A Network Analysis Approach」\nJi Woo Choi",
+    "awardees": "김도희, 김종태, 최정음, 최지우",
+    "awardeesEn": "Do Hee Kim"
+   },
+   "tag": "2023",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 164,
+   "type": "achievement",
+   "title_ko": "2023 IDEEC 논문 포스터 게재",
+   "title_en": "Paper Posters Presented at the 2023 IDEEC",
+   "body": {
+    "desc": "국제 디자인 교육 엑스포 및 컨퍼런스 IDEEC에서 다수의 학생들이 논문 포스터를 게재했습니다.\n아래 버튼을 통해 게재된 논문을 확인할 수 있습니다.\n김성우 교수\n「Display」\n곽선재, 윤호용, 최아리, 이주성, 김유현, 최현지 학생\n「HIBRARY」\n강도연, 구민성, 남서영, 이수진, 최서연, 하승진 학생\n「Hallym Welcome Package」\n허민, 가해린, 박시영, 김희경, 윤석영, 김수현 학생\n「National Assembly: How to be a Good Citizen」\n최정음, 김도희, 김종태 학생\n「Travel Trend 2023」 \n원수정, 강도연, 황찬미, 백수빈 학생\n「RunH for a Healthy Life Together」\n고하경, 한재원, 이문진, 이지연, 차이슬, 양주영 학생",
+    "year": 2023,
+    "descEn": "At the International Design Education Expo and Conference (IDEEC), many students presented paper posters.\nThe presented papers can be viewed via the button below.\nProf. Seong Woo Kim\n「Display」\nSeon Jae Kwak, Ho Yong Yoon, A Ri Choi, Ju Seong Lee, Yu Hyun Kim, Hyun Ji Choi\n「HIBRARY」\nDo Yeon Kang, Min Sung Koo, Seo Young Nam, Su Jin Lee, Seo Yeon Choi, Seung Jin Ha\n「Hallym Welcome Package」\nMin Heo, Hae Rin Ka, Si Young Park, Hee Kyung Kim, Seok Young Yoon, Su Hyun Kim\n「National Assembly: How to be a Good Citizen」\nJeong Eum Choi, Do Hee Kim, Jong Tae Kim\n「Travel Trend 2023」\nSu Jeong Won, Do Yeon Kang, Chan Mi Hwang, Su Bin Baek\n「RunH for a Healthy Life Together」\nHa Kyung Ko, Jae Won Han, Mun Jin Lee, Ji Yeon Lee, I Seul Cha, Ju Young Yang",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2023",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 165,
+   "type": "achievement",
+   "title_ko": "2023 세계일류 디자이너 양성사업(KDM+) 선발",
+   "title_en": "Selected for the 2023 World-Class Designer Development Program (KDM+)",
+   "body": {
+    "desc": "Korea Design Membership Plus(KDM+)에 심재연 학생이 선발되었습니다.\n한림대학교 디지털인문예술전공에서 처음으로 KDM+ 선발자가 나오게 되었습니다.",
+    "year": 2023,
+    "descEn": "Jae Yeon Sim was selected for Korea Design Membership Plus (KDM+).\nThis is the first time Digital Arts & Humanities at Hallym University has produced a KDM+ selectee.",
+    "awardees": "심재연",
+    "awardeesEn": "Jae Yeon Sim"
+   },
+   "tag": "2023",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 2,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 166,
+   "type": "achievement",
+   "title_ko": "2020 제18회 임베디드 소프트웨어 경진대회 장관상 수상",
+   "title_en": "Minister's Award at the 2020 18th Embedded Software Competition",
+   "body": {
+    "desc": "한국산업통상자원부에서 주최하는 제18회 임베디드 소프트웨어 경진대회에서 김도경 학생이 산업통상자원부 장관상을 수상했습니다.",
+    "year": 2020,
+    "descEn": "At the 18th Embedded Software Competition hosted by the Ministry of Trade, Industry and Energy of Korea, Do Kyung Kim won the Award of the Minister of Trade, Industry and Energy.",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2020",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 167,
+   "type": "achievement",
+   "title_ko": "2020 춘천시 도시재생 BI 공모전 대상 수상",
+   "title_en": "Grand Prize at the 2020 Chuncheon City Urban Regeneration BI Competition",
+   "body": {
+    "desc": "춘천시에서 주최한 교동 도시재생 BI 공모전에서 천영돈 학생이 대상을 수상했습니다.",
+    "year": 2020,
+    "descEn": "At the Gyo-dong Urban Regeneration BI Competition hosted by Chuncheon City, Young Don Cheon won the Grand Prize.",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2020",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 168,
+   "type": "achievement",
+   "title_ko": "2019 제5회 스토리테마파크 창작·콘텐츠 공모전 최우수상 수상",
+   "title_en": "First Prize at the 2019 5th Story Theme Park Creative Content Competition",
+   "body": {
+    "desc": "한국국학진흥원에서 주최한 제5회 스토리테마파크 창작 콘텐츠 공모전에서 문지원, 박형민, 최하늘 학생이 '조선궁궐 신입생활'이라는 작품으로 최우수상을 수상했습니다.",
+    "year": 2019,
+    "descEn": "At the 5th Story Theme Park Creative Content Competition hosted by the Korean Studies Advancement Center, Ji Won Moon, Hyung Min Park, and Ha Neul Choi won the First Prize with the work '조선궁궐 신입생활' (Freshman Life in a Joseon Palace).",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2019",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 0,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 169,
+   "type": "achievement",
+   "title_ko": "2019 한국디지털경영학회 디지털경영연구 논문 게재",
+   "title_en": "Paper Published in the 2019 Journal of Digital Management Research, Korea Society of Digital Management",
+   "body": {
+    "desc": "한국디지털경영학회에서 발행하는 디지털경영연구 제6권 제1호에 정 민 학생이 논문 「오픈소스 한국어 NLP 툴 성능 평가: HR 업무 데이터 중심으로」를 게재했습니다.",
+    "year": 2019,
+    "descEn": "Min Jeong published the paper 「오픈소스 한국어 NLP 툴 성능 평가: HR 업무 데이터 중심으로」 (Performance Evaluation of Open-Source Korean NLP Tools: Focusing on HR Task Data) in the Journal of Digital Management Research, Vol. 6, No. 1, published by the Korea Society of Digital Management.",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2019",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 1,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 170,
+   "type": "achievement",
+   "title_ko": "2019 제13회 한국정보과학회·한국빅데이터학회 공동학술 심포지엄 논문 발표",
+   "title_en": "Paper Presented at the 2019 13th Joint Academic Symposium of the Korea Information Science Society and the Korea Big Data Society",
+   "body": {
+    "desc": "한국정보과학회와 한국빅데이터학회가 주최하는 제13회 공동학술 심포지엄에서 남내현 학생이  논문「고고학 학술연구논문 빅데이터 분석: 키워드와 토픽모델링 분석을 중심으로」을 게재했습니다.",
+    "year": 2019,
+    "descEn": "At the 13th Joint Academic Symposium hosted by the Korea Information Science Society and the Korea Big Data Society, Nae Hyun Nam presented the paper 「고고학 학술연구논문 빅데이터 분석: 키워드와 토픽모델링 분석을 중심으로」 (Big Data Analysis of Archaeological Academic Research Papers: Focusing on Keyword and Topic Modeling Analysis).",
+    "awardees": "",
+    "awardeesEn": ""
+   },
+   "tag": "2019",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-08T15:53:19.050Z",
+   "updated_at": "2026-07-08T15:53:19.050Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": 2,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  }
+ ],
+ "club": [
+  {
+   "id": 25,
+   "type": "club",
+   "title_ko": "더 인스튜디오",
+   "title_en": "The in Studio",
+   "body": {
+    "field": "UX·UI",
+    "intro": "더 인스튜디오는 경험디자인(UX·UI) 직무를 희망하는 학우들의 전공 역량 강화를 위한 다양한 활동을 합니다.",
+    "targets": [
+     "UI·UX에 관심이 생긴 주니어 디자이너",
+     "전공 과목 외 UI·UX 관련 아티클과 경험을 얻고 싶은 사람",
+     "UI·UX 과목 수강 전, 미리 역량을 길러보고 싶은 사람",
+     "개발자·기획자와 협업 과정을 경험해보고 싶은 사람"
+    ],
+    "activities": [
+     "정기 킥오프를 통해 UX 스터디 & 아티클 공유",
+     "UX 프로젝트 디자인 대회 참가 & 팀 프로젝트 진행",
+     "HCI 논문 투고 & 학술회 참여 & 자격증 준비"
+    ]
+   },
+   "tag": "UX·UI",
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1783490987733-d6d51eac.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-07T07:45:34.904Z",
+   "updated_at": "2026-07-08T06:10:06.563Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": true,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 26,
+   "type": "club",
+   "title_ko": "I-SO",
+   "title_en": "I-SO",
+   "body": {
+    "field": "시각디자인",
+    "intro": "I-SO는 Isometric Design을 모티브로, 시각적 관점을 확장해 다양한 방면에서 시각디자인 활동을 진행합니다.",
+    "targets": [
+     "시각디자인 및 디지털 작업에 관심 있는 학생",
+     "2D·3D 모델링, 모션그래픽, AI 디자인을 배우고 싶은 학생",
+     "프로젝트, 공모전을 통해 성과를 만들고 싶은 학생",
+     "개인 포트폴리오 구축 및 성과를 전시하고 싶은 학생"
+    ],
+    "activities": [
+     "다양한 디자인 툴 학습 및 기초 역량 강화",
+     "장서표·전시회 포스터 공모전 & 교외 공모전 참가",
+     "개인·팀 단위 다양한 프로젝트 진행"
+    ]
+   },
+   "tag": "시각디자인",
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1783491096228-c019d02e.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-07T07:45:34.904Z",
+   "updated_at": "2026-07-08T06:11:42.433Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": true,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 27,
+   "type": "club",
+   "title_ko": "CON:NECT",
+   "title_en": "CON:NECT",
+   "body": {
+    "field": "콘텐츠",
+    "intro": "CON:NECT는 콘텐츠 매체를 통해 사람과 문화, 문화와 예술을 이어주는 연결점이 되는 활동을 합니다.",
+    "targets": [
+     "아이디어 제안 및 팀 프로젝트를 이끌어보고 싶은 분",
+     "인스타 매거진을 통해 글, 사진, 디자인을 제작하고 싶은 분",
+     "축제를 기획·운영하며 사람들과 활발히 소통하고 싶은 분",
+     "콘텐츠로 사람과 문화, 예술을 연결하는 의미 있는 활동을 하고 싶은 분"
+    ],
+    "activities": [
+     "창의적인 팀 프로젝트 기획 & 실행",
+     "인스타그램 매거진 제작",
+     "지역 축제 부스 기획 & 운영"
+    ]
+   },
+   "tag": "콘텐츠",
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1783524571237-92c8bc39.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-07T07:45:34.904Z",
+   "updated_at": "2026-07-08T15:29:34.853Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": true,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 28,
+   "type": "club",
+   "title_ko": "DS4H",
+   "title_en": "DS4H",
+   "body": {
+    "type": "doc",
+    "content": [
+     {
+      "type": "paragraph"
+     }
+    ]
+   },
+   "tag": "데이터",
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1783524562645-b0c64cc6.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-07-07T07:45:34.904Z",
+   "updated_at": "2026-07-08T15:29:24.526Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": true,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  }
+ ],
+ "lecture": [
+  {
+   "id": 174,
+   "type": "lecture",
+   "title_ko": "Figam Class: 프론트엔드를 위한 피그마 활용법",
+   "title_en": "Figma Class: Figma for Front-End Development",
+   "body": null,
+   "tag": null,
+   "poster_url": "https://myp8leihmgceuns7.public.blob.vercel-storage.com/dah/poster/1786505449413-705a0fe3.webp",
+   "gallery": [],
+   "external_url": null,
+   "event_start": "2026-07-01T00:00:00.000Z",
+   "event_end": "2026-07-31T00:00:00.000Z",
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-08-12T03:31:38.107Z",
+   "updated_at": "2026-08-12T03:31:38.107Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": null,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  }
+ ],
+ "settings": {
+  "about": {
+   "why": "앞으로는 한 전문 영역의 경계를 넘어 다방면의 지식을 통섭할 수 있어야 합니다. 디지털인문예술에서는 개개인의 삶의 질을 높이고 사회의 발전을 이끌고자 인문사회학적 지성에 기술과 디자인을 융합하여 혁신을 창안하는 역량을 키우고자 합니다.",
+   "what": "한림대학교 디지털인문예술전공은 AI와 디지털 트랜스포메이션과 같이 글로벌 혁신을 주도하는 디지털·정보통신기술, 인간을 위한 가치를 구현하는 디자인, 그리고 사람과 사회를 이해하는 인문사회학적 소양이 융합하여 미래의 주역이 될 인재를 양성하는 새로운 융합 프로그램입니다.",
+   "vision": [
+    {
+     "body": "인문학적 통찰력과 예술적 상상력을 바탕으로 디지털 시대의 새로운 미래를 이끌어갈 인재를 키웁니다.",
+     "title": "미래를 디자인하는 창의적 리더 양성"
+    },
+    {
+     "body": "기술과 인문학, 예술이 만나는 접점에서 사회적 가치를 창출하는 혁신적인 지식과 프로젝트를 만들어갑니다.",
+     "title": "가치 기반의 융합 지식 창출"
+    },
+    {
+     "body": "사람과 기술이 조화롭게 공존하는 지속가능한 디지털 환경을 조성하고, 모두에게 이로운 기술의 확산을 주도합니다.",
+     "title": "지속가능한 디지털 생태계 구축"
+    }
+   ],
+   "mission": {
+    "en": "We combine human insight and digital creativity to build a better future.",
+    "kr": "인간에 대한 깊은 이해와 창의적인 디지털 역량을 결합하여, 세상에 없던 새로운 가치를 창조한다."
+   }
+  },
+  "history": [
+   {
+    "date": "2017.03.01.",
+    "text": "한림대학교 디지털인문예술전공 설립"
+   },
+   {
+    "date": "2017.03.01.",
+    "text": "전공주임교수 김용수 교수 취임"
+   },
+   {
+    "date": "2017.03.01.",
+    "text": "한수미 교수 부임"
+   },
+   {
+    "date": "2018.03.01.",
+    "text": "글로벌융합대학 소속 전공"
+   },
+   {
+    "date": "2018.09.01.",
+    "text": "이승은 교수 부임"
+   },
+   {
+    "date": "2018.09.01.",
+    "text": "미래융합스쿨 소속 전공"
+   },
+   {
+    "date": "2019.07.01.",
+    "text": "전공주임교수 한수미 교수 취임"
+   },
+   {
+    "date": "2020.09.01.",
+    "text": "전공주임교수 이승은 교수 취임"
+   },
+   {
+    "date": "2022.03.01.",
+    "text": "김성우 교수 부임"
+   },
+   {
+    "date": "2022.07.01.",
+    "text": "전공주임교수 김성우 교수 취임"
+   },
+   {
+    "date": "2023.03.01.",
+    "text": "유인선 교수 부임"
+   },
+   {
+    "date": "2024.09.01.",
+    "text": "전공주임교수 김용수 교수 취임"
+   }
+  ],
+  "exhibitionOrdinal": 19,
+  "exhibitionSemester": 2,
+  "exhibitionSubjects": [
+   {
+    "name": "서비스 디자인",
+    "semester": 2
+   },
+   {
+    "name": "디지털 디자인 2",
+    "semester": 2
+   },
+   {
+    "name": "경험 디자인 특강",
+    "semester": 2
+   },
+   {
+    "name": "UI 디자인",
+    "semester": 2
+   },
+   {
+    "name": "디자인 씽킹",
+    "semester": 2
+   },
+   {
+    "name": "서브컬쳐 가이드",
+    "semester": 2
+   },
+   {
+    "name": "캡스톤디자인: 디인예 프로젝트",
+    "semester": 2
+   },
+   {
+    "name": "생성형 AI와 지역 문화 데이터",
+    "semester": 2
+   },
+   {
+    "name": "엔터컬쳐와 K-콘텐츠",
+    "semester": 2
+   },
+   {
+    "name": "게임과 스포테인먼트콘텐츠",
+    "semester": 2
+   },
+   {
+    "name": "AI서비스기획과프로토타이핑",
+    "semester": 2
+   },
+   {
+    "name": "플랫폼콘텐츠기획과전략",
+    "semester": 2
+   },
+   {
+    "name": "AI서비스와DB",
+    "semester": 2
+   },
+   {
+    "name": "전공 동아리",
+    "semester": 2
+   },
+   {
+    "name": "자율",
+    "semester": 2
+   },
+   {
+    "name": "디지털인문예술입문",
+    "semester": 1
+   },
+   {
+    "name": "UX 디자인",
+    "semester": 1
+   },
+   {
+    "name": "스토리텔링 창작 실습",
+    "semester": 1
+   },
+   {
+    "name": "디지털 디자인 1",
+    "semester": 1
+   },
+   {
+    "name": "디지털 디자인 3",
+    "semester": 1
+   },
+   {
+    "name": "AI 디자인",
+    "semester": 1
+   },
+   {
+    "name": "문화 원형과 고전 콘텐츠",
+    "semester": 1
+   },
+   {
+    "name": "한국 문화와 콘텐츠 개발",
+    "semester": 1
+   },
+   {
+    "name": "디지털문화콘텐츠마케팅",
+    "semester": 1
+   },
+   {
+    "name": "문화콘텐츠기초",
+    "semester": 1
+   },
+   {
+    "name": "지역혁신연구방법론",
+    "semester": 1
+   },
+   {
+    "name": "전공 동아리",
+    "semester": 1
+   },
+   {
+    "name": "자율",
+    "semester": 1
+   },
+   {
+    "name": "어드벤처 프로젝트 1",
+    "semester": 2
+   }
+  ]
+ }
+}

@@ -8,7 +8,6 @@ export const exAwards = [
     "grade": "최우수상",
     "course": "디지털인문예술입문",
     "title": "403: Bypass",
-    "team": "에브리타인",
     "members": [
       "홍지윤",
       "김율",
@@ -25,7 +24,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "전공 동아리",
     "title": "춘천 계절연구소: 하동이와 함께하는 중도 물레길 여행",
-    "team": "I-SO(아이소)",
     "members": [
       "여동규",
       "주현호",
@@ -48,7 +46,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "디지털디자인1",
     "title": "사이의 서가",
-    "team": null,
     "members": [
       "송은채"
     ],
@@ -59,7 +56,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "디지털디자인1",
     "title": "TETRIS DROP",
-    "team": null,
     "members": [
       "이서준"
     ],
@@ -70,7 +66,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "디지털디자인3",
     "title": "29CM 앱 UX 개선 프로젝트",
-    "team": "이구다",
     "members": [
       "김현지",
       "김서영",
@@ -83,7 +78,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "디지털문화콘텐츠마케팅",
     "title": "프로젝트 리타이어: 18년 전 출발선으로",
-    "team": null,
     "members": [
       "여동규"
     ],
@@ -94,7 +88,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "문화원형과고전콘텐츠",
     "title": "창귀",
-    "team": "이야기꾼들",
     "members": [
       "함가연",
       "임지우",
@@ -111,7 +104,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "문화콘텐츠기초",
     "title": "소담",
-    "team": "담소",
     "members": [
       "서상욱",
       "이수민",
@@ -127,7 +119,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "한국문화와콘텐츠개발",
     "title": "손 있는 날",
-    "team": "땅거미",
     "members": [
       "이수민",
       "이수진",
@@ -142,7 +133,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "자율",
     "title": "PROJECT: PSYCHE-TYPE",
-    "team": null,
     "members": [
       "이지현"
     ],
@@ -153,7 +143,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "지역혁신연구방법론",
     "title": "패션 전문몰의 모바일 의존성과 감성 소비 분석",
-    "team": "MU-ve",
     "members": [
       "신현서",
       "김채윤",
@@ -167,7 +156,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "스토리텔링창작실습",
     "title": "남은 시간",
-    "team": "5%",
     "members": [
       "허동균",
       "장동혁",
@@ -181,7 +169,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "AI디자인",
     "title": "항공사 리브랜딩",
-    "team": null,
     "members": [
       "허동균"
     ],
@@ -192,7 +179,6 @@ export const exAwards = [
     "grade": "우수상",
     "course": "UX디자인",
     "title": "내 돈이 내 편인 앱: 강릉페이 UX 개선 프로젝트",
-    "team": "마카모예",
     "members": [
       "김민경",
       "주현호",

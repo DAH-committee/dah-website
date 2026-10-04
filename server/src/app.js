@@ -8,6 +8,7 @@ import { isConfigured, setDb } from './db.js'
 import authRoutes from './routes/auth.js'
 import googleAuthRoutes from './routes/googleAuth.js'
 import contentRoutes from './routes/content.js'
+import handoverRoutes from './routes/handover.js'
 import adminRoutes from './routes/admin.js'
 import uploadRoutes, { UPLOADS_DIR, MAX_UPLOAD_BYTES } from './routes/upload.js'
 import submitRoutes from './routes/submit.js'
@@ -74,6 +75,7 @@ export function createApp(options = {}) {
   app.use(offeringsRoutes) // GET /offerings, /offerings/semesters, /admin/offerings (H3-3)
   app.use(formsRoutes) // 39_FORM_BUILDER: /forms/:slug, /admin/forms
   app.use(driveAdminRoutes) // 53_DRIVE_STORAGE: /admin/drive/*, /auth/google/drive/callback
+  app.use(handoverRoutes) // 운영위원회 인수인계 문서: 열람 비밀번호, 문서, 여백 댓글, 비밀값
   app.use(easterEggRoutes) // 주현호 이스터에그: 공개 발견 기록 + 본인 owner 전용 관리
 
   app.use((req, res) => res.status(404).json({ error: 'not found' }))

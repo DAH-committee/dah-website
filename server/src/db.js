@@ -99,3 +99,56 @@ export async function ensureSheetStateSchema() {
     console.error('[schema] ensureSheetStateSchema 실패(계속 진행):', err.message)
   }
 }
+
+// 운영위원회 인수인계 문서: 문서, 여백 댓글, 비밀값, 열람 비밀번호 해시. 부팅 때 멱등 보장한다.
+export const HANDOVER_SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS handover_settings (
+     key        TEXT PRIMARY KEY,
+     value      TEXT NOT NULL,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `CREATE TABLE IF NOT EXISTS handover_docs (
+     id           SERIAL PRIMARY KEY,
+     title        TEXT NOT NULL,
+     content      JSONB,
+     content_html TEXT,
+     sort         INTEGER NOT NULL DEFAULT 0,
+     updated_by   TEXT,
+     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `CREATE TABLE IF NOT EXISTS handover_comments (
+     id         SERIAL PRIMARY KEY,
+     doc_id     INTEGER NOT NULL,
+     anchor_id  TEXT NOT NULL,
+     side       TEXT NOT NULL DEFAULT 'right',
+     quote      TEXT,
+     body       TEXT NOT NULL DEFAULT '',
+     images     JSONB NOT NULL DEFAULT '[]'::jsonb,
+     author     TEXT,
+     author_id  INTEGER,
+     resolved   BOOLEAN NOT NULL DEFAULT false,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE INDEX IF NOT EXISTS handover_comments_doc_idx ON handover_comments (doc_id)',
+  `CREATE TABLE IF NOT EXISTS handover_secrets (
+     id         SERIAL PRIMARY KEY,
+     label      TEXT NOT NULL,
+     value      TEXT NOT NULL,
+     updated_by TEXT,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+]
+
+export async function ensureHandoverSchema() {
+  const impl = injected || pool
+  if (!impl) return
+  for (const sql of HANDOVER_SCHEMA_STATEMENTS) {
+    try {
+      await impl.query(sql)
+    } catch (err) {
+      console.error('[schema] ensureHandoverSchema 문장 실패(계속 진행):', err.message)
+    }
+  }
+}

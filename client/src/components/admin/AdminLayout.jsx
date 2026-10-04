@@ -30,7 +30,10 @@ const NAV_GROUPS = [
   },
   {
     label: 'DASHBOARD',
-    items: [{ to: '/admin', label: '대시보드', end: true, role: 'manager' }],
+    items: [
+      { to: '/admin', label: '대시보드', end: true, role: 'manager' },
+      { to: '/resources/handover', label: '인수인계 문서', role: 'manager' },
+    ],
   },
   {
     label: 'SYSTEM',
