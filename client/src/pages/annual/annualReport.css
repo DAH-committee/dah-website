@@ -1,0 +1,260 @@
+/* 애뉴얼 리포트 책 화면. 디자인 시스템 다크 토큰과 보라만 쓴다. */
+.ar-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: radial-gradient(900px 500px at 50% 0%, rgb(var(--dah-purple-deep) / 0.35), transparent 70%), rgb(var(--dah-bg-base));
+  color: rgb(var(--dah-text-pri));
+  overflow: hidden;
+}
+.ar-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+}
+.ar-bar__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+.ar-bar__brand span {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: rgb(var(--dah-purple-light));
+}
+.ar-bar__brand b {
+  font-size: 13px;
+  font-weight: 600;
+}
+.ar-bar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ar-bar__chap {
+  font-size: 12px;
+  color: rgb(var(--dah-text-sec));
+  margin-right: 6px;
+}
+.ar-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--dah-text-pri) / 0.2);
+  background: rgb(var(--dah-text-pri) / 0.06);
+  color: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+.ar-btn:hover {
+  background: rgb(var(--dah-text-pri) / 0.12);
+  border-color: rgb(var(--dah-purple-light) / 0.7);
+}
+.ar-btn:active {
+  transform: scale(0.96);
+}
+.ar-btn:focus-visible,
+.ar-arrow:focus-visible,
+.ar-toc button:focus-visible {
+  outline: 2px solid rgb(var(--dah-purple-light));
+  outline-offset: 2px;
+}
+.ar-stage {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.ar-book {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 26px 40px rgb(0 0 0 / 0.55));
+}
+.ar-book img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.ar-loading {
+  position: absolute;
+  font-size: 13px;
+  color: rgb(var(--dah-text-sec));
+}
+.ar-arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--dah-text-pri) / 0.2);
+  background: rgb(var(--dah-bg-base) / 0.7);
+  backdrop-filter: blur(8px);
+  color: inherit;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.18s, opacity 0.18s, transform 0.18s;
+}
+.ar-arrow:hover:not(:disabled) {
+  background: rgb(var(--dah-purple-primary) / 0.5);
+}
+.ar-arrow:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.ar-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+.ar-arrow--l {
+  left: 14px;
+}
+.ar-arrow--r {
+  right: 14px;
+}
+.ar-foot {
+  display: grid;
+  grid-template-columns: 76px 1fr 110px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 22px 16px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  color: rgb(var(--dah-text-sec));
+}
+.ar-foot__hint {
+  text-align: right;
+}
+.ar-range {
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 99px;
+  background: linear-gradient(to right, rgb(var(--dah-purple-light)) var(--p), rgb(var(--dah-text-pri) / 0.18) var(--p));
+  cursor: pointer;
+}
+.ar-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgb(var(--dah-text-pri));
+  border: 3px solid rgb(var(--dah-purple-primary));
+  transition: transform 0.15s;
+}
+.ar-range:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+}
+.ar-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgb(var(--dah-text-pri));
+  border: 3px solid rgb(var(--dah-purple-primary));
+}
+.ar-toc {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+}
+.ar-toc__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+  border: 0;
+  cursor: default;
+  animation: ar-fade 0.2s ease-out;
+}
+.ar-toc__panel {
+  position: relative;
+  width: min(380px, 92vw);
+  height: 100%;
+  overflow-y: auto;
+  padding: 28px 22px;
+  background: rgb(var(--dah-bg-elev));
+  border-left: 1px solid rgb(var(--dah-text-pri) / 0.12);
+  animation: ar-slide 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ar-toc__panel h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+.ar-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ar-toc li button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 13px 8px;
+  border: 0;
+  border-bottom: 1px solid rgb(var(--dah-text-pri) / 0.1);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, padding-left 0.18s;
+}
+.ar-toc li button:hover {
+  background: rgb(var(--dah-purple-primary) / 0.18);
+  padding-left: 14px;
+}
+.ar-toc li[data-on] button b {
+  color: rgb(var(--dah-purple-light));
+}
+.ar-toc li span,
+.ar-toc li i {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 11px;
+  font-style: normal;
+  color: rgb(var(--dah-text-meta));
+}
+.ar-toc li b {
+  font-weight: 600;
+}
+@keyframes ar-fade {
+  from { opacity: 0; }
+}
+@keyframes ar-slide {
+  from { transform: translateX(24px); opacity: 0; }
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+@media (max-width: 719px) {
+  .ar-bar__chap { display: none; }
+  .ar-bar__brand b { display: none; }
+  .ar-arrow { width: 38px; height: 38px; }
+  .ar-foot { grid-template-columns: 62px 1fr; }
+  .ar-foot__hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ar-toc__scrim, .ar-toc__panel { animation: none; }
+}
+.ar-book .stf__parent,
+.ar-book .stf__wrapper,
+.ar-book .stf__block {
+  background: transparent;
+}

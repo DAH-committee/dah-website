@@ -1,248 +1,241 @@
+// AnnualReport.jsx: 2026 디지털 애뉴얼 리포트 책 화면. 미리 구운 쪽 이미지를 StPageFlip 캔버스로 넘긴다.
+// 텍스트는 이미지에 들어 있으므로 접근성 대체 문구는 목차 패널과 쪽 목록(sr-only)으로 제공한다.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { PageFlip } from 'page-flip'
-import { ChevronLeft, ChevronRight, ListTree, Maximize2, Minimize2, X } from 'lucide-react'
-import Link from '../../components/common/LangLink'
-import { chapters, reportMeta } from '../../data/annualReport2026'
-import { pages as rawPages } from './AnnualPages'
-import './annual.css'
+import { manifest } from './annualManifest'
+import './annualReport.css'
 
-const PAGE_RATIO = 4 / 3 // 높이 / 폭
-
-// 책은 표지와 뒷표지가 홀로 서므로 전체 쪽수가 짝수여야 한다.
-function buildPages() {
-  const list = [...rawPages]
-  if (list.length % 2 === 1) {
-    list.splice(list.length - 1, 0, { id: 'blank', render: () => null })
-  }
-  return list
-}
-
-function buildToc(list) {
-  return chapters.map((c) => {
-    const page = list.findIndex((p) => p.chapter === c.id && p.tone === 'chapter')
-    return { ...c, page }
-  })
-}
-
-function pageMarkup(list, toc) {
-  return list
-    .map((p, i) => {
-      const side = i === 0 ? 'cover' : i === list.length - 1 ? 'cover' : i % 2 === 1 ? 'left' : 'right'
-      const tone = p.tone || (p.bleed ? 'bleed' : 'paper')
-      const chapter = chapters.find((c) => c.id === p.chapter)
-      const body = renderToStaticMarkup(<div className="ar-page__in">{p.render({ toc })}</div>)
-      const folio =
-        tone === 'paper' || tone === 'bleed'
-          ? `<div class="ar-folio"><span>${String(i).padStart(2, '0')}</span><span>${chapter ? chapter.title : reportMeta.title}</span></div>`
-          : ''
-      return `<div class="ar-sheet" data-density="${p.density || 'soft'}"><div class="ar-page ar-page--${tone} ar-page--${side === 'cover' ? 'right' : side}" data-page="${i}">${body}${folio}</div></div>`
-    })
-    .join('')
-}
+const RATIO = 4 / 3 // 높이 / 너비
+const src = (i) => `/images/annual-2026/pages/p-${String(i).padStart(2, '0')}.webp`
 
 export default function AnnualReport() {
   const stageRef = useRef(null)
-  const areaRef = useRef(null)
-  const hostRef = useRef(null)
+  const bookRef = useRef(null)
   const flipRef = useRef(null)
-  const [index, setIndex] = useState(0)
-  const [total, setTotal] = useState(0)
-  const [menu, setMenu] = useState(false)
+  const [cur, setCur] = useState(0)
+  const [ready, setReady] = useState(false)
+  const [tocOpen, setTocOpen] = useState(false)
   const [full, setFull] = useState(false)
-
-  const list = useMemo(buildPages, [])
-  const toc = useMemo(() => buildToc(list), [list])
-  const html = useMemo(() => pageMarkup(list, toc), [list, toc])
-
-  // 화면 크기에 맞춰 책 크기 계산: 가로 화면은 두 쪽 펼침, 좁으면 한 쪽
-  const fit = useCallback(() => {
-    const area = areaRef.current
-    const host = hostRef.current
-    if (!area || !host) return
-    const w = area.clientWidth
-    const h = area.clientHeight
-    // 두 쪽 펼침이 640px보다 좁아지면 한 쪽 보기로 바꾼다(PageFlip의 minWidth 320 x 2와 같은 기준)
-    const spreadW = Math.min(w, (2 * h) / PAGE_RATIO)
-    const portrait = spreadW < 640
-    const pageW = portrait ? Math.min(w, h / PAGE_RATIO) : spreadW / 2
-    const bookW = Math.floor(pageW * (portrait ? 1 : 2))
-    const bookH = Math.floor(pageW * PAGE_RATIO)
-    host.style.width = `${bookW}px`
-    host.style.height = `${bookH}px`
-    flipRef.current?.update()
-  }, [])
+  const [loaded, setLoaded] = useState(0)
+  const total = manifest.count
 
   useEffect(() => {
-    const host = hostRef.current
-    if (!host) return undefined
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const el = document.createElement('div')
-    el.innerHTML = html
-    host.appendChild(el)
-    fit()
-    const pf = new PageFlip(el, {
-      width: 420,
-      height: 560,
-      size: 'stretch',
-      minWidth: 320,
-      maxWidth: 4000,
-      minHeight: 260,
-      maxHeight: 5400,
+    document.title = '2026 디지털 애뉴얼 리포트 | 디지털인문예술전공'
+  }, [])
+
+  // 책 크기: 화면 안에 들어가는 가장 큰 쪽
+  const measure = useCallback(() => {
+    const el = stageRef.current
+    if (!el) return null
+    const w = el.clientWidth
+    const h = el.clientHeight
+    const single = w < 720
+    const pad = single ? 8 : 24
+    let pw = single ? w - pad * 2 : (w - pad * 2) / 2
+    let ph = pw * RATIO
+    if (ph > h - pad * 2) {
+      ph = h - pad * 2
+      pw = ph / RATIO
+    }
+    return { pw: Math.floor(pw), ph: Math.floor(ph), single }
+  }, [])
+
+  const [dims, setDims] = useState(null)
+  const curRef = useRef(0)
+  curRef.current = cur
+
+  useEffect(() => {
+    setDims(measure())
+    let t
+    const on = () => {
+      clearTimeout(t)
+      t = setTimeout(() => {
+        const m = measure()
+        setDims((d) => (d && m && d.pw === m.pw && d.ph === m.ph ? d : m))
+      }, 200)
+    }
+    window.addEventListener('resize', on)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('resize', on)
+    }
+  }, [measure])
+
+  // 이미지 미리 받기: 앞쪽부터 여섯 줄로 받아 넘김이 끊기지 않게 한다
+  useEffect(() => {
+    let alive = true
+    let done = 0
+    const load = (i) => {
+      if (!alive || i >= total) return
+      const im = new Image()
+      im.decoding = 'async'
+      im.onload = im.onerror = () => {
+        done += 1
+        setLoaded(done)
+        load(i + 6)
+      }
+      im.src = src(i)
+    }
+    for (let k = 0; k < 6; k += 1) load(k)
+    return () => {
+      alive = false
+    }
+  }, [total])
+
+  useEffect(() => {
+    if (!dims || !bookRef.current) return undefined
+    const host = bookRef.current
+    const node = document.createElement('div')
+    node.style.cssText = 'width:100%;height:100%'
+    host.appendChild(node)
+    const flip = new PageFlip(node, {
+      width: dims.pw,
+      height: dims.ph,
+      size: 'fixed',
+      minWidth: 120,
+      maxShadowOpacity: 0.45,
       showCover: true,
       usePortrait: true,
-      drawShadow: true,
-      maxShadowOpacity: 0.55,
-      flippingTime: reduce ? 1 : 950,
       mobileScrollSupport: false,
+      drawShadow: true,
+      flippingTime: 820,
       swipeDistance: 24,
-      clickEventForward: true,
-      showPageCorners: true,
-      disableFlipByClick: false,
-      autoSize: true,
-      startPage: 0,
+      clickEventForward: false,
+      autoSize: false,
+      startPage: curRef.current,
     })
-    pf.loadFromHTML(el.querySelectorAll('.ar-sheet'))
-    // 넘기기 전에 모든 쪽의 이미지를 미리 해독해 두어 펼칠 때 빈 칸이 보이지 않게 한다
-    el.querySelectorAll('img').forEach((img) => img.decode?.().catch(() => {}))
-    flipRef.current = pf
-    if (import.meta.env.DEV) window.__arFlip = pf
-    setTotal(pf.getPageCount())
-    pf.on('flip', (e) => setIndex(e.data))
-    const ro = new ResizeObserver(fit)
-    ro.observe(areaRef.current)
+    flipRef.current = flip
+    flip.loadFromImages(Array.from({ length: total }, (_, i) => src(i)))
+    flip.on('flip', (e) => setCur(e.data))
+    setReady(true)
     return () => {
-      ro.disconnect()
       try {
-        pf.destroy()
+        flip.destroy()
       } catch {
-        /* 이미 정리됨 */
+        /* 이미 해제됨 */
       }
       flipRef.current = null
-      host.replaceChildren()
+      node.remove()
     }
-  }, [html, fit])
+  }, [dims, total])
 
-  const go = useCallback((n) => {
-    const pf = flipRef.current
-    if (!pf) return
-    const max = pf.getPageCount() - 1
-    const target = Math.max(0, Math.min(max, n))
-    pf.flip(target)
-    setMenu(false)
-  }, [])
+  const go = useCallback((i) => {
+    const f = flipRef.current
+    if (!f) return
+    const n = Math.max(0, Math.min(total - 1, i))
+    f.flip(n)
+  }, [total])
+  const prev = useCallback(() => flipRef.current?.flipPrev('bottom'), [])
+  const next = useCallback(() => flipRef.current?.flipNext('bottom'), [])
 
-  // 목차 링크
   useEffect(() => {
-    const host = hostRef.current
-    const onClick = (e) => {
-      const a = e.target.closest?.('[data-goto]')
-      if (!a) return
-      e.preventDefault()
-      go(Number(a.getAttribute('data-goto')))
-    }
-    host?.addEventListener('click', onClick)
-    return () => host?.removeEventListener('click', onClick)
-  }, [go])
-
-  // 키보드
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') flipRef.current?.flipNext()
-      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') flipRef.current?.flipPrev()
+    const on = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') next()
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev()
       else if (e.key === 'Home') go(0)
-      else if (e.key === 'End') go(9999)
-      else if (e.key === 'Escape') setMenu(false)
+      else if (e.key === 'End') go(total - 1)
+      else if (e.key === 'Escape') setTocOpen(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [go])
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [next, prev, go, total])
 
   useEffect(() => {
-    const onFs = () => setFull(Boolean(document.fullscreenElement))
-    document.addEventListener('fullscreenchange', onFs)
-    return () => document.removeEventListener('fullscreenchange', onFs)
+    const on = () => setFull(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', on)
+    return () => document.removeEventListener('fullscreenchange', on)
   }, [])
-
-  useEffect(() => {
-    const prev = document.title
-    document.title = `${reportMeta.title} | ${reportMeta.org}`
-    return () => {
-      document.title = prev
-    }
-  }, [])
-
   const toggleFull = () => {
-    if (document.fullscreenElement) document.exitFullscreen?.()
-    else stageRef.current?.requestFullscreen?.()
+    if (document.fullscreenElement) document.exitFullscreen()
+    else document.documentElement.requestFullscreen?.().catch(() => {})
   }
 
-  const current = list[index]
-  const currentChapter = chapters.find((c) => c.id === current?.chapter)
-  const btn =
-    'inline-flex h-11 w-11 items-center justify-center rounded-md border border-border-subtle bg-bg-panel text-text-pri transition-colors duration-fast ease-out hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-not-allowed disabled:text-text-disabled'
+  const chapter = useMemo(() => {
+    let c = null
+    manifest.chapters.forEach((x) => {
+      if (cur >= x.page) c = x
+    })
+    return c
+  }, [cur])
+
+  const label = cur === 0 ? '표지' : cur >= total - 1 ? '뒤표지' : `${cur} / ${total - 2}`
+  const pct = Math.round(((cur + 1) / total) * 100)
 
   return (
-    <div ref={stageRef} className="ar-stage flex h-dvh min-h-0 flex-col bg-bg-base text-text-pri">
-      <header className="flex items-center justify-between gap-16 px-16 py-12 md:px-24">
-        <div className="min-w-0">
-          <p className="truncate font-mono text-caption-m text-text-meta">{reportMeta.org}</p>
-          <h1 className="truncate text-small-m font-semibold text-text-pri md:text-small-d">{reportMeta.title}</h1>
-        </div>
-        <div className="flex items-center gap-8">
-          <button type="button" className={btn} onClick={() => setMenu((v) => !v)} aria-expanded={menu} aria-label="목차 열기">
-            <ListTree size={18} aria-hidden="true" />
+    <div className="ar-root" data-full={full || undefined}>
+      <header className="ar-bar">
+        <a className="ar-bar__brand" href="/" aria-label="전공 웹사이트로 돌아가기">
+          <span>DAH</span>
+          <b>2026 Digital Annual Report</b>
+        </a>
+        <div className="ar-bar__right">
+          <span className="ar-bar__chap">{chapter ? `${chapter.no} ${chapter.title}` : ''}</span>
+          <button type="button" className="ar-btn" onClick={() => setTocOpen((v) => !v)} aria-expanded={tocOpen}>
+            목차
           </button>
-          <button type="button" className={btn} onClick={toggleFull} aria-label={full ? '전체 화면 끝내기' : '전체 화면'}>
-            {full ? <Minimize2 size={18} aria-hidden="true" /> : <Maximize2 size={18} aria-hidden="true" />}
+          <button type="button" className="ar-btn" onClick={toggleFull} aria-pressed={full}>
+            {full ? '전체 화면 끄기' : '전체 화면'}
           </button>
-          <Link to="/" className={btn} aria-label="사이트로 돌아가기">
-            <X size={18} aria-hidden="true" />
-          </Link>
         </div>
       </header>
 
-      <div ref={areaRef} className="relative flex min-h-0 flex-1 items-center justify-center px-8 pb-8 md:px-24">
-        <div ref={hostRef} className="ar-book-host" />
-        {menu && (
-          <div className="absolute right-16 top-0 z-20 w-[min(320px,calc(100%-32px))] rounded-md border border-border-subtle bg-bg-panel p-8 shadow-glass md:right-24">
-            <ul className="m-0 list-none p-0">
+      <main className="ar-stage" ref={stageRef}>
+        <div className="ar-book" ref={bookRef} />
+        {!ready && <p className="ar-loading">불러오는 중</p>}
+        <button type="button" className="ar-arrow ar-arrow--l" onClick={prev} aria-label="이전 쪽" disabled={cur === 0}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <button type="button" className="ar-arrow ar-arrow--r" onClick={next} aria-label="다음 쪽" disabled={cur >= total - 1}>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </main>
+
+      <footer className="ar-foot">
+        <span className="ar-foot__label">{label}</span>
+        <input
+          className="ar-range"
+          type="range"
+          min={0}
+          max={total - 1}
+          value={cur}
+          onChange={(e) => go(Number(e.target.value))}
+          aria-label="쪽 이동"
+          style={{ '--p': `${pct}%` }}
+        />
+        <span className="ar-foot__hint">{loaded < total ? `이미지 ${loaded}/${total}` : '← → 키로 넘기기'}</span>
+      </footer>
+
+      {tocOpen && (
+        <div className="ar-toc" role="dialog" aria-label="목차">
+          <button type="button" className="ar-toc__scrim" onClick={() => setTocOpen(false)} aria-label="목차 닫기" />
+          <nav className="ar-toc__panel">
+            <h2>목차</h2>
+            <ol>
               <li>
-                <button type="button" className="flex min-h-11 w-full items-center justify-between rounded-sm px-12 text-left text-small-m text-text-sec hover:bg-glass-strong hover:text-text-pri" onClick={() => go(0)}>
-                  <span>표지</span>
-                  <span className="font-mono text-caption-m text-text-meta">00</span>
-                </button>
+                <button type="button" onClick={() => { go(0); setTocOpen(false) }}><span>00</span>표지</button>
               </li>
-              {toc.map((c) => (
-                <li key={c.id}>
-                  <button type="button" className="flex min-h-11 w-full items-center justify-between gap-12 rounded-sm px-12 text-left text-small-m text-text-sec hover:bg-glass-strong hover:text-text-pri" onClick={() => go(c.page)}>
-                    <span className="min-w-0 truncate">
-                      <span className="mr-8 font-mono text-caption-m text-text-meta">{c.no}</span>
-                      {c.title}
-                    </span>
-                    <span className="font-mono text-caption-m text-text-meta">{String(c.page).padStart(2, '0')}</span>
+              <li>
+                <button type="button" onClick={() => { go(1); setTocOpen(false) }}><span>00</span>발간사</button>
+              </li>
+              {manifest.chapters.map((c) => (
+                <li key={c.id} data-on={chapter?.id === c.id || undefined}>
+                  <button type="button" onClick={() => { go(c.page); setTocOpen(false) }}>
+                    <span>{c.no}</span>
+                    <b>{c.title}</b>
+                    <i>{c.page}</i>
                   </button>
                 </li>
               ))}
-            </ul>
-          </div>
-        )}
-      </div>
+            </ol>
+          </nav>
+        </div>
+      )}
 
-      <footer className="flex items-center justify-center gap-16 px-16 pb-16 md:pb-20">
-        <button type="button" className={btn} onClick={() => flipRef.current?.flipPrev()} disabled={index <= 0} aria-label="이전 쪽">
-          <ChevronLeft size={18} aria-hidden="true" />
-        </button>
-        <p className="min-w-[160px] text-center font-mono text-caption-m text-text-meta" aria-live="polite">
-          {currentChapter ? `${currentChapter.no} ${currentChapter.title}` : reportMeta.council}
-          <span className="ml-12 text-text-sec">
-            {String(index).padStart(2, '0')} / {String(Math.max(total - 1, 0)).padStart(2, '0')}
-          </span>
-        </p>
-        <button type="button" className={btn} onClick={() => flipRef.current?.flipNext()} disabled={total > 0 && index >= total - 1} aria-label="다음 쪽">
-          <ChevronRight size={18} aria-hidden="true" />
-        </button>
-      </footer>
+      <ol className="sr-only">
+        {manifest.alts.map((a, i) => (
+          <li key={i}>{a}</li>
+        ))}
+      </ol>
     </div>
   )
 }
