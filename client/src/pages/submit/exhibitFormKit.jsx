@@ -185,7 +185,7 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
             placeholder="선택"
             disabled={disabled}
             options={visible.map((s) => ({ value: s.value, label: s.label }))}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(v) => onChange(v)}
           />
         </div>
       )}

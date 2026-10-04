@@ -5,11 +5,7 @@
 //
 // 저장 위치는 site_settings의 exhibitionCopy 키(단일 jsonb 문서)다.
 // 아래 값은 분리 이전에 코드에 있던 원문 그대로이며 DB 값이 비었을 때의 폴백이다.
-// 원문을 바꾸지 말 것 — 바꾸려면 어드민에서 저장해 DB 값으로 덮어써야 한다.
-
-/** 작품명 안내 문구(원문 고정) — exhibitFormShared.WORK_TITLE_HINT와 같은 문장 */
-const WORK_TITLE_HINT_KO =
-  "작품명에 '-'를 사용하는 경우, 구글 클래스룸 업로드 시 '_'로 사용해 주시기 바랍니다."
+// 구글 클래스룸 업로드를 더는 쓰지 않아 관련 안내(작품명의 '-' 처리)는 삭제했다.
 
 export const EXHIBITION_COPY_DEFAULT = {
   ko: {
@@ -26,7 +22,6 @@ export const EXHIBITION_COPY_DEFAULT = {
     ],
     notesTitle: '유의사항',
     notes: [
-      WORK_TITLE_HINT_KO,
       '접수 이메일은 로그인한 구글 계정 주소로 자동 입력됩니다.',
       '참가 유형·과목·이메일은 접수 후 수정할 수 없습니다. 제출 전에 확인해 주세요.',
       '연락처는 010-0000-0000 형식으로만 입력됩니다.',
@@ -34,7 +29,7 @@ export const EXHIBITION_COPY_DEFAULT = {
     ],
     startLabel: '접수 시작하기',
     formLead: '',
-    workTitleHint: WORK_TITLE_HINT_KO,
+    workTitleHint: '',
     workDescPlaceholder: '작품 설명은 전시회 사이트에 사용됩니다.',
   },
   en: {

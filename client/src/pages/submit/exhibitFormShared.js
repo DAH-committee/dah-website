@@ -6,10 +6,6 @@ export const DESC_MAX = 100
 
 export const ENTRY_TYPE_LABEL = { solo: '개인', team: '팀' }
 
-// Y2-4-6: 작품명 안내 문구(원문 고정 — 임의 수정 금지)
-export const WORK_TITLE_HINT =
-  "작품명에 '-'를 사용하는 경우, 구글 클래스룸 업로드 시 '_'로 사용해 주시기 바랍니다."
-
 export const inputCls =
   'w-full min-w-0 rounded-md border border-border-subtle bg-bg-panel px-16 py-12 text-body-m text-text-pri placeholder:text-text-meta transition-colors duration-fast ease-out enabled:hover:border-border-strong focus:border-border-strong focus:outline-none disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-bg-elev disabled:text-text-disabled read-only:cursor-default read-only:bg-bg-elev read-only:text-text-meta aria-[invalid=true]:border-state-error md:text-body-d'
 export const labelCls = 'text-small-m font-semibold text-text-pri md:text-small-d'

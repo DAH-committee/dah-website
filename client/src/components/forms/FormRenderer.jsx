@@ -104,7 +104,7 @@ function FormField({
       return (
         <QuestionCard {...common}>
           <div className="max-w-[320px]">
-            <Select value={str} options={options.map((o) => ({ value: o, label: o }))} placeholder="선택" aria-label={label} {...errorProps} onChange={(e) => set(e.target.value)} disabled={isCourse && courseLocked} />
+            <Select value={str} options={options.map((o) => ({ value: o, label: o }))} placeholder="선택" aria-label={label} {...errorProps} onChange={(v) => set(v)} disabled={isCourse && courseLocked} />
           </div>
           {lockNote}
         </QuestionCard>
@@ -115,7 +115,7 @@ function FormField({
         <QuestionCard {...common}>
           {options.length >= DROPDOWN_FROM ? (
             <div className="max-w-[320px]">
-              <Select value={str} options={options.map((o) => ({ value: o, label: o }))} placeholder="선택" aria-label={label} {...errorProps} onChange={(e) => set(e.target.value)} disabled={isCourse && courseLocked} />
+              <Select value={str} options={options.map((o) => ({ value: o, label: o }))} placeholder="선택" aria-label={label} {...errorProps} onChange={(v) => set(v)} disabled={isCourse && courseLocked} />
             </div>
           ) : (
             <RadioList name={field.id} value={str} options={options.map((o) => ({ value: o, label: o }))} onChange={set} disabled={isCourse && courseLocked} invalid={Boolean(error)} />
