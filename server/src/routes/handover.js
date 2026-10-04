@@ -53,6 +53,40 @@ function requireMember(req, res, next) {
   next()
 }
 
+async function gatedWsId() {
+  const r = await query("SELECT id FROM ws_files WHERE kind = 'doc' AND gated = true ORDER BY id LIMIT 1")
+  return r.rows[0]?.id ?? null
+}
+const toInt = (v) => (Number.isInteger(parseInt(v, 10)) ? parseInt(v, 10) : null)
+const wsFromReq = async (req) => toInt(req.query?.ws) ?? toInt(req.body?.ws) ?? gatedWsId()
+const wsOfDoc = async (req) => (await query('SELECT ws_id FROM handover_docs WHERE id = $1', [toInt(req.params.id)])).rows[0]?.ws_id ?? null
+const wsOfVersion = async (req) =>
+  (await query('SELECT d.ws_id FROM handover_versions v JOIN handover_docs d ON d.id = v.doc_id WHERE v.id = $1', [toInt(req.params.vid)])).rows[0]?.ws_id ?? null
+const wsOfComment = async (req) =>
+  (await query('SELECT d.ws_id FROM handover_comments c JOIN handover_docs d ON d.id = c.doc_id WHERE c.id = $1', [toInt(req.params.cid)])).rows[0]?.ws_id ?? null
+
+// 문서(ws) 단위 접근 검사: 관리자는 모든 문서, 열람 비밀번호는 비밀번호 대상 문서만
+async function wsAllows(req, wsId) {
+  const a = accessOf(req)
+  if (a === 'member') return true
+  if (a !== 'gate') return false
+  const r = await query('SELECT gated FROM ws_files WHERE id = $1', [wsId])
+  return Boolean(r.rows[0]?.gated)
+}
+
+const guard = (resolve, { member = false } = {}) =>
+  wrap(async (req, res, next) => {
+    const access = accessOf(req)
+    if (!access) return res.status(401).json({ error: 'handover locked' })
+    const ws = await resolve(req)
+    if (ws === null || ws === undefined) return res.status(404).json({ error: 'not found' })
+    if (!(await wsAllows(req, ws))) return res.status(access === 'gate' ? 403 : 401).json({ error: 'not allowed' })
+    if (member && access !== 'member') return res.status(403).json({ error: 'member only' })
+    req.handoverAccess = access
+    req.wsId = ws
+    next()
+  })
+
 async function gateHash() {
   const { rows } = await query("SELECT value FROM handover_settings WHERE key = 'gate_hash'")
   return rows[0]?.value || null
@@ -132,12 +166,13 @@ router.put(
 // 문서
 router.get(
   '/handover/docs',
-  requireAccess,
+  guard(wsFromReq),
   wrap(async (req, res) => {
     const { rows } = await query(
-      `SELECT d.id, d.title, d.updated_at, d.updated_by, d.sort,
+      `SELECT d.id, d.ws_id, d.title, d.updated_at, d.updated_by, d.sort,
               (SELECT COUNT(*)::int FROM handover_comments c WHERE c.doc_id = d.id AND NOT c.resolved) AS open_comments
-         FROM handover_docs d ORDER BY d.sort, d.id`
+         FROM handover_docs d WHERE d.ws_id = $1 ORDER BY d.sort, d.id`,
+      [req.wsId]
     )
     res.json({ items: rows, access: req.handoverAccess })
   })
@@ -145,7 +180,7 @@ router.get(
 
 router.get(
   '/handover/docs/:id',
-  requireAccess,
+  guard(wsOfDoc),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
     const { rows } = await query('SELECT * FROM handover_docs WHERE id = $1', [id])
@@ -156,15 +191,14 @@ router.get(
 
 router.post(
   '/handover/docs',
-  requireAccess,
-  requireMember,
+  guard(wsFromReq, { member: true }),
   wrap(async (req, res) => {
-    const { rows: cnt } = await query('SELECT COUNT(*)::int AS n FROM handover_docs')
+    const { rows: cnt } = await query('SELECT COUNT(*)::int AS n FROM handover_docs WHERE ws_id = $1', [req.wsId])
     const title = String(req.body?.title || `탭 ${cnt[0].n + 1}`).slice(0, 200)
     const { rows } = await query(
-      `INSERT INTO handover_docs (title, content, content_html, sort, updated_by)
-       VALUES ($1, $2::jsonb, $3, COALESCE((SELECT MAX(sort) + 1 FROM handover_docs), 0), $4) RETURNING *`,
-      [title, req.body?.content ? JSON.stringify(req.body.content) : null, '<p></p>', req.user.name]
+      `INSERT INTO handover_docs (title, content, content_html, sort, updated_by, ws_id)
+       VALUES ($1, $2::jsonb, $3, COALESCE((SELECT MAX(sort) + 1 FROM handover_docs WHERE ws_id = $5), 0), $4, $5) RETURNING *`,
+      [title, req.body?.content ? JSON.stringify(req.body.content) : null, '<p></p>', req.user.name, req.wsId]
     )
     res.status(201).json({ item: rows[0] })
   })
@@ -172,8 +206,7 @@ router.post(
 
 router.put(
   '/handover/docs/:id',
-  requireAccess,
-  requireMember,
+  guard(wsOfDoc, { member: true }),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
     const { title, content } = req.body || {}
@@ -213,13 +246,13 @@ router.put(
 // 탭 삭제: 편집 권한자 가능, 마지막 탭은 유지
 router.delete(
   '/handover/docs/:id',
-  requireAccess,
-  requireMember,
+  guard(wsOfDoc, { member: true }),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
-    const { rows } = await query('SELECT COUNT(*)::int AS n FROM handover_docs')
+    const { rows } = await query('SELECT COUNT(*)::int AS n FROM handover_docs WHERE ws_id = $1', [req.wsId])
     if (rows[0].n <= 1) return res.status(400).json({ error: '마지막 탭은 삭제 불가' })
     await query('DELETE FROM handover_comments WHERE doc_id = $1', [id])
+    await query('DELETE FROM handover_versions WHERE doc_id = $1', [id])
     await query('DELETE FROM handover_docs WHERE id = $1', [id])
     res.json({ ok: true })
   })
@@ -228,34 +261,28 @@ router.delete(
 // 문서 전체 제목(탭과 별개, 하나)
 router.get(
   '/handover/meta',
-  requireAccess,
+  guard(wsFromReq),
   wrap(async (req, res) => {
-    const { rows } = await query("SELECT value FROM handover_settings WHERE key = 'doc_title'")
-    res.json({ title: rows[0]?.value || '운영위원회 인수인계 문서', access: req.handoverAccess, canEdit: req.handoverAccess === 'member' })
+    const { rows } = await query('SELECT id, title, gated FROM ws_files WHERE id = $1', [req.wsId])
+    res.json({ ws: rows[0].id, title: rows[0].title, gated: rows[0].gated, access: req.handoverAccess, canEdit: req.handoverAccess === 'member' })
   })
 )
 
 router.put(
   '/handover/meta',
-  requireAccess,
-  requireMember,
+  guard(wsFromReq, { member: true }),
   wrap(async (req, res) => {
     const title = String(req.body?.title || '').trim().slice(0, 200)
     if (!title) return res.status(400).json({ error: 'title required' })
-    await query(
-      `INSERT INTO handover_settings (key, value, updated_at) VALUES ('doc_title', $1, now())
-       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
-      [title]
-    )
+    await query('UPDATE ws_files SET title = $1, updated_at = now() WHERE id = $2', [title, req.wsId])
     res.json({ title })
   })
 )
 
-
 // 버전 기록
 router.get(
   '/handover/docs/:id/versions',
-  requireAccess,
+  guard(wsOfDoc),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
     let { rows } = await query(
@@ -278,7 +305,7 @@ router.get(
 
 router.get(
   '/handover/versions/:vid',
-  requireAccess,
+  guard(wsOfVersion),
   wrap(async (req, res) => {
     const { rows } = await query('SELECT * FROM handover_versions WHERE id = $1', [parseInt(req.params.vid, 10)])
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
@@ -288,8 +315,7 @@ router.get(
 
 router.put(
   '/handover/versions/:vid',
-  requireAccess,
-  requireMember,
+  guard(wsOfVersion, { member: true }),
   wrap(async (req, res) => {
     const name = String(req.body?.name ?? '').trim().slice(0, 120)
     const { rows } = await query(
@@ -303,8 +329,7 @@ router.put(
 
 router.post(
   '/handover/versions/:vid/restore',
-  requireAccess,
-  requireMember,
+  guard(wsOfVersion, { member: true }),
   wrap(async (req, res) => {
     const v = (await query('SELECT * FROM handover_versions WHERE id = $1', [parseInt(req.params.vid, 10)])).rows[0]
     if (!v) return res.status(404).json({ error: 'not found' })
@@ -329,7 +354,7 @@ const cleanImages = (v) =>
 
 router.get(
   '/handover/docs/:id/comments',
-  requireAccess,
+  guard(wsOfDoc),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
     const { rows } = await query(
@@ -342,8 +367,7 @@ router.get(
 
 router.post(
   '/handover/docs/:id/comments',
-  requireAccess,
-  requireMember,
+  guard(wsOfDoc, { member: true }),
   wrap(async (req, res) => {
     const id = parseInt(req.params.id, 10)
     const b = req.body || {}
@@ -362,8 +386,7 @@ router.post(
 
 router.put(
   '/handover/comments/:cid',
-  requireAccess,
-  requireMember,
+  guard(wsOfComment, { member: true }),
   wrap(async (req, res) => {
     const cid = parseInt(req.params.cid, 10)
     const b = req.body || {}
@@ -386,8 +409,7 @@ router.put(
 
 router.delete(
   '/handover/comments/:cid',
-  requireAccess,
-  requireMember,
+  guard(wsOfComment, { member: true }),
   wrap(async (req, res) => {
     await query('DELETE FROM handover_comments WHERE id = $1', [parseInt(req.params.cid, 10)])
     res.json({ ok: true })

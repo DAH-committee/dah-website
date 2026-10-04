@@ -132,6 +132,20 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
   'CREATE INDEX IF NOT EXISTS handover_comments_doc_idx ON handover_comments (doc_id)',
+  `CREATE TABLE IF NOT EXISTS ws_files (
+     id         SERIAL PRIMARY KEY,
+     kind       TEXT NOT NULL,
+     title      TEXT NOT NULL DEFAULT '제목 없음',
+     content    JSONB,
+     template   TEXT,
+     gated      BOOLEAN NOT NULL DEFAULT false,
+     created_by TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     opened_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'ALTER TABLE handover_docs ADD COLUMN IF NOT EXISTS ws_id INTEGER',
+  'CREATE INDEX IF NOT EXISTS handover_docs_ws_idx ON handover_docs (ws_id)',
   `CREATE TABLE IF NOT EXISTS handover_versions (
      id         SERIAL PRIMARY KEY,
      doc_id     INTEGER NOT NULL,
@@ -162,5 +176,19 @@ export async function ensureHandoverSchema() {
     } catch (err) {
       console.error('[schema] ensureHandoverSchema 문장 실패(계속 진행):', err.message)
     }
+  }
+  // 문서에 묶이지 않은 기존 탭은 '열람 비밀번호 문서' 하나로 묶는다(멱등)
+  try {
+    const orphan = await impl.query('SELECT 1 FROM handover_docs WHERE ws_id IS NULL LIMIT 1')
+    if (orphan.rows.length) {
+      let g = (await impl.query("SELECT id FROM ws_files WHERE kind = 'doc' AND gated = true ORDER BY id LIMIT 1")).rows[0]
+      if (!g) {
+        const t = (await impl.query("SELECT value FROM handover_settings WHERE key = 'doc_title'")).rows[0]?.value || '운영위원회 인수인계 문서'
+        g = (await impl.query("INSERT INTO ws_files (kind, title, gated, created_by) VALUES ('doc', $1, true, '주현호') RETURNING id", [t])).rows[0]
+      }
+      await impl.query('UPDATE handover_docs SET ws_id = $1 WHERE ws_id IS NULL', [g.id])
+    }
+  } catch (err) {
+    console.error('[schema] 인수인계 문서 묶기 실패(계속 진행):', err.message)
   }
 }

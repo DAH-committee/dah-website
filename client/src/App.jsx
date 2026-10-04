@@ -52,6 +52,8 @@ const AnnualReport = lazy(() => import('./pages/annual/AnnualReport'))
 const AnnualRender = lazy(() => import('./pages/annual/AnnualRender'))
 const HandoverDoc = lazy(() => import('./pages/handover/HandoverDoc'))
 const HandoverHome = lazy(() => import('./pages/handover/HandoverHome'))
+const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
+const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
 // .page-fade(opacity 0→1, translate 금지). reduced-motion은 index.css 전역 미디어쿼리가 무효화.
@@ -84,7 +86,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실 상세에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/handover\/[^/]+$/.test(pathname)) return children
+  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname)) return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -165,6 +167,31 @@ const PUBLIC_ROUTES = [
     element: (
       <Suspense fallback={null}>
         <HandoverDoc />
+      </Suspense>
+    ),
+  },
+  { path: '/workspace', element: <Navigate to="/workspace/docs" replace /> },
+  {
+    path: '/workspace/:kind',
+    element: (
+      <Suspense fallback={null}>
+        <WorkspaceHub />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/docs/:id',
+    element: (
+      <Suspense fallback={null}>
+        <HandoverDoc />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/sheets/:id',
+    element: (
+      <Suspense fallback={null}>
+        <SheetEditor />
       </Suspense>
     ),
   },

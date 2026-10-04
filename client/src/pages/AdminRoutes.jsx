@@ -13,7 +13,9 @@ function AdminRoutes() {
           path={path}
           element={
             <RequireRole role={role}>
-              <Component />
+              <div className="reading-scope min-h-screen bg-bg-base text-text-pri">
+                <Component />
+              </div>
             </RequireRole>
           }
         />

@@ -18,6 +18,8 @@ import {
 import ColumnFilter from '../../common/ColumnFilter'
 import { useToast } from '../../common/Toast'
 import { api } from '../../../hooks/useApi'
+import { Link } from 'react-router-dom'
+import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
 import {
   ALIGN_CLASS, FILL_COLORS, FONT_SIZES, TEXT_COLORS, ZOOMS, a1, colLetter, download, normalizeSheetUi,
@@ -25,11 +27,11 @@ import {
 } from './sheetUtils'
 
 const DEFAULT_WIDTH = 180
-const ROWNUM_W = 56
+const ROWNUM_W = 46
 const LETTER_H = 24
 const MIN_ROWS = 20
 const MAX_FILLER_ROWS = 200
-const FALLBACK_ROW_H = 37
+const FALLBACK_ROW_H = 24
 const SAVE_DELAY_MS = 900
 
 const CELL_LINE = 'border-b border-r border-reading-hairline'
@@ -113,6 +115,8 @@ export default function SheetWorkspace({
   onInsertRow,
   onDeleteRows,
   exportName = '접수 현황',
+  homeHref,
+  onRenameFile,
 }) {
   const showToast = useToast()
   const [sheetId, setSheetId] = useState(sheets[0]?.id)
@@ -870,7 +874,26 @@ export default function SheetWorkspace({
       {/* 제목 줄: 저장 상태, 마지막 갱신, 건수를 각각 따로 둔다 */}
       <div className="flex flex-wrap items-end justify-between gap-12 px-gutter-m pt-16 md:px-gutter-t lg:px-gutter-d print:px-0">
         <div className="flex min-w-0 items-center gap-12">
-          <h1 className="truncate text-h3-m font-bold text-reading-textStrong md:text-h3-d">{title}</h1>
+          {homeHref && (
+            <Link to={homeHref} aria-label="스프레드시트 홈" title="스프레드시트 홈" className="inline-flex shrink-0 print:hidden"><SheetsIcon size={40} /></Link>
+          )}
+          {onRenameFile ? (
+            <input
+              defaultValue={title}
+              key={title}
+              aria-label="파일 이름"
+              onBlur={(e) => {
+                const v = e.target.value.trim()
+                if (v && v !== title) onRenameFile(v)
+                else e.target.value = title
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              style={{ width: `${Math.max(10, title.length * 1.15 + 2)}ch` }}
+              className="max-w-[60vw] truncate rounded-sm bg-transparent px-6 text-h3-m font-bold text-reading-textStrong outline-none hover:bg-reading-subtle focus:bg-reading-surface md:text-h3-d"
+            />
+          ) : (
+            <h1 className="truncate text-h3-m font-bold text-reading-textStrong md:text-h3-d">{title}</h1>
+          )}
           <span
             role="status"
             aria-live="polite"
@@ -1066,7 +1089,7 @@ export default function SheetWorkspace({
                     <th
                       key={col.key}
                       scope="col"
-                      className={`relative bg-reading-subtle px-12 py-8 text-left ${CELL_LINE} ${c < ui.freezeCols ? 'z-30' : 'z-20'} sticky`}
+                      className={`relative bg-reading-subtle px-6 py-[3px] text-left text-[13px] ${CELL_LINE} ${c < ui.freezeCols ? 'z-30' : 'z-20'} sticky`}
                       style={{ top: LETTER_H, ...(c < ui.freezeCols ? { left: frozenLeft[c] } : {}) }}
                     >
                       <span className="flex items-center justify-between gap-4">
@@ -1161,7 +1184,7 @@ export default function SheetWorkspace({
                               }}
                               className={
                                 isEditing
-                                  ? 'absolute inset-0 z-[1] block h-full w-full bg-reading-surface px-12 py-8 text-small-m text-reading-text outline outline-2 outline-offset-[-2px] outline-reading-accent'
+                                  ? 'absolute inset-0 z-[1] block h-full w-full bg-reading-surface px-6 py-[2px] text-[13px] text-reading-text outline outline-2 outline-offset-[-2px] outline-reading-accent'
                                   : 'pointer-events-none absolute inset-0 block h-full w-full opacity-0'
                               }
                               style={isEditing && f.size ? { fontSize: f.size } : undefined}
@@ -1179,7 +1202,7 @@ export default function SheetWorkspace({
                             }}
                             onMouseEnter={() => dragging.current && setSel((prev) => (prev ? { ...prev, focus: { r, c } } : prev))}
                             onDoubleClick={() => startEdit(r, c)}
-                            className={`relative block min-h-[37px] w-full cursor-cell px-12 py-8 ${ALIGN_CLASS[f.align] || 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
+                            className={`relative block min-h-[24px] w-full cursor-cell px-6 py-[2px] text-[13px] leading-[20px] ${ALIGN_CLASS[f.align] || 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
                               isActive
                                 ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
                                 : on

@@ -11,6 +11,7 @@ import useContentVisibility from '../../hooks/useContentVisibility'
 import { cosmos } from '../../styles/tokens'
 import Container from './Container'
 import LangToggle from './LangToggle'
+import WorkspaceToggle from './WorkspaceToggle'
 import logoUrl from '../../assets/logo.svg'
 
 // 헤더 — KPC 문법. G8 IA 8메뉴, G9 fixed 포지셔닝, G14 관리 아이콘, G15 언어 전환 시프트 0.
@@ -323,6 +324,11 @@ function Header() {
             </Link>
           )}
           {/* KR/EN 토글은 데스크탑 유틸만 — lg 미만은 시트 상단에 노출 */}
+          {user && ['manager', 'admin', 'owner'].includes(user.role) && (
+            <span className="hidden lg:block">
+              <WorkspaceToggle />
+            </span>
+          )}
           <span className="hidden lg:block">
             <LangToggle />
           </span>
@@ -432,6 +438,7 @@ function Header() {
                 </div>
 
                 <div className="mt-32 flex min-h-11 items-center justify-between gap-16 border-t border-border-subtle pt-20">
+                  {user && ['manager', 'admin', 'owner'].includes(user.role) && <WorkspaceToggle />}
                   <LangToggle />
                   {user ? (
                     <Link to="/admin" onClick={closeSheet} className="inline-flex min-h-11 items-center gap-8 rounded-sm px-12 text-small-m text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri">

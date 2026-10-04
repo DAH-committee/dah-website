@@ -1,0 +1,5 @@
+/* 밝은 작업면용 3종 토글: 사이트 헤더 KR/EN 버튼과 같은 알약, 색만 무채색 + 보라 */
+.wst-light { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 9999px; background: #e6e6e6; }
+.wst-light a { display: inline-grid; place-items: center; width: 34px; height: 30px; border-radius: 9999px; color: #5f6368; transition: background 120ms ease, color 120ms ease; }
+.wst-light a:hover { color: #1f1f1f; }
+.wst-light a[aria-current='page'] { background: #7a3cff; color: #ffffff; }

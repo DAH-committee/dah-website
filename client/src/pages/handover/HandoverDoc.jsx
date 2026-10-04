@@ -2,7 +2,9 @@
 // 화면 구조: 제목 줄(문서 제목 하나) / 메뉴 / 알약형 툴바 / 눈금자 / 왼쪽 문서 탭·개요 / 종이 / 오른쪽 여백 댓글.
 // 열람: 관리자 로그인(manager 이상) 또는 열람 비밀번호. 편집·댓글·탭 관리: 관리자 로그인.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
+import { DocsIcon } from '../workspace/icons'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { generateJSON } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
@@ -462,6 +464,8 @@ function blockTexts(json) {
 export default function HandoverDoc() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const base = pathname.startsWith('/docs') ? '/docs' : '/handover'
   const { user } = useAuth()
   const [doc, setDoc] = useState(null)
   const [tabs, setTabs] = useState([])
@@ -521,11 +525,12 @@ export default function HandoverDoc() {
     setActive(null)
     ;(async () => {
       try {
-        const [d, list, cm, meta] = await Promise.all([
-          api.get(`/handover/docs/${id}`),
-          api.get('/handover/docs'),
+        const d = await api.get(`/handover/docs/${id}`)
+        const ws = d.item.ws_id
+        const [list, cm, meta] = await Promise.all([
+          api.get('/handover/docs', { ws }),
           api.get(`/handover/docs/${id}/comments`),
-          api.get('/handover/meta'),
+          api.get('/handover/meta', { ws }),
         ])
         if (off) return
         setDoc(d.item)
@@ -780,9 +785,9 @@ export default function HandoverDoc() {
 
   // 탭 관리
   async function addTab(content) {
-    const r = await api.post('/handover/docs', content ? { title: content.title, content: content.json } : {})
+    const r = await api.post('/handover/docs', content ? { ws: doc.ws_id, title: content.title, content: content.json } : { ws: doc.ws_id })
     setTabs((t) => [...t, r.item])
-    navigate(`/handover/${r.item.id}`)
+    navigate(`${base}/${r.item.id}`)
   }
   async function renameTab(tab, title) {
     await api.put(`/handover/docs/${tab.id}`, { title })
@@ -797,7 +802,7 @@ export default function HandoverDoc() {
     await api.del(`/handover/docs/${tab.id}`)
     const rest = tabs.filter((x) => x.id !== tab.id)
     setTabs(rest)
-    if (String(tab.id) === String(id)) navigate(`/handover/${rest[0].id}`)
+    if (String(tab.id) === String(id)) navigate(`${base}/${rest[0].id}`)
   }
 
   async function saveDocTitle() {
@@ -806,7 +811,7 @@ export default function HandoverDoc() {
       setTitleDraft(docTitle)
       return
     }
-    await api.put('/handover/meta', { title: t })
+    await api.put('/handover/meta', { ws: doc.ws_id, title: t })
     setDocTitle(t)
     document.title = `${t} | 디지털인문예술전공`
   }
@@ -937,6 +942,7 @@ export default function HandoverDoc() {
     navigate('/resources/handover')
   }
 
+  const listHref = access.canEdit ? '/workspace/docs' : '/resources/handover'
   if (access.loading) return <div className="gd-loading">문서 불러오는 중</div>
   if (access.error) return <div className="gd-loading">문서를 불러오지 못했습니다. <Link to="/resources/handover">목록으로</Link></div>
 
@@ -964,7 +970,8 @@ export default function HandoverDoc() {
   const menus = {
     파일: [
       { label: '새 탭', icon: <Plus size={16} />, onClick: () => addTab(), disabled: !canEdit },
-      { label: '문서 목록', onClick: () => navigate('/resources/handover') },
+      { label: '새 문서', icon: <Plus size={16} />, onClick: async () => { const r = await api.post('/workspace/files', { kind: 'doc', template: 'blank' }); navigate(`/docs/${r.item.first_tab}`) }, disabled: !canEdit },
+      { label: '문서 목록', onClick: () => navigate(listHref) },
       '-',
       { label: '버전 기록', icon: <History size={16} />, children: [{ label: '버전 기록 보기', hint: '⌘⌥⇧H', onClick: openHistory }] },
       { label: '다운로드', icon: <Download size={16} />, children: downloads },
@@ -1024,7 +1031,7 @@ export default function HandoverDoc() {
     <div className="gd">
       <style>{highlightCss}</style>
       <header className="gd-top">
-        <Link to="/resources/handover" className="gd-logo" aria-label="문서 목록"><DocIcon /></Link>
+        <Link to={listHref} className="gd-logo" aria-label="문서 홈" title="문서 홈"><DocsIcon size={40} /></Link>
         <div className="gd-titlebox">
           <div className="gd-titlerow">
             <span ref={mirrorRef} className="gd-title gd-title--mirror" aria-hidden="true">{titleDraft || ' '}</span>
@@ -1054,6 +1061,7 @@ export default function HandoverDoc() {
           </nav>
         </div>
         <div className="gd-actions">
+          {access.canEdit && <WorkspaceToggle light />}
           <span className="gd-meta">{doc.updated_by ? `${doc.updated_by} 님이 마지막으로 수정` : ''}</span>
           <button type="button" className={`gd-round${historyOpen ? ' is-on' : ''}`} aria-label="버전 기록" title="버전 기록 (⌘⌥⇧H)" onClick={() => (historyOpen ? closeHistory() : openHistory())}>
             <History size={20} />
@@ -1199,7 +1207,7 @@ export default function HandoverDoc() {
                       if (sel) setOutlineCollapsed((v) => !v)
                       else {
                         setOutlineCollapsed(false)
-                        navigate(`/handover/${t.id}`)
+                        navigate(`${base}/${t.id}`)
                       }
                     }}
                     onRename={renameTab}

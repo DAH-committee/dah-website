@@ -1,0 +1,122 @@
+/* 작업공간 허브: 구글 문서·시트·폼 홈의 치수와 구조를 따른 밝은 작업면.
+   규칙: 테두리·옆줄 없음, 연한 색 없음(무채색 회색 + 채도 높은 보라). 글꼴 Pretendard. */
+.ws {
+  --ws-purple: #7a3cff;
+  --ws-ink: #1f1f1f;
+  --ws-sub: #5f6368;
+  --ws-band: #ececec;
+  --ws-hover: rgba(0, 0, 0, 0.08);
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  background: #fff;
+  color: var(--ws-ink);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+  color-scheme: light;
+}
+.ws button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.ws button:disabled { cursor: default; opacity: 0.45; }
+.ws h2 { margin: 0; font-size: 16px; font-weight: 500; }
+
+/* 상단 바 */
+.ws-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px; height: 64px; padding: 0 16px 0 8px; background: #fff; }
+.ws-iconbtn { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: #444; }
+.ws-iconbtn:hover { background: var(--ws-hover); }
+.ws-iconbtn--lg { width: 48px; height: 48px; }
+.ws-iconbtn.is-on { color: var(--ws-purple); }
+.ws-brand { display: inline-flex; align-items: center; gap: 8px; margin-right: 96px; padding: 0 4px; font-size: 22px; color: #444; text-decoration: none; white-space: nowrap; }
+.ws-search { display: flex; align-items: center; gap: 12px; flex: 1; max-width: 720px; height: 48px; padding: 0 16px; border-radius: 28px; background: var(--ws-band); color: #444; }
+.ws-search:focus-within { background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28); }
+.ws-search input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: none; font: inherit; font-size: 16px; color: var(--ws-ink); }
+.ws-top__right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+.ws-avatar { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ws-purple); color: #fff; font-size: 16px; font-weight: 600; }
+
+/* 템플릿 띠 */
+.ws-wrap { width: 100%; max-width: 1224px; margin: 0 auto; padding: 0 24px; }
+.ws-band { background: var(--ws-band); padding: 20px 0 28px; }
+.ws-band__head { display: flex; align-items: center; justify-content: space-between; height: 36px; margin-bottom: 8px; }
+.ws-tpls { display: flex; gap: 20px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none; }
+.ws-tpls::-webkit-scrollbar { display: none; }
+.ws-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 0 0 auto; width: 144px; text-align: left; border-radius: 4px; padding: 0; }
+.ws-tpls--sheets .ws-tpl, .ws-tpls--forms .ws-tpl { width: 160px; }
+.ws-tpl__thumb { display: block; position: relative; width: 100%; height: 184px; margin-bottom: 8px; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); }
+.ws-tpls--sheets .ws-tpl__thumb, .ws-tpls--forms .ws-tpl__thumb { height: 128px; }
+.ws-tpl:hover:not(:disabled) .ws-tpl__thumb { box-shadow: 0 0 0 3px var(--ws-purple); }
+.ws-tpl strong { font-size: 14px; font-weight: 500; line-height: 20px; }
+.ws-tpl small { font-size: 14px; line-height: 20px; color: var(--ws-sub); }
+.ws-plus { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ws-purple); }
+
+/* 최근 항목 */
+.ws-recent { padding: 0 0 80px; }
+.ws-recent__head { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.ws-recent__tools { display: flex; align-items: center; gap: 8px; }
+.ws-owner { position: relative; margin-right: 12px; }
+.ws-owner__btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 4px; font-size: 14px; }
+.ws-owner__btn:hover { background: var(--ws-hover); }
+.ws-grid { display: grid; grid-template-columns: repeat(auto-fill, 210px); gap: 26px 24px; justify-content: start; }
+.ws-card { position: relative; display: flex; flex-direction: column; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); cursor: pointer; transition: box-shadow 140ms ease; }
+.ws-card:hover { box-shadow: 0 0 0 3px var(--ws-purple); }
+.ws-card__thumb { position: relative; overflow: hidden; border-radius: 4px 4px 0 0; background: #f2f2f2; }
+.ws-card__thumb--docs { height: 260px; }
+.ws-card__thumb--sheets, .ws-card__thumb--forms { height: 150px; }
+.ws-card__foot { padding: 12px 8px 8px 16px; background: #fff; border-radius: 0 0 4px 4px; }
+.ws-card__foot strong { display: block; font-size: 14px; font-weight: 500; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-card__meta { position: relative; display: flex; align-items: center; gap: 8px; height: 36px; color: var(--ws-sub); font-size: 13px; letter-spacing: -0.02em; }
+.ws-card__meta > span:not(.ws-card__more) { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-card__meta svg:first-child { flex-shrink: 0; }
+.ws-card__more { position: relative; flex: 0 0 auto; }
+
+/* 썸네일 안쪽 */
+.ws-thumb { position: absolute; inset: 0; overflow: hidden; background: #fff; color: #444; pointer-events: none; }
+.ws-thumb--doc { padding: 16px 14px; font-size: 6.5px; line-height: 1.55; }
+.ws-thumb--doc b { display: block; margin-bottom: 4px; font-size: 9px; color: #111; }
+.ws-thumb--doc p { margin: 0; white-space: pre-wrap; word-break: keep-all; }
+.ws-tpl .ws-thumb--doc { padding: 12px 10px; }
+.ws-thumb--sheet { padding: 0; }
+.ws-thumb--sheet table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6px; }
+.ws-thumb--sheet th, .ws-thumb--sheet td { height: 14px; padding: 0 3px; overflow: hidden; white-space: nowrap; text-overflow: clip; text-align: left; font-weight: 400; box-shadow: inset -1px -1px 0 #dcdcdc; }
+.ws-thumb--sheet th { background: #ececec; font-weight: 700; color: #222; }
+.ws-thumb--form { display: flex; flex-direction: column; gap: 5px; padding: 8px; background: #e4e4e4; }
+.ws-thumb__card { padding: 6px 7px; border-radius: 3px; background: #fff; font-size: 6.5px; line-height: 1.4; }
+.ws-thumb__card--head b { display: block; color: var(--ws-purple); font-size: 8.5px; }
+.ws-thumb__card span { display: block; margin-bottom: 5px; color: #222; }
+.ws-thumb__card i { display: block; width: 60%; height: 4px; border-radius: 2px; background: #cfcfcf; }
+
+/* 목록 보기 */
+.ws-list { display: flex; flex-direction: column; }
+.ws-row { display: grid; grid-template-columns: minmax(0, 1fr) 160px 200px 48px; align-items: center; gap: 12px; min-height: 56px; padding: 0 8px 0 16px; border-radius: 28px; cursor: pointer; font-size: 14px; }
+.ws-row:not(.ws-row--head):hover { background: var(--ws-hover); }
+.ws-row--head { min-height: 44px; font-weight: 600; color: var(--ws-sub); cursor: default; }
+.ws-row__title { display: flex; align-items: center; gap: 14px; min-width: 0; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-row__owner, .ws-row__date { color: var(--ws-sub); white-space: nowrap; }
+.ws-row__more { position: relative; }
+
+/* 메뉴 */
+.ws-menu { position: absolute; right: 0; top: calc(100% + 2px); z-index: 40; min-width: 220px; padding: 8px 0; border-radius: 4px; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+.ws-owner .ws-menu { left: 0; right: auto; min-width: 180px; }
+.ws-menu__item { display: flex; align-items: center; gap: 16px; width: 100%; height: 44px; padding: 0 20px 0 16px; font-size: 14px; text-align: left; color: var(--ws-ink); }
+.ws-menu__item svg { color: #5f6368; flex-shrink: 0; }
+.ws-menu__item:hover:not(:disabled) { background: var(--ws-hover); }
+
+/* 왼쪽 메뉴 */
+.ws-drawer-wrap { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, 0.4); }
+.ws-drawer { width: 288px; height: 100%; padding: 8px 12px; background: #fff; overflow-y: auto; }
+.ws-drawer__head { display: flex; align-items: center; gap: 12px; height: 56px; font-size: 18px; }
+.ws-drawer__item { display: flex; align-items: center; gap: 16px; height: 48px; padding: 0 16px; border-radius: 24px; font-size: 14px; color: var(--ws-ink); text-decoration: none; }
+.ws-drawer__item:hover { background: var(--ws-hover); }
+.ws-drawer__item.is-on { background: var(--ws-purple); color: #fff; }
+.ws-drawer hr { height: 8px; margin: 8px 0; border: 0; background: transparent; }
+
+.ws-empty { padding: 48px 8px; color: var(--ws-sub); font-size: 14px; }
+.ws-error { margin: 0 0 12px; padding: 10px 16px; border-radius: 4px; background: #ff1744; color: #fff; font-size: 14px; }
+
+@media (max-width: 900px) {
+  .ws-brand { margin-right: 8px; }
+  .ws-brand span { display: none; }
+  .ws-row { grid-template-columns: minmax(0, 1fr) 48px; }
+  .ws-row__owner, .ws-row__date { display: none; }
+  .ws-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .ws-card__thumb--docs { height: 200px; }
+}
