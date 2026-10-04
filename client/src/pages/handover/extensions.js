@@ -12,6 +12,25 @@ export const HandoverStorage = Extension.create({
   },
 })
 
+// 글꼴 크기(pt): textStyle 마크에 font-size 속성 추가
+export const FontSize = Extension.create({
+  name: 'fontSize',
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['textStyle'],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (el) => el.style.fontSize || null,
+            renderHTML: (attrs) => (attrs.fontSize ? { style: `font-size: ${attrs.fontSize}` } : {}),
+          },
+        },
+      },
+    ]
+  },
+})
+
 export const CommentMark = Mark.create({
   name: 'comment',
   inclusive: false,

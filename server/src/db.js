@@ -132,6 +132,18 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
   'CREATE INDEX IF NOT EXISTS handover_comments_doc_idx ON handover_comments (doc_id)',
+  `CREATE TABLE IF NOT EXISTS handover_versions (
+     id         SERIAL PRIMARY KEY,
+     doc_id     INTEGER NOT NULL,
+     title      TEXT,
+     name       TEXT,
+     content    JSONB NOT NULL,
+     author     TEXT,
+     kind       TEXT NOT NULL DEFAULT 'edit',
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE INDEX IF NOT EXISTS handover_versions_doc_idx ON handover_versions (doc_id, updated_at DESC)',
   `CREATE TABLE IF NOT EXISTS handover_secrets (
      id         SERIAL PRIMARY KEY,
      label      TEXT NOT NULL,

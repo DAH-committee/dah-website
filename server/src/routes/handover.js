@@ -58,6 +58,31 @@ async function gateHash() {
   return rows[0]?.value || null
 }
 
+
+const VERSION_WINDOW_MIN = 5
+
+// 같은 사람이 5분 안에 이어서 고치면 마지막 편집 버전을 갱신하고, 아니면 새 버전을 쌓는다(구글 독스의 묶음 방식).
+async function recordVersion(docId, title, content, author, kind = 'edit') {
+  if (kind === 'edit') {
+    const { rows } = await query(
+      `SELECT id FROM handover_versions
+        WHERE doc_id = $1 AND kind = 'edit' AND name IS NULL AND author = $2
+          AND updated_at > now() - ($3 || ' minutes')::interval
+          AND id = (SELECT MAX(id) FROM handover_versions WHERE doc_id = $1)
+        LIMIT 1`,
+      [docId, author, String(VERSION_WINDOW_MIN)]
+    )
+    if (rows[0]) {
+      await query('UPDATE handover_versions SET content = $1::jsonb, title = $2, updated_at = now() WHERE id = $3', [JSON.stringify(content), title, rows[0].id])
+      return
+    }
+  }
+  await query(
+    'INSERT INTO handover_versions (doc_id, title, content, author, kind) VALUES ($1, $2, $3::jsonb, $4, $5)',
+    [docId, title, JSON.stringify(content), author, kind]
+  )
+}
+
 router.use('/handover', optionalAuth)
 
 router.get(
@@ -134,11 +159,12 @@ router.post(
   requireAccess,
   requireMember,
   wrap(async (req, res) => {
-    const title = String(req.body?.title || '제목 없는 문서').slice(0, 200)
+    const { rows: cnt } = await query('SELECT COUNT(*)::int AS n FROM handover_docs')
+    const title = String(req.body?.title || `탭 ${cnt[0].n + 1}`).slice(0, 200)
     const { rows } = await query(
-      `INSERT INTO handover_docs (title, content_html, sort, updated_by)
-       VALUES ($1, $2, COALESCE((SELECT MAX(sort) + 1 FROM handover_docs), 0), $3) RETURNING *`,
-      [title, '<p></p>', req.user.name]
+      `INSERT INTO handover_docs (title, content, content_html, sort, updated_by)
+       VALUES ($1, $2::jsonb, $3, COALESCE((SELECT MAX(sort) + 1 FROM handover_docs), 0), $4) RETURNING *`,
+      [title, req.body?.content ? JSON.stringify(req.body.content) : null, '<p></p>', req.user.name]
     )
     res.status(201).json({ item: rows[0] })
   })
@@ -162,6 +188,15 @@ router.put(
       sets.push(`content = $${params.length}::jsonb`)
     }
     if (!sets.length) return res.status(400).json({ error: 'nothing to update' })
+    if (content && typeof content === 'object') {
+      // 첫 저장 전 상태를 기준 버전으로 남긴다
+      const has = (await query('SELECT 1 FROM handover_versions WHERE doc_id = $1 LIMIT 1', [id])).rows.length
+      if (!has) {
+        const d0 = (await query('SELECT title, content, content_html, updated_by, updated_at FROM handover_docs WHERE id = $1', [id])).rows[0]
+        const base = d0?.content || (d0?.content_html ? { html: d0.content_html } : null)
+        if (base) await query('INSERT INTO handover_versions (doc_id, title, content, author, kind, created_at, updated_at) VALUES ($1, $2, $3::jsonb, $4, $5, $6, $6)', [id, d0.title, JSON.stringify(base), d0.updated_by || req.user.name, 'base', d0.updated_at])
+      }
+    }
     params.push(req.user.name)
     sets.push(`updated_by = $${params.length}`, 'updated_at = now()')
     params.push(id)
@@ -170,20 +205,116 @@ router.put(
       params
     )
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    if (content && typeof content === 'object') await recordVersion(id, rows[0].title, content, req.user.name, 'edit')
     res.json({ item: rows[0] })
   })
 )
 
+// 탭 삭제: 편집 권한자 가능, 마지막 탭은 유지
 router.delete(
   '/handover/docs/:id',
   requireAccess,
   requireMember,
   wrap(async (req, res) => {
-    if (!hasRole(req.user, 'admin')) return res.status(403).json({ error: 'admin only' })
     const id = parseInt(req.params.id, 10)
+    const { rows } = await query('SELECT COUNT(*)::int AS n FROM handover_docs')
+    if (rows[0].n <= 1) return res.status(400).json({ error: '마지막 탭은 삭제 불가' })
     await query('DELETE FROM handover_comments WHERE doc_id = $1', [id])
     await query('DELETE FROM handover_docs WHERE id = $1', [id])
     res.json({ ok: true })
+  })
+)
+
+// 문서 전체 제목(탭과 별개, 하나)
+router.get(
+  '/handover/meta',
+  requireAccess,
+  wrap(async (req, res) => {
+    const { rows } = await query("SELECT value FROM handover_settings WHERE key = 'doc_title'")
+    res.json({ title: rows[0]?.value || '운영위원회 인수인계 문서', access: req.handoverAccess, canEdit: req.handoverAccess === 'member' })
+  })
+)
+
+router.put(
+  '/handover/meta',
+  requireAccess,
+  requireMember,
+  wrap(async (req, res) => {
+    const title = String(req.body?.title || '').trim().slice(0, 200)
+    if (!title) return res.status(400).json({ error: 'title required' })
+    await query(
+      `INSERT INTO handover_settings (key, value, updated_at) VALUES ('doc_title', $1, now())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [title]
+    )
+    res.json({ title })
+  })
+)
+
+
+// 버전 기록
+router.get(
+  '/handover/docs/:id/versions',
+  requireAccess,
+  wrap(async (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    let { rows } = await query(
+      `SELECT id, name, author, kind, created_at, updated_at, title FROM handover_versions WHERE doc_id = $1 ORDER BY updated_at DESC, id DESC LIMIT 200`,
+      [id]
+    )
+    if (!rows.length) {
+      const d = (await query('SELECT title, content, content_html, updated_by, created_at FROM handover_docs WHERE id = $1', [id])).rows[0]
+      if (d?.content) {
+        await query(
+          'INSERT INTO handover_versions (doc_id, title, content, author, kind, created_at, updated_at) VALUES ($1, $2, $3::jsonb, $4, $5, $6, $6)',
+          [id, d.title, JSON.stringify(d.content), d.updated_by || '주현호', 'base', d.created_at]
+        )
+        rows = (await query('SELECT id, name, author, kind, created_at, updated_at, title FROM handover_versions WHERE doc_id = $1 ORDER BY updated_at DESC, id DESC', [id])).rows
+      }
+    }
+    res.json({ items: rows })
+  })
+)
+
+router.get(
+  '/handover/versions/:vid',
+  requireAccess,
+  wrap(async (req, res) => {
+    const { rows } = await query('SELECT * FROM handover_versions WHERE id = $1', [parseInt(req.params.vid, 10)])
+    if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    res.json({ item: rows[0] })
+  })
+)
+
+router.put(
+  '/handover/versions/:vid',
+  requireAccess,
+  requireMember,
+  wrap(async (req, res) => {
+    const name = String(req.body?.name ?? '').trim().slice(0, 120)
+    const { rows } = await query(
+      'UPDATE handover_versions SET name = $1, updated_at = updated_at WHERE id = $2 RETURNING id, name',
+      [name || null, parseInt(req.params.vid, 10)]
+    )
+    if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    res.json({ item: rows[0] })
+  })
+)
+
+router.post(
+  '/handover/versions/:vid/restore',
+  requireAccess,
+  requireMember,
+  wrap(async (req, res) => {
+    const v = (await query('SELECT * FROM handover_versions WHERE id = $1', [parseInt(req.params.vid, 10)])).rows[0]
+    if (!v) return res.status(404).json({ error: 'not found' })
+    const cur = (await query('SELECT title, content FROM handover_docs WHERE id = $1', [v.doc_id])).rows[0]
+    // 복원 직전 상태를 먼저 남겨 되돌린 것도 되돌릴 수 있게 한다
+    if (cur?.content) await recordVersion(v.doc_id, cur.title, cur.content, req.user.name, 'before-restore')
+    if (v.content?.html) await query('UPDATE handover_docs SET content = NULL, content_html = $1, updated_by = $2, updated_at = now() WHERE id = $3', [v.content.html, req.user.name, v.doc_id])
+    else await query('UPDATE handover_docs SET content = $1::jsonb, updated_by = $2, updated_at = now() WHERE id = $3', [JSON.stringify(v.content), req.user.name, v.doc_id])
+    await recordVersion(v.doc_id, v.title, v.content, req.user.name, 'restore')
+    res.json({ ok: true, content: v.content })
   })
 )
 

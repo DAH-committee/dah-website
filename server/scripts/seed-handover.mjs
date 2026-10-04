@@ -14,7 +14,7 @@ import { HANDOVER_SCHEMA_STATEMENTS } from '../src/db.js'
 const here = path.dirname(fileURLToPath(import.meta.url))
 const dir = path.join(here, 'handover')
 const replace = process.argv.includes('--replace')
-const TITLE = '2026 운영위원회 인수인계 문서'
+const TITLE = '2026 인수인계'
 const SEED_AUTHOR = '주현호'
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
@@ -33,6 +33,9 @@ if (!g.length && gate) {
   await q("INSERT INTO handover_settings (key, value) VALUES ('gate_hash', $1)", [await bcrypt.hash(gate, 10)])
   console.log('gate password set')
 }
+
+// 문서 전체 제목(탭 이름과 별개): 없을 때만
+await q("INSERT INTO handover_settings (key, value) VALUES ('doc_title', $1) ON CONFLICT (key) DO NOTHING", ['디지털인문예술전공 운영위원회 인수인계 문서'])
 
 // 비밀값: 키별로 한 번만 생성, 이미 있으면 값 유지
 const secretIds = {}
