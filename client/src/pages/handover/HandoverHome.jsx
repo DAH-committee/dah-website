@@ -131,7 +131,7 @@ export default function HandoverHome() {
               {state.items.map((d) => (
                 <li key={d.id} className="border-b border-glass-line">
                   <Link to={`/handover/${d.id}`} className="group flex items-center gap-16 px-8 py-16 transition hover:bg-glass-bg">
-                    <span className="inline-grid h-40 w-40 shrink-0 place-items-center rounded-sm bg-[#4285f4] text-white">
+                    <span className="inline-grid h-40 w-40 shrink-0 place-items-center rounded-sm bg-[#7A3CFF] text-white">
                       <FileText size={20} aria-hidden="true" />
                     </span>
                     <span className="flex min-w-0 flex-1 flex-col gap-2">

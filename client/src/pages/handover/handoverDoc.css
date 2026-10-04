@@ -1,17 +1,17 @@
 /* 인수인계 문서 편집기: 구글 독스 화면(2026 Material 3 버전) 치수와 색을 따른 밝은 작업면.
    사이트 전역 다크 테마의 명시적 예외. 글꼴은 사이트 규칙대로 Pretendard. */
 .gd {
-  --gd-bg: #f9fbfd;
+  --gd-bg: #f5f5f5;
   --gd-ink: #1f1f1f;
   --gd-sub: #444746;
   --gd-meta: #5f6368;
   --gd-line: #c4c7c5;
-  --gd-tool: #edf2fa;
+  --gd-tool: #e9e9e9;
   --gd-hover: rgba(68, 71, 70, 0.08);
-  --gd-active-bg: #d3e3fd;
-  --gd-active-ink: #0b57d0;
-  --gd-blue: #0b57d0;
-  --gd-share: #c2e7ff;
+  --gd-active-bg: #7A3CFF;
+  --gd-active-ink: #ffffff;
+  --gd-blue: #7A3CFF;
+  --gd-share: #7A3CFF;
   position: fixed;
   inset: 0;
   z-index: 50;
@@ -328,3 +328,48 @@ button.gd-tab__chev:hover { background: rgba(68, 71, 70, 0.12); }
 .gd-restorebar { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 16px; padding: 8px 8px 8px 20px; border-radius: 28px; background: #303134; color: #e8eaed; font-size: 14px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); }
 .gd-page .gd-changed { background: #d9f2e0; box-shadow: -4px 0 0 #34a853; border-radius: 2px; }
 @media (max-width: 1100px) { .gd-history { position: fixed; right: 0; top: 64px; bottom: 0; z-index: 60; box-shadow: -2px 0 8px rgba(0,0,0,.15); } }
+
+
+/* ── 규칙: 테두리·옆줄 금지, 연한 색 금지. 채도 높은 색과 무채색만 ── */
+.gd-title, .gd-title:hover:not([readonly]), .gd-title:focus { border: 0 !important; padding: 0 6px !important; }
+.gd-title:hover:not([readonly]) { background: #e9e9e9 !important; }
+.gd-title:focus { background: #ffffff !important; box-shadow: none !important; }
+.gd-share { background: #7A3CFF !important; color: #ffffff !important; }
+.gd-share:hover { background: #6200EA !important; box-shadow: none; }
+.gd-round.is-on { background: #7A3CFF; color: #ffffff; }
+.gd-tb.is-active { background: #7A3CFF; color: #ffffff; }
+.gd-tab.is-on { background: #7A3CFF; color: #ffffff; }
+.gd-tab.is-on .gd-tab__more, .gd-tab.is-on .gd-tab__chev { color: #ffffff; }
+.gd-tab__input { border: 0 !important; background: #ffffff; color: #000; }
+.gd-size { border: 0 !important; background: #ffffff; }
+.gd-size:focus { border: 0 !important; background: #FFEA00; }
+.gd-ruler { border-bottom: 0 !important; }
+.gd-ruler__inner { border-left: 0 !important; border-right: 0 !important; }
+.gd-page { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) !important; }
+.gd-page h2 { border-top: 0 !important; padding-top: 0 !important; }
+.gd-page mark { background: #FF1744; color: #ffffff; font-weight: 700; padding: 0 3px; border-radius: 2px; }
+.gd-page th { background: #e0e0e0; }
+.gd-page .gd-cmark { border: 0 !important; }
+.gd-secret { border: 0 !important; background: #e0e0e0; }
+.gd-cc { background: #ececec; }
+.gd-cc:hover { box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18); }
+.gd-cc.is-active { background: #ffffff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22); }
+.gd-cc__edit textarea, .gd-cc__input, .gd-cc__input:focus, .gd-cc__edit textarea:focus { border: 0 !important; padding: 8px 12px !important; background: #ececec; border-radius: 12px; }
+.gd-cc__input:focus, .gd-cc__edit textarea:focus { background: #ffffff; box-shadow: none; }
+.gd-chip-btn { border: 0 !important; background: #e0e0e0; }
+.gd-seg { border: 0 !important; background: #e0e0e0; }
+.gd-seg button.is-on { background: #7A3CFF; color: #ffffff; }
+.gd-btn-blue { background: #7A3CFF !important; }
+.gd-btn-text { color: #7A3CFF !important; }
+.gd-colors__grid button { border: 0 !important; box-shadow: none; }
+.gd-history { border-left: 0 !important; box-shadow: -2px 0 10px rgba(0, 0, 0, 0.08); }
+.gd-history__foot { border-top: 0 !important; background: #f5f5f5; }
+.gd-history__foot input, .gd-page ul[data-type='taskList'] li > label input { accent-color: #7A3CFF; }
+.gd-ver { border-left: 0 !important; }
+.gd-ver.is-on { background: #7A3CFF; }
+.gd-ver.is-on strong, .gd-ver.is-on span { color: #ffffff !important; }
+.gd-ver__cur { color: #7A3CFF; }
+.gd-page .gd-changed { background: #00E676; box-shadow: none !important; color: #000; }
+.gd-cc__body a, .gd-linkbubble a { color: #2962FF; }
+.gd-page a { color: #2962FF; }
+.gd-menu__sep { background: #e0e0e0; }

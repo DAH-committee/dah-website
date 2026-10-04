@@ -184,7 +184,7 @@ function Dashboard() {
           to="/handover/1"
           className="mt-16 flex items-center gap-16 rounded-glass border border-glass-line bg-glass-bg p-16 backdrop-blur-glass-mobile transition duration-fast ease-out hover:bg-glass-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus"
         >
-          <span className="inline-grid h-40 w-40 shrink-0 place-items-center rounded-sm bg-[#4285f4] text-white">
+          <span className="inline-grid h-40 w-40 shrink-0 place-items-center rounded-sm bg-[#7A3CFF] text-white">
             <FileText size={20} aria-hidden="true" />
           </span>
           <span className="flex flex-col gap-4">

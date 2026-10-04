@@ -60,13 +60,15 @@ const FONTS = [
   { label: 'Trebuchet MS', value: "'Trebuchet MS'" },
 ]
 const SIZES = [8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96]
+// 색 목록: 연한 색 없이 채도 높은 색과 무채색만
 const COLORS = [
-  '#000000', '#434343', '#666666', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#efefef', '#f3f3f3', '#ffffff',
-  '#980000', '#ff0000', '#ff9900', '#ffff00', '#00ff00', '#00ffff', '#4a86e8', '#0000ff', '#9900ff', '#ff00ff',
-  '#e6b8af', '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8', '#cfe2f3', '#d9d2e9', '#ead1dc',
-  '#cc4125', '#e06666', '#f6b26b', '#ffd966', '#93c47d', '#76a5af', '#6d9eeb', '#6fa8dc', '#8e7cc3', '#c27ba0',
-  '#a61c00', '#cc0000', '#e69138', '#f1c232', '#6aa84f', '#45818e', '#3c78d8', '#3d85c6', '#674ea7', '#a64d79',
+  '#000000', '#333333', '#666666', '#999999', '#ffffff',
+  '#FF1744', '#FF3D00', '#FF9100', '#FFEA00', '#00E676',
+  '#00E5FF', '#2979FF', '#7A3CFF', '#D500F9', '#F50057',
+  '#D50000', '#DD2C00', '#FF6D00', '#FFD600', '#00C853',
+  '#00B8D4', '#2962FF', '#6200EA', '#AA00FF', '#C51162',
 ]
+
 const STYLE_OPTIONS = [
   { value: 'p', label: '일반 텍스트' },
   { value: 'h1', label: '제목' },
@@ -75,7 +77,7 @@ const STYLE_OPTIONS = [
   { value: 'h4', label: '제목 3' },
 ]
 
-const AVATAR_COLORS = ['#7b57d1', '#1a73e8', '#188038', '#e37400', '#d93025', '#9334e6', '#00838f']
+const AVATAR_COLORS = ['#7A3CFF', '#0066FF', '#00C853', '#FF3D00', '#FF1744', '#D500F9', '#00B8D4']
 const colorOf = (name = '') => AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length]
 
 function fmtTime(iso) {
@@ -97,8 +99,8 @@ const newAnchorId = () => `c-${Date.now().toString(36)}${Math.random().toString(
 function DocIcon({ size = 40 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-      <path d="M10 4h14l8 8v22a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#815FD7" />
-      <path d="M24 4v6a2 2 0 0 0 2 2h6z" fill="#C8B9F2" />
+      <path d="M10 4h14l8 8v22a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#7A3CFF" />
+      <path d="M24 4v6a2 2 0 0 0 2 2h6z" fill="#4A12D9" />
       <rect x="13" y="18" width="14" height="2" rx="1" fill="#fff" />
       <rect x="13" y="23" width="14" height="2" rx="1" fill="#fff" />
       <rect x="13" y="28" width="9" height="2" rx="1" fill="#fff" />
@@ -711,8 +713,8 @@ export default function HandoverDoc() {
 
   const highlightCss = useMemo(() => {
     const live = new Set(visibleComments.filter((c) => !c.resolved).map((c) => c.anchor_id))
-    const rules = [...live].map((a) => `.gd-page [data-comment="${CSS.escape(a)}"]{background:rgba(255,212,0,.22);border-bottom:2px solid rgba(255,190,0,.55)}`)
-    if (active) rules.push(`.gd-page [data-comment="${CSS.escape(active)}"]{background:rgba(255,212,0,.55)}`)
+    const rules = [...live].map((a) => `.gd-page [data-comment="${CSS.escape(a)}"]{background:#FFEA00}`)
+    if (active) rules.push(`.gd-page [data-comment="${CSS.escape(active)}"]{background:#FFB300}`)
     return rules.join('\n')
   }, [visibleComments, active])
 
@@ -1111,7 +1113,7 @@ export default function HandoverDoc() {
           {(close) => colorGrid((c) => ed.chain().focus().setColor(c).run(), close, () => ed.chain().focus().unsetColor().run())}
         </Dropdown>
         <Dropdown disabled={!editing} trigger={() => (
-          <button type="button" className="gd-tb gd-tb--color" disabled={!editing} title="강조 표시 색상"><Highlighter size={18} strokeWidth={1.8} /><i style={{ background: ed?.getAttributes('highlight').color || 'transparent' }} /></button>
+          <button type="button" className="gd-tb gd-tb--color" disabled={!editing} title="강조 표시 색상"><Highlighter size={18} strokeWidth={1.8} /><i style={{ background: ed?.getAttributes('highlight').color || '#FFEA00' }} /></button>
         )}>
           {(close) => colorGrid((c) => ed.chain().focus().setHighlight({ color: c }).run(), close, () => ed.chain().focus().unsetHighlight().run())}
         </Dropdown>
