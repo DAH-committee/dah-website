@@ -19,12 +19,25 @@
  * 5. 사이트 관리 → 저장소 · Google Drive → "Apps Script 연결 추가"에 주소와 2번의 비밀키를 넣는다.
  * 6. "연결 점검"을 눌러 계정 이메일과 루트 폴더가 보이면 끝이다.
  *
+ * ── 접수 확인 메일과 매일 백업 (같은 스크립트가 함께 처리한다) ─────────────
+ * 이 두 기능을 쓰려면 위 배포 순서의 3번에서 "새 버전"으로 다시 배포하고, 권한 승인 창에서
+ * 메일 보내기, 스프레드시트, 외부 요청 권한을 허용한다. 배포 주소(.../exec)는 바뀌지 않는다.
+ * 1. 접수 확인 메일: 사이트가 이 웹앱의 sendMail을 부른다. 보내는 사람은 이 스크립트를 배포한 계정이고,
+ *    하루 한도는 일반 구글 계정 100명, Workspace 계정 1,500명(MailApp 할당량)이다. 한도를 다 쓰면
+ *    그날은 메일만 건너뛰고 접수는 정상이다.
+ * 2. 매일 백업: 편집기에서 installBackupTrigger 함수를 한 번 실행하면 매일 새벽 3시에 backupToSheet가
+ *    사이트의 /relay/backup을 불러 'DAH 접수 백업' 스프레드시트를 갱신한다(전시회 접수 1장, 폼마다 1장).
+ *    지금 바로 해 보려면 backupToSheet를 직접 실행한다.
+ *
  * 비밀키는 사이트 서버가 암호화해 보관하고, 화면이나 API 응답에 다시 나오지 않는다.
  * 이 스크립트 코드는 GitHub에 올라가므로 SHARED_SECRET 자리에 실제 값을 남기지 않는다.
  */
 
 // 배포할 때 각자 바꾼다. 사이트에 등록한 값과 한 글자도 다르면 모든 요청이 401로 거부된다.
 var SHARED_SECRET = 'CHANGE_ME_배포할_때_임의의_32자_이상_문자열로_교체';
+
+// 매일 접수 백업을 가져올 사이트 주소. 사이트 서버 주소(Render)를 넣는다.
+var SITE_URL = 'https://dah-website-72a4.onrender.com';
 
 var FOLDER_MIME = 'application/vnd.google-apps.folder';
 
@@ -63,6 +76,8 @@ function doPost(e) {
         return json(trash(body.fileId));
       case 'createSheet':
         return json(createSheet(body));
+      case 'sendMail':
+        return json(sendMail(body));
       default:
         return json({ error: '알 수 없는 action입니다: ' + body.action, status: 400 });
     }
@@ -200,4 +215,90 @@ function createSheet(body) {
     DriveApp.getRootFolder().removeFile(file);
   }
   return { id: ss.getId(), url: ss.getUrl() };
+}
+
+/**
+ * 접수 확인 메일 1통. 하루 한도가 남아 있을 때만 보낸다.
+ * 한도를 다 쓰면 오류 대신 skipped를 돌려줘서 사이트가 접수를 그대로 마치게 한다.
+ */
+function sendMail(body) {
+  if (!body.to) throw new Error('받는 사람이 없습니다.');
+  var left = MailApp.getRemainingDailyQuota();
+  if (left < 1) return { skipped: 'quota', remaining: left };
+  MailApp.sendEmail({
+    to: String(body.to),
+    subject: String(body.subject || '접수 안내'),
+    body: String(body.body || ''),
+    name: String(body.name || '한림대학교 디지털인문예술전공')
+  });
+  return { ok: true, remaining: left - 1 };
+}
+
+// ── 매일 백업 ─────────────────────────────────────────────────────
+
+/** 백업 스프레드시트를 찾고, 없으면 새로 만든다(ID는 스크립트 속성에 둔다) */
+function backupSpreadsheet() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('BACKUP_SHEET_ID');
+  if (id) {
+    try { return SpreadsheetApp.openById(id); } catch (err) { /* 지워졌으면 새로 만든다 */ }
+  }
+  var ss = SpreadsheetApp.create('DAH 접수 백업');
+  props.setProperty('BACKUP_SHEET_ID', ss.getId());
+  return ss;
+}
+
+/** 시트 이름은 100자 이하이고 일부 기호를 못 쓴다 */
+function safeSheetName(name) {
+  return String(name).replace(/[\[\]\*\?\/\\:]/g, ' ').slice(0, 90) || '시트';
+}
+
+function writeTable(ss, table) {
+  var name = safeSheetName(table.name);
+  var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
+  sheet.clearContents();
+  var values = [table.header].concat(table.rows);
+  var width = table.header.length;
+  sheet.getRange(1, 1, values.length, width).setValues(values.map(function (r) {
+    var row = r.slice(0, width);
+    while (row.length < width) row.push('');
+    return row;
+  }));
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, width).setFontWeight('bold');
+  return name;
+}
+
+/** 사이트의 접수 자료를 가져와 백업 시트를 갱신한다. 매일 트리거가 부르고, 직접 실행해도 된다 */
+function backupToSheet() {
+  var res = UrlFetchApp.fetch(SITE_URL + '/relay/backup', {
+    headers: { 'X-Relay-Secret': SHARED_SECRET },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) {
+    throw new Error('백업 자료를 받지 못했습니다 (' + res.getResponseCode() + '). SITE_URL과 연결 비밀키를 확인하세요.');
+  }
+  var data = JSON.parse(res.getContentText());
+  var ss = backupSpreadsheet();
+  var kept = [];
+  var counts = [];
+  data.tables.forEach(function (t) {
+    kept.push(writeTable(ss, t));
+    counts.push(t.name + ' ' + t.rows.length + '건');
+  });
+  var log = ss.getSheetByName('백업 기록') || ss.insertSheet('백업 기록');
+  if (log.getLastRow() === 0) log.appendRow(['백업 시각', '내용']);
+  log.appendRow([new Date(), counts.join(', ')]);
+  // 새 스프레드시트가 기본으로 가진 빈 시트는 정리한다
+  var blank = ss.getSheetByName('Sheet1') || ss.getSheetByName('시트1');
+  if (blank && ss.getSheets().length > 1 && blank.getLastRow() === 0) ss.deleteSheet(blank);
+  return ss.getUrl();
+}
+
+/** 한 번만 실행한다. 매일 새벽 3시 백업을 예약한다(이미 있으면 새로 갈아 끼운다) */
+function installBackupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'backupToSheet') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('backupToSheet').timeBased().everyDays(1).atHour(3).create();
 }

@@ -180,6 +180,7 @@ const EMPTY = {
     accept_end: '',
     edit_end: '',
     require_google_auth: true,
+    confirmation_mail: true,
     max_responses: '',
     show_button_in_header: false,
     button_label_ko: '',
@@ -213,6 +214,7 @@ function fromItem(item) {
       accept_end: toLocalInput(s.accept_end),
       edit_end: toLocalInput(s.edit_end),
       require_google_auth: s.require_google_auth !== false,
+      confirmation_mail: s.confirmation_mail !== false,
       max_responses: s.max_responses == null ? '' : String(s.max_responses),
       show_button_in_header: Boolean(s.show_button_in_header),
       button_label_ko: s.button_label_ko || '',
@@ -245,6 +247,7 @@ function toPayload(form) {
       accept_end: fromLocalInput(s.accept_end),
       edit_end: fromLocalInput(s.edit_end),
       require_google_auth: s.require_google_auth,
+      confirmation_mail: s.confirmation_mail,
       max_responses: s.max_responses === '' ? null : Number(s.max_responses),
       show_button_in_header: s.show_button_in_header,
       button_label_ko: s.button_label_ko,
@@ -1122,6 +1125,7 @@ function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy
 
       <SettingGroup title="응답자">
         <SwitchRow title="구글 로그인 후 제출" checked={s.require_google_auth} onChange={setSetting('require_google_auth')} label="구글 로그인 필요 여부" />
+        <SwitchRow title="제출 확인 메일" checked={s.confirmation_mail} onChange={setSetting('confirmation_mail')} label="제출 확인 메일 보내기" />
       </SettingGroup>
 
       <SettingGroup title="사이트 표시">

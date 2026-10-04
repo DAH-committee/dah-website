@@ -21,6 +21,7 @@ import { wrap } from './content.js'
 import { normalizeFileStorage, publicFileStorage } from '../lib/formStorage.js'
 import { attachUploads } from '../lib/driveConnections.js'
 import { preflightForm } from '../lib/drivePreflight.js'
+import { sendFormConfirmation } from '../lib/mailer.js'
 
 const router = Router()
 
@@ -321,6 +322,10 @@ router.post(
     } catch (err) {
       console.error('[forms] 업로드 상태 전환 실패(제출은 정상):', err.message)
     }
+    // 확인 메일은 제출과 독립이다. 실패하거나 연결이 없어도 제출 응답은 성공한다.
+    sendFormConfirmation({ form, response: rows[0] }).catch((err) =>
+      console.error('[forms] 제출 확인 메일 실패:', err.message)
+    )
     res.status(201).json({ response: rows[0] })
   })
 )
