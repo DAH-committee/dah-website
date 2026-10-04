@@ -835,24 +835,32 @@ export default function SheetWorkspace({
     },
   ]
 
-  const saveLabel = { saved: '모든 변경사항이 저장됨', dirty: '저장 대기', saving: '저장 중', error: '화면 상태를 저장하지 못했습니다' }[saveState]
+  const saveLabel = { saved: '저장됨', dirty: '저장 대기', saving: '저장 중', error: '저장 실패' }[saveState]
 
   return (
     <div className="flex h-[100dvh] flex-col bg-reading-bg text-reading-text print:block print:h-auto">
-      {/* 제목 줄 */}
+      {/* 제목 줄: 저장 상태, 마지막 갱신, 건수를 각각 따로 둔다 */}
       <div className="flex flex-wrap items-end justify-between gap-12 px-gutter-m pt-16 md:px-gutter-t lg:px-gutter-d print:px-0">
-        <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex min-w-0 items-center gap-12">
           <h1 className="truncate text-h3-m font-bold text-reading-textStrong md:text-h3-d">{title}</h1>
-          <p className="text-caption-m text-reading-textMeta print:hidden">
+          <span
+            role="status"
+            aria-live="polite"
+            className={`inline-flex h-24 shrink-0 items-center rounded-sm px-8 text-caption-m font-semibold print:hidden ${
+              saveState === 'error' ? 'bg-state-error/10 text-state-error' : saveState === 'saved' ? 'bg-state-success/10 text-state-success' : 'bg-reading-subtle text-reading-textMeta'
+            }`}
+          >
             {saveLabel}
-            {updatedAt ? `. 마지막 갱신 ${updatedAt}` : ''}
-          </p>
+          </span>
         </div>
-        <p className="text-small-m text-reading-text print:hidden">
-          총 {sheet.rows.length}
-          {unit} 중 {visibleRows.length}
-          {unit} 표시
-        </p>
+        <div className="flex flex-col items-end gap-4 print:hidden">
+          <p className="text-small-m text-reading-text">
+            총 {sheet.rows.length}
+            {unit} 중 {visibleRows.length}
+            {unit} 표시
+          </p>
+          {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
+        </div>
       </div>
 
       <div className="px-gutter-m pt-8 md:px-gutter-t lg:px-gutter-d print:hidden">
@@ -1082,6 +1090,16 @@ export default function SheetWorkspace({
                       const fill = FILL_COLORS.find((x) => x.key === f.fill)?.cls || ''
                       const color = TEXT_COLORS.find((x) => x.key === f.color)?.cls || ''
                       const frozen = c < ui.freezeCols
+                      // 범위 선택: 안쪽은 진한 보라 바탕, 바깥 가장자리에는 2px 선(구글 시트와 같은 방식)
+                      const rangeEdge =
+                        on && !(bounds.r0 === bounds.r1 && bounds.c0 === bounds.c1)
+                          ? [
+                              r === bounds.r0 && 'inset 0 2px 0 0 rgb(var(--dah-reading-accent))',
+                              r === bounds.r1 && 'inset 0 -2px 0 0 rgb(var(--dah-reading-accent))',
+                              c === bounds.c0 && 'inset 2px 0 0 0 rgb(var(--dah-reading-accent))',
+                              c === bounds.c1 && 'inset -2px 0 0 0 rgb(var(--dah-reading-accent))',
+                            ].filter(Boolean).join(', ')
+                          : ''
                       return (
                         <td
                           key={col.key}
@@ -1137,12 +1155,12 @@ export default function SheetWorkspace({
                               isActive
                                 ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
                                 : on
-                                  ? 'bg-reading-accent/10'
+                                  ? 'bg-reading-accent/20'
                                   : matchSet.has(`${r}-${c}`)
                                     ? 'bg-state-success/10'
                                     : 'hover:bg-reading-subtle/60'
                             }`}
-                            style={f.size ? { fontSize: f.size } : undefined}
+                            style={{ ...(f.size ? { fontSize: f.size } : {}), ...(rangeEdge ? { boxShadow: rangeEdge } : {}) }}
                           >
                             {value}
                             {note && <span aria-hidden="true" className="absolute right-0 top-0 h-8 w-8 bg-reading-accent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%)' }} />}
