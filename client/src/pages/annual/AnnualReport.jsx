@@ -85,12 +85,16 @@ export default function AnnualReport() {
   useEffect(() => {
     if (!dims || !bookRef.current) return undefined
     const host = bookRef.current
+    // StPageFlip 캔버스는 CSS 픽셀 해상도라 레티나에서 흐려진다. 배율(k)만큼 크게 그리고 CSS로 줄여 선명하게 한다.
+    const k = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1)))
+    const sw = stageRef.current.clientWidth
+    const sh = stageRef.current.clientHeight
     const node = document.createElement('div')
-    node.style.cssText = 'width:100%;height:100%'
+    node.style.cssText = `width:${sw * k}px;height:${sh * k}px;transform:scale(${1 / k});transform-origin:0 0;position:absolute;left:0;top:0`
     host.appendChild(node)
     const flip = new PageFlip(node, {
-      width: dims.pw,
-      height: dims.ph,
+      width: dims.pw * k,
+      height: dims.ph * k,
       size: 'fixed',
       minWidth: 120,
       maxShadowOpacity: 0.45,
@@ -99,13 +103,26 @@ export default function AnnualReport() {
       mobileScrollSupport: false,
       drawShadow: true,
       flippingTime: 820,
-      swipeDistance: 24,
+      swipeDistance: 24 * k,
       clickEventForward: false,
       autoSize: false,
       startPage: curRef.current,
     })
     flipRef.current = flip
     flip.loadFromImages(Array.from({ length: total }, (_, i) => src(i)))
+    try {
+      // 흰 바탕 칠하기를 지우기로 바꿔 책 바깥은 사이트 배경이 보이게 한다
+      flip.render.clear = function clearTransparent() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      }
+      // 축소한 캔버스의 포인터 좌표를 원래 배율로 되돌린다
+      flip.ui.getMousePos = (x, y) => {
+        const r = node.getBoundingClientRect()
+        return { x: (x - r.left) * k, y: (y - r.top) * k }
+      }
+    } catch {
+      /* 내부 구조가 바뀐 경우 기본 동작 유지 */
+    }
     flip.on('flip', (e) => setCur(e.data))
     setReady(true)
     return () => {
