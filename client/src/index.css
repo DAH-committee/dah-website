@@ -435,6 +435,4 @@ html[data-dah-easter-egg='on'] {
   --dah-cosmos-depth1: var(--dah-reading-surface);
   --dah-state-error: 190 38 48;
   --dah-state-success: 24 128 82;
-  color: rgb(var(--dah-reading-text));
-  background-color: rgb(var(--dah-reading-bg));
 }

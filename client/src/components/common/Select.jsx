@@ -35,6 +35,8 @@ function Select({
   const typeaheadRef = useRef({ buf: '', at: 0 })
   const [open, setOpen] = useState(false)
   const [rect, setRect] = useState(null)
+  // 팝업은 body로 나가므로 밝은 읽기 표면(.reading-scope) 안에서 열렸다면 같은 범위를 따라가게 한다
+  const scopeClass = btnRef.current?.closest('.reading-scope') ? 'reading-scope bg-bg-panel' : ''
   const selectedIndex = options.findIndex((o) => o.value === value)
   const [activeIndex, setActiveIndex] = useState(selectedIndex < 0 ? 0 : selectedIndex)
 
@@ -190,7 +192,7 @@ function Select({
             tabIndex={-1}
             aria-activedescendant={`${listId}-${activeIndex}`}
             style={{ top: rect.top, left: rect.left, width: rect.width }}
-            className={`fixed z-[110] max-h-[280px] overflow-y-auto rounded-md p-4 ${light ? 'border border-[#d8d1ed] bg-white text-[#29253a] shadow-[0_12px_30px_rgb(57_43_94/0.18)]' : 'border border-glass-line bg-cosmos-depth1/[0.98] shadow-glass backdrop-blur-glass'}`}
+            className={`fixed z-[110] max-h-[280px] overflow-y-auto rounded-md p-4 ${scopeClass} ${light ? 'border border-[#d8d1ed] bg-white text-[#29253a] shadow-[0_12px_30px_rgb(57_43_94/0.18)]' : 'border border-glass-line bg-cosmos-depth1/[0.98] shadow-glass backdrop-blur-glass'}`}
           >
             {options.length === 0 && (
               <li className="px-12 py-8 font-mono text-caption-m text-text-meta">

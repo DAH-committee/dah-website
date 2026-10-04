@@ -11,7 +11,7 @@ const CARD = 'rounded-md border border-border-subtle bg-bg-panel'
 /** 화면 전체 바탕. 이 안쪽이 모두 밝은 읽기 표면이다 */
 export function RespondentPage({ children }) {
   return (
-    <div className="reading-scope min-h-[70dvh] w-full">
+    <div className="reading-scope min-h-[70dvh] w-full bg-bg-base text-text-sec">
       <div className="mx-auto flex w-full max-w-[640px] flex-col gap-12 px-16 py-24 md:py-40">{children}</div>
     </div>
   )

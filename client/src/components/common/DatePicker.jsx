@@ -225,7 +225,7 @@ function DatePicker({
             role="dialog"
             aria-label={ariaLabel || '날짜 선택'}
             style={{ top: rect.top, left: rect.left, width: rect.width }}
-            className="fixed z-[110] rounded-md border border-glass-line bg-cosmos-depth1/[0.98] p-12 shadow-glass backdrop-blur-glass md:p-16"
+            className={`fixed z-[110] rounded-md border border-glass-line bg-cosmos-depth1/[0.98] p-12 shadow-glass backdrop-blur-glass md:p-16 ${btnRef.current?.closest('.reading-scope') ? 'reading-scope bg-bg-panel' : ''}`}
           >
             <div className="flex items-center justify-between gap-8">
               {picker === null ? (

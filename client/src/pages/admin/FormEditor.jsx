@@ -1702,7 +1702,7 @@ function FormEditor() {
               <p className="text-body-m font-bold text-text-pri">미리보기</p>
               <button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button>
             </div>
-            <div className="reading-scope">
+            <div className="reading-scope bg-bg-base text-text-sec">
               <div className="mx-auto flex w-full max-w-[640px] flex-col gap-12 px-16 py-24">
                 <HeaderCard title={form.title_ko || '제목 없는 폼'}>
                   {form.description_ko && <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec">{form.description_ko}</p>}
