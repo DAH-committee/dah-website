@@ -48,6 +48,7 @@ import NotFound from './pages/NotFound'
 // 어드민(Tiptap 포함)은 코드 분할 — 공개 방문자는 다운로드하지 않는다
 const AdminRoutes = lazy(() => import('./pages/AdminRoutes'))
 const MajorCompassExperience = lazy(() => import('./pages/MajorCompassExperience'))
+const AnnualReport = lazy(() => import('./pages/annual/AnnualReport'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
 // .page-fade(opacity 0→1, translate 금지). reduced-motion은 index.css 전역 미디어쿼리가 무효화.
@@ -80,7 +81,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실 상세에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/major-compass$/.test(pathname)) return children
+  if (/^(?:\/en)?\/(?:major-compass|annual-report)$/.test(pathname)) return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -129,6 +130,14 @@ const PUBLIC_ROUTES = [
     element: (
       <Suspense fallback={<p className="px-gutter-m py-section-m font-mono text-caption-m text-text-meta">로딩 중</p>}>
         <MajorCompassExperience />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/annual-report',
+    element: (
+      <Suspense fallback={<p className="px-gutter-m py-section-m font-mono text-caption-m text-text-meta">로딩 중</p>}>
+        <AnnualReport />
       </Suspense>
     ),
   },
