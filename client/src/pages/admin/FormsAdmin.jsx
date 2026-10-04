@@ -22,7 +22,7 @@ const ROW_BTN =
   'inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm border border-border-subtle px-16 text-small-m font-semibold text-text-pri transition duration-fast ease-out hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
 
 const TONE = {
-  ok: 'border-state-success text-state-success',
+  ok: 'border-purple-primary text-purple-light',
   warn: 'border-state-error text-state-error',
   info: 'border-border-purple text-text-pri',
   muted: 'border-border-subtle text-text-meta',
@@ -151,7 +151,7 @@ function FormsAdmin() {
       />
 
       {message && (
-        <p role="status" className="rounded-sm border border-state-success/40 bg-state-success/5 p-12 text-small-m font-semibold text-state-success">
+        <p role="status" className="rounded-sm border border-border-purple bg-glass-bg p-12 text-small-m font-semibold text-text-pri">
           {message}
         </p>
       )}

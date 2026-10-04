@@ -106,14 +106,12 @@ export const TEXT_COLORS = [
   { key: 'accent', label: '보라', swatch: 'bg-reading-accent', cls: 'text-reading-accent' },
   { key: 'meta', label: '회색', swatch: 'bg-reading-textMeta', cls: 'text-reading-textMeta' },
   { key: 'error', label: '빨강', swatch: 'bg-state-error', cls: 'text-state-error' },
-  { key: 'success', label: '초록', swatch: 'bg-state-success', cls: 'text-state-success' },
 ]
 export const FILL_COLORS = [
   { key: '', label: '없음', swatch: 'bg-reading-surface border border-reading-hairline', cls: '' },
   { key: 'subtle', label: '연한 회색', swatch: 'bg-reading-subtle', cls: 'bg-reading-subtle' },
   { key: 'accent', label: '연한 보라', swatch: 'bg-reading-accent/20', cls: 'bg-reading-accent/10' },
   { key: 'error', label: '연한 빨강', swatch: 'bg-state-error/20', cls: 'bg-state-error/10' },
-  { key: 'success', label: '연한 초록', swatch: 'bg-state-success/20', cls: 'bg-state-success/10' },
 ]
 export const FONT_SIZES = [12, 13, 14, 16, 18]
 export const ZOOMS = [75, 90, 100, 125, 150]

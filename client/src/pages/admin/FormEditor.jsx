@@ -1071,7 +1071,7 @@ function AddToolbar({ onAdd }) {
 const TAB_LABEL = { questions: '질문', responses: '응답', settings: '설정' }
 
 const STATUS_TONE = {
-  ok: 'border-state-success text-state-success',
+  ok: 'border-purple-primary text-purple-light',
   warn: 'border-state-error text-state-error',
   info: 'border-border-purple text-text-pri',
   muted: 'border-border-subtle text-text-meta',

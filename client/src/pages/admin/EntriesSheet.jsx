@@ -276,9 +276,11 @@ function EntriesSheet() {
   }, [])
 
   const onInsertRow = useCallback(async () => {
-    await api.post('/admin/exhibition/entries', { semester_label: rows[0]?.semester_label || '' })
-    await load()
-  }, [rows, load])
+    const res = await api.post('/admin/exhibition/entries', { semester_label: rows[0]?.semester_label || '' })
+    // 새 행을 바로 목록 맨 위에 넣고 돌려준다(빈 행에 입력하면 이 행에 값이 들어간다)
+    setRows((prev) => [res.entry, ...prev])
+    return res.entry
+  }, [rows])
 
   const onDeleteRows = useCallback(
     async (target) => {

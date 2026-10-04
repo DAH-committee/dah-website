@@ -338,7 +338,16 @@ export default function SheetWorkspace({
   const startEdit = (r, c, initial) => {
     const row = visibleRows[r]
     const col = columns[c]
-    if (!row || !col) return
+    if (!col) return
+    // 빈 행: 여기에 입력하면 새 접수가 만들어진다(구글 시트에서 빈 줄에 쓰는 것과 같은 동작)
+    if (!row) {
+      if (!sheet.editable || !onInsertRow || !(col.custom || col.patch)) {
+        showToast('이 칸은 고칠 수 없습니다')
+        return
+      }
+      setEditing({ r, c, value: initial ?? '', orig: '', filler: true })
+      return
+    }
     if (!canEdit(col)) {
       showToast('이 칸은 고칠 수 없습니다')
       return
@@ -350,7 +359,7 @@ export default function SheetWorkspace({
   const focusGrid = () => (proxyRef.current || gridRef.current)?.focus({ preventScroll: true })
 
   const select = (r, c, extend = false) => {
-    const nr = clamp(r, 0, Math.max(0, visibleRows.length - 1))
+    const nr = clamp(r, 0, Math.max(0, visibleRows.length + fillerCount - 1))
     const nc = clamp(c, 0, Math.max(0, columns.length - 1))
     setSel((prev) => (extend && prev ? { anchor: prev.anchor, focus: { r: nr, c: nc } } : { anchor: { r: nr, c: nc }, focus: { r: nr, c: nc } }))
   }
@@ -361,6 +370,25 @@ export default function SheetWorkspace({
     setEditing(null)
     const row = visibleRows[cur.r]
     const col = columns[cur.c]
+    if (cur.filler) {
+      if (move) {
+        select(cur.r + dr, cur.c + dc)
+        focusGrid()
+      }
+      if (!col || !cur.value.trim()) return
+      try {
+        const entry = await onInsertRow()
+        if (col.custom) {
+          latest.current.setUi((ui0) => ({ ...ui0, customValues: { ...ui0.customValues, [String(entry.id)]: { ...(ui0.customValues[String(entry.id)] || {}), [col.key]: cur.value } } }))
+        } else {
+          await onEditCell(entry, col, cur.value)
+        }
+        select(0, cur.c)
+      } catch (err) {
+        showToast(err.hint ? `${err.message} (${err.hint})` : err.message || '저장하지 못했습니다')
+      }
+      return
+    }
     if (move) {
       select(cur.r + dr, cur.c + dc)
       focusGrid()
@@ -847,7 +875,7 @@ export default function SheetWorkspace({
             role="status"
             aria-live="polite"
             className={`inline-flex h-24 shrink-0 items-center rounded-sm px-8 text-caption-m font-semibold print:hidden ${
-              saveState === 'error' ? 'bg-state-error/10 text-state-error' : saveState === 'saved' ? 'bg-state-success/10 text-state-success' : 'bg-reading-subtle text-reading-textMeta'
+              saveState === 'error' ? 'bg-state-error/10 text-state-error' : 'bg-reading-subtle text-reading-text'
             }`}
           >
             {saveLabel}
@@ -931,7 +959,7 @@ export default function SheetWorkspace({
           onChange={(e) => setQ(e.target.value)}
           placeholder="검색"
           aria-label="검색"
-          className="ml-auto h-32 w-full max-w-[200px] min-w-0 rounded-sm bg-reading-surface px-12 text-small-m text-reading-text outline-none placeholder:text-reading-textMeta focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-reading-accent"
+          className="ml-auto h-32 w-full max-w-[200px] min-w-0 rounded-sm !bg-reading-surface px-12 text-small-m text-reading-text outline-none placeholder:text-reading-textMeta focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-reading-accent"
         />
       </div>
 
@@ -961,7 +989,7 @@ export default function SheetWorkspace({
               cancelEdit()
             }
           }}
-          className="h-32 min-w-0 flex-1 rounded-sm bg-reading-surface px-12 text-small-m text-reading-text outline-none focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-reading-accent disabled:bg-reading-subtle"
+          className="h-32 min-w-0 flex-1 rounded-sm !bg-reading-surface px-12 text-small-m !text-reading-text outline-none focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-reading-accent disabled:!bg-reading-subtle"
         />
       </div>
 
@@ -1067,8 +1095,8 @@ export default function SheetWorkspace({
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map((row, r) => (
-                  <tr key={rowId(row)}>
+                {[...visibleRows, ...Array.from({ length: fillerCount }, () => null)].map((row, r) => (
+                  <tr key={row ? rowId(row) : `filler-${r}`}>
                     <th
                       scope="row"
                       onClick={(e) => {
@@ -1081,12 +1109,12 @@ export default function SheetWorkspace({
                       {r + 2}
                     </th>
                     {columns.map((col, c) => {
-                      const value = col.get(row)
+                      const value = row ? col.get(row) : ''
                       const on = inRange(r, c)
                       const isActive = active && active.r === r && active.c === c
                       const isEditing = editing && editing.r === r && editing.c === c
-                      const f = ui.formats[fmtKey(row, col)] || {}
-                      const note = ui.notes[fmtKey(row, col)]
+                      const f = (row && ui.formats[fmtKey(row, col)]) || {}
+                      const note = row ? ui.notes[fmtKey(row, col)] : undefined
                       const fill = FILL_COLORS.find((x) => x.key === f.fill)?.cls || ''
                       const color = TEXT_COLORS.find((x) => x.key === f.color)?.cls || ''
                       const frozen = c < ui.freezeCols
@@ -1157,7 +1185,7 @@ export default function SheetWorkspace({
                                 : on
                                   ? 'bg-reading-accent/20'
                                   : matchSet.has(`${r}-${c}`)
-                                    ? 'bg-state-success/10'
+                                    ? 'bg-reading-accent/10'
                                     : 'hover:bg-reading-subtle/60'
                             }`}
                             style={{ ...(f.size ? { fontSize: f.size } : {}), ...(rangeEdge ? { boxShadow: rangeEdge } : {}) }}
@@ -1168,16 +1196,6 @@ export default function SheetWorkspace({
                         </td>
                       )
                     })}
-                  </tr>
-                ))}
-                {Array.from({ length: fillerCount }, (_, i) => (
-                  <tr key={`filler-${i}`} aria-hidden="true">
-                    <th className={`sticky left-0 z-10 bg-reading-subtle text-center text-caption-m font-normal text-reading-textMeta ${CELL_LINE}`}>{visibleRows.length + i + 2}</th>
-                    {columns.map((col) => (
-                      <td key={col.key} className={`p-0 ${ui.grid ? CELL_LINE : 'border-b border-r border-transparent'}`}>
-                        <div className="block min-h-[37px] w-full px-12 py-8">&nbsp;</div>
-                      </td>
-                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -1318,7 +1336,7 @@ function ExportDialog({ onClose, matrix, name, showToast }) {
       }
     >
       {state.phase === 'done' && (
-        <p className="text-small-m font-semibold text-state-success">
+        <p className="text-small-m font-semibold text-reading-accent">
           구글 시트를 만들었습니다{state.account ? `. 저장 계정: ${state.account}` : ''}
         </p>
       )}
