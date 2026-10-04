@@ -684,6 +684,13 @@ export default function HandoverDoc() {
     layout()
   })
 
+  // 카드 안 사진이 늦게 로드되며 높이가 바뀌어도 다시 배치(겹침 방지)
+  useEffect(() => {
+    const ro = new ResizeObserver(() => layout())
+    document.querySelectorAll('.gd-rail .gd-cc').forEach((el) => ro.observe(el))
+    return () => ro.disconnect()
+  }, [layout, visibleComments, composer, showComments])
+
   useEffect(() => {
     const ro = new ResizeObserver(() => layout())
     if (canvasRef.current) ro.observe(canvasRef.current)

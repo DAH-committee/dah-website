@@ -373,3 +373,20 @@ button.gd-tab__chev:hover { background: rgba(68, 71, 70, 0.12); }
 .gd-cc__body a, .gd-linkbubble a { color: #2962FF; }
 .gd-page a { color: #2962FF; }
 .gd-menu__sep { background: #e0e0e0; }
+
+/* 선택 상태는 진한 단색 대신 무채색 바탕 + 보라 아이콘 */
+.gd-share { background: #e2e2e2 !important; color: #1f1f1f !important; }
+.gd-share svg { color: #7A3CFF; }
+.gd-share:hover { background: #d4d4d4 !important; }
+.gd-round.is-on { background: #e2e2e2; color: #7A3CFF; }
+.gd-tb.is-active { background: #dcdcdc; color: #7A3CFF; }
+.gd-tab.is-on { background: #e2e2e2; color: #1f1f1f; }
+.gd-tab.is-on .gd-tab__icon { color: #7A3CFF; }
+.gd-tab.is-on .gd-tab__more, .gd-tab.is-on .gd-tab__chev { color: #1f1f1f; }
+.gd-ver.is-on { background: #e2e2e2; }
+.gd-ver.is-on strong, .gd-ver.is-on span { color: inherit !important; }
+.gd-ver.is-on strong { color: #1f1f1f !important; }
+.gd-ver.is-on .gd-ver__cur { color: #7A3CFF !important; }
+/* 드래그 선택 영역: 잘 보이게 */
+.gd-page ::selection, .gd-title::selection, .gd-cc ::selection { background: #8FB3FF; color: inherit; }
+.gd-page .ProseMirror-selectednode { outline: none; background: #8FB3FF; }
