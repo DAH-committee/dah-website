@@ -394,3 +394,47 @@ html[data-dah-easter-egg='on'] {
     scroll-behavior: auto !important;
   }
 }
+
+/* 접수 화면(전시회 접수, 신청 폼)은 구글 폼처럼 밝은 바탕 위에 흰 카드를 올린다.
+   색은 새로 만들지 않고 디자인 시스템의 읽기 표면(reading) 값으로만 다크 토큰을 다시 연결한다.
+   그래서 이 범위 안의 모든 공용 컴포넌트(Select, DatePicker, ImageUpload 등)가 따로 고치지 않아도 밝게 보인다.
+   오류색과 성공색은 밝은 바탕에서 대비가 모자라 같은 계열의 진한 값으로 바꾼다. */
+.reading-scope {
+  --dah-bg-base: var(--dah-reading-bg);
+  --dah-bg-elev: var(--dah-reading-subtle);
+  --dah-bg-panel: var(--dah-reading-surface);
+  --dah-bg-frame: var(--dah-reading-surface);
+  --dah-text-pri: var(--dah-reading-text-strong);
+  --dah-text-sec: var(--dah-reading-text);
+  --dah-text-meta: var(--dah-reading-text-meta);
+  --dah-text-disabled: var(--dah-reading-text-meta);
+  --dah-text-invert: 255 255 255;
+  --dah-purple-primary: var(--dah-reading-accent);
+  --dah-purple-light: var(--dah-reading-accent-strong);
+  --dah-purple-mid: var(--dah-reading-accent);
+  --dah-border-subtle: var(--dah-reading-hairline);
+  --dah-border-strong: rgb(33 26 49 / 0.32);
+  --dah-border-purple: rgb(104 68 196 / 0.32);
+  --dah-border-purple-strong: rgb(104 68 196 / 0.6);
+  --dah-border-focus: var(--dah-reading-accent);
+  --dah-link: var(--dah-reading-accent);
+  --dah-link-hover: var(--dah-reading-accent-strong);
+  --dah-icon: var(--dah-reading-text-meta);
+  --dah-icon-active: var(--dah-reading-accent);
+  --dah-button-primary: var(--dah-reading-accent);
+  --dah-button-primary-text: 255 255 255;
+  --dah-button-primary-hover: var(--dah-reading-accent-strong);
+  --dah-button-primary-pressed: var(--dah-reading-accent-strong);
+  --dah-button-secondary-border: var(--dah-reading-accent);
+  --dah-button-secondary-text: var(--dah-reading-accent);
+  --dah-button-ghost-text: var(--dah-reading-accent);
+  --dah-glass-bg: rgb(33 26 49 / 0.04);
+  --dah-glass-bg-strong: rgb(33 26 49 / 0.08);
+  --dah-glass-border: var(--dah-reading-hairline);
+  --dah-cosmos-depth0: var(--dah-reading-bg);
+  --dah-cosmos-depth1: var(--dah-reading-surface);
+  --dah-state-error: 190 38 48;
+  --dah-state-success: 24 128 82;
+  color: rgb(var(--dah-reading-text));
+  background-color: rgb(var(--dah-reading-bg));
+}

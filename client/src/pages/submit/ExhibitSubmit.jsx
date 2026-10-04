@@ -8,11 +8,23 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus } from 'lucide-react'
-import Container from '../../components/layout/Container'
-import GlassCard from '../../components/common/GlassCard'
 import Button from '../../components/common/Button'
-import RadioCards from '../../components/common/RadioCards'
-import { ACCENT } from '../../styles/accents'
+import {
+  AccountStrip,
+  HeaderCard,
+  LoginCard,
+  LongInput,
+  MiniField,
+  NoticeCard,
+  PrimarySubmit,
+  QuestionCard,
+  RadioList,
+  RespondentPage,
+  ScheduleInline,
+  ShortInput,
+  SubmitRow,
+  TextButton,
+} from '../../components/forms/respondent'
 import { api, useApi } from '../../hooks/useApi'
 import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
@@ -20,23 +32,10 @@ import { useAuth } from '../../context/AuthContext'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { EXHIBITION_SUFFIX, exhibitionFullTitle } from '../../data/exhibitionTitle'
 import { isValidPhone } from '../../utils/format'
-import {
-  AccountBar,
-  Field,
-  LockedField,
-  LoginGate,
-  MemberRows,
-  OriginalFilesField,
-  PhoneInput,
-  ScheduleHighlight,
-  ScheduleList,
-  SubjectField,
-  SubmitButton,
-} from './exhibitFormKit'
+import { MemberRows, OriginalFilesField, PhoneInput, SubjectField } from './exhibitFormKit'
 import {
   DESC_MAX,
   ENTRY_TYPE_LABEL,
-  inputCls,
   formatKst,
   resolveCurrentSemester,
   resolveOrdinal,
@@ -65,16 +64,6 @@ const ENTRY_TYPE_OPTIONS = [
 
 // 53: 온보딩·폼 문구는 site_settings.exhibitionCopy가 원본이고, 비어 있으면
 // data/exhibitionCopy.js의 기본값(분리 이전 코드 원문)으로 떨어진다.
-
-// P3 카드(bg.elev + hairline) — 글래스 중첩·blur 예산(동시 3개)을 피하려고 온보딩 본문은 비유리 패널
-function Panel({ title, children }) {
-  return (
-    <section className="flex min-w-0 flex-col gap-16 rounded-md border border-border-subtle bg-bg-elev p-24 md:p-32">
-      <h3 className="text-h3-m font-bold leading-snug text-text-pri md:text-h3-d">{title}</h3>
-      {children}
-    </section>
-  )
-}
 
 function ExhibitSubmit() {
   useTitle('전시회 접수')
@@ -111,11 +100,8 @@ function ExhibitSubmit() {
   const submitOpenNow =
     previewBypass || (exhibition ? exhibition.is_submit_period === true : true)
 
-  // 구글 로그인은 전체 페이지 이동이라 복귀 시 컴포넌트 state가 초기화된다.
-  // 게이트가 next=/submit?step=form으로 돌려보내므로 폼 단계에서 이어서 진행된다.
-  const [step, setStep] = useState(
-    searchParams.get('step') === 'form' ? 'form' : 'intro'
-  ) // intro | form | done
+  // 접수 안내(예전 첫 단계)는 제목 카드 안에 접어 두었다. 화면이 한 장이라 사용자가 중간에 나가지 않는다.
+  const [step, setStep] = useState('form') // form | done
   const [form, setForm] = useState(INITIAL_FORM)
   const [members, setMembers] = useState([{ ...EMPTY_MEMBER }])
   const [submitting, setSubmitting] = useState(false)
@@ -158,7 +144,7 @@ function ExhibitSubmit() {
       isTeam &&
       !members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
     ) {
-      setError('팀원 이름·학번·전공을 모두 입력해 주세요')
+      setError('팀원 이름, 학번, 전공을 모두 입력해 주세요')
       return
     }
     setSubmitting(true)
@@ -200,347 +186,201 @@ function ExhibitSubmit() {
     }
   }
 
+  const schedule = [
+    { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
+    { label: '접수 마감', value: formatKst(exhibition?.submit_close) },
+    { label: '수정 마감', value: formatKst(exhibition?.edit_close) },
+  ]
+
+  // 맨 위 제목 카드: 전시회 이름, 안내 한 문단, 일정, 접어 둔 접수 안내
+  const header = (
+    <HeaderCard title={exhibitionName}>
+      {copy.onboardingLead && (
+        <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec">{copy.onboardingLead}</p>
+      )}
+      <ScheduleInline rows={schedule} />
+      <details className="group border-t border-border-subtle pt-12">
+        <summary className="cursor-pointer list-none text-small-m font-semibold text-text-sec transition-colors duration-fast ease-out hover:text-purple-primary">
+          접수 방법과 유의사항 <span className="text-text-meta group-open:hidden">펼치기</span>
+          <span className="hidden text-text-meta group-open:inline">접기</span>
+        </summary>
+        <div className="mt-12 flex flex-col gap-16">
+          <ol className="flex flex-col gap-12">
+            {copy.steps.map((s, i) => (
+              <li key={s.title} className="flex min-w-0 gap-12 text-small-m">
+                <span className="w-16 shrink-0 font-semibold text-purple-primary">{i + 1}</span>
+                <span className="flex min-w-0 flex-col gap-4">
+                  <span className="font-semibold text-text-pri">{s.title}</span>
+                  <span className="leading-relaxed text-text-sec">{s.desc}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <ul className="flex flex-col gap-8 border-t border-border-subtle pt-12">
+            {copy.notes.map((note) => (
+              <li key={note} className="flex min-w-0 gap-12 text-small-m leading-relaxed text-text-sec">
+                <span aria-hidden="true" className="mt-8 h-4 w-4 shrink-0 rounded-full bg-text-meta" />
+                <span className="min-w-0">{note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </details>
+    </HeaderCard>
+  )
+
   if (settingsLoading) {
     return (
-      <Container as="section" className="py-section-m lg:py-section-d">
-        <p className="text-body-m text-text-meta md:text-body-d" aria-live="polite">
+      <RespondentPage>
+        <p className="px-4 text-small-m text-text-meta" aria-live="polite">
           접수 일정 확인 중
         </p>
-      </Container>
+      </RespondentPage>
     )
   }
 
   if (!submitOpenNow) {
     return (
-      <Container as="section" className="py-section-m lg:py-section-d">
-        <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-            <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-              접수 기간 아님
-            </h2>
-            <p className="text-body-l-m leading-relaxed text-text-sec md:text-body-l-d">
-              지금은 전시회 접수 기간이 아닙니다. 아래 일정을 확인해 주세요.
-            </p>
-            <ScheduleList exhibition={exhibition} />
+      <RespondentPage>
+        {header}
+        <NoticeCard
+          title="접수 기간이 아닙니다"
+          actions={
             <Button variant="secondary" href="/submit/edit">
-              접수 내역 확인·수정
+              접수 내역 확인과 수정
             </Button>
-        </GlassCard>
-      </Container>
+          }
+        >
+          지금은 전시회 접수 기간이 아닙니다. 위 일정을 확인해 주세요.
+        </NoticeCard>
+      </RespondentPage>
     )
   }
 
   return (
-    <>
-      {/* H2-1: 온보딩은 상단 여백을 줄여 첫 화면에 핵심 안내가 바로 들어오게 한다
-          (38_UI_FIX_BATCH 이후 시작 버튼은 섹션 최하단에 있다) */}
-      <Container
-        as="section"
-        className={
-          step === 'intro'
-            ? 'pb-section-m pt-32 lg:pb-section-d lg:pt-48'
-            : 'py-section-m lg:py-section-d'
-        }
-      >
-        {step === 'intro' && (
-          <div className="flex min-w-0 flex-col gap-24">
-            <header className="flex min-w-0 flex-col gap-8">
-              <p className="font-mono text-caption-m uppercase tracking-label text-text-meta md:text-caption-d">
-                {copy.onboardingEyebrow}
-              </p>
-              {/* H2-1: 스케일 한 단계 하향(displayL → h1) */}
-              <h2 className="min-w-0 text-h1-m font-bold leading-tight tracking-display text-text-pri md:text-h1-d">
-                {exhibitionName}
-              </h2>
-              {copy.onboardingLead && (
-                <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec md:text-body-d">
-                  {copy.onboardingLead}
-                </p>
-              )}
-            </header>
+    <RespondentPage>
+      {header}
 
-            <ScheduleHighlight exhibition={exhibition} />
-
-            <div className="grid min-w-0 gap-24 lg:grid-cols-2">
-              <Panel title={copy.stepsTitle}>
-                <ol className="flex flex-col gap-16">
-                  {copy.steps.map((s, i) => (
-                    <li key={s.title} className="flex min-w-0 gap-16">
-                      {/* 번호는 순서에서 파생한다 — 담당자가 단계를 늘려도 번호가 어긋나지 않는다 */}
-                      <span
-                        className={`shrink-0 font-mono text-caption-m font-bold md:text-caption-d ${ACCENT.index}`}
-                      >
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <span className="flex min-w-0 flex-col gap-4">
-                        <span className="text-body-m font-semibold text-text-pri md:text-body-d">
-                          {s.title}
-                        </span>
-                        <span className="text-small-m leading-relaxed text-text-sec md:text-small-d">
-                          {s.desc}
-                        </span>
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </Panel>
-              <Panel title={copy.notesTitle}>
-                <ul className="flex flex-col gap-12">
-                  {copy.notes.map((note) => (
-                    <li
-                      key={note}
-                      className="flex min-w-0 gap-12 text-small-m leading-relaxed text-text-sec md:text-small-d"
-                    >
-                      <span aria-hidden="true" className={ACCENT.index}>
-                        ·
-                      </span>
-                      <span className="min-w-0">{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Panel>
-            </div>
-
-            {/* 38_UI_FIX_BATCH: 시작 버튼을 섹션 최하단으로 이동 — 절차·유의사항을 다 읽고
-                누르게 한다. Wayfinding: 안내가 길어도 발견되도록 상단 헤어라인으로 구간을
-                끊고 여백을 키운다(새 구분선 컴포넌트 없이 border-t 하나로). */}
-            <div className="flex flex-wrap items-center gap-16 border-t border-border-subtle pt-24 md:pt-32">
-              <button
-                type="button"
-                onClick={() => setStep('form')}
-                className="inline-flex h-11 cursor-pointer items-center justify-center rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText shadow-btn transition duration-fast ease-out hover:bg-button-primaryHover hover:shadow-btn-hover active:bg-button-primaryPressed md:h-48 md:text-body-d"
-              >
-                {copy.startLabel}
-              </button>
+      {step === 'done' && (
+        <NoticeCard
+          title="접수 완료"
+          actions={
+            <>
               <Button variant="secondary" href="/submit/edit">
-                접수 내역 확인·수정
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {step === 'done' && (
-          <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-            <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-              접수 완료
-            </h2>
-            <p className="text-body-l-m leading-relaxed text-text-sec md:text-body-l-d">
-              전시회 출품이 접수되었습니다. 내용 수정은 접수에 사용한 구글 계정으로
-              로그인해 가능합니다
-              {formatKst(exhibition?.edit_close)
-                ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})`
-                : ''}
-              .
-            </p>
-            <div className="flex flex-wrap gap-12">
-              <Button variant="secondary" href="/submit/edit">
-                접수 내역 확인·수정
+                접수 내역 확인과 수정
               </Button>
               <Button variant="secondary" href="/">
                 홈으로 이동
               </Button>
-            </div>
-          </GlassCard>
-        )}
+            </>
+          }
+        >
+          전시회 출품이 접수되었습니다. 내용 수정은 접수에 사용한 구글 계정으로 로그인해 가능합니다
+          {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}.
+        </NoticeCard>
+      )}
 
-        {step === 'form' && authLoading && (
-          <p className="text-body-m text-text-meta md:text-body-d" aria-live="polite">
-            로그인 상태 확인 중
-          </p>
-        )}
+      {step === 'form' && authLoading && (
+        <p className="px-4 text-small-m text-text-meta" aria-live="polite">
+          로그인 상태 확인 중
+        </p>
+      )}
 
-        {/* 41: 비로그인 상태에서는 폼 대신 로그인 게이트. 로그인 전환은 배너와 컨테이너를
-            그대로 둔 채 이 블록만 교체되며 .page-fade(opacity 0→1)로 이어진다 */}
-        {step === 'form' && !authLoading && !user && (
-          <div key="guest" className="page-fade flex min-w-0 flex-col gap-24">
-            <ScheduleHighlight exhibition={exhibition} />
-            <LoginGate
-              title="구글 로그인 후 접수"
-              description="전시회 접수는 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정의 이메일이 접수 이메일로 기록되고, 접수 후 수정도 같은 계정으로 합니다."
-              next="/submit?step=form"
-            >
-              <button
-                type="button"
-                onClick={() => setStep('intro')}
-                className="cursor-pointer text-small-m text-text-meta transition-colors duration-fast ease-out hover:text-text-pri md:text-small-d"
-              >
-                안내로 돌아가기
-              </button>
-            </LoginGate>
-          </div>
-        )}
+      {/* 41: 비로그인 상태에서는 폼 대신 로그인 카드. 이 블록만 교체되며 .page-fade로 이어진다 */}
+      {step === 'form' && !authLoading && !user && (
+        <div key="guest" className="page-fade min-w-0">
+          <LoginCard
+            title="구글 로그인 후 접수"
+            description="전시회 접수는 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정의 이메일이 접수 이메일로 기록되고, 접수 후 수정도 같은 계정으로 합니다."
+            next="/submit"
+          />
+        </div>
+      )}
 
-        {step === 'form' && !authLoading && user && (
-          <div key="account" className="page-fade flex min-w-0 flex-col gap-24">
-            <ScheduleHighlight exhibition={exhibition} />
-            <GlassCard className="p-24 md:p-40">
-              <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-32">
-                <div className="flex flex-wrap items-baseline justify-between gap-16">
-                  <div className="flex min-w-0 flex-col gap-4">
-                    <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-                      접수 폼
-                    </h2>
-                    {/* H2-2: 회차는 어드민 설정값 — 화면 하드코딩 금지 */}
-                    <p className="min-w-0 text-small-m text-text-meta md:text-small-d">
-                      {exhibitionName}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setStep('intro')}
-                    className="cursor-pointer text-small-m text-text-meta transition-colors duration-fast ease-out hover:text-text-pri md:text-small-d"
-                  >
-                    안내로 돌아가기
-                  </button>
-                </div>
+      {step === 'form' && !authLoading && user && (
+        <form key="account" onSubmit={handleSubmit} className="page-fade flex min-w-0 flex-col gap-12">
+          <AccountStrip user={user} onLogout={logout} />
 
-                <AccountBar user={user} onLogout={logout} />
+          <QuestionCard label="참가 유형" required>
+            <RadioList name="entry_type" options={ENTRY_TYPE_OPTIONS} value={form.entryType} onChange={setValue('entryType')} />
+          </QuestionCard>
 
-                <Field as="div" label="참가 유형" required>
-                  <RadioCards
-                    name="entry_type"
-                    options={ENTRY_TYPE_OPTIONS}
-                    value={form.entryType}
-                    onChange={setValue('entryType')}
-                  />
-                </Field>
-
-                {isTeam ? (
-                  <>
-                    <Field label="팀명" required>
-                      <input
-                        type="text"
-                        required
-                        value={form.teamName}
-                        onChange={set('teamName')}
-                        className={inputCls}
-                        placeholder="팀 이름"
-                      />
-                    </Field>
-                    <Field
-                      as="div"
-                      label="팀원"
-                      required
-                      hint="대표자를 포함한 전체 팀원의 이름·학번·전공을 입력합니다"
-                    >
-                      <MemberRows members={members} onChange={setMembers} />
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setMembers((prev) => [...prev, { ...EMPTY_MEMBER }])
-                          }
-                          className="inline-flex cursor-pointer items-center gap-8 rounded-sm border border-border-subtle px-16 py-8 text-small-m font-semibold text-text-pri transition-colors duration-fast ease-out hover:border-border-strong md:text-small-d"
-                        >
-                          <Plus size={16} aria-hidden="true" />
-                          팀원 추가
-                        </button>
-                      </div>
-                    </Field>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-1 gap-24 md:grid-cols-3">
-                    <Field label="이름" required>
-                      <input
-                        type="text"
-                        required
-                        value={form.name}
-                        onChange={set('name')}
-                        className={inputCls}
-                        placeholder="이름"
-                      />
-                    </Field>
-                    <Field label="학번" required>
-                      <input
-                        type="text"
-                        required
-                        value={form.studentNo}
-                        onChange={set('studentNo')}
-                        className={inputCls}
-                        placeholder="학번"
-                      />
-                    </Field>
-                    <Field label="전공" required>
-                      <input
-                        type="text"
-                        required
-                        value={form.major}
-                        onChange={set('major')}
-                        className={inputCls}
-                        placeholder="전공"
-                      />
-                    </Field>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-24 md:grid-cols-2">
-                  {/* 접수 이메일은 로그인 계정 고정 — 서버도 본문 email을 무시한다 */}
-                  <LockedField label="접수 이메일" value={user.email} />
-                  <Field label="연락처" required hint="010-0000-0000">
-                    <PhoneInput value={form.phone} onChange={setValue('phone')} />
-                  </Field>
-                </div>
-
-                <SubjectField
-                  subjects={subjects}
-                  value={form.course}
-                  onChange={setValue('course')}
-                  defaultSemester={currentSemester}
-                  disabled={originalFiles.length > 0}
-                  disabledHint="원본 파일을 올린 뒤에는 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하세요."
-                />
-
-                <OriginalFilesField
-                  files={originalFiles}
-                  onChange={setOriginalFiles}
-                  course={form.course}
-                  onUploadingChange={setFilesUploading}
-                />
-
-                <Field label="작품명" required hint={copy.workTitleHint}>
-                  <input
-                    type="text"
-                    required
-                    value={form.workTitle}
-                    onChange={set('workTitle')}
-                    className={inputCls}
-                    placeholder="작품 제목"
-                  />
-                </Field>
-
-                <Field label="작품 설명" required hint={`최대 ${DESC_MAX}자`}>
-                  <textarea
-                    required
-                    rows={4}
-                    maxLength={DESC_MAX}
-                    value={form.workDesc}
-                    onChange={set('workDesc')}
-                    className={inputCls}
-                    placeholder={copy.workDescPlaceholder}
-                  />
-                  <span
-                    aria-live="polite"
-                    className="text-right font-mono text-caption-m text-text-meta"
-                  >
-                    {form.workDesc.length}/{DESC_MAX}
+          <QuestionCard label="신청자" required>
+            {isTeam ? (
+              <>
+                <MiniField label="팀명" required>
+                  <ShortInput required value={form.teamName} onChange={set('teamName')} placeholder="팀 이름" />
+                </MiniField>
+                <div className="flex flex-col gap-8">
+                  <span className="text-small-m text-text-meta">
+                    팀원 (대표자 포함) <span className="text-state-error">*</span>
                   </span>
-                </Field>
-
-                {error && (
-                  <p role="alert" className="text-small-m text-state-error md:text-small-d">
-                    {error}
-                  </p>
-                )}
-                <div>
-                  <SubmitButton busy={submitting} disabled={!canSubmit}>
-                    {submitting ? '접수 중' : '접수'}
-                  </SubmitButton>
+                  <MemberRows members={members} onChange={setMembers} />
+                  <div>
+                    <TextButton onClick={() => setMembers((prev) => [...prev, { ...EMPTY_MEMBER }])}>
+                      <span className="inline-flex items-center gap-8 text-purple-primary">
+                        <Plus size={16} aria-hidden="true" />
+                        팀원 추가
+                      </span>
+                    </TextButton>
+                  </div>
                 </div>
-              </form>
-            </GlassCard>
-          </div>
-        )}
-      </Container>
-    </>
+              </>
+            ) : (
+              <div className="grid grid-cols-1 gap-16 sm:grid-cols-3">
+                <MiniField label="이름" required>
+                  <ShortInput required value={form.name} onChange={set('name')} placeholder="이름" />
+                </MiniField>
+                <MiniField label="학번" required>
+                  <ShortInput required value={form.studentNo} onChange={set('studentNo')} placeholder="학번" />
+                </MiniField>
+                <MiniField label="전공" required>
+                  <ShortInput required value={form.major} onChange={set('major')} placeholder="전공" />
+                </MiniField>
+              </div>
+            )}
+            <MiniField label="연락처" required>
+              <PhoneInput value={form.phone} onChange={setValue('phone')} className="max-w-[240px]" />
+            </MiniField>
+          </QuestionCard>
+
+          <SubjectField
+            subjects={subjects}
+            value={form.course}
+            onChange={setValue('course')}
+            defaultSemester={currentSemester}
+            disabled={originalFiles.length > 0}
+            disabledHint="원본 파일을 올린 뒤에는 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하세요."
+          />
+
+          <OriginalFilesField files={originalFiles} onChange={setOriginalFiles} course={form.course} onUploadingChange={setFilesUploading} />
+
+          <QuestionCard label="작품 정보" required>
+            <MiniField label="작품명" required>
+              <ShortInput required value={form.workTitle} onChange={set('workTitle')} placeholder="작품 제목" />
+              {copy.workTitleHint && <span className="text-caption-m text-text-meta">{copy.workTitleHint}</span>}
+            </MiniField>
+            <MiniField label={`작품 설명 (최대 ${DESC_MAX}자)`} required>
+              <LongInput required maxLength={DESC_MAX} value={form.workDesc} onChange={set('workDesc')} placeholder={copy.workDescPlaceholder} />
+              <span aria-live="polite" className="text-right text-caption-m text-text-meta">
+                {form.workDesc.length}/{DESC_MAX}
+              </span>
+            </MiniField>
+          </QuestionCard>
+
+          {error && (
+            <p role="alert" className="px-4 text-small-m text-state-error">
+              {error}
+            </p>
+          )}
+          <SubmitRow>
+            <PrimarySubmit busy={submitting} disabled={!canSubmit}>
+              {submitting ? '접수 중' : '접수'}
+            </PrimarySubmit>
+          </SubmitRow>
+        </form>
+      )}
+    </RespondentPage>
   )
 }
 

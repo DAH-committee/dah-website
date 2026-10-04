@@ -19,6 +19,7 @@ import {
 import { API_BASE, useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import FormRenderer from '../../components/forms/FormRenderer'
+import { HeaderCard } from '../../components/forms/respondent'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
@@ -1695,21 +1696,18 @@ function FormEditor() {
       )}
 
       {preview && (
-        <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/70 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
-          <div className="mx-auto min-h-full w-full max-w-3xl rounded-md bg-bg-base shadow-card-glow" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-12 rounded-t-md border-b border-border-subtle bg-bg-panel px-20 py-12">
-              <div className="min-w-0">
-                <p className={`text-body-m font-bold ${INK}`}>미리보기</p>
-              </div>
+        <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/80 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
+          <div className="mx-auto min-h-full w-full max-w-[704px] overflow-hidden rounded-md border border-border-subtle bg-bg-base" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-12 border-b border-border-subtle bg-bg-panel px-20 py-12">
+              <p className="text-body-m font-bold text-text-pri">미리보기</p>
               <button type="button" className={ICON_BTN} onClick={() => setPreview(false)} aria-label="미리보기 닫기"><X size={18} /></button>
             </div>
-            <div className="p-16 md:p-32">
-              <div className="rounded-md border-t-[10px] border-purple-primary bg-bg-panel p-24 shadow-sm md:p-32">
-                <h2 className={`text-h2-m font-bold ${INK}`}>{form.title_ko || '제목 없는 폼'}</h2>
-                {form.description_ko && <p className={`mt-12 whitespace-pre-wrap text-body-m leading-relaxed ${SUB}`}>{form.description_ko}</p>}
-                <div className="mt-24">
-                  <FormRenderer fields={form.fields} value={previewValue} onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))} />
-                </div>
+            <div className="reading-scope">
+              <div className="mx-auto flex w-full max-w-[640px] flex-col gap-12 px-16 py-24">
+                <HeaderCard title={form.title_ko || '제목 없는 폼'}>
+                  {form.description_ko && <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec">{form.description_ko}</p>}
+                </HeaderCard>
+                <FormRenderer fields={form.fields} value={previewValue} onChange={(fieldId, v) => setPreviewValue((prev) => ({ ...prev, [fieldId]: v }))} />
               </div>
             </div>
           </div>

@@ -15,26 +15,27 @@
 import { useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
-import Container from '../../components/layout/Container'
-import GlassCard from '../../components/common/GlassCard'
 import Button from '../../components/common/Button'
 import GoogleLoginButton from '../../components/auth/GoogleLoginButton'
 import FormRenderer from '../../components/forms/FormRenderer'
+import {
+  AccountStrip,
+  HeaderCard,
+  LoginCard,
+  NoticeCard,
+  PrimarySubmit,
+  RespondentPage,
+  ScheduleInline,
+  SubmitRow,
+  TextButton,
+} from '../../components/forms/respondent'
 import NotFound from '../NotFound'
 import { api, useApi } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
-import {
-  AccountBar,
-  LoginGate,
-  ScheduleHighlight,
-  SubmitButton,
-} from '../submit/exhibitFormKit'
 import { formatKst, submitErrorMessage } from '../submit/exhibitFormShared'
 
-const headingCls = 'text-h2-m font-bold leading-snug text-text-pri md:text-h2-d'
-const leadCls = 'text-body-l-m leading-relaxed text-text-sec md:text-body-l-d'
-const statusCls = 'text-body-m text-text-meta md:text-body-d'
+const statusCls = 'px-4 text-small-m text-text-meta'
 
 // 서버 검증 코드({field, error, label}) → 인라인 문구
 const FIELD_ERROR = {
@@ -98,8 +99,8 @@ function hasRequiredValues(fields, value) {
 }
 
 /**
- * 작성·수정 공용 폼 카드. 클라이언트 검증은 두지 않는다. 검증 권한은 서버 하나이고
- * 400 응답의 errors를 그대로 FormRenderer errors로 되돌려 필드 아래 인라인으로 띄운다.
+ * 작성·수정 공용 폼. 클라이언트 검증은 두지 않는다. 검증 권한은 서버 하나이고
+ * 400 응답의 errors를 그대로 FormRenderer errors로 되돌려 질문 카드 아래에 띄운다.
  * @param {Array} fields    폼 정의
  * @param {Object} initial  초기값 { [field.id]: 값 }
  * @param {Function} onSubmit 값 객체를 받아 API를 호출하는 비동기 함수
@@ -146,42 +147,45 @@ function ResponseForm({
   }
 
   return (
-    <GlassCard className="p-24 md:p-40">
-      <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-32">
-        <div className="flex flex-wrap items-baseline justify-between gap-16">
-          <h2 className={headingCls}>{title}</h2>
+    <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-12">
+      {(title || children) && (
+        <div className="flex flex-wrap items-center justify-between gap-12 px-4">
+          {title && <p className="text-small-m font-semibold text-text-pri">{title}</p>}
           {children}
         </div>
+      )}
 
-        {notice}
+      {notice}
 
-        <FormRenderer
-          fields={fields}
-          value={value}
-          errors={errors}
-          onChange={(id, next) => setValue((prev) => ({ ...prev, [id]: next }))}
-          onUploadingChange={setUploading}
-          uploadContext={uploadContext}
-          onPageChange={setPage}
-        />
+      <FormRenderer
+        fields={fields}
+        value={value}
+        errors={errors}
+        onChange={(id, next) => setValue((prev) => ({ ...prev, [id]: next }))}
+        onUploadingChange={setUploading}
+        uploadContext={uploadContext}
+        onPageChange={setPage}
+      />
 
-        {message && (
-          <p role="alert" className="text-small-m text-state-error md:text-small-d">
-            {message}
-          </p>
-        )}
-        {page.isLast && <div>
-          <SubmitButton busy={busy || uploading || locked} disabled={!requiredComplete}>
+      {message && (
+        <p role="alert" className="px-4 text-small-m text-state-error">
+          {message}
+        </p>
+      )}
+      {page.isLast && (
+        <SubmitRow>
+          <PrimarySubmit busy={busy || uploading || locked} disabled={!requiredComplete}>
             {busy ? busyLabel : submitLabel}
-          </SubmitButton>
-        </div>}
-      </form>
-    </GlassCard>
+          </PrimarySubmit>
+        </SubmitRow>
+      )}
+    </form>
   )
 }
 
+
 /**
- * 제출 내역 확인·수정. 로그인한 계정의 응답만 서버가 돌려주고, 수정 기간과 소유 검증도
+ * 제출 내역 확인과 수정. 로그인한 계정의 응답만 서버가 돌려주고, 수정 기간과 소유 검증도
  * 서버가 한다. 여기서는 can_edit로 저장 버튼을 잠그기만 한다.
  */
 function EditPanel({ slug, fields, canEdit, editEnd, uploadContext }) {
@@ -204,70 +208,65 @@ function EditPanel({ slug, fields, canEdit, editEnd, uploadContext }) {
   }
   if (error) {
     return (
-      <p role="alert" className="text-small-m text-state-error md:text-small-d">
+      <p role="alert" className="px-4 text-small-m text-state-error">
         {errorMessage(error)}
       </p>
     )
   }
   if (saved) {
     return (
-      <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-        <h2 className={headingCls}>수정 완료</h2>
-        <p className={leadCls}>
-          제출 내용이 수정되었습니다.
-          {editEnd ? ` 수정은 ${editEnd}까지 가능합니다.` : ''}
-        </p>
-        <div className="flex flex-wrap gap-12">
-          <Button variant="secondary" href={`/forms/${slug}`}>
-            폼으로 돌아가기
-          </Button>
-          <Button variant="secondary" href="/">
-            홈으로 이동
-          </Button>
-        </div>
-      </GlassCard>
+      <NoticeCard
+        title="수정 완료"
+        actions={
+          <>
+            <Button variant="secondary" href={`/forms/${slug}`}>
+              폼으로 돌아가기
+            </Button>
+            <Button variant="secondary" href="/">
+              홈으로 이동
+            </Button>
+          </>
+        }
+      >
+        제출 내용이 수정되었습니다.
+        {editEnd ? ` 수정은 ${editEnd}까지 가능합니다.` : ''}
+      </NoticeCard>
     )
   }
   if (!responses.length) {
     return (
-      <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-        <p className="text-body-m leading-relaxed text-text-sec md:text-body-d">
-          이 계정으로 제출한 내역이 없습니다.
-        </p>
-        <Button variant="secondary" href={`/forms/${slug}`}>
-          폼 작성하기
-        </Button>
-      </GlassCard>
+      <NoticeCard
+        title="제출 내역 없음"
+        actions={
+          <Button variant="secondary" href={`/forms/${slug}`}>
+            폼 작성하기
+          </Button>
+        }
+      >
+        이 계정으로 제출한 내역이 없습니다.
+      </NoticeCard>
     )
   }
   if (!selected) {
     return (
-      <div className="flex min-w-0 flex-col gap-24">
-        <h2 className={headingCls}>제출 목록</h2>
-        <ul className="flex flex-col gap-16">
+      <div className="flex min-w-0 flex-col gap-12">
+        <p className="px-4 text-small-m font-semibold text-text-pri">제출 목록</p>
+        <ul className="flex flex-col gap-12">
           {responses.map((item) => (
             <li key={item.id} className="min-w-0">
-              <GlassCard hover as="div" className="min-w-0">
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(item.id)}
-                  className="flex w-full cursor-pointer items-center justify-between gap-16 p-24 text-left"
-                >
-                  <span className="flex min-w-0 flex-col gap-8">
-                    <span className="truncate text-body-l-m font-semibold text-text-pri md:text-body-l-d">
-                      {firstValue(fields, item.data) || '제출 내역'}
-                    </span>
-                    <span className="font-mono text-caption-m text-text-meta">
-                      {formatKst(item.submitted_at) ?? ''}
-                    </span>
+              <button
+                type="button"
+                onClick={() => setSelectedId(item.id)}
+                className="flex w-full cursor-pointer items-center justify-between gap-16 rounded-md border border-border-subtle bg-bg-panel p-20 text-left transition-colors duration-fast ease-out hover:border-border-strong"
+              >
+                <span className="flex min-w-0 flex-col gap-4">
+                  <span className="truncate text-body-m font-medium text-text-pri">
+                    {firstValue(fields, item.data) || '제출 내역'}
                   </span>
-                  <ChevronRight
-                    size={16}
-                    aria-hidden="true"
-                    className="shrink-0 text-text-meta"
-                  />
-                </button>
-              </GlassCard>
+                  <span className="text-small-m text-text-meta">{formatKst(item.submitted_at) ?? ''}</span>
+                </span>
+                <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
+              </button>
             </li>
           ))}
         </ul>
@@ -286,10 +285,7 @@ function EditPanel({ slug, fields, canEdit, editEnd, uploadContext }) {
       locked={!canEdit}
       notice={
         !canEdit && (
-          <p
-            role="alert"
-            className="text-small-m leading-relaxed text-state-error md:text-small-d"
-          >
+          <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
             수정 기간이 지나 저장할 수 없습니다. 내용 확인만 가능합니다
             {editEnd ? ` (수정 마감: ${editEnd})` : ''}.
           </p>
@@ -301,15 +297,7 @@ function EditPanel({ slug, fields, canEdit, editEnd, uploadContext }) {
       }}
       uploadContext={uploadContext}
     >
-      {responses.length > 1 && (
-        <button
-          type="button"
-          onClick={() => setSelectedId(null)}
-          className="cursor-pointer text-small-m text-text-meta transition-colors duration-fast ease-out hover:text-text-pri md:text-small-d"
-        >
-          목록으로
-        </button>
-      )}
+      {responses.length > 1 && <TextButton onClick={() => setSelectedId(null)}>목록으로</TextButton>}
     </ResponseForm>
   )
 }
@@ -328,11 +316,11 @@ function FormPage() {
 
   if (loading) {
     return (
-      <Container as="section" className="py-section-m lg:py-section-d">
+      <RespondentPage>
         <p className={statusCls} aria-live="polite">
           폼 불러오는 중
         </p>
-      </Container>
+      </RespondentPage>
     )
   }
   // 비공개·없는 slug는 서버가 404를 준다(P7 에러 상태 재사용)
@@ -344,154 +332,126 @@ function FormPage() {
   // 접수 전과 접수 후 둘 다 can_submit false다. 어느 쪽인지는 문구 선택에만 쓴다.
   const beforeStart =
     !win.can_submit && win.accept_start && Date.now() < new Date(win.accept_start).getTime()
-  // ScheduleHighlight는 전시회 접수와 같은 일정 패널이다(유리 패널 + 연보라 날짜)
-  const schedule = {
-    submit_open: win.accept_start,
-    submit_close: win.accept_end,
-    edit_close: win.edit_end,
-  }
+  const schedule = [
+    { label: '접수 시작', value: formatKst(win.accept_start) },
+    { label: '접수 마감', value: formatKst(win.accept_end) },
+    { label: '수정 마감', value: formatKst(win.edit_end) },
+  ]
+  const uploadContext = { formSlug: slug, courseFieldId: form.settings?.drive_course_field_id }
 
   return (
-    <Container as="section" className="py-section-m lg:py-section-d">
-      <div className="flex min-w-0 flex-col gap-24">
-        <header className="flex min-w-0 flex-col gap-8">
-          <p className="font-mono text-caption-m uppercase tracking-label text-text-meta md:text-caption-d">
-            접수 안내
-          </p>
-          <h1 className="min-w-0 text-h1-m font-bold leading-tight tracking-display text-text-pri md:text-h1-d">
-            {form.title_ko}
-          </h1>
-        </header>
-
-        <ScheduleHighlight exhibition={schedule} />
-
-        {/* 안내문은 저장된 줄바꿈을 그대로 살린다. 마크다운 변환 금지 */}
+    <RespondentPage>
+      {/* 안내문은 저장된 줄바꿈을 그대로 살린다. 마크다운 변환 금지 */}
+      <HeaderCard title={form.title_ko}>
         {form.description_ko && (
-          <section className="min-w-0 rounded-md border border-border-subtle bg-bg-elev p-24 md:p-32">
-            <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec md:text-body-d">
-              {form.description_ko}
-            </p>
-          </section>
+          <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec">{form.description_ko}</p>
         )}
+        <ScheduleInline rows={schedule} />
+      </HeaderCard>
 
-        {editMode ? (
-          authLoading ? (
-            <p className={statusCls} aria-live="polite">
-              로그인 상태 확인 중
-            </p>
-          ) : user ? (
-            <div key="account" className="page-fade flex min-w-0 flex-col gap-24">
-              <AccountBar user={user} onLogout={logout} />
-              <EditPanel
-                slug={slug}
-                fields={form.fields ?? []}
-                canEdit={win.can_edit}
-                editEnd={editEnd}
-                // 53_DRIVE_STORAGE: 저장 위치는 질문마다 field.storage에 담겨 온다.
-                // 이 컨텍스트는 "어느 폼인가"와 "과목 질문이 무엇인가"만 알려준다.
-                uploadContext={{
-                  formSlug: slug,
-                  courseFieldId: form.settings?.drive_course_field_id,
-                }}
-              />
-            </div>
-          ) : (
-            <div key="guest" className="page-fade min-w-0">
-              <LoginGate
-                title="구글 로그인 후 확인"
-                description="제출에 사용한 구글 계정으로 로그인하면 제출 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
-              >
-                <Button variant="ghost" href={`/forms/${slug}`}>
-                  폼으로 돌아가기
-                </Button>
-              </LoginGate>
-            </div>
-          )
-        ) : done ? (
-          <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-            <h2 className={headingCls}>제출 완료</h2>
-            <p className={leadCls}>
-              제출이 접수되었습니다. 내용 수정은 제출에 사용한 구글 계정으로 로그인해
-              가능합니다
-              {editEnd ? ` (수정 마감: ${editEnd})` : ''}.
-            </p>
-            <div className="flex flex-wrap gap-12">
+      {editMode ? (
+        authLoading ? (
+          <p className={statusCls} aria-live="polite">
+            로그인 상태 확인 중
+          </p>
+        ) : user ? (
+          <div key="account" className="page-fade flex min-w-0 flex-col gap-12">
+            <AccountStrip user={user} onLogout={logout} />
+            <EditPanel
+              slug={slug}
+              fields={form.fields ?? []}
+              canEdit={win.can_edit}
+              editEnd={editEnd}
+              // 53_DRIVE_STORAGE: 저장 위치는 질문마다 field.storage에 담겨 온다.
+              // 이 컨텍스트는 "어느 폼인가"와 "과목 질문이 무엇인가"만 알려준다.
+              uploadContext={uploadContext}
+            />
+          </div>
+        ) : (
+          <div key="guest" className="page-fade min-w-0">
+            <LoginCard
+              title="구글 로그인 후 확인"
+              description="제출에 사용한 구글 계정으로 로그인하면 제출 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
+            >
+              <Button variant="ghost" href={`/forms/${slug}`}>
+                폼으로 돌아가기
+              </Button>
+            </LoginCard>
+          </div>
+        )
+      ) : done ? (
+        <NoticeCard
+          title="제출 완료"
+          actions={
+            <>
               {win.can_edit && (
                 <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
-                  제출 내역 확인·수정
+                  제출 내역 확인과 수정
                 </Button>
               )}
               <Button variant="secondary" href="/">
                 홈으로 이동
               </Button>
+            </>
+          }
+        >
+          제출이 접수되었습니다. 내용 수정은 제출에 사용한 구글 계정으로 로그인해 가능합니다
+          {editEnd ? ` (수정 마감: ${editEnd})` : ''}.
+        </NoticeCard>
+      ) : !win.can_submit ? (
+        <NoticeCard
+          title={beforeStart ? '접수 시작 전' : '접수 마감'}
+          actions={
+            win.can_edit &&
+            !authLoading &&
+            (user ? (
+              <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
+                제출 내역 확인과 수정
+              </Button>
+            ) : (
+              <GoogleLoginButton variant="secondary" next={`/forms/${slug}?mode=edit`} label="구글 로그인 후 제출 내역 확인" />
+            ))
+          }
+        >
+          {beforeStart
+            ? startAt
+              ? `접수는 ${startAt}에 시작합니다.`
+              : '접수 시작 일정이 아직 공지되지 않았습니다.'
+            : '접수가 마감되어 새로 제출할 수 없습니다.'}
+          {!beforeStart && win.can_edit && editEnd ? ` 제출한 내용 수정은 ${editEnd}까지 가능합니다.` : ''}
+        </NoticeCard>
+      ) : authLoading ? (
+        <p className={statusCls} aria-live="polite">
+          로그인 상태 확인 중
+        </p>
+      ) : user ? (
+        <div key="account" className="page-fade flex min-w-0 flex-col gap-12">
+          <AccountStrip user={user} onLogout={logout} />
+          <ResponseForm
+            fields={form.fields ?? []}
+            submitLabel="제출"
+            busyLabel="제출 중"
+            uploadContext={uploadContext}
+            onSubmit={async (value) => {
+              await api.post(`/forms/${slug}/submit`, { data: value })
+              setDone(true)
+            }}
+          />
+          {win.can_edit && (
+            <div className="px-4">
+              <TextButton onClick={() => (window.location.href = `/forms/${slug}?mode=edit`)}>제출 내역 확인과 수정</TextButton>
             </div>
-          </GlassCard>
-        ) : !win.can_submit ? (
-          <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-            <h2 className={headingCls}>{beforeStart ? '접수 시작 전' : '접수 마감'}</h2>
-            <p className={leadCls}>
-              {beforeStart
-                ? startAt
-                  ? `접수는 ${startAt}에 시작합니다.`
-                  : '접수 시작 일정이 아직 공지되지 않았습니다.'
-                : '접수가 마감되어 새로 제출할 수 없습니다.'}
-              {!beforeStart && win.can_edit && editEnd
-                ? ` 제출한 내용 수정은 ${editEnd}까지 가능합니다.`
-                : ''}
-            </p>
-            {win.can_edit &&
-              !authLoading &&
-              (user ? (
-                <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
-                  제출 내역 확인·수정
-                </Button>
-              ) : (
-                <GoogleLoginButton
-                  variant="secondary"
-                  next={`/forms/${slug}?mode=edit`}
-                  label="구글 로그인 후 제출 내역 확인"
-                />
-              ))}
-          </GlassCard>
-        ) : authLoading ? (
-          <p className={statusCls} aria-live="polite">
-            로그인 상태 확인 중
-          </p>
-        ) : user ? (
-          <div key="account" className="page-fade flex min-w-0 flex-col gap-24">
-            <AccountBar user={user} onLogout={logout} />
-            <ResponseForm
-              title="제출 폼"
-              fields={form.fields ?? []}
-              submitLabel="제출"
-              busyLabel="제출 중"
-              uploadContext={{
-                formSlug: slug,
-                courseFieldId: form.settings?.drive_course_field_id,
-              }}
-              onSubmit={async (value) => {
-                await api.post(`/forms/${slug}/submit`, { data: value })
-                setDone(true)
-              }}
-            />
-            {win.can_edit && (
-              <div>
-                <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
-                  제출 내역 확인·수정
-                </Button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div key="guest" className="page-fade min-w-0">
-            <LoginGate
-              title="구글 로그인 후 제출"
-              description="제출은 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정이 제출자 신원으로 기록되고, 제출 후 수정도 같은 계정으로 합니다."
-            />
-          </div>
-        )}
-      </div>
-    </Container>
+          )}
+        </div>
+      ) : (
+        <div key="guest" className="page-fade min-w-0">
+          <LoginCard
+            title="구글 로그인 후 제출"
+            description="제출은 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정이 제출자 신원으로 기록되고, 제출 후 수정도 같은 계정으로 합니다."
+          />
+        </div>
+      )}
+    </RespondentPage>
   )
 }
 

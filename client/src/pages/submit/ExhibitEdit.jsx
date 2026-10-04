@@ -1,4 +1,4 @@
-// /submit/edit — 전시회 접수 확인·수정 (12_BACKEND 5절 · 41_AUTH_CONTRACT)
+// /submit/edit — 전시회 접수 확인과 수정 (12_BACKEND 5절 · 41_AUTH_CONTRACT)
 // 구글 로그인 → GET /submit/exhibition/mine(본인 접수 목록 + 서버 시계 기준 수정 마감 판정)
 // → 1건이면 바로 수정 화면, 여러 건이면 선택 → PUT /submit/exhibition → 완료.
 //
@@ -8,51 +8,32 @@
 // readonly: 참가 유형·과목·이메일 — 서버가 변경을 무시하므로 클라도 자물쇠로 표시만.
 import { useState } from 'react'
 import { ChevronRight, Plus } from 'lucide-react'
-import PageBanner from '../../components/layout/PageBanner'
-import Container from '../../components/layout/Container'
-import GlassCard from '../../components/common/GlassCard'
 import Button from '../../components/common/Button'
+import {
+  AccountStrip,
+  HeaderCard,
+  LoginCard,
+  LongInput,
+  MiniField,
+  NoticeCard,
+  PrimarySubmit,
+  QuestionCard,
+  ReadOnlyRow,
+  RespondentPage,
+  ScheduleInline,
+  ShortInput,
+  SubmitRow,
+  TextButton,
+} from '../../components/forms/respondent'
 import { api, useApi } from '../../hooks/useApi'
 import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { isValidPhone } from '../../utils/format'
-import {
-  AccountBar,
-  Field,
-  LockedField,
-  LoginGate,
-  MemberRows,
-  OriginalFilesField,
-  PhoneInput,
-  ScheduleHighlight,
-  SubmitButton,
-} from './exhibitFormKit'
-import {
-  DESC_MAX,
-  ENTRY_TYPE_LABEL,
-  inputCls,
-  formatKst,
-  submitErrorMessage,
-} from './exhibitFormShared'
+import { MemberRows, OriginalFilesField, PhoneInput } from './exhibitFormKit'
+import { DESC_MAX, ENTRY_TYPE_LABEL, formatKst, submitErrorMessage } from './exhibitFormShared'
 
 const EMPTY_MEMBER = { name: '', studentNo: '', major: '' }
-
-function Banner() {
-  return (
-    <PageBanner
-      titleKo="접수 내역 확인·수정"
-      titleEn="EXHIBITION EDIT"
-      breadcrumb={[
-        { label: '홈', to: '/' },
-        { label: '전시회 접수', to: '/submit' },
-        { label: '확인·수정', to: '/submit/edit' },
-      ]}
-      nebulaX="64%"
-      nebulaY="44%"
-    />
-  )
-}
 
 // 접수 항목 → 수정 폼 state (수정 가능 항목만)
 function toForm(entry) {
@@ -130,7 +111,7 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
       isTeam &&
       !members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
     ) {
-      setError('팀원 이름·학번·전공을 모두 입력해 주세요')
+      setError('팀원 이름, 학번, 전공을 모두 입력해 주세요')
       return
     }
     setBusy(true)
@@ -175,163 +156,103 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
   }
 
   return (
-    <GlassCard className="p-24 md:p-40">
-      <form onSubmit={handleSave} className="flex min-w-0 flex-col gap-32">
-        <div className="flex flex-wrap items-baseline justify-between gap-16">
-          <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-            접수 내용 수정
-          </h2>
-          {showBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="cursor-pointer text-small-m text-text-meta transition-colors duration-fast ease-out hover:text-text-pri md:text-small-d"
-            >
-              목록으로
-            </button>
-          )}
-        </div>
+    <form onSubmit={handleSave} className="flex min-w-0 flex-col gap-12">
+      <div className="flex flex-wrap items-center justify-between gap-12 px-4">
+        <p className="text-small-m font-semibold text-text-pri">접수 내용 수정</p>
+        {showBack && <TextButton onClick={onBack}>목록으로</TextButton>}
+      </div>
 
-        {!canEdit && (
-          <p
-            role="alert"
-            className="text-small-m leading-relaxed text-state-error md:text-small-d"
-          >
-            수정 마감이 지나 저장할 수 없습니다. 접수 내용 확인만 가능합니다
-            {formatKst(exhibition?.edit_close)
-              ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})`
-              : ''}
-            .
-          </p>
-        )}
+      {!canEdit && (
+        <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
+          수정 마감이 지나 저장할 수 없습니다. 접수 내용 확인만 가능합니다
+          {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}.
+        </p>
+      )}
 
-        <div className="grid grid-cols-1 gap-24 md:grid-cols-3">
-          <LockedField
-            label="참가 유형"
-            value={ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type}
-          />
-          <LockedField label="이메일" value={entry.email ?? email} />
-          <LockedField label="과목" value={entry.fields?.course} />
-        </div>
+      <QuestionCard>
+        <dl className="flex flex-col gap-8">
+          <ReadOnlyRow label="참가 유형" value={ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type} />
+          <ReadOnlyRow label="이메일" value={entry.email ?? email} />
+          <ReadOnlyRow label="과목" value={entry.fields?.course} />
+        </dl>
+      </QuestionCard>
 
+      <QuestionCard label="신청자" required>
         {isTeam ? (
           <>
-            <Field label="팀명" required>
-              <input
-                type="text"
-                required
-                value={form.teamName}
-                onChange={set('teamName')}
-                className={inputCls}
-              />
-            </Field>
-            <Field
-              as="div"
-              label="팀원"
-              required
-              hint="대표자를 포함한 전체 팀원의 이름·학번·전공"
-            >
+            <MiniField label="팀명" required>
+              <ShortInput required value={form.teamName} onChange={set('teamName')} />
+            </MiniField>
+            <div className="flex flex-col gap-8">
+              <span className="text-small-m text-text-meta">
+                팀원 (대표자 포함) <span className="text-state-error">*</span>
+              </span>
               <MemberRows members={members} onChange={setMembers} />
               <div>
-                <button
-                  type="button"
-                  onClick={() => setMembers((prev) => [...prev, { ...EMPTY_MEMBER }])}
-                  className="inline-flex cursor-pointer items-center gap-8 rounded-sm border border-border-subtle px-16 py-8 text-small-m font-semibold text-text-pri transition-colors duration-fast ease-out hover:border-border-strong md:text-small-d"
-                >
-                  <Plus size={16} aria-hidden="true" />
-                  팀원 추가
-                </button>
+                <TextButton onClick={() => setMembers((prev) => [...prev, { ...EMPTY_MEMBER }])}>
+                  <span className="inline-flex items-center gap-8 text-purple-primary">
+                    <Plus size={16} aria-hidden="true" />
+                    팀원 추가
+                  </span>
+                </TextButton>
               </div>
-            </Field>
+            </div>
           </>
         ) : (
-          <div className="grid grid-cols-1 gap-24 md:grid-cols-3">
-            <Field label="이름" required>
-              <input
-                type="text"
-                required
-                value={form.name}
-                onChange={set('name')}
-                className={inputCls}
-              />
-            </Field>
-            <Field label="학번" required>
-              <input
-                type="text"
-                required
-                value={form.studentNo}
-                onChange={set('studentNo')}
-                className={inputCls}
-              />
-            </Field>
-            <Field label="전공" required>
-              <input
-                type="text"
-                required
-                value={form.major}
-                onChange={set('major')}
-                className={inputCls}
-              />
-            </Field>
+          <div className="grid grid-cols-1 gap-16 sm:grid-cols-3">
+            <MiniField label="이름" required>
+              <ShortInput required value={form.name} onChange={set('name')} />
+            </MiniField>
+            <MiniField label="학번" required>
+              <ShortInput required value={form.studentNo} onChange={set('studentNo')} />
+            </MiniField>
+            <MiniField label="전공" required>
+              <ShortInput required value={form.major} onChange={set('major')} />
+            </MiniField>
           </div>
         )}
+        <MiniField label="연락처" required>
+          <PhoneInput value={form.phone} onChange={setValue('phone')} className="max-w-[240px]" />
+        </MiniField>
+      </QuestionCard>
 
-        <Field label="연락처" required hint="010-0000-0000">
-          <PhoneInput value={form.phone} onChange={setValue('phone')} />
-        </Field>
+      <OriginalFilesField
+        files={originalFiles}
+        onChange={setOriginalFiles}
+        course={entry.fields?.course}
+        onUploadingChange={setFilesUploading}
+        disabled={!canEdit}
+      />
 
-        <OriginalFilesField
-          files={originalFiles}
-          onChange={setOriginalFiles}
-          course={entry.fields?.course}
-          onUploadingChange={setFilesUploading}
-          disabled={!canEdit}
-        />
-
-        <Field label="작품명" required hint={copy.workTitleHint}>
-          <input
-            type="text"
-            required
-            value={form.workTitle}
-            onChange={set('workTitle')}
-            className={inputCls}
-          />
-        </Field>
-
-        <Field label="작품 설명" required hint={`최대 ${DESC_MAX}자`}>
-          <textarea
-            required
-            rows={4}
-            maxLength={DESC_MAX}
-            value={form.workDesc}
-            onChange={set('workDesc')}
-            className={inputCls}
-          />
-          <span
-            aria-live="polite"
-            className="text-right font-mono text-caption-m text-text-meta"
-          >
+      <QuestionCard label="작품 정보" required>
+        <MiniField label="작품명" required>
+          <ShortInput required value={form.workTitle} onChange={set('workTitle')} />
+          {copy.workTitleHint && <span className="text-caption-m text-text-meta">{copy.workTitleHint}</span>}
+        </MiniField>
+        <MiniField label={`작품 설명 (최대 ${DESC_MAX}자)`} required>
+          <LongInput required maxLength={DESC_MAX} value={form.workDesc} onChange={set('workDesc')} />
+          <span aria-live="polite" className="text-right text-caption-m text-text-meta">
             {form.workDesc.length}/{DESC_MAX}
           </span>
-        </Field>
+        </MiniField>
+      </QuestionCard>
 
-        {error && (
-          <p role="alert" className="text-small-m text-state-error md:text-small-d">
-            {error}
-          </p>
-        )}
-        <div>
-          <SubmitButton busy={busy} disabled={!canSave}>
-            {busy ? '저장 중' : '수정 저장'}
-          </SubmitButton>
-        </div>
-      </form>
-    </GlassCard>
+      {error && (
+        <p role="alert" className="px-4 text-small-m text-state-error">
+          {error}
+        </p>
+      )}
+      <SubmitRow>
+        <PrimarySubmit busy={busy} disabled={!canSave}>
+          {busy ? '저장 중' : '수정 저장'}
+        </PrimarySubmit>
+      </SubmitRow>
+    </form>
   )
 }
 
 function ExhibitEdit() {
-  useTitle('전시회 접수 확인·수정')
+  useTitle('전시회 접수 확인과 수정')
   const { data: settingsRes, loading: settingsLoading } = useApi('/settings/public')
   const exhibition = settingsRes?.exhibition ?? null
   // 53: 작품명 안내 등 편집 가능한 문구는 접수 폼과 같은 DB 값을 읽는다
@@ -356,146 +277,119 @@ function ExhibitEdit() {
     entries.find((entry) => entry.id === selectedId) ??
     (entries.length === 1 ? entries[0] : null)
 
-  if (settingsLoading) {
-    return (
-      <>
-        <Banner />
-        <Container as="section" className="py-section-m lg:py-section-d">
-          <p className="text-body-m text-text-meta md:text-body-d" aria-live="polite">
-            수정 가능 기간 확인 중
-          </p>
-        </Container>
-      </>
-    )
-  }
+  const schedule = [
+    { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
+    { label: '접수 마감', value: formatKst(exhibition?.submit_close) },
+    { label: '수정 마감', value: formatKst(exhibition?.edit_close) },
+  ]
 
   return (
-    <>
-      <Banner />
-      <Container as="section" className="py-section-m lg:py-section-d">
-        <div className="flex min-w-0 flex-col gap-24">
-          <ScheduleHighlight exhibition={exhibition} />
+    <RespondentPage>
+      <HeaderCard title="접수 내역 확인과 수정">
+        <ScheduleInline rows={schedule} />
+      </HeaderCard>
 
-          {authLoading && (
-            <p className="text-body-m text-text-meta md:text-body-d" aria-live="polite">
-              로그인 상태 확인 중
-            </p>
-          )}
+      {(settingsLoading || authLoading) && (
+        <p className="px-4 text-small-m text-text-meta" aria-live="polite">
+          {settingsLoading ? '수정 가능 기간 확인 중' : '로그인 상태 확인 중'}
+        </p>
+      )}
 
-          {/* 41: 로그인 전환은 배너와 일정 패널을 그대로 둔 채 이 블록만 교체되며
-              .page-fade(opacity 0→1)로 이어진다 */}
-          {!authLoading && !user && (
-            <div key="guest" className="page-fade min-w-0">
-              <LoginGate
-                title="구글 로그인 후 확인"
-                description="접수에 사용한 구글 계정으로 로그인하면 본인 접수 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
-              >
-                <Button variant="ghost" href="/submit">
-                  새로 접수하기
-                </Button>
-              </LoginGate>
-            </div>
-          )}
+      {/* 41: 로그인 전환은 제목 카드를 그대로 둔 채 이 블록만 교체되며 .page-fade로 이어진다 */}
+      {!settingsLoading && !authLoading && !user && (
+        <div key="guest" className="page-fade min-w-0">
+          <LoginCard
+            title="구글 로그인 후 확인"
+            description="접수에 사용한 구글 계정으로 로그인하면 본인 접수 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
+          >
+            <Button variant="ghost" href="/submit">
+              새로 접수하기
+            </Button>
+          </LoginCard>
+        </div>
+      )}
 
-          {!authLoading && user && (
-            <div key="account" className="page-fade flex min-w-0 flex-col gap-24">
-              <AccountBar user={user} onLogout={logout} />
+      {!settingsLoading && !authLoading && user && (
+        <div key="account" className="page-fade flex min-w-0 flex-col gap-12">
+          <AccountStrip user={user} onLogout={logout} />
 
-              {done ? (
-                <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-                  <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-                    수정 완료
-                  </h2>
-                  <p className="text-body-l-m leading-relaxed text-text-sec md:text-body-l-d">
-                    접수 내용이 수정되었습니다.
-                    {formatKst(exhibition?.edit_close)
-                      ? ` 수정은 ${formatKst(exhibition?.edit_close)}까지 가능합니다.`
-                      : ''}
-                  </p>
-                  <div className="flex flex-wrap gap-12">
-                    <Button variant="secondary" href="/programs/exhibitions">
-                      전시회 페이지로
-                    </Button>
-                    <Button variant="secondary" href="/">
-                      홈으로 이동
-                    </Button>
-                  </div>
-                </GlassCard>
-              ) : mineLoading ? (
-                <p
-                  className="text-body-m text-text-meta md:text-body-d"
-                  aria-live="polite"
-                >
-                  접수 내역 불러오는 중
-                </p>
-              ) : mineError ? (
-                <p role="alert" className="text-small-m text-state-error md:text-small-d">
-                  {submitErrorMessage(mineError)}
-                </p>
-              ) : entries.length === 0 ? (
-                <GlassCard className="flex flex-col items-start gap-24 p-24 md:p-40">
-                  <p className="text-body-m leading-relaxed text-text-sec md:text-body-d">
-                    이 계정으로 등록된 접수 내역이 없습니다.
-                  </p>
-                  <Button variant="secondary" href="/submit">
-                    새로 접수
+          {done ? (
+            <NoticeCard
+              title="수정 완료"
+              actions={
+                <>
+                  <Button variant="secondary" href="/programs/exhibitions">
+                    전시회 페이지로
                   </Button>
-                </GlassCard>
-              ) : selected ? (
-                <EntryForm
-                  copy={copy}
-                  key={selected.id}
-                  entry={selected}
-                  canEdit={canEdit}
-                  exhibition={exhibition}
-                  email={user.email}
-                  showBack={entries.length > 1}
-                  onBack={() => setSelectedId(null)}
-                  onSaved={() => setDone(true)}
-                />
-              ) : (
-                <div className="flex flex-col gap-24">
-                  <h2 className="text-h2-m font-bold leading-snug text-text-pri md:text-h2-d">
-                    접수 목록
-                  </h2>
-                  <ul className="flex flex-col gap-16">
-                    {entries.map((entry) => (
-                      <li key={entry.id} className="min-w-0">
-                        <GlassCard hover as="div" className="min-w-0">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedId(entry.id)}
-                            className="flex w-full cursor-pointer items-center justify-between gap-16 p-24 text-left"
-                          >
-                            <span className="flex min-w-0 flex-col gap-8">
-                              <span className="truncate text-body-l-m font-semibold text-text-pri md:text-body-l-d">
-                                {entry.fields?.work_title || '(작품명 미입력)'}
-                              </span>
-                              <span className="font-mono text-caption-m text-text-meta">
-                                {ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type}
-                                {entry.fields?.course ? ` · ${entry.fields.course}` : ''}
-                                {entry.created_at
-                                  ? ` · ${String(entry.created_at).slice(0, 10)}`
-                                  : ''}
-                              </span>
-                            </span>
-                            <ChevronRight
-                              size={16}
-                              aria-hidden="true"
-                              className="shrink-0 text-text-meta"
-                            />
-                          </button>
-                        </GlassCard>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                  <Button variant="secondary" href="/">
+                    홈으로 이동
+                  </Button>
+                </>
+              }
+            >
+              접수 내용이 수정되었습니다.
+              {formatKst(exhibition?.edit_close) ? ` 수정은 ${formatKst(exhibition?.edit_close)}까지 가능합니다.` : ''}
+            </NoticeCard>
+          ) : mineLoading ? (
+            <p className="px-4 text-small-m text-text-meta" aria-live="polite">
+              접수 내역 불러오는 중
+            </p>
+          ) : mineError ? (
+            <p role="alert" className="px-4 text-small-m text-state-error">
+              {submitErrorMessage(mineError)}
+            </p>
+          ) : entries.length === 0 ? (
+            <NoticeCard
+              title="접수 내역 없음"
+              actions={
+                <Button variant="secondary" href="/submit">
+                  새로 접수
+                </Button>
+              }
+            >
+              이 계정으로 등록된 접수 내역이 없습니다.
+            </NoticeCard>
+          ) : selected ? (
+            <EntryForm
+              copy={copy}
+              key={selected.id}
+              entry={selected}
+              canEdit={canEdit}
+              exhibition={exhibition}
+              email={user.email}
+              showBack={entries.length > 1}
+              onBack={() => setSelectedId(null)}
+              onSaved={() => setDone(true)}
+            />
+          ) : (
+            <div className="flex flex-col gap-12">
+              <p className="px-4 text-small-m font-semibold text-text-pri">접수 목록</p>
+              <ul className="flex flex-col gap-12">
+                {entries.map((entry) => (
+                  <li key={entry.id} className="min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(entry.id)}
+                      className="flex w-full cursor-pointer items-center justify-between gap-16 rounded-md border border-border-subtle bg-bg-panel p-20 text-left transition-colors duration-fast ease-out hover:border-border-strong"
+                    >
+                      <span className="flex min-w-0 flex-col gap-4">
+                        <span className="truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
+                        <span className="text-small-m text-text-meta">
+                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, entry.created_at ? String(entry.created_at).slice(0, 10) : '']
+                            .filter(Boolean)
+                            .join(', ')}
+                        </span>
+                      </span>
+                      <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
-      </Container>
-    </>
+      )}
+    </RespondentPage>
   )
 }
 

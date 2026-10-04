@@ -4,8 +4,9 @@
 import { useRef, useState } from 'react'
 import { Lock, LogOut, Paperclip, Trash2, Upload, X } from 'lucide-react'
 import GlassCard from '../../components/common/GlassCard'
-import RadioCards from '../../components/common/RadioCards'
 import GoogleLoginButton from '../../components/auth/GoogleLoginButton'
+import Select from '../../components/common/Select'
+import { QuestionCard, ShortInput } from '../../components/forms/respondent'
 import { ACCENT } from '../../styles/accents'
 import { api } from '../../hooks/useApi'
 import { formatPhone } from '../../utils/format'
@@ -138,14 +139,13 @@ export function AccountBar({ user, onLogout }) {
  */
 export function PhoneInput({ value, onChange, ...rest }) {
   return (
-    <input
+    <ShortInput
       type="tel"
       required
       inputMode="numeric"
       autoComplete="tel"
       value={value}
       onChange={(event) => onChange(formatPhone(event.target.value))}
-      className={inputCls}
       placeholder="010-0000-0000"
       {...rest}
     />
@@ -153,63 +153,43 @@ export function PhoneInput({ value, onChange, ...rest }) {
 }
 
 /**
- * 과목 선택(Y2-4-8) — 어드민이 등록한 과목을 카드형 라디오로 고른다(네이티브 셀렉트 금지).
+ * 과목 선택(Y2-4-8) — 어드민이 등록한 과목을 드롭다운 하나로 고른다.
+ * 과목이 열 개가 넘어도 화면 한 줄만 차지한다(예전에는 과목을 전부 카드로 늘어놓았다).
  * Y3의 과목 관리가 아직 비어 있으면 목록이 없으므로 자유 입력으로 폴백해 접수를 막지 않는다.
  *
- * K3-5: 일반 사용자는 학기를 고르지 않는다. 학기 전환 UI 없이, 어드민이 지정한 현재
- * 학기(defaultSemester)에 해당하는 과목만 카드로 노출한다. 학기 태그가 없는 과목(semester
- * null)만 있는 경우는 필터 없이 전부 노출한다.
+ * K3-5: 일반 사용자는 학기를 고르지 않는다. 어드민이 지정한 현재 학기(defaultSemester)에 해당하는
+ * 과목만 보여 준다. 학기 태그가 없는 과목(semester null)만 있는 경우는 필터 없이 전부 보여 준다.
  */
 export function SubjectField({ subjects, value, onChange, defaultSemester, disabled = false, disabledHint }) {
-  const semesters = [
-    ...new Set(subjects.filter((s) => s.semester).map((s) => String(s.semester))),
-  ].sort()
-  // 학기 태그가 붙은 과목이 하나도 없으면 필터 없이 전부 노출(폴백). 있으면 현재 학기로
-  // 필터하되, 현재 학기에 과목이 없으면 등록된 첫 학기로 물러난다.
-  const semester = semesters.includes(String(defaultSemester))
-    ? String(defaultSemester)
-    : (semesters[0] ?? '')
-  const visible =
-    semesters.length === 0
-      ? subjects
-      : subjects.filter((s) => String(s.semester) === semester)
-
-  const hint = disabled && disabledHint ? disabledHint : '출품작이 제작된 수강 과목을 선택해 주세요'
+  const semesters = [...new Set(subjects.filter((s) => s.semester).map((s) => String(s.semester)))].sort()
+  const semester = semesters.includes(String(defaultSemester)) ? String(defaultSemester) : (semesters[0] ?? '')
+  const visible = semesters.length === 0 ? subjects : subjects.filter((s) => String(s.semester) === semester)
+  const hint = disabled && disabledHint ? disabledHint : '출품작을 만든 수강 과목'
 
   if (subjects.length === 0) {
     return (
-      <Field label="과목" required hint={disabled && disabledHint ? disabledHint : '출품작이 제작된 수강 과목명'}>
-        <input
-          type="text"
-          required
-          disabled={disabled}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={inputCls}
-          placeholder="과목명"
-        />
-      </Field>
+      <QuestionCard label="과목" required hint={hint}>
+        <ShortInput required disabled={disabled} value={value} onChange={(event) => onChange(event.target.value)} placeholder="과목명" />
+      </QuestionCard>
     )
   }
   return (
-    <Field as="div" label="과목" required hint={hint}>
+    <QuestionCard label="과목" required hint={hint}>
       {visible.length === 0 ? (
-        <p className="text-small-m text-text-meta md:text-small-d">
-          등록된 과목이 없습니다
-        </p>
+        <p className="text-small-m text-text-meta">등록된 과목이 없습니다</p>
       ) : (
-        <RadioCards
-          name="course"
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-          options={visible.map((s) => ({
-            value: s.value,
-            label: s.label,
-          }))}
-        />
+        <div className="max-w-[360px]">
+          <Select
+            aria-label="과목"
+            value={value}
+            placeholder="선택"
+            disabled={disabled}
+            options={visible.map((s) => ({ value: s.value, label: s.label }))}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </div>
       )}
-    </Field>
+    </QuestionCard>
   )
 }
 
@@ -250,15 +230,10 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
   const remove = (idx) => onChange(files.filter((_, i) => i !== idx))
 
   return (
-    <Field
-      as="div"
+    <QuestionCard
       label="원본 파일"
       required
-      hint={
-        locked
-          ? '먼저 위에서 과목을 선택하면 원본 파일을 올릴 수 있습니다.'
-          : '작품 원본을 변환 없이 그대로 보관합니다. 파일을 올린 뒤에는 과목을 바꿀 수 없습니다.'
-      }
+      hint={locked ? '과목을 먼저 선택해 주세요' : '작품 원본이 그대로 보관됩니다. 올린 뒤에는 과목을 바꿀 수 없습니다'}
     >
       {files.length > 0 && (
         <ul className="flex flex-col gap-8">
@@ -271,7 +246,7 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
                 href={f.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-w-0 items-center gap-8 truncate font-mono text-small-m text-text-sec underline underline-offset-4 hover:text-text-pri"
+                className="inline-flex min-w-0 items-center gap-8 truncate text-small-m text-text-sec underline underline-offset-4 hover:text-text-pri"
               >
                 <Paperclip size={15} aria-hidden="true" className="shrink-0" />
                 <span className="truncate">{f.name || f.url.split('/').pop()}</span>
@@ -295,13 +270,13 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
           type="button"
           onClick={() => inputRef.current && inputRef.current.click()}
           disabled={locked || busy || files.length >= MAX_ORIGINAL_FILES}
-          className="inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm border border-border-subtle px-24 text-body-m font-semibold text-text-pri transition duration-fast ease-out hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-not-allowed disabled:opacity-40 md:h-44 md:text-body-d"
+          className="inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm border border-border-subtle bg-bg-panel px-16 text-small-m font-semibold text-purple-primary transition duration-fast ease-out hover:bg-bg-elev focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Upload size={16} aria-hidden="true" />
           {busy ? '업로드 중' : '원본 파일 추가'}
         </button>
         {busy && (
-          <span className="font-mono text-caption-m text-text-meta">업로드 중 — 완료된 뒤 제출하세요</span>
+          <span className="text-small-m text-text-meta">업로드 중</span>
         )}
       </div>
       {error && (
@@ -318,53 +293,31 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
         tabIndex={-1}
         aria-hidden="true"
       />
-    </Field>
+    </QuestionCard>
   )
 }
 
-/** 팀원 목록 — {name, studentNo, major} 행 편집. 최소 1행 유지. */
+/** 팀원 목록. 팀원 한 명이 이름, 학번, 전공 밑줄 입력 세 칸이다. 최소 1행 유지 */
 export function MemberRows({ members, onChange }) {
   const setAt = (idx, key) => (event) =>
     onChange(members.map((m, i) => (i === idx ? { ...m, [key]: event.target.value } : m)))
   return (
-    <ul className="flex flex-col gap-12">
+    <ul className="flex flex-col gap-16">
       {members.map((member, idx) => (
-        <li key={idx} className="flex min-w-0 flex-col gap-8 md:flex-row md:items-center">
-          <input
-            type="text"
-            required
-            aria-label={`팀원 ${idx + 1} 이름`}
-            placeholder="이름"
-            value={member.name}
-            onChange={setAt(idx, 'name')}
-            className={inputCls}
-          />
-          <input
-            type="text"
-            required
-            aria-label={`팀원 ${idx + 1} 학번`}
-            placeholder="학번"
-            value={member.studentNo}
-            onChange={setAt(idx, 'studentNo')}
-            className={inputCls}
-          />
-          <input
-            type="text"
-            required
-            aria-label={`팀원 ${idx + 1} 전공`}
-            placeholder="전공"
-            value={member.major}
-            onChange={setAt(idx, 'major')}
-            className={inputCls}
-          />
+        <li key={idx} className="flex min-w-0 items-end gap-12">
+          <div className="grid min-w-0 flex-1 grid-cols-1 gap-12 sm:grid-cols-3">
+            <ShortInput required aria-label={`팀원 ${idx + 1} 이름`} placeholder="이름" value={member.name} onChange={setAt(idx, 'name')} />
+            <ShortInput required aria-label={`팀원 ${idx + 1} 학번`} placeholder="학번" value={member.studentNo} onChange={setAt(idx, 'studentNo')} />
+            <ShortInput required aria-label={`팀원 ${idx + 1} 전공`} placeholder="전공" value={member.major} onChange={setAt(idx, 'major')} />
+          </div>
           {members.length > 1 && (
             <button
               type="button"
               aria-label={`팀원 ${idx + 1} 제거`}
               onClick={() => onChange(members.filter((_, i) => i !== idx))}
-              className="flex shrink-0 cursor-pointer items-center justify-center rounded-md border border-border-subtle p-12 text-text-sec transition-colors duration-fast ease-out hover:border-border-strong hover:text-text-pri"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-meta transition-colors duration-fast ease-out hover:bg-bg-elev hover:text-text-pri"
             >
-              <X size={16} aria-hidden="true" />
+              <X size={18} aria-hidden="true" />
             </button>
           )}
         </li>
