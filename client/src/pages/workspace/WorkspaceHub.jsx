@@ -341,7 +341,8 @@ export default function WorkspaceHub() {
       } else {
         const r = await api.get('/workspace/files', { kind: kind === 'docs' ? 'doc' : 'sheet', ...hiddenOnly })
         let items = r.items
-        if (kind === 'sheets' && owner !== 'hidden') items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
+        // 전시회 접수 현황은 접수자 개인정보라 사이트 스태프에게만 보인다
+        if (kind === 'sheets' && owner !== 'hidden' && isStaff) items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
         setFiles(items)
       }
     } catch (e) {
@@ -349,7 +350,7 @@ export default function WorkspaceHub() {
     } finally {
       setLoading(false)
     }
-  }, [kind, owner])
+  }, [kind, owner, isStaff])
 
   useEffect(() => {
     if (K && !authLoading) load()

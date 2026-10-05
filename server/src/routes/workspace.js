@@ -76,10 +76,11 @@ router.get(
           AND (NOT $2::boolean OR f.hidden)
           AND (lower(f.owner_email) = ANY($3::text[])
                OR (f.owner_email IS NULL AND f.created_by = $4)
-               OR ($5::boolean AND f.general_access IN ('committee', 'public') AND (NOT f.hidden OR $2::boolean))
+               OR ($5::boolean AND f.general_access IN ('committee', 'major', 'public') AND (NOT f.hidden OR $2::boolean))
+               OR ($6::boolean AND f.general_access = 'major' AND (NOT f.hidden OR $2::boolean))
                OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee]
+      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee, idn.hallym]
     )
     const items = []
     for (const r of rows) {
@@ -97,8 +98,9 @@ router.get(
       items.push({ ...base, head: (first?.columns || []).slice(0, 6).map((c) => c.label), preview })
     }
     // 열 수 없는 운영위원회 및 교수진 파일은 이름만 있는 잠긴 항목으로 보여 준다(내용·미리보기·열기 정보는 보내지 않는다).
+    // 잠긴 카드는 한림대 계정에게만 보인다. 한림대 밖의 일반 구글 계정에는 파일 이름도 보이지 않는다.
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = onlyHidden ? [] : (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' AND NOT hidden AND NOT owner_only ORDER BY opened_at DESC, id DESC", [kind])).rows
+    const lockedRows = onlyHidden || !idn.hallym ? [] : (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' AND NOT hidden AND NOT owner_only ORDER BY opened_at DESC, id DESC", [kind])).rows
     for (const r of lockedRows) if (!have.has(r.id)) items.push({ id: r.id, kind: r.kind, title: r.title, locked: true, updated_at: r.updated_at, opened_at: r.opened_at, my_role: null, mine: false, can_delete: false })
     res.json({ items, staff: Boolean(idn.staff), committee: idn.committee })
   })

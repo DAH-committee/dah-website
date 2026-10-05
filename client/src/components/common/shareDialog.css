@@ -28,7 +28,7 @@
 
 .share__general { display: flex; align-items: center; gap: 12px; min-height: 60px; }
 .share__gico { display: inline-grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #e2e2e2; color: #444; }
-.share__gico--committee, .share__gico--public { background: #7a3cff; color: #fff; }
+.share__gico--committee, .share__gico--major, .share__gico--public { background: #7a3cff; color: #fff; }
 .share__gtext { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .share__gtext small { color: #5f6368; font-size: 12px; line-height: 1.4; }
 .share__gname { display: inline-block; padding: 0 12px; font-size: 14px; font-weight: 600; }

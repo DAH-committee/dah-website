@@ -10,7 +10,7 @@
  */
 export function formStatus(published, settings = {}, now = new Date()) {
   if (!published) {
-    return { key: 'draft', label: '비공개', tone: 'muted', note: '아직 사이트에 공개하지 않았습니다' }
+    return { key: 'draft', label: '응답 받기 전', tone: 'muted', note: '아직 응답 받기를 켜지 않았습니다(사이트에 공개 안 됨)' }
   }
   const start = settings?.accept_start ? new Date(settings.accept_start) : null
   const end = settings?.accept_end ? new Date(settings.accept_end) : null

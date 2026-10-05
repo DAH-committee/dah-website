@@ -13,6 +13,7 @@
 //   3. 일반 액세스
 //        restricted  제한됨: 위 1·2에 해당하는 사람만
 //        committee   운영위원회 및 교수진: committee 전원에게 general_role
+//        major       디지털인문예술전공: committee + 한림대 구글 계정(@hallym.ac.kr, 하위 도메인 포함)으로 로그인한 사람에게 general_role
 //        public      전체 공개: committee 전원 + 링크(share_token)를 가진 모든 사람에게 general_role
 import crypto from 'node:crypto'
 import { query } from '../db.js'
@@ -20,7 +21,8 @@ import { hasRole } from '../middleware/auth.js'
 import { optionalPublicAuth } from '../middleware/publicAuth.js'
 
 export const RANK = { viewer: 1, editor: 2 }
-export const GENERAL = ['restricted', 'committee', 'public']
+export const GENERAL = ['restricted', 'committee', 'major', 'public']
+export const HALLYM_RE = /@(?:[a-z0-9-]+\.)*hallym\.ac\.kr$/
 export const ROLES = ['viewer', 'editor']
 
 export const newToken = () => crypto.randomBytes(18).toString('base64url')
@@ -43,6 +45,7 @@ export async function identityOf(req, res) {
     staff,
     member,
     committee: Boolean(staff || member),
+    hallym: list.some((e) => HALLYM_RE.test(e)),
     guest: req.publicUser || null,
     emails: list,
     isSite: Boolean(req.user && hasRole(req.user, 'admin')),
@@ -80,6 +83,7 @@ export async function levelFor(req, res, file) {
   }
   const role = ROLES.includes(file.general_role) ? file.general_role : 'viewer'
   if (file.general_access === 'committee' && id.committee) level = best(level, role)
+  if (file.general_access === 'major' && (id.committee || id.hallym)) level = best(level, role)
   if (file.general_access === 'public') {
     if (id.committee) level = best(level, role)
     else {

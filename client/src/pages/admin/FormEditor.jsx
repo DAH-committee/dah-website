@@ -1130,7 +1130,7 @@ function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy
   return (
     <div className="flex flex-col gap-16">
       <SettingGroup title="공개">
-        <SwitchRow title={form.published ? '공개' : '비공개'} checked={form.published} onChange={set('published')} label="공개 여부" />
+        <SwitchRow title={form.published ? '응답 받는 중' : '응답 받지 않음'} checked={form.published} onChange={set('published')} label="응답 받기" />
       </SettingGroup>
 
       <SettingGroup title="접수 기간">

@@ -5,7 +5,7 @@
 // 사이트 디자인 시스템 모달(AppDialog)과 같은 패널 토큰을 쓰고, 밝은 작업면에서는 reading 토큰으로 바뀐다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, Eye, EyeOff, Globe, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
+import { Check, ChevronDown, Eye, EyeOff, Globe, GraduationCap, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { Avatar } from './AccountMenu'
 import { alertDialog } from './AppDialog'
@@ -15,6 +15,7 @@ const ROLE_LABEL = { viewer: '뷰어', editor: '편집자' }
 const GENERAL = [
   { id: 'restricted', label: '제한됨', desc: '추가된 사용자만 열 수 있습니다', Icon: Lock },
   { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정과 등록된 운영위원회 구성원은 누구나 열 수 있습니다', Icon: Users },
+  { id: 'major', label: '디지털인문예술전공', desc: '한림대 구글 계정(@hallym.ac.kr)으로 로그인한 사람은 누구나 목록에서 보고 열 수 있습니다', Icon: GraduationCap },
   { id: 'public', label: '전체 공개', desc: '링크가 있는 인터넷 사용자는 누구나 열 수 있습니다', Icon: Globe },
 ]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -86,13 +87,14 @@ export function useShareIcon(fileId, tick = 0) {
       .then((s) => {
         if (!alive) return
         if (s.general_access === 'public') setKind('globe')
+        else if (s.general_access === 'major') setKind('major')
         else if (s.general_access === 'committee' || (s.people || []).length > 0) setKind('users')
         else setKind('lock')
       })
       .catch(() => {})
     return () => { alive = false }
   }, [fileId, tick])
-  return kind === 'globe' ? Globe : kind === 'users' ? Users : Lock
+  return kind === 'globe' ? Globe : kind === 'major' ? GraduationCap : kind === 'users' ? Users : Lock
 }
 
 export default function ShareDialog({ fileId, title, linkPath, onClose, onChanged }) {
@@ -309,6 +311,9 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
                 )
               )}
             </div>
+            {state.kind === 'form' && ['major', 'public'].includes(g.id) && (
+              <p className="share__warn">이 설문지를 열 수 있는 사람은 응답(이름·학번 등 개인정보 포함)도 볼 수 있습니다. 응답을 모으는 설문지는 제한됨이나 운영위원회 및 교수진을 권장합니다.</p>
+            )}
             {g.id === 'public' && state.general_role === 'editor' && (
               <p className="share__warn">링크가 있는 사람은 로그인 없이 문서를 고칠 수 있습니다. 링크를 아는 사람에게만 전달하세요.</p>
             )}

@@ -464,13 +464,15 @@ router.get(
       const mine = ws.owner_email && idn.emails.includes(String(ws.owner_email).toLowerCase())
       const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
       // 비공개 폼은 소유자·공유받은 사람만 본다(비공개 모아 보기에서는 운영위원회 및 교수진도 본다)
-      const general = idn.committee && ['committee', 'public'].includes(ws.general_access) && (!ws.hidden || onlyHidden)
+      const general =
+        ((idn.committee && ['committee', 'major', 'public'].includes(ws.general_access)) || (idn.hallym && ws.general_access === 'major')) &&
+        (!ws.hidden || onlyHidden)
       if (!mine && !shared && !general) continue
       items.push({ ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: idn.committee, can_hide: idn.committee && level === 'editor' })
     }
     // 열 수 없는 운영위원회 및 교수진 폼은 이름만 있는 잠긴 항목으로 보여 준다.
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = onlyHidden ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND form_id IS NOT NULL")).rows
+    const lockedRows = onlyHidden || !idn.hallym ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND form_id IS NOT NULL")).rows
     for (const r of lockedRows) if (!have.has(r.form_id)) items.push({ id: r.form_id, ws_id: r.id, title_ko: r.title, locked: true, fields: [], my_role: null, can_delete: false, updated_at: null })
     res.json({ items, total: items.length, staff: Boolean(idn.staff), committee: idn.committee })
   })
