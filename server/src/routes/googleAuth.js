@@ -189,11 +189,11 @@ router.get(
       staffIn = true
     }
 
-    // 2) 게스트: 한림대 이메일(@hallym.ac.kr)은 누구나, 그 밖의 이메일은 관리자가 미리 등록했거나
+    // 2) 게스트: 한림대 이메일(@hallym.ac.kr, @glab.hallym.ac.kr 같은 하위 도메인 포함)은 누구나, 그 밖의 이메일은 관리자가 미리 등록했거나
     //    디인예 독스·시트·폼에 이메일로 초대된 경우만 로그인할 수 있다. 그 밖의 이메일은 계정이 생기지 않는다.
     let user = (await query('SELECT id, google_sub, email, name FROM public_users WHERE lower(email) = $1', [email])).rows[0]
     if (!user) {
-      const hallym = /@hallym\.ac\.kr$/.test(email)
+      const hallym = /@(?:[a-z0-9-]+\.)*hallym\.ac\.kr$/.test(email) // hallym.ac.kr, glab.hallym.ac.kr 등
       const invited = hallym || (await query('SELECT 1 FROM ws_shares WHERE lower(email) = $1 LIMIT 1', [email])).rows[0]
       if (invited) {
         user = (
