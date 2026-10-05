@@ -13,7 +13,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlignCenter, AlignLeft, AlignRight, Baseline, Bold, Filter, Maximize, PaintBucket, Plus, Printer,
-  Redo2, RefreshCw, Search, Sheet as SheetIcon, Trash2, Undo2, WrapText, X,
+  MoreVertical, Redo2, RefreshCw, Search, Sheet as SheetIcon, Trash2, Undo2, WrapText, X,
 } from 'lucide-react'
 import ColumnFilter from '../../common/ColumnFilter'
 import { useToast } from '../../common/Toast'
@@ -21,6 +21,8 @@ import { api } from '../../../hooks/useApi'
 import { Link } from 'react-router-dom'
 import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
+import { createEvaluator } from './formula'
+import WorkspaceToggle from '../../layout/WorkspaceToggle'
 import {
   ALIGN_CLASS, FILL_COLORS, FONT_SIZES, TEXT_COLORS, ZOOMS, a1, colLetter, download, normalizeSheetUi,
   numericSum, parseTsv, rangeName, toCsv, toSpreadsheetML, toTsv,
@@ -117,6 +119,11 @@ export default function SheetWorkspace({
   exportName = '접수 현황',
   homeHref,
   onRenameFile,
+  onAddSheet,
+  onRenameSheet,
+  onDuplicateSheet,
+  onDeleteSheet,
+  onRenameColumn,
 }) {
   const showToast = useToast()
   const [sheetId, setSheetId] = useState(sheets[0]?.id)
@@ -173,7 +180,7 @@ export default function SheetWorkspace({
   }, [allUi, saveState, uiLoaded, stateKey])
 
   // ── 열과 행 ────────────────────────────────────────────────
-  const allCols = useMemo(() => {
+  const rawCols = useMemo(() => {
     const custom = sheet.allowCustom
       ? ui.customCols.map((c) => ({
           key: c.key,
@@ -184,6 +191,26 @@ export default function SheetWorkspace({
       : []
     return [...sheet.columns, ...custom]
   }, [sheet.columns, sheet.allowCustom, ui.customCols, ui.customValues])
+  // 수식: 칸 값이 "="로 시작하면 계산한 값을 보여 주고, 원본(raw)은 편집·수식 입력줄에 쓴다
+  const allCols = useMemo(() => {
+    if (!sheet.formulas) return rawCols
+    const rowIndex = new Map(sheet.rows.map((r, i) => [r, i]))
+    const evaluate = createEvaluator((c, r) => {
+      const col = rawCols[c]
+      if (!col) return null
+      if (r === 1) return col.label
+      const row = sheet.rows[r - 2]
+      return row ? col.get(row) : null
+    })
+    return rawCols.map((col, ci) => ({
+      ...col,
+      raw: col.get,
+      get: (row) => {
+        const ri = rowIndex.get(row)
+        return ri === undefined ? col.get(row) : evaluate(ci, ri + 2)
+      },
+    }))
+  }, [rawCols, sheet.rows, sheet.formulas])
   const columns = useMemo(() => allCols.filter((c) => !ui.hidden.includes(c.key)), [allCols, ui.hidden])
   const letterOf = useCallback((col) => colLetter(allCols.findIndex((c) => c.key === col.key)), [allCols])
   const widthOf = useCallback((col) => ui.widths[col.key] || col.width || DEFAULT_WIDTH, [ui.widths])
@@ -227,7 +254,7 @@ export default function SheetWorkspace({
 
   // 자주 쓰는 최신 값은 ref에 둔다(되돌리기 같은 비동기 동작이 오래된 값을 쥐지 않게)
   const latest = useRef({})
-  latest.current = { rows: sheet.rows, allCols, ui, setUi }
+  latest.current = { rows: sheet.rows, allCols, ui, setUi, sid: sheet.id }
 
   // ── 선택, 편집 ─────────────────────────────────────────────
   const [dialog, setDialog] = useState(null) // { type:'text', ... } | { type:'find' } | { type:'export' }
@@ -258,7 +285,8 @@ export default function SheetWorkspace({
   const active = sel?.anchor
   const activeRow = active ? visibleRows[active.r] : null
   const activeCol = active ? columns[active.c] : null
-  const activeValue = activeRow && activeCol ? activeCol.get(activeRow) : ''
+  const rawOf = (col, row) => (col.raw || col.get)(row)
+  const activeValue = activeRow && activeCol ? rawOf(activeCol, activeRow) : ''
   const fmtKey = (row, col) => `${rowId(row)}|${col.key}`
 
   const canEdit = (col) => Boolean(col && sheet.editable && (col.custom || (col.patch && onEditCell)))
@@ -298,14 +326,14 @@ export default function SheetWorkspace({
   // 칸 값을 실제로 바꾼다. 접수 칸은 서버에, 메모 열은 화면 상태에 쓴다.
   const writeCell = useCallback(
     async (id, colKey, value) => {
-      const { rows, allCols: cols, setUi: update } = latest.current
+      const { rows, allCols: cols, setUi: update, sid } = latest.current
       const col = cols.find((c) => c.key === colKey)
       const row = rows.find((r) => rowId(r) === id)
       if (!col || !row) throw new Error('칸을 찾을 수 없습니다')
       if (col.custom) {
         update((cur) => ({ ...cur, customValues: { ...cur.customValues, [id]: { ...(cur.customValues[id] || {}), [colKey]: value } } }))
       } else {
-        await onEditCell(row, col, value)
+        await onEditCell(row, col, value, sid)
       }
     },
     [onEditCell]
@@ -315,7 +343,7 @@ export default function SheetWorkspace({
   const applyChanges = async (changes, label) => {
     const done = []
     for (const ch of changes) {
-      const before = ch.col.get(ch.row)
+      const before = (ch.col.raw || ch.col.get)(ch.row)
       if (before === ch.value) continue
       try {
         await writeCell(rowId(ch.row), ch.col.key, ch.value)
@@ -356,7 +384,7 @@ export default function SheetWorkspace({
       showToast('이 칸은 고칠 수 없습니다')
       return
     }
-    const orig = col.get(row)
+    const orig = rawOf(col, row)
     setEditing({ r, c, value: initial ?? orig, orig })
   }
 
@@ -381,11 +409,11 @@ export default function SheetWorkspace({
       }
       if (!col || !cur.value.trim()) return
       try {
-        const entry = await onInsertRow()
+        const entry = await onInsertRow(sheet.id)
         if (col.custom) {
           latest.current.setUi((ui0) => ({ ...ui0, customValues: { ...ui0.customValues, [String(entry.id)]: { ...(ui0.customValues[String(entry.id)] || {}), [col.key]: cur.value } } }))
         } else {
-          await onEditCell(entry, col, cur.value)
+          await onEditCell(entry, col, cur.value, sheet.id)
         }
         select(0, cur.c)
       } catch (err) {
@@ -523,7 +551,7 @@ export default function SheetWorkspace({
     if (!rows.length) return showToast('지울 행을 선택해 주세요')
     if (!window.confirm(`선택한 ${rows.length}개 행을 삭제할까요? 접수 내용이 지워지고 되돌릴 수 없습니다.`)) return
     try {
-      await onDeleteRows(rows)
+      await onDeleteRows(rows, sheet.id)
       setSel(null)
       showToast(`${rows.length}개 행을 삭제했습니다`)
     } catch (err) {
@@ -532,7 +560,7 @@ export default function SheetWorkspace({
   }
   const insertRow = async () => {
     try {
-      await onInsertRow()
+      await onInsertRow(sheet.id)
       select(0, 0)
       showToast('빈 접수 행을 추가했습니다')
     } catch (err) {
@@ -595,6 +623,17 @@ export default function SheetWorkspace({
   }
 
   // ── 찾기와 바꾸기 ──────────────────────────────────────────
+  const [headEdit, setHeadEdit] = useState(null) // { key, value }
+  const commitHead = () => {
+    if (!headEdit) return
+    const label = headEdit.value.trim().slice(0, 40)
+    const col = allCols.find((x) => x.key === headEdit.key)
+    setHeadEdit(null)
+    if (!col || !label || label === col.label) return
+    if (col.custom) setUi((cur) => ({ ...cur, customCols: cur.customCols.map((x) => (x.key === col.key ? { ...x, label } : x)) }))
+    else onRenameColumn?.(col.key, label, sheet.id)
+  }
+  const headEditable = (col) => Boolean(sheet.editable && (col.custom || onRenameColumn))
   const [find, setFind] = useState({ text: '', replace: '', matchCase: false })
   const matches = useMemo(() => {
     const needle = find.matchCase ? find.text : find.text.toLowerCase()
@@ -833,7 +872,7 @@ export default function SheetWorkspace({
     {
       label: '삽입',
       items: [
-        { label: '행 추가 (빈 접수)', onSelect: insertRow, disabled: !onInsertRow || !sheet.editable },
+        { label: '행 추가', onSelect: insertRow, disabled: !onInsertRow || !sheet.editable },
         { label: '메모 열 추가', onSelect: addCustomColumn, disabled: !sheet.allowCustom },
         { type: 'divider' },
         { label: '메모', onSelect: addNote, disabled: !hasSel },
@@ -904,7 +943,9 @@ export default function SheetWorkspace({
             {saveLabel}
           </span>
         </div>
-        <div className="flex flex-col items-end gap-4 print:hidden">
+        <div className="flex items-center gap-16 print:hidden">
+          {homeHref && <WorkspaceToggle light />}
+          <div className="flex flex-col items-end gap-4">
           <p className="text-small-m text-reading-text">
             총 {sheet.rows.length}
             {unit} 중 {visibleRows.length}
@@ -912,6 +953,7 @@ export default function SheetWorkspace({
           </p>
           {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
         </div>
+          </div>
       </div>
 
       <div className="px-gutter-m pt-8 md:px-gutter-t lg:px-gutter-d print:hidden">
@@ -971,7 +1013,7 @@ export default function SheetWorkspace({
         <Divider />
         <button type="button" aria-label="필터" title="필터 사용" aria-pressed={ui.filtersOn} onClick={() => { if (ui.filtersOn) setFilters({}); setUi({ filtersOn: !ui.filtersOn }) }} className={TB_BTN}><Filter size={18} /></button>
         <button type="button" aria-label="찾기 및 바꾸기" title="찾기 및 바꾸기 (⌘F)" onClick={() => setDialog({ type: 'find' })} className={TB_BTN}><Search size={18} /></button>
-        <button type="button" aria-label="행 추가" title="행 추가 (빈 접수)" onClick={insertRow} disabled={!onInsertRow || !sheet.editable} className={TB_BTN}><Plus size={18} /></button>
+        <button type="button" aria-label="행 추가" title="행 추가" onClick={insertRow} disabled={!onInsertRow || !sheet.editable} className={TB_BTN}><Plus size={18} /></button>
         <button type="button" aria-label="선택한 행 삭제" title="선택한 행 삭제" onClick={deleteSelectedRows} disabled={!hasSel || !onDeleteRows} className={TB_BTN}><Trash2 size={18} /></button>
         <Divider />
         <button type="button" aria-label="구글 시트로 내보내기" title="구글 시트로 내보내기" onClick={() => setDialog({ type: 'export' })} className={TB_BTN}><SheetIcon size={18} /></button>
@@ -1093,7 +1135,26 @@ export default function SheetWorkspace({
                       style={{ top: LETTER_H, ...(c < ui.freezeCols ? { left: frozenLeft[c] } : {}) }}
                     >
                       <span className="flex items-center justify-between gap-4">
-                        <span className="min-w-0 truncate font-semibold text-reading-textStrong">{col.label}</span>
+                        {headEdit?.key === col.key ? (
+                          <input
+                            autoFocus
+                            value={headEdit.value}
+                            aria-label="열 이름"
+                            onChange={(e) => setHeadEdit({ ...headEdit, value: e.target.value })}
+                            onBlur={commitHead}
+                            onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') commitHead(); if (e.key === 'Escape') setHeadEdit(null) }}
+                            onFocus={(e) => e.target.select()}
+                            className="min-w-0 flex-1 rounded-sm bg-reading-surface px-4 text-[13px] font-semibold text-reading-textStrong outline outline-2 outline-reading-accent"
+                          />
+                        ) : (
+                          <span
+                            onDoubleClick={() => headEditable(col) && setHeadEdit({ key: col.key, value: col.label })}
+                            title={headEditable(col) ? '두 번 눌러 열 이름 바꾸기' : undefined}
+                            className="min-w-0 truncate font-semibold text-reading-textStrong"
+                          >
+                            {col.label}
+                          </span>
+                        )}
                         {ui.filtersOn && (
                           <ColumnFilter
                             label={col.label}
@@ -1202,7 +1263,7 @@ export default function SheetWorkspace({
                             }}
                             onMouseEnter={() => dragging.current && setSel((prev) => (prev ? { ...prev, focus: { r, c } } : prev))}
                             onDoubleClick={() => startEdit(r, c)}
-                            className={`relative block min-h-[24px] w-full cursor-cell px-6 py-[2px] text-[13px] leading-[20px] ${ALIGN_CLASS[f.align] || 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
+                            className={`relative block min-h-[24px] w-full cursor-cell px-6 py-[2px] text-[13px] leading-[20px] ${f.align ? ALIGN_CLASS[f.align] : sheet.formulas && /^-?\d+(\.\d+)?$/.test(value) ? 'text-right' : 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
                               isActive
                                 ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
                                 : on
@@ -1231,16 +1292,40 @@ export default function SheetWorkspace({
       {/* 아래: 시트 탭 + 선택 요약 */}
       <div className="flex flex-wrap items-center justify-between gap-8 px-gutter-m py-8 md:px-gutter-t lg:px-gutter-d print:hidden">
         <div className="flex flex-wrap items-center gap-4">
-          {sheets.map((item) => (
+          {onAddSheet && (
             <button
-              key={item.id}
               type="button"
-              onClick={() => changeSheet(item.id)}
-              aria-pressed={sheet.id === item.id}
-              className={`h-32 cursor-pointer rounded-sm px-16 text-small-m font-semibold transition-colors duration-fast ease-out ${sheet.id === item.id ? 'bg-reading-surface text-reading-accent' : 'text-reading-textMeta hover:bg-reading-subtle hover:text-reading-text'}`}
+              aria-label="시트 추가"
+              title="시트 추가"
+              onClick={async () => { const id = await onAddSheet(); if (id) setSheetId(id) }}
+              className="flex h-32 w-32 cursor-pointer items-center justify-center rounded-sm text-reading-text transition-colors duration-fast ease-out hover:bg-reading-subtle"
             >
-              {item.label}
+              <Plus size={18} />
             </button>
+          )}
+          {sheets.map((item) => (
+            <span key={item.id} className="inline-flex items-center">
+              <button
+                type="button"
+                onClick={() => changeSheet(item.id)}
+                onDoubleClick={() => onRenameSheet && askText({ title: '시트 이름 바꾸기', label: '시트 이름', value: item.label, okLabel: '바꾸기', onOk: (v) => v.trim() && onRenameSheet(item.id, v.trim().slice(0, 30)) })}
+                aria-pressed={sheet.id === item.id}
+                className={`h-32 cursor-pointer rounded-sm px-16 text-small-m font-semibold transition-colors duration-fast ease-out ${sheet.id === item.id ? 'bg-reading-surface text-reading-accent' : 'text-reading-textMeta hover:bg-reading-subtle hover:text-reading-text'}`}
+              >
+                {item.label}
+              </button>
+              {sheet.id === item.id && (onRenameSheet || onDuplicateSheet || onDeleteSheet) && (
+                <Pop label="시트 메뉴" trigger={<MoreVertical size={16} />}>
+                  {(close) => (
+                    <div className="flex min-w-[140px] flex-col">
+                      {onRenameSheet && <button type="button" className="h-32 cursor-pointer rounded-sm px-12 text-left text-small-m hover:bg-reading-subtle" onClick={() => { close(); askText({ title: '시트 이름 바꾸기', label: '시트 이름', value: item.label, okLabel: '바꾸기', onOk: (v) => v.trim() && onRenameSheet(item.id, v.trim().slice(0, 30)) }) }}>이름 바꾸기</button>}
+                      {onDuplicateSheet && <button type="button" className="h-32 cursor-pointer rounded-sm px-12 text-left text-small-m hover:bg-reading-subtle" onClick={async () => { close(); const id = await onDuplicateSheet(item.id); if (id) setSheetId(id) }}>복제</button>}
+                      {onDeleteSheet && sheets.length > 1 && <button type="button" className="h-32 cursor-pointer rounded-sm px-12 text-left text-small-m text-state-error hover:bg-reading-subtle" onClick={() => { close(); askText({ title: `"${item.label}" 시트 삭제`, label: '삭제하려면 시트 이름을 그대로 입력', value: '', okLabel: '삭제', onOk: (v) => v.trim() === item.label ? onDeleteSheet(item.id) : showToast('이름이 달라 삭제하지 않았습니다') }) }}>삭제</button>}
+                    </div>
+                  )}
+                </Pop>
+              )}
+            </span>
           ))}
         </div>
         <p className="text-caption-m text-reading-textMeta" aria-live="polite">

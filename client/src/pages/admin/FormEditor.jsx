@@ -23,6 +23,8 @@ import { HeaderCard } from '../../components/forms/respondent'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
+import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
+import { FormsIcon } from '../workspace/icons'
 import {
   DateInput,
   ErrorText,
@@ -123,7 +125,7 @@ function normStorage(raw, formSettings = {}) {
   return { ...DEFAULT_STORAGE }
 }
 
-const CARD = 'flex flex-col rounded-md border border-border-subtle bg-bg-panel'
+const CARD = 'flex flex-col rounded-md bg-bg-panel shadow-[0_1px_2px_rgb(0_0_0/0.18)]'
 const TEXT_BTN =
   'inline-flex h-11 cursor-pointer items-center gap-8 rounded-sm px-12 text-small-m font-semibold text-text-sec transition hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent'
 const ICON_BTN =
@@ -840,7 +842,7 @@ function QuestionCard({
         rp.onDragEnd?.(e)
       }}
       onClick={() => !active && onActivate()}
-      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'border-l-[6px] border-l-purple-primary' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-purple-primary' : ''}`}
+      className={`${CARD} group relative transition duration-fast ease-out ${active ? 'shadow-[0_2px_8px_rgb(0_0_0/0.22)]' : 'cursor-pointer hover:shadow-md'} ${dragging ? 'opacity-40' : ''} ${over ? '!border-purple-primary' : ''}`}
     >
       <span
         onPointerDown={() => rp.draggable && onArm(true)}
@@ -1008,7 +1010,7 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
       <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-purple-deep px-16 py-8 text-small-m font-semibold text-button-primaryText">
         {pageNo}페이지 시작
       </span>
-      <div className={`${CARD} ${active ? 'border-l-[6px] border-l-purple-primary' : ''} mt-32 rounded-tl-none border-t-8 border-t-purple-deep ${over ? '!border-purple-primary' : ''}`}>
+      <div className={`${CARD} ${active ? 'shadow-[0_2px_8px_rgb(0_0_0/0.22)]' : ''} mt-32 border-t-8 border-t-purple-deep ${over ? '!border-purple-primary' : ''}`}>
         <span
           onPointerDown={() => rp.draggable && onArm(true)}
           onPointerUp={() => onArm(false)}
@@ -1054,7 +1056,7 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
 function AddToolbar({ onAdd }) {
   const btn = `flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm px-16 text-left text-small-m font-semibold ${INK} transition hover:bg-glass-strong hover:text-purple-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-focus`
   return (
-    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md border ${LINE} bg-bg-panel p-4 shadow-card-glow sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
+    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md bg-bg-panel p-4 shadow-[0_1px_2px_rgb(0_0_0/0.18)] sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
       <button type="button" onClick={() => onAdd('radio')} className={btn}>
         <PlusCircle size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 질문 추가
       </button>
@@ -1444,7 +1446,7 @@ function FormEditor() {
     setFields(next)
   })
 
-  const backTo = '/admin/forms'
+  const backTo = '/workspace/forms'
   const leave = () => {
     if (dirty && !window.confirm('저장하지 않은 변경이 있습니다. 나갈까요?')) return
     navigate(backTo)
@@ -1523,37 +1525,41 @@ function FormEditor() {
 
   return (
     <section className="isolate min-h-[100dvh] bg-bg-base pb-80 text-text-pri">
-      <header className="sticky top-0 z-30 border-b border-border-subtle bg-bg-panel">
+      <header className="sticky top-0 z-30 bg-bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
         <div className="flex min-h-64 flex-wrap items-center justify-between gap-12 px-16 py-8 md:px-24">
-          <div className="flex min-w-0 items-center gap-12">
-            <button type="button" onClick={leave} className="flex h-11 shrink-0 cursor-pointer items-center gap-8 rounded-sm px-12 text-body-m font-semibold text-text-sec transition hover:bg-glass-strong" aria-label="신청 폼 목록으로 돌아가기">
-              <ArrowLeft size={18} aria-hidden="true" /> <span className="hidden sm:inline">목록</span>
+          <div className="flex min-w-0 flex-1 items-center gap-12">
+            <button type="button" onClick={leave} className="flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-full transition hover:bg-bg-elev" aria-label="설문지 홈으로 돌아가기" title="설문지 홈">
+              <FormsIcon size={32} />
             </button>
-            <FileText size={24} className="shrink-0 text-purple-light" aria-hidden="true" />
-            <p className={`min-w-0 max-w-[420px] truncate text-body-l-m font-medium ${form.title_ko ? INK : 'text-text-meta'}`}>{form.title_ko || '제목 없는 폼'}</p>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-8">
-            <span aria-live="polite" className={`hidden text-small-m lg:block ${dirty ? 'font-semibold text-purple-light' : SUB}`}>
+            <input
+              aria-label="폼 제목"
+              value={form.title_ko}
+              onChange={setInput('title_ko')}
+              placeholder="제목 없는 설문지"
+              style={{ width: `${Math.min(48, Math.max(12, (form.title_ko || '').length * 1.2 + 3))}ch` }}
+              className={`max-w-[46vw] min-w-0 truncate rounded-sm bg-transparent px-8 py-4 text-body-l-m font-medium ${INK} outline-none hover:bg-bg-elev focus:bg-bg-elev`}
+            />
+            <span aria-live="polite" className={`hidden shrink-0 text-small-m lg:block ${dirty ? 'font-semibold text-purple-light' : SUB}`}>
               {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
             </span>
-            <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-sm border bg-transparent px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-8">
+            <WorkspaceToggle light />
+            <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full bg-bg-elev px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
               {status.label}
             </button>
-            <GhostButton onClick={() => setPreview(true)} className="border-border-subtle text-text-sec">
-              <Eye size={16} aria-hidden="true" />
-              <span className="hidden sm:inline">미리보기</span>
-            </GhostButton>
-            <GhostButton onClick={copyPublicUrl} disabled={!form.slug} className="border-border-subtle text-text-sec" title="신청 페이지 주소 복사">
-              {copied ? <Check size={16} aria-hidden="true" /> : <LinkIcon size={16} aria-hidden="true" />}
-              <span className="hidden md:inline">{copied ? '복사됨' : '주소 복사'}</span>
-            </GhostButton>
-            <PrimaryButton type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)}>
-              <Save size={16} aria-hidden="true" />
+            <button type="button" onClick={() => setPreview(true)} aria-label="미리보기" title="미리보기" className="flex h-40 w-40 cursor-pointer items-center justify-center rounded-full text-text-sec transition hover:bg-bg-elev">
+              <Eye size={20} aria-hidden="true" />
+            </button>
+            <button type="button" onClick={copyPublicUrl} disabled={!form.slug} aria-label="신청 페이지 주소 복사" title={copied ? '복사됨' : '신청 페이지 주소 복사'} className="flex h-40 w-40 cursor-pointer items-center justify-center rounded-full text-text-sec transition hover:bg-bg-elev disabled:opacity-40">
+              {copied ? <Check size={20} aria-hidden="true" /> : <LinkIcon size={20} aria-hidden="true" />}
+            </button>
+            <button type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="h-40 cursor-pointer rounded-full bg-button-primary px-24 text-small-m font-semibold text-button-primaryText transition hover:bg-button-primaryHover disabled:cursor-default disabled:!bg-bg-elev disabled:!text-text-meta">
               {busy ? '저장 중' : '저장'}
-            </PrimaryButton>
+            </button>
           </div>
         </div>
-        <div role="tablist" aria-label="폼 편집 구역" className="flex justify-center gap-8 px-16">
+        <div role="tablist" aria-label="폼 편집 구역" className="flex justify-center gap-8 px-16 pb-8">
           {Object.entries(TAB_LABEL).map(([key, label]) => (
             <button
               key={key}
@@ -1561,11 +1567,11 @@ function FormEditor() {
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`h-48 cursor-pointer border-b-[3px] px-16 text-body-m font-semibold transition ${tab === key ? 'border-purple-primary text-purple-light' : 'border-transparent text-text-sec hover:bg-glass-strong'}`}
+              className={`h-40 cursor-pointer rounded-full px-24 text-body-m font-semibold transition ${tab === key ? 'bg-bg-elev text-purple-light' : 'text-text-sec hover:bg-bg-elev'}`}
             >
               {label}
               {key === 'responses' && typeof responseCount === 'number' && (
-                <span className="ml-8 rounded-full bg-glass-strong px-8 py-4 text-caption-m text-button-primaryText">{responseCount}</span>
+                <span className="ml-8 rounded-full bg-purple-primary px-8 py-[2px] text-caption-m text-button-primaryText">{responseCount}</span>
               )}
             </button>
           ))}
@@ -1588,7 +1594,7 @@ function FormEditor() {
             <>
               <div data-card-id="header" className="relative">
                 {/* 클릭 처리는 카드에만 건다. 추가 도구까지 감싸면 도구를 눌렀을 때 클릭이 위로 올라와 방금 만든 질문 대신 제목 카드가 다시 선택된다 */}
-                <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] border-t-purple-primary p-24 md:p-32 ${activeId === 'header' ? 'border-l-[6px] border-l-purple-primary' : ''}`}>
+                <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] border-t-purple-primary p-24 md:p-32 ${activeId === 'header' ? 'shadow-[0_2px_8px_rgb(0_0_0/0.22)]' : ''}`}>
                   <input
                     aria-label="폼 제목"
                     autoFocus={isNew}

@@ -113,7 +113,10 @@ export const SHEET_TEMPLATES = {
   },
   budget: () => {
     const L = ['날짜', '항목', '구분', '예산', '집행', '잔액', '영수증', '비고']
-    return { columns: cols(L, 130), rows: rowsOf(L, [], 40), nextId: 41 }
+    const t = { columns: cols(L, 130), rows: rowsOf(L, [], 40), nextId: 41 }
+    // 잔액(F열) = 예산(D열) - 집행(E열). 예산이 비어 있으면 빈 칸
+    t.rows.forEach((r, i) => { r.cells.c5 = `=IF(D${i + 2}="","",D${i + 2}-E${i + 2})` })
+    return t
   },
   attendance: () => {
     const L = ['이름', '학번', '전공', '참석', '비고']

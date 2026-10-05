@@ -55,8 +55,9 @@ router.get(
     const items = rows.map((r) => {
       const { first_content: fc, first_html: fh, sheet_content: sc, ...rest } = r
       if (r.kind === 'doc') return { ...rest, excerpt: fc ? excerpt(fc) : String(fh || '').replace(/<\/(p|h[1-6]|li|tr)>/g, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\n{2,}/g, '\n').trim().slice(0, 520) }
-      const preview = (sc?.rows || []).slice(0, 8).map((row) => (sc.columns || []).slice(0, 6).map((c) => String(row.cells?.[c.key] ?? '')))
-      return { ...rest, head: (sc?.columns || []).slice(0, 6).map((c) => c.label), preview }
+      const first = Array.isArray(sc?.sheets) ? sc.sheets[0] : sc
+      const preview = (first?.rows || []).slice(0, 8).map((row) => (first.columns || []).slice(0, 6).map((c) => String(row.cells?.[c.key] ?? '')))
+      return { ...rest, head: (first?.columns || []).slice(0, 6).map((c) => c.label), preview }
     })
     res.json({ items })
   })
@@ -150,8 +151,11 @@ router.put(
   ...guard,
   wrap(async (req, res) => {
     const c = req.body?.content
-    if (!c || !Array.isArray(c.columns) || !Array.isArray(c.rows)) return res.status(400).json({ error: 'content.columns, content.rows required' })
-    if (c.rows.length > 5000 || c.columns.length > 200) return res.status(413).json({ error: 'too large' })
+    const list = Array.isArray(c?.sheets) ? c.sheets : c ? [c] : []
+    if (!list.length || list.length > 30 || list.some((x) => !x || !Array.isArray(x.columns) || !Array.isArray(x.rows))) {
+      return res.status(400).json({ error: 'content.sheets[].columns, rows required' })
+    }
+    if (list.some((x) => x.rows.length > 5000 || x.columns.length > 200)) return res.status(413).json({ error: 'too large' })
     const { rows } = await query(
       "UPDATE ws_files SET content = $1::jsonb, updated_at = now() WHERE id = $2 AND kind = 'sheet' RETURNING id, updated_at",
       [JSON.stringify(c), parseInt(req.params.id, 10)]
