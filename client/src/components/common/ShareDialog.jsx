@@ -165,13 +165,12 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
   return createPortal(
     <div className={`${light ? 'reading-scope' : ''} share fixed inset-0 z-[300] flex items-center justify-center px-16`} role="presentation">
       <button type="button" aria-label="닫기" tabIndex={-1} onClick={onClose} className={`app-dialog__backdrop absolute inset-0 cursor-default ${light ? 'bg-black/45' : 'bg-bg-base/70'}`} />
-      <div ref={panel} role="dialog" aria-modal="true" aria-label={`${title} 공유`} className="share__panel app-dialog__panel">
+      <div ref={panel} role="dialog" aria-modal="true" aria-label={`${title} 공유`} className={`share__panel ${state !== null || error ? 'app-dialog__panel' : 'share__panel--wait'}`}>
         <div className="share__head">
           <h2 title={title}>“{title}” 공유</h2>
           <button type="button" className="share__x" onClick={onClose} aria-label="닫기"><X size={20} aria-hidden="true" /></button>
         </div>
 
-        {state === null && !error && <p className="share__muted">불러오는 중</p>}
         {state === null && error && <p className="share__err">{error}</p>}
 
         {state && (

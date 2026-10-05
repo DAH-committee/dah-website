@@ -54,3 +54,6 @@
 .sh-menu__opt small { display: block; margin-top: 2px; color: #5f6368; font-size: 12px; line-height: 1.4; }
 .sh-menu__opt.is-danger { color: #ff1744; }
 .sh-menu__check { display: inline-grid; flex: none; place-items: center; width: 18px; height: 20px; color: #7a3cff; }
+
+/* 데이터가 오기 전에는 보이지 않다가, 전부 준비되면 모달 전체가 한 번에 나타난다 */
+.share__panel--wait { opacity: 0; pointer-events: none; }
