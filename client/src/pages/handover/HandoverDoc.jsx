@@ -3,7 +3,6 @@
 // 열람: 관리자 로그인(manager 이상) 또는 열람 비밀번호. 편집·댓글·탭 관리: 관리자 로그인.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { DocsIcon } from '../workspace/icons'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { generateJSON } from '@tiptap/core'
@@ -489,7 +488,6 @@ export default function HandoverDoc() {
   const [sizeDraft, setSizeDraft] = useState('11')
   const [toast, setToast] = useState('')
   const [, force] = useState(0)
-  const [titleWidth, setTitleWidth] = useState(200)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [versions, setVersions] = useState([])
   const [selVer, setSelVer] = useState(null)
@@ -501,7 +499,6 @@ export default function HandoverDoc() {
   const pageRef = useRef(null)
   const cardRefs = useRef({})
   const saveTimer = useRef(null)
-  const mirrorRef = useRef(null)
   const canEdit = access.canEdit === true
 
   const flash = (t) => {
@@ -718,10 +715,6 @@ export default function HandoverDoc() {
     return () => canvas.removeEventListener('click', h)
   })
 
-  // 제목 입력칸 너비: 글자 길이만큼 늘려 끝까지 보이게
-  useLayoutEffect(() => {
-    if (mirrorRef.current) setTitleWidth(Math.min(mirrorRef.current.offsetWidth + 16, Math.max(240, window.innerWidth - 560)))
-  }, [titleDraft, access.loading])
 
   const highlightCss = useMemo(() => {
     const live = new Set(visibleComments.filter((c) => !c.resolved).map((c) => c.anchor_id))
@@ -1030,38 +1023,22 @@ export default function HandoverDoc() {
   return (
     <div className="gd">
       <style>{highlightCss}</style>
-      <header className="gd-top">
-        <Link to={listHref} className="gd-logo" aria-label="문서 홈" title="문서 홈"><DocsIcon size={40} /></Link>
-        <div className="gd-titlebox">
-          <div className="gd-titlerow">
-            <span ref={mirrorRef} className="gd-title gd-title--mirror" aria-hidden="true">{titleDraft || ' '}</span>
-            <input
-              className="gd-title"
-              value={titleDraft}
-              readOnly={!canEdit}
-              style={{ width: titleWidth }}
-              onChange={(e) => setTitleDraft(e.target.value)}
-              onBlur={saveDocTitle}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-              aria-label="문서 제목"
-              title={docTitle}
-            />
-            <span className="gd-ticon" title="별표"><Star size={18} /></span>
-            <span className="gd-ticon gd-save" title="저장 상태">
-              <Cloud size={18} />
-              <span>{saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중...' : saveState === 'error' ? '저장 실패' : ''}</span>
-            </span>
-          </div>
-          <nav className="gd-menubar">
-            {Object.entries(menus).map(([label, items]) => (
-              <Dropdown key={label} trigger={(open) => <button type="button" className={`gd-menu__btn${open ? ' is-open' : ''}`}>{label}</button>}>
-                {(close) => <MenuItems items={items} close={close} />}
-              </Dropdown>
-            ))}
-          </nav>
-        </div>
+      <header className="gd-top ed-row">
+        <Link to={listHref} className="ed-icon" aria-label="문서 홈" title="문서 홈"><DocsIcon size={40} /></Link>
+        <input
+          className="ed-title"
+          value={titleDraft}
+          readOnly={!canEdit}
+          onChange={(e) => setTitleDraft(e.target.value)}
+          onBlur={saveDocTitle}
+          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          aria-label="문서 제목"
+          title={docTitle}
+        />
+        <span className="ed-status" title="저장 상태">
+          {saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중' : saveState === 'error' ? '저장 실패' : ''}
+        </span>
         <div className="gd-actions">
-          {access.canEdit && <WorkspaceToggle light />}
           <span className="gd-meta">{doc.updated_by ? `${doc.updated_by} 님이 마지막으로 수정` : ''}</span>
           <button type="button" className={`gd-round${historyOpen ? ' is-on' : ''}`} aria-label="버전 기록" title="버전 기록 (⌘⌥⇧H)" onClick={() => (historyOpen ? closeHistory() : openHistory())}>
             <History size={20} />
@@ -1077,6 +1054,13 @@ export default function HandoverDoc() {
           </span>
         </div>
       </header>
+      <nav className="gd-menubar ed-menurow">
+        {Object.entries(menus).map(([label, items]) => (
+          <Dropdown key={label} trigger={(open) => <button type="button" className={`gd-menu__btn${open ? ' is-open' : ''}`}>{label}</button>}>
+            {(close) => <MenuItems items={items} close={close} />}
+          </Dropdown>
+        ))}
+      </nav>
 
       <div className="gd-toolbar">
         <TB icon={Search} label="메뉴 검색" onClick={() => flash('⌘F로 문서 내 검색')} />

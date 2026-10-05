@@ -8,7 +8,7 @@
 // 공개 토글은 화면 상태만 바꾼다. 저장 버튼을 눌러야 반영된다(P1-3). 저장하지 않은 변경이 있으면 위쪽에 알린다.
 // 네이티브 select, date, radio, checkbox 금지. 전부 공용 커스텀 컴포넌트로 그린다.
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   AlignLeft, ArrowDown, ArrowLeft, ArrowUp, Calendar, Check, ChevronDown, ChevronDownCircle, ChevronUp,
@@ -23,7 +23,6 @@ import { HeaderCard } from '../../components/forms/respondent'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
-import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { FormsIcon } from '../workspace/icons'
 import {
   DateInput,
@@ -123,6 +122,28 @@ function normStorage(raw, formSettings = {}) {
     }
   }
   return { ...DEFAULT_STORAGE }
+}
+
+/** 글이 길면 줄을 바꿔 전부 보이는 입력칸. 잘리거나 안에서 스크롤되지 않는다 */
+function AutoText({ value, onChange, className = '', multiline = false, ...rest }) {
+  const ref = useRef(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [value])
+  return (
+    <textarea
+      ref={ref}
+      rows={1}
+      value={value}
+      onChange={onChange}
+      onKeyDown={multiline ? undefined : (e) => { if (e.key === 'Enter') e.preventDefault() }}
+      className={`block resize-none overflow-hidden ${className}`}
+      {...rest}
+    />
+  )
 }
 
 const CARD = 'flex flex-col rounded-md bg-bg-panel shadow-[0_1px_2px_rgb(0_0_0/0.18)]'
@@ -881,25 +902,25 @@ function QuestionCard({
       ) : (
         <div className="flex min-w-0 flex-col gap-20 p-24 pt-32">
           <div className="grid grid-cols-1 items-start gap-16 md:grid-cols-[minmax(0,1fr)_260px]">
-            <input
+            <AutoText
               aria-label={`질문 ${index + 1} 제목`}
               value={field.label_ko}
               onChange={(e) => set('label_ko')(e.target.value)}
               placeholder="질문 제목"
               autoFocus={!field.label_ko}
-              className={`h-48 w-full !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
+              className={`min-h-48 w-full py-8 !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
             />
             <TypeMenu value={field.type} onChange={changeType} label={`질문 ${index + 1} 유형 바꾸기. 지금은 ${meta.label}`} />
           </div>
 
           {showHint ? (
             <div className="flex items-center gap-8">
-              <input
+              <AutoText
                 aria-label={`질문 ${index + 1} 설명`}
                 value={field.hint_ko}
                 onChange={(e) => set('hint_ko')(e.target.value)}
                 placeholder="설명"
-                className={`h-40 min-w-0 flex-1 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
+                className={`min-h-40 min-w-0 flex-1 py-8 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
               />
               <button type="button" onClick={() => { set('hint_ko')(''); setShowHint(false) }} aria-label="설명 지우기" className={ICON_BTN}>
                 <X size={18} />
@@ -1021,19 +1042,19 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
           <DragHandle />
         </span>
         <div className="flex flex-col gap-12 p-24 pt-32">
-          <input
+          <AutoText
             aria-label={`${pageNo}페이지 제목`}
             value={field.label_ko}
             onChange={(e) => onChange({ ...field, label_ko: e.target.value })}
             placeholder="페이지 제목"
-            className={`h-48 w-full !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
+            className={`min-h-48 w-full py-8 !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
           />
-          <input
+          <AutoText
             aria-label={`${pageNo}페이지 설명`}
             value={field.hint_ko}
             onChange={(e) => onChange({ ...field, hint_ko: e.target.value })}
             placeholder="페이지 설명"
-            className={`h-40 w-full !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
+            className={`min-h-40 w-full py-8 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
           />
           <div className="flex flex-wrap items-center justify-end gap-4 border-t border-border-subtle pt-16">
             <button type="button" onClick={() => onMove(-1)} disabled={index === 0} className={TEXT_BTN}>
@@ -1526,25 +1547,21 @@ function FormEditor() {
   return (
     <section className="isolate min-h-[100dvh] bg-bg-base pb-80 text-text-pri">
       <header className="sticky top-0 z-30 bg-bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
-        <div className="flex min-h-64 flex-wrap items-center justify-between gap-12 px-16 py-8 md:px-24">
-          <div className="flex min-w-0 flex-1 items-center gap-12">
-            <button type="button" onClick={leave} className="flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-full transition hover:bg-bg-elev" aria-label="설문지 홈으로 돌아가기" title="설문지 홈">
-              <FormsIcon size={32} />
-            </button>
-            <input
-              aria-label="폼 제목"
-              value={form.title_ko}
-              onChange={setInput('title_ko')}
-              placeholder="제목 없는 설문지"
-              style={{ width: `${Math.min(48, Math.max(12, (form.title_ko || '').length * 1.2 + 3))}ch` }}
-              className={`max-w-[46vw] min-w-0 truncate rounded-sm bg-transparent px-8 py-4 text-body-l-m font-medium ${INK} outline-none hover:bg-bg-elev focus:bg-bg-elev`}
-            />
-            <span aria-live="polite" className={`hidden shrink-0 text-small-m lg:block ${dirty ? 'font-semibold text-purple-light' : SUB}`}>
-              {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
-            </span>
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-8">
-            <WorkspaceToggle light />
+        <div className="ed-row">
+          <button type="button" onClick={leave} className="ed-icon" aria-label="설문지 홈으로 돌아가기" title="설문지 홈">
+            <FormsIcon size={40} />
+          </button>
+          <input
+            aria-label="폼 제목"
+            value={form.title_ko}
+            onChange={setInput('title_ko')}
+            placeholder="제목 없는 설문지"
+            className="ed-title"
+          />
+          <span aria-live="polite" className={`ed-status ${dirty ? '!text-purple-light !font-semibold' : ''}`}>
+            {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
+          </span>
+          <div className="ml-auto flex shrink-0 items-center gap-8">
             <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full bg-bg-elev px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
               {status.label}
             </button>
@@ -1559,7 +1576,7 @@ function FormEditor() {
             </button>
           </div>
         </div>
-        <div role="tablist" aria-label="폼 편집 구역" className="flex justify-center gap-8 px-16 pb-8">
+        <div role="tablist" aria-label="폼 편집 구역" className="ed-menurow justify-center">
           {Object.entries(TAB_LABEL).map(([key, label]) => (
             <button
               key={key}
@@ -1567,7 +1584,7 @@ function FormEditor() {
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`h-40 cursor-pointer rounded-full px-24 text-body-m font-semibold transition ${tab === key ? 'bg-bg-elev text-purple-light' : 'text-text-sec hover:bg-bg-elev'}`}
+              className={`h-32 cursor-pointer rounded-full px-24 text-small-m font-semibold transition ${tab === key ? 'bg-bg-elev text-purple-light' : 'text-text-sec hover:bg-bg-elev'}`}
             >
               {label}
               {key === 'responses' && typeof responseCount === 'number' && (
@@ -1595,7 +1612,7 @@ function FormEditor() {
               <div data-card-id="header" className="relative">
                 {/* 클릭 처리는 카드에만 건다. 추가 도구까지 감싸면 도구를 눌렀을 때 클릭이 위로 올라와 방금 만든 질문 대신 제목 카드가 다시 선택된다 */}
                 <div onClick={() => setActiveId('header')} className={`${CARD} gap-16 border-t-[10px] border-t-purple-primary p-24 md:p-32 ${activeId === 'header' ? 'shadow-[0_2px_8px_rgb(0_0_0/0.22)]' : ''}`}>
-                  <input
+                  <AutoText
                     aria-label="폼 제목"
                     autoFocus={isNew}
                     value={form.title_ko}
@@ -1603,13 +1620,13 @@ function FormEditor() {
                     placeholder="폼 제목"
                     className={`w-full !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-h2-m font-bold ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-h2-d`}
                   />
-                  <textarea
+                  <AutoText
+                    multiline
                     aria-label="폼 안내문"
-                    rows={4}
                     value={form.description_ko}
                     onChange={setInput('description_ko')}
                     placeholder="폼 설명"
-                    className={`w-full resize-y !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
+                    className={`w-full !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
                   />
                 </div>
                 {activeId === 'header' && <AddToolbar onAdd={addField} />}

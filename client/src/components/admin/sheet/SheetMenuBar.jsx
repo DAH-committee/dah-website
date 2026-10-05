@@ -79,7 +79,7 @@ export default function SheetMenuBar({ menus }) {
             aria-expanded={open === menu.label}
             onClick={() => setOpen(open === menu.label ? null : menu.label)}
             onMouseEnter={() => open !== null && setOpen(menu.label)}
-            className={`h-32 cursor-pointer rounded-sm px-12 text-small-m text-reading-text transition-colors duration-fast ease-out hover:bg-reading-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-reading-accent ${open === menu.label ? 'bg-reading-subtle' : ''}`}
+            className={`h-32 cursor-pointer rounded-sm px-12 text-[14px] text-reading-text transition-colors duration-fast ease-out hover:bg-reading-subtle focus-visible:outline focus-visible:outline-2 focus-visible:outline-reading-accent ${open === menu.label ? 'bg-reading-subtle' : ''}`}
           >
             {menu.label}
           </button>

@@ -436,3 +436,16 @@ html[data-dah-easter-egg='on'] {
   --dah-state-error: 190 38 48;
   --dah-state-success: 24 128 82;
 }
+
+
+/* 편집기 공통 상단 줄: 문서, 스프레드시트, 설문지가 같은 높이·간격·위치를 쓴다.
+   제목 입력칸 폭은 제목 길이와 무관하게 고정이라 저장 상태와 오른쪽 도구 위치가 파일마다 같다. */
+.ed-row { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 24px; flex-shrink: 0; }
+.ed-icon { display: inline-flex; width: 40px; height: 40px; flex: none; align-items: center; justify-content: center; cursor: pointer; }
+.ed-title { flex: none; width: clamp(240px, 36vw, 520px); border: 0; border-radius: 6px; padding: 4px 8px; background: transparent; color: #111; font-family: inherit; font-size: 22px; font-weight: 700; line-height: 30px; letter-spacing: -0.01em; text-overflow: ellipsis; outline: none; }
+.ed-title:hover:not([readonly]) { background: rgb(0 0 0 / 0.07); }
+.ed-title:focus { background: #fff; outline: 2px solid rgb(var(--dah-reading-accent)); outline-offset: 0; }
+.ed-status { display: inline-flex; flex: none; align-items: center; gap: 6px; min-width: 76px; height: 28px; padding: 0 10px; border-radius: 14px; background: rgb(0 0 0 / 0.07); color: #333; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.ed-status:empty { visibility: hidden; }
+.ed-menurow { display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 24px; flex-shrink: 0; }
+@media (max-width: 640px) { .ed-row { padding: 0 12px; gap: 8px; } .ed-menurow { padding: 0 12px; } .ed-title { width: auto; flex: 1; min-width: 0; font-size: 18px; } }

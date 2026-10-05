@@ -22,7 +22,6 @@ import { Link } from 'react-router-dom'
 import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
 import { createEvaluator } from './formula'
-import WorkspaceToggle from '../../layout/WorkspaceToggle'
 import {
   ALIGN_CLASS, FILL_COLORS, FONT_SIZES, TEXT_COLORS, ZOOMS, a1, colLetter, download, normalizeSheetUi,
   numericSum, parseTsv, rangeName, toCsv, toSpreadsheetML, toTsv,
@@ -910,42 +909,29 @@ export default function SheetWorkspace({
 
   return (
     <div className="flex h-[100dvh] flex-col bg-reading-bg text-reading-text print:block print:h-auto">
-      {/* 제목 줄: 저장 상태, 마지막 갱신, 건수를 각각 따로 둔다 */}
-      <div className="flex flex-wrap items-end justify-between gap-12 px-gutter-m pt-16 md:px-gutter-t lg:px-gutter-d print:px-0">
-        <div className="flex min-w-0 items-center gap-12">
-          {homeHref && (
-            <Link to={homeHref} aria-label="스프레드시트 홈" title="스프레드시트 홈" className="inline-flex shrink-0 print:hidden"><SheetsIcon size={40} /></Link>
-          )}
-          {onRenameFile ? (
-            <input
-              defaultValue={title}
-              key={title}
-              aria-label="파일 이름"
-              onBlur={(e) => {
-                const v = e.target.value.trim()
-                if (v && v !== title) onRenameFile(v)
-                else e.target.value = title
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-              style={{ width: `${Math.max(10, title.length * 1.15 + 2)}ch` }}
-              className="max-w-[60vw] truncate rounded-sm bg-transparent px-6 text-h3-m font-bold text-reading-textStrong outline-none hover:bg-reading-subtle focus:bg-reading-surface md:text-h3-d"
-            />
-          ) : (
-            <h1 className="truncate text-h3-m font-bold text-reading-textStrong md:text-h3-d">{title}</h1>
-          )}
-          <span
-            role="status"
-            aria-live="polite"
-            className={`inline-flex h-24 shrink-0 items-center rounded-sm px-8 text-caption-m font-semibold print:hidden ${
-              saveState === 'error' ? 'bg-state-error/10 text-state-error' : 'bg-reading-subtle text-reading-text'
-            }`}
-          >
-            {saveLabel}
-          </span>
-        </div>
-        <div className="flex items-center gap-16 print:hidden">
-          {homeHref && <WorkspaceToggle light />}
-          <div className="flex flex-col items-end gap-4">
+      {/* 제목 줄: 문서·설문지와 같은 공통 상단 줄(ed-row). 제목 폭이 고정이라 저장 상태 위치가 파일마다 같다 */}
+      <div className="ed-row print:px-0">
+        <Link to={homeHref || '/workspace/sheets'} aria-label="스프레드시트 홈" title="스프레드시트 홈" className="ed-icon print:hidden"><SheetsIcon size={40} /></Link>
+        {onRenameFile ? (
+          <input
+            defaultValue={title}
+            key={title}
+            aria-label="파일 이름"
+            onBlur={(e) => {
+              const v = e.target.value.trim()
+              if (v && v !== title) onRenameFile(v)
+              else e.target.value = title
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            className="ed-title"
+          />
+        ) : (
+          <h1 className="ed-title !cursor-default truncate">{title}</h1>
+        )}
+        <span role="status" aria-live="polite" className={`ed-status print:hidden ${saveState === 'error' ? '!bg-state-error/10 !text-state-error' : ''}`}>
+          {saveLabel}
+        </span>
+        <div className="ml-auto flex flex-col items-end gap-4 print:hidden">
           <p className="text-small-m text-reading-text">
             총 {sheet.rows.length}
             {unit} 중 {visibleRows.length}
@@ -953,15 +939,14 @@ export default function SheetWorkspace({
           </p>
           {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
         </div>
-          </div>
       </div>
 
-      <div className="px-gutter-m pt-8 md:px-gutter-t lg:px-gutter-d print:hidden">
+      <div className="ed-menurow print:hidden">
         <SheetMenuBar menus={menus} />
       </div>
 
       {/* 도구 모음 */}
-      <div role="toolbar" aria-label="시트 도구 모음" className="mx-gutter-m mt-4 flex flex-wrap items-center gap-4 rounded-md bg-reading-subtle px-8 py-4 md:mx-gutter-t lg:mx-gutter-d print:hidden">
+      <div role="toolbar" aria-label="시트 도구 모음" className="mx-24 mt-4 flex flex-wrap items-center gap-4 rounded-md bg-reading-subtle px-8 py-4 print:hidden">
         <button type="button" aria-label="실행취소" title="실행취소 (⌘Z)" onClick={undo} disabled={!hist.current.undo.length} className={TB_BTN}><Undo2 size={18} /></button>
         <button type="button" aria-label="재실행" title="재실행 (⌘Y)" onClick={redo} disabled={!hist.current.redo.length} className={TB_BTN}><Redo2 size={18} /></button>
         <button type="button" aria-label="인쇄" title="인쇄" onClick={() => window.print()} className={TB_BTN}><Printer size={18} /></button>
@@ -1029,7 +1014,7 @@ export default function SheetWorkspace({
       </div>
 
       {/* 수식 입력줄 */}
-      <div className="mx-gutter-m mt-4 flex items-center gap-8 md:mx-gutter-t lg:mx-gutter-d print:hidden">
+      <div className="mx-24 mt-4 flex items-center gap-8 print:hidden">
         <div aria-label="칸 이름" className="flex h-32 w-[96px] shrink-0 items-center justify-center rounded-sm bg-reading-subtle text-small-m font-semibold text-reading-textStrong">
           {bounds ? rangeName(bounds) : ''}
         </div>
@@ -1058,10 +1043,10 @@ export default function SheetWorkspace({
         />
       </div>
 
-      {error && <p className="px-gutter-m pt-8 text-caption-m text-state-error md:px-gutter-t lg:px-gutter-d">{error}</p>}
+      {error && <p className="px-24 pt-8 text-caption-m text-state-error">{error}</p>}
 
       {/* 표 */}
-      <div className="mt-4 flex min-h-0 flex-1 flex-col px-gutter-m md:px-gutter-t lg:px-gutter-d print:px-0">
+      <div className="mt-4 flex min-h-0 flex-1 flex-col px-24 print:px-0">
         <div ref={wrapRef} className="min-h-0 w-full min-w-0 flex-1 overflow-auto border border-reading-hairline bg-reading-surface print:overflow-visible">
           <div
             ref={gridRef}
@@ -1290,7 +1275,7 @@ export default function SheetWorkspace({
       </div>
 
       {/* 아래: 시트 탭 + 선택 요약 */}
-      <div className="flex flex-wrap items-center justify-between gap-8 px-gutter-m py-8 md:px-gutter-t lg:px-gutter-d print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-8 px-24 py-8 print:hidden">
         <div className="flex flex-wrap items-center gap-4">
           {onAddSheet && (
             <button
