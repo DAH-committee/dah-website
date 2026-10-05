@@ -6,7 +6,7 @@
 // 쇼케이스: POST /submit/showcase, PUT /submit/showcase/:id (status pending)
 import { Router } from 'express'
 import { query } from '../db.js'
-import { requirePublicAuth } from '../middleware/publicAuth.js'
+import { requireSubmitterAuth as requirePublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
 import { attachExhibitionUploads } from '../lib/driveConnections.js'

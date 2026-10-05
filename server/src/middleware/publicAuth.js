@@ -18,13 +18,14 @@ const PUBLIC_KIND = 'public'
 const ACCESS_TTL_SEC = 15 * 60
 const REFRESH_TTL_SEC = 30 * 24 * 60 * 60
 
+// wsOnly: 한림대·초대·위원회 등록 이메일이 아닌 일반 구글 계정. DAH Docs·Sheet·Form만 쓰고 제출은 못 한다.
 function payloadToPublicUser(p) {
-  return { id: p.sub, email: p.email, name: p.name }
+  return { id: p.sub, email: p.email, name: p.name, wsOnly: p.ws === true }
 }
 
 function sign(user, type, ttlSec) {
   return jwt.sign(
-    { sub: user.id, email: user.email, name: user.name, kind: PUBLIC_KIND, type },
+    { sub: user.id, email: user.email, name: user.name, ...(user.wsOnly ? { ws: true } : {}), kind: PUBLIC_KIND, type },
     jwtSecret(),
     { expiresIn: ttlSec }
   )
@@ -82,6 +83,19 @@ export function requirePublicAuth(req, res, next) {
   }
   req.publicUser = user
   next()
+}
+
+// 전시회·쇼케이스 제출용: 구글 로그인 + 사전 등록된(또는 한림대·초대) 계정만 통과
+export function requireSubmitterAuth(req, res, next) {
+  requirePublicAuth(req, res, () => {
+    if (req.publicUser?.wsOnly) {
+      return res.status(403).json({
+        error: 'email is not registered',
+        hint: '한림대 이메일(@hallym.ac.kr) 구글 계정으로 로그인하세요. 이 계정은 DAH Docs·Sheet·Form에만 쓸 수 있습니다.',
+      })
+    }
+    next()
+  })
 }
 
 // 로그인 여부만 판별 — 비로그인도 진행하되 신원이 있으면 붙인다

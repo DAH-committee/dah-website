@@ -195,7 +195,7 @@ export const SHEET_TEMPLATE_META = [
   { id: 'blank', name: '빈 스프레드시트', sub: '' },
   { id: 'participants', name: '참여자 명단', sub: '순번, 학과, 학번, 참석' },
   { id: 'budget', name: '예산·물품 집행', sub: '단가 × 수량 자동 계산' },
-  { id: 'judging', name: '출품작 심사채점표', sub: '항목별 25점, 총점 자동' },
+  { id: 'judging', name: '출품작 심사채점표', sub: '나만 보기, 총점 자동', ownerOnly: true },
   { id: 'worklog', name: '근무 기록', sub: '날짜, 내용, 시간' },
   { id: 'files', name: '전시 제출물 관리', sub: '과목, 작품, 파일명' },
 ]

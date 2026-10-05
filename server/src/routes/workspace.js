@@ -1,15 +1,14 @@
 // 작업공간 허브 API: 문서·시트 파일 목록, 템플릿으로 새로 만들기, 이름 바꾸기, 삭제, 시트 내용 저장.
-// 목록·열기·편집은 공유 설정(lib/wsAccess.js)에 따른다. 새로 만들기는 로그인한 누구나(한림대 구글 계정 또는 초대된 계정),
-// 삭제는 운영위원회 및 교수진(manager 이상)만.
+// 목록·열기·편집은 공유 설정(lib/wsAccess.js)에 따른다. 새로 만들기는 구글로 로그인한 누구나,
+// 삭제·비공개 전환은 운영위원회 및 교수진(스태프 + 등록된 위원회 구성원)만, 구성원 등록은 사이트 관리자만.
 import { Router } from 'express'
 import { query } from '../db.js'
-import { optionalAuth, requireAuth, requireRole, hasRole } from '../middleware/auth.js'
-import { GENERAL, ROLES, authorOf, fileRow, identityOf, levelFor, newToken } from '../lib/wsAccess.js'
+import { optionalAuth, hasRole } from '../middleware/auth.js'
+import { GENERAL, ROLES, authorOf, committeeOnly, fileRow, identityOf, levelFor, newToken } from '../lib/wsAccess.js'
 import { DOC_TEMPLATES, SHEET_TEMPLATES, DOC_TEMPLATE_META, SHEET_TEMPLATE_META } from '../lib/workspaceTemplates.js'
 
 const router = Router()
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
-const guard = [requireAuth, requireRole('manager')]
 const KINDS = ['doc', 'sheet']
 const MAX_UI_BYTES = 200_000
 const lower = (v) => String(v || '').trim().toLowerCase()
@@ -40,7 +39,7 @@ function excerpt(json, limit = 520) {
 // 로그인한 사람(스태프 또는 구글 게스트)이면 통과
 async function requireSignedIn(req, res, next) {
   const idn = await identityOf(req, res)
-  if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '한림대 구글 계정으로 로그인하세요.' })
+  if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '구글 계정으로 로그인하세요.' })
   next()
 }
 const signedIn = wrap(requireSignedIn)
@@ -54,16 +53,19 @@ router.get(
 )
 
 // 허브 목록은 누구나 열 수 있다. 각 문서의 공유 설정을 따르므로 사이트 관리자라도 '제한됨'인 남의 문서는 목록에 나오지 않는다(주소로는 열 수 있음).
-// 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(스태프: 소유·공유·운영위원회 공개 파일,
+// 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(운영위원회 및 교수진: 소유·공유·운영위원회 공개 파일,
 // 게스트: 소유하거나 이메일로 공유받은 파일), 로그인하지 않았다면 빈 목록이다. 전체 공개 파일은 링크를 아는 사람만 연다.
+// 비공개(hidden) 파일은 소유자와 이메일로 공유받은 사람의 목록에만 나오고(비공개 배지), 그 밖의 사람에게는
+// 잠긴 카드로도 나오지 않는다. ?hidden=1 이면 운영위원회 및 교수진에게 비공개 파일만 모아 보여 준다(비공개 해제용).
 router.get(
   '/workspace/files',
   wrap(async (req, res) => {
     const kind = KINDS.includes(req.query.kind) ? req.query.kind : 'doc'
     const idn = await identityOf(req, res)
-    if (!idn.emails.length) return res.json({ items: [], staff: false })
+    if (!idn.emails.length) return res.json({ items: [], staff: false, committee: false })
+    const onlyHidden = req.query.hidden === '1' && idn.committee
     const { rows } = await query(
-      `SELECT f.id, f.kind, f.title, f.gated, f.created_by, f.owner_email, f.general_access, f.general_role, f.created_at, f.opened_at,
+      `SELECT f.id, f.kind, f.title, f.gated, f.created_by, f.owner_email, f.general_access, f.general_role, f.created_at, f.opened_at, f.hidden, f.owner_only,
               GREATEST(f.updated_at, COALESCE((SELECT MAX(d.updated_at) FROM handover_docs d WHERE d.ws_id = f.id), f.updated_at)) AS updated_at,
               (SELECT d.id FROM handover_docs d WHERE d.ws_id = f.id ORDER BY d.sort, d.id LIMIT 1) AS first_tab,
               (SELECT d.content FROM handover_docs d WHERE d.ws_id = f.id ORDER BY d.sort, d.id LIMIT 1) AS first_content,
@@ -71,13 +73,13 @@ router.get(
               CASE WHEN f.kind = 'sheet' THEN f.content END AS sheet_content
          FROM ws_files f
         WHERE f.kind = $1
-          AND ($2::boolean
-               OR lower(f.owner_email) = ANY($3::text[])
+          AND (NOT $2::boolean OR f.hidden)
+          AND (lower(f.owner_email) = ANY($3::text[])
                OR (f.owner_email IS NULL AND f.created_by = $4)
-               OR ($5::boolean AND f.general_access IN ('committee', 'public'))
+               OR ($5::boolean AND f.general_access IN ('committee', 'public') AND (NOT f.hidden OR $2::boolean))
                OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, false, idn.emails, idn.staff?.name || '', Boolean(idn.staff)]
+      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee]
     )
     const items = []
     for (const r of rows) {
@@ -85,7 +87,7 @@ router.get(
       const level = await levelFor(req, res, { ...r, id: r.id, owner_email })
       if (!level) continue
       const mine = Boolean((owner_email && idn.emails.includes(lower(owner_email))) || (!owner_email && r.created_by === idn.staff?.name))
-      const base = { ...rest, my_role: level, mine, can_delete: Boolean(idn.staff) }
+      const base = { ...rest, my_role: level, mine, can_delete: idn.committee && (!r.owner_only || mine), can_hide: idn.committee && level === 'editor' && !r.owner_only }
       if (r.kind === 'doc') {
         items.push({ ...base, excerpt: fc ? excerpt(fc) : String(fh || '').replace(/<\/(p|h[1-6]|li|tr)>/g, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\n{2,}/g, '\n').trim().slice(0, 520) })
         continue
@@ -96,9 +98,9 @@ router.get(
     }
     // 열 수 없는 운영위원회 및 교수진 파일은 이름만 있는 잠긴 항목으로 보여 준다(내용·미리보기·열기 정보는 보내지 않는다).
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' ORDER BY opened_at DESC, id DESC", [kind])).rows
+    const lockedRows = onlyHidden ? [] : (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' AND NOT hidden AND NOT owner_only ORDER BY opened_at DESC, id DESC", [kind])).rows
     for (const r of lockedRows) if (!have.has(r.id)) items.push({ id: r.id, kind: r.kind, title: r.title, locked: true, updated_at: r.updated_at, opened_at: r.opened_at, my_role: null, mine: false, can_delete: false })
-    res.json({ items, staff: Boolean(idn.staff) })
+    res.json({ items, staff: Boolean(idn.staff), committee: idn.committee })
   })
 )
 
@@ -129,9 +131,11 @@ router.post(
       return res.status(201).json({ item: { ...f, first_tab: tab.rows[0].id } })
     }
     const build = SHEET_TEMPLATES[tpl] || SHEET_TEMPLATES.blank
+    // 심사채점표처럼 나만 보기 템플릿은 만든 사람만 열 수 있고 공유도 막힌다(다른 사람 목록에는 잠긴 카드로도 안 나옴).
+    const ownerOnly = Boolean(name?.ownerOnly)
     const { rows } = await query(
-      "INSERT INTO ws_files (kind, title, template, content, created_by, owner_email, share_token) VALUES ('sheet', $1, $2, $3::jsonb, $4, $5, $6) RETURNING *",
-      [title, tpl, JSON.stringify(build()), ownerName, owner, newToken()]
+      "INSERT INTO ws_files (kind, title, template, content, created_by, owner_email, share_token, owner_only) VALUES ('sheet', $1, $2, $3::jsonb, $4, $5, $6, $7) RETURNING *",
+      [title, tpl, JSON.stringify(build()), ownerName, owner, newToken(), ownerOnly]
     )
     res.status(201).json({ item: rows[0] })
   })
@@ -172,12 +176,13 @@ router.post(
 
 router.delete(
   '/workspace/files/:id',
-  ...guard,
+  committeeOnly,
   wrap(async (req, res) => {
     const f = await fileRow(pid(req))
     if (!f) return res.status(404).json({ error: 'not found' })
-    // 삭제는 운영위원회 및 교수진(manager 이상)만 할 수 있다. guard가 이미 확인한다.
+    // 삭제는 운영위원회 및 교수진만 할 수 있다(committeeOnly). 나만 보기 파일은 만든 사람만 지운다.
     if (f.gated && !hasRole(req.user, 'owner')) return res.status(403).json({ error: '인수인계 문서는 오너만 삭제할 수 있습니다' })
+    if (f.owner_only && !(await levelFor(req, res, f))) return res.status(403).json({ error: '나만 보기 파일은 만든 사람만 삭제할 수 있습니다' })
     if (f.kind === 'doc') {
       await query('DELETE FROM handover_comments WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [f.id])
       await query('DELETE FROM handover_versions WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [f.id])
@@ -186,6 +191,21 @@ router.delete(
     await query('DELETE FROM ws_shares WHERE ws_id = $1', [f.id])
     await query('DELETE FROM ws_files WHERE id = $1', [f.id])
     res.json({ ok: true })
+  })
+)
+
+// 비공개 전환: 운영위원회 및 교수진이 편집 권한을 가진 파일을 목록에서 숨기거나 다시 보이게 한다.
+// 숨겨도 공유 설정은 그대로라, 소유자와 이메일로 공유받은 사람은 계속 보고 연다.
+router.put(
+  '/workspace/files/:id/hidden',
+  committeeOnly,
+  wrap(async (req, res) => {
+    const file = await loadFile(req, res, 'editor')
+    if (!file) return
+    if (file.owner_only) return res.status(400).json({ error: '나만 보기 파일은 항상 비공개입니다' })
+    const hidden = req.body?.hidden === true
+    await query('UPDATE ws_files SET hidden = $1, updated_at = updated_at WHERE id = $2', [hidden, file.id])
+    res.json({ id: file.id, hidden })
   })
 )
 
@@ -272,8 +292,10 @@ router.get(
     else if (req.publicUser) picture = (await query('SELECT picture FROM public_users WHERE id = $1', [req.publicUser.id])).rows[0]?.picture || null
     const u = req.user || req.publicUser
     res.json({
-      user: u ? { name: u.name, email: u.email, role: req.user?.role || null, kind: req.user ? 'staff' : 'guest', picture } : null,
+      user: u ? { name: u.name, email: u.email, role: req.user?.role || null, kind: req.user ? 'staff' : 'guest', member: Boolean(idn.member), picture } : null,
       staff: Boolean(idn.staff),
+      committee: idn.committee,
+      admin: idn.isSite,
     })
   })
 )
@@ -298,9 +320,18 @@ async function shareState(file) {
     general_access: file.general_access,
     general_role: file.general_role,
     share_token: file.share_token,
+    hidden: Boolean(file.hidden),
+    owner_only: Boolean(file.owner_only),
     owner,
     people: out,
   }
+}
+
+// 나만 보기 파일은 공유 설정을 바꿀 수 없다
+function blockOwnerOnly(file, res) {
+  if (!file.owner_only) return false
+  res.status(403).json({ error: '나만 보기 파일은 공유할 수 없습니다', hint: '만든 사람만 볼 수 있도록 고정된 파일입니다.' })
+  return true
 }
 
 router.get(
@@ -309,6 +340,8 @@ router.get(
     const file = await loadFile(req, res)
     if (!file) return
     const state = await shareState(file)
+    const idn = await identityOf(req, res)
+    state.can_hide = idn.committee && req.fileLevel === 'editor' && !file.owner_only
     if (req.fileLevel !== 'editor') state.share_token = state.general_access === 'public' ? state.share_token : null
     res.json({ ...state, level: req.fileLevel })
   })
@@ -318,7 +351,7 @@ router.put(
   '/workspace/files/:id/share',
   wrap(async (req, res) => {
     const file = await loadFile(req, res, 'editor')
-    if (!file) return
+    if (!file || blockOwnerOnly(file, res)) return
     const access = req.body?.general_access
     const role = req.body?.general_role
     if (access !== undefined && !GENERAL.includes(access)) return res.status(400).json({ error: 'invalid general_access' })
@@ -333,7 +366,7 @@ router.post(
   '/workspace/files/:id/share/people',
   wrap(async (req, res) => {
     const file = await loadFile(req, res, 'editor')
-    if (!file) return
+    if (!file || blockOwnerOnly(file, res)) return
     const role = ROLES.includes(req.body?.role) ? req.body.role : 'viewer'
     const emails = [...new Set((Array.isArray(req.body?.emails) ? req.body.emails : []).map(lower).filter(Boolean))]
     if (!emails.length) return res.status(400).json({ error: 'emails required' })
@@ -370,6 +403,92 @@ router.delete(
     if (!file) return
     await query('DELETE FROM ws_shares WHERE id = $1 AND ws_id = $2', [parseInt(req.params.sid, 10), file.id])
     res.json(await shareState(file))
+  })
+)
+
+// ── 운영위원회 구성원(사이트 계정과 별개) ─────────────────────
+// 사이트 관리자(admin·owner)가 구글 이메일을 등록하면, 그 이메일로 구글 로그인한 사람은
+// DAH Docs·Sheet·Form에서 "운영위원회 및 교수진" 권한(공유 파일 열람, 삭제, 비공개 전환)을 얻는다.
+// 사이트 관리 대시보드 권한은 생기지 않는다.
+async function siteAdminOnly(req, res, next) {
+  const idn = await identityOf(req, res)
+  if (!idn.isSite) return res.status(idn.emails.length ? 403 : 401).json({ error: 'admin only', hint: '사이트 관리자만 구성원을 관리할 수 있습니다.' })
+  next()
+}
+
+async function memberList() {
+  const members = (
+    await query(
+      `SELECT m.id, m.email, m.name, m.note, m.added_by, m.created_at,
+              p.name AS google_name, p.picture, p.last_login_at
+         FROM ws_members m
+         LEFT JOIN public_users p ON lower(p.email) = lower(m.email)
+        ORDER BY m.created_at DESC, m.id DESC`
+    )
+  ).rows
+  const staff = (
+    await query("SELECT id, email, name, role, picture FROM users WHERE role IN ('owner', 'admin', 'manager') ORDER BY CASE role WHEN 'owner' THEN 0 WHEN 'admin' THEN 1 ELSE 2 END, name")
+  ).rows
+  const recent = (
+    await query(
+      `SELECT p.email, p.name, p.picture, p.last_login_at
+         FROM public_users p
+        WHERE NOT EXISTS (SELECT 1 FROM ws_members m WHERE lower(m.email) = lower(p.email))
+          AND NOT EXISTS (SELECT 1 FROM users u WHERE lower(u.email) = lower(p.email))
+        ORDER BY p.last_login_at DESC NULLS LAST
+        LIMIT 30`
+    )
+  ).rows
+  return { members, staff, recent }
+}
+
+router.get('/workspace/members', wrap(siteAdminOnly), wrap(async (req, res) => res.json(await memberList())))
+
+router.post(
+  '/workspace/members',
+  wrap(siteAdminOnly),
+  wrap(async (req, res) => {
+    const raw = Array.isArray(req.body?.emails) ? req.body.emails : [req.body?.email]
+    const emails = [...new Set(raw.map(lower).filter(Boolean))]
+    if (!emails.length) return res.status(400).json({ error: 'emails required' })
+    if (emails.length > 50) return res.status(400).json({ error: 'too many' })
+    const bad = emails.filter((e) => !EMAIL_RE.test(e))
+    if (bad.length) return res.status(400).json({ error: '이메일 형식이 아닙니다', emails: bad })
+    const name = String(req.body?.name || '').trim().slice(0, 60) || null
+    const note = String(req.body?.note || '').trim().slice(0, 120) || null
+    for (const e of emails) {
+      await query(
+        `INSERT INTO ws_members (email, name, note, added_by) VALUES ($1, $2, $3, $4)
+         ON CONFLICT (lower(email)) DO UPDATE SET name = COALESCE(EXCLUDED.name, ws_members.name), note = COALESCE(EXCLUDED.note, ws_members.note)`,
+        [e, emails.length === 1 ? name : null, note, authorOf(req)]
+      )
+      // 이미 일반 계정으로 로그인한 적이 있으면 제출 제한(ws_only)을 푼다
+      await query('UPDATE public_users SET ws_only = false WHERE lower(email) = $1', [e])
+    }
+    res.status(201).json(await memberList())
+  })
+)
+
+router.put(
+  '/workspace/members/:id',
+  wrap(siteAdminOnly),
+  wrap(async (req, res) => {
+    const name = req.body?.name === undefined ? undefined : String(req.body.name || '').trim().slice(0, 60) || null
+    const note = req.body?.note === undefined ? undefined : String(req.body.note || '').trim().slice(0, 120) || null
+    await query(
+      `UPDATE ws_members SET name = CASE WHEN $2 THEN $3 ELSE name END, note = CASE WHEN $4 THEN $5 ELSE note END WHERE id = $1`,
+      [pid(req), name !== undefined, name ?? null, note !== undefined, note ?? null]
+    )
+    res.json(await memberList())
+  })
+)
+
+router.delete(
+  '/workspace/members/:id',
+  wrap(siteAdminOnly),
+  wrap(async (req, res) => {
+    await query('DELETE FROM ws_members WHERE id = $1', [pid(req)])
+    res.json(await memberList())
   })
 )
 

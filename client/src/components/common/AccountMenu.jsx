@@ -22,8 +22,9 @@ export function GoogleG({ size = 18 }) {
 const STORE = 'dah.accounts'
 
 let cache = { at: 0, me: undefined, pending: null }
+const listeners = new Set()
 
-/** 현재 계정: { user: {name,email,role,kind,picture}|null, staff } */
+/** 현재 계정: { user: {name,email,role,kind,member,picture}|null, staff, committee, admin }. 다시 불러오면 화면의 모든 사용처가 함께 바뀐다 */
 export function useMe() {
   const [me, setMe] = useState(cache.me)
   const load = useCallback(async (force = false) => {
@@ -31,12 +32,17 @@ export function useMe() {
     if (!cache.pending || force) {
       cache.pending = api.get('/workspace/me').catch(() => ({ user: null, staff: false })).then((r) => {
         cache = { at: Date.now(), me: r, pending: null }
+        listeners.forEach((fn) => fn(r))
         return r
       })
     }
     setMe(await cache.pending)
   }, [])
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    listeners.add(setMe)
+    load()
+    return () => listeners.delete(setMe)
+  }, [load])
   return { me, reload: () => load(true) }
 }
 
@@ -108,7 +114,7 @@ export default function AccountMenu({ size = 40, className = '' }) {
               <div className="acct-pop__me">
                 <Avatar name={user.name} picture={user.picture} size={72} />
                 <h3>안녕하세요, {user.name}님!</h3>
-                <p>{user.kind === 'staff' ? (user.role === 'owner' ? '오너' : user.role === 'admin' ? '관리자' : '운영위원회 및 교수진') : '초대받은 사용자'}</p>
+                <p>{user.kind === 'staff' ? (user.role === 'owner' ? '오너' : user.role === 'admin' ? '관리자' : '운영위원회 및 교수진') : user.member ? '운영위원회 구성원' : '구글 계정'}</p>
                 {user.kind === 'staff' && (
                   <a className="acct-pill" href="/admin"><LayoutDashboard size={16} aria-hidden="true" /> 관리 대시보드</a>
                 )}

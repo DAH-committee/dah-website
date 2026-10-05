@@ -1,9 +1,11 @@
 // 공유 대화상자(구글 독스 방식): 사람 추가(이메일), 액세스 권한이 있는 사용자, 일반 액세스, 링크 복사.
 // 일반 액세스: 제한됨 / 운영위원회 및 교수진 / 전체 공개, 각각 뷰어 또는 편집자 권한.
+// 목록 표시: 운영위원회 및 교수진은 "비공개"로 바꿔 공유받지 않은 사람의 목록에서 숨길 수 있다.
+// 나만 보기 파일(심사채점표 등)은 만든 사람만 열 수 있어 공유 설정이 모두 막힌다.
 // 사이트 디자인 시스템 모달(AppDialog)과 같은 패널 토큰을 쓰고, 밝은 작업면에서는 reading 토큰으로 바뀐다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, Globe, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
+import { Check, ChevronDown, Eye, EyeOff, Globe, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { Avatar } from './AccountMenu'
 import { alertDialog } from './AppDialog'
@@ -12,7 +14,7 @@ import './shareDialog.css'
 const ROLE_LABEL = { viewer: '뷰어', editor: '편집자' }
 const GENERAL = [
   { id: 'restricted', label: '제한됨', desc: '추가된 사용자만 열 수 있습니다', Icon: Lock },
-  { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정으로 로그인한 사용자는 누구나 열 수 있습니다', Icon: Users },
+  { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정과 등록된 운영위원회 구성원은 누구나 열 수 있습니다', Icon: Users },
   { id: 'public', label: '전체 공개', desc: '링크가 있는 인터넷 사용자는 누구나 열 수 있습니다', Icon: Globe },
 ]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -120,13 +122,14 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
   }, [onClose])
   useEffect(() => { panel.current?.querySelector('input')?.focus() }, [state === null])
 
-  const canEdit = state?.level === 'editor'
+  const ownerOnly = Boolean(state?.owner_only)
+  const canEdit = state?.level === 'editor' && !ownerOnly
   const apply = async (fn) => {
     setBusy(true)
     setError('')
     try {
       const next = await fn()
-      if (next?.general_access) setState((s) => ({ ...s, ...next }))
+      if (next?.general_access) setState((s) => ({ ...s, ...next, can_hide: s?.can_hide }))
       else await load()
       onChanged?.()
     } catch (e) {
@@ -196,7 +199,23 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
 
         {state === null && error && <p className="share__err">{error}</p>}
 
-        {state && (
+        {state && ownerOnly && (
+          <>
+            <div className="share__general">
+              <span className="share__gico share__gico--committee"><Lock size={20} aria-hidden="true" /></span>
+              <div className="share__gtext">
+                <b className="share__gname share__gname--flat">나만 보기</b>
+                <small>만든 사람만 열 수 있는 파일입니다. 다른 사람에게 공유하거나 공개할 수 없고, 다른 사람의 목록에도 나오지 않습니다.</small>
+              </div>
+            </div>
+            <div className="share__foot">
+              <span className="share__spacer" />
+              <button type="button" className="share__btn share__btn--on" onClick={onClose}>완료</button>
+            </div>
+          </>
+        )}
+
+        {state && !ownerOnly && (
           <>
             {canEdit && (
               <div className="share__add">
@@ -292,6 +311,29 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
             </div>
             {g.id === 'public' && state.general_role === 'editor' && (
               <p className="share__warn">링크가 있는 사람은 로그인 없이 문서를 고칠 수 있습니다. 링크를 아는 사람에게만 전달하세요.</p>
+            )}
+
+            {state.can_hide && (
+              <>
+                <h3 className="share__sub">목록 표시</h3>
+                <div className="share__general">
+                  <span className={`share__gico${state.hidden ? ' share__gico--committee' : ''}`}>{state.hidden ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}</span>
+                  <div className="share__gtext">
+                    <Menu
+                      wide
+                      value={state.hidden ? 'hidden' : 'shown'}
+                      align="left"
+                      label="목록 표시"
+                      options={[
+                        { id: 'shown', label: '목록에 표시', desc: '열 수 있는 사람의 목록에 나옵니다' },
+                        { id: 'hidden', label: '비공개', desc: '소유자와 이메일로 추가된 사람의 목록에만 나옵니다' },
+                      ]}
+                      onChange={(v) => apply(() => api.put(`/workspace/files/${fileId}/hidden`, { hidden: v === 'hidden' }))}
+                    />
+                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 다른 사람에게는 잠긴 카드로도 보이지 않습니다.' : '열 수 있는 사람의 목록에 나옵니다'}</small>
+                  </div>
+                </div>
+              </>
             )}
 
             {error && <p className="share__err" role="alert">{error}</p>}

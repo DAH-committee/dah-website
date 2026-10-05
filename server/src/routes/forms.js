@@ -14,8 +14,8 @@
 // 검증은 서버가 최종 권한이다. 클라이언트 검증은 사용자 편의일 뿐 신뢰하지 않는다.
 import { Router } from 'express'
 import { query } from '../db.js'
-import { requireAuth, requireRole, optionalAuth } from '../middleware/auth.js'
-import { formFile, identityOf, levelFor } from '../lib/wsAccess.js'
+import { optionalAuth } from '../middleware/auth.js'
+import { committeeOnly, formFile, identityOf, levelFor } from '../lib/wsAccess.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
@@ -44,7 +44,7 @@ const signedIn = [
   optionalAuth,
   wrap(async (req, res, next) => {
     const idn = await identityOf(req, res)
-    if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '한림대 구글 계정으로 로그인하세요.' })
+    if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '구글 계정으로 로그인하세요.' })
     req.wsIdentity = idn
     next()
   }),
@@ -447,7 +447,8 @@ router.get(
   optionalAuth,
   wrap(async (req, res) => {
     const idn = await identityOf(req, res)
-    if (!idn.emails.length) return res.json({ items: [], total: 0, staff: false })
+    if (!idn.emails.length) return res.json({ items: [], total: 0, staff: false, committee: false })
+    const onlyHidden = req.query.hidden === '1' && idn.committee
     const { rows } = await query(
       `SELECT f.*, (SELECT COUNT(*)::int FROM custom_form_responses r WHERE r.form_id = f.id) AS response_count
        FROM custom_forms f ORDER BY f.created_at DESC, f.id DESC`
@@ -455,21 +456,23 @@ router.get(
     const items = []
     for (const f of rows) {
       const ws = await formFile(f.id)
+      if (onlyHidden && !ws.hidden) continue
       const level = await levelFor(req, res, ws)
       if (!level) continue
       // 목록 규칙(문서·시트와 같음): 내가 소유했거나 이메일로 공유받은 폼, 그리고 스태프에게는
       // "운영위원회 및 교수진"·"전체 공개" 폼. 그 밖(남의 제한된 폼, 링크 전용 공개 폼)은 주소로만 연다.
       const mine = ws.owner_email && idn.emails.includes(String(ws.owner_email).toLowerCase())
       const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
-      const general = idn.staff && ['committee', 'public'].includes(ws.general_access)
+      // 비공개 폼은 소유자·공유받은 사람만 본다(비공개 모아 보기에서는 운영위원회 및 교수진도 본다)
+      const general = idn.committee && ['committee', 'public'].includes(ws.general_access) && (!ws.hidden || onlyHidden)
       if (!mine && !shared && !general) continue
-      items.push({ ...f, ws_id: ws.id, my_role: level, can_delete: Boolean(idn.staff) })
+      items.push({ ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: idn.committee, can_hide: idn.committee && level === 'editor' })
     }
     // 열 수 없는 운영위원회 및 교수진 폼은 이름만 있는 잠긴 항목으로 보여 준다.
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND form_id IS NOT NULL")).rows
+    const lockedRows = onlyHidden ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND form_id IS NOT NULL")).rows
     for (const r of lockedRows) if (!have.has(r.form_id)) items.push({ id: r.form_id, ws_id: r.id, title_ko: r.title, locked: true, fields: [], my_role: null, can_delete: false, updated_at: null })
-    res.json({ items, total: items.length, staff: Boolean(idn.staff) })
+    res.json({ items, total: items.length, staff: Boolean(idn.staff), committee: idn.committee })
   })
 )
 
@@ -576,8 +579,9 @@ router.put(
 
 router.delete(
   '/admin/forms/:id',
-  requireAuth,
-  requireRole('manager'),
+  optionalAuth,
+  committeeOnly,
+  ...formGuard('viewer'),
   wrap(async (req, res) => {
     const { rowCount } = await query('DELETE FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rowCount) return res.status(404).json({ error: 'not found' })

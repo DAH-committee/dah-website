@@ -57,3 +57,5 @@
 
 /* 데이터가 오기 전에는 보이지 않다가, 전부 준비되면 모달 전체가 한 번에 나타난다 */
 .share__panel--wait { opacity: 0; pointer-events: none; }
+
+.share__gname--flat { padding: 0; margin-bottom: 2px; }

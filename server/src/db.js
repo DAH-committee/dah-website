@@ -189,6 +189,23 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
   'CREATE UNIQUE INDEX IF NOT EXISTS ws_files_form_idx ON ws_files (form_id) WHERE form_id IS NOT NULL',
   'ALTER TABLE custom_forms ALTER COLUMN created_by DROP NOT NULL',
   'ALTER TABLE public_users ADD COLUMN IF NOT EXISTS picture TEXT',
+  // 한림대·초대·위원회 등록 이메일이 아닌 구글 계정도 DAH Docs·Sheet·Form에는 로그인할 수 있다.
+  // 이런 계정은 ws_only=true로 표시해 전시회·쇼케이스 제출(사전 등록 필요)에는 쓰지 못하게 한다.
+  'ALTER TABLE public_users ADD COLUMN IF NOT EXISTS ws_only BOOLEAN NOT NULL DEFAULT false',
+  // 비공개: 공유받지 않은 사람의 목록에서 아예 숨긴다(잠긴 카드도 보이지 않음). 운영위원회 및 교수진이 켜고 끈다.
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false',
+  // 나만 보기: 만든 사람만 열 수 있고 공유도 할 수 없다(사이트 관리자도 열 수 없음). 심사채점표가 이 상태로 만들어진다.
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_only BOOLEAN NOT NULL DEFAULT false',
+  // 사이트 계정과 별개인 DAH Docs·Sheet·Form 운영위원회 구성원(구글 이메일). 사이트 관리자가 등록한다.
+  `CREATE TABLE IF NOT EXISTS ws_members (
+     id         SERIAL PRIMARY KEY,
+     email      TEXT NOT NULL,
+     name       TEXT,
+     note       TEXT,
+     added_by   TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE UNIQUE INDEX IF NOT EXISTS ws_members_email_idx ON ws_members (lower(email))',
 ]
 
 export async function ensureHandoverSchema() {

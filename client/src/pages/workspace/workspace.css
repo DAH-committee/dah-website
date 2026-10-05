@@ -145,3 +145,15 @@
 .ws-locked__ghost i:nth-child(6) { width: 88%; }
 .ws-locked__ghost i:nth-child(7) { width: 54%; }
 .ws-locked__badge { position: relative; display: inline-grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: #7a3cff; color: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
+
+/* 로그인 안내(비로그인 상태): 템플릿 띠 자리에 같은 회색 띠로 둔다 */
+.ws-signin { padding: 36px 0 40px; }
+.ws-signin h2 { font-size: 22px; font-weight: 600; }
+.ws-signin p { margin: 8px 0 20px; color: var(--ws-sub); font-size: 15px; line-height: 1.5; }
+.ws-signin__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ws .ws-signin__alt { min-height: 44px; padding: 0 20px; border-radius: 22px; background: #fff; color: var(--ws-ink); font-size: 15px; font-weight: 600; }
+.ws .ws-signin__alt:hover { background: #e2e2e2; }
+
+/* 비공개·나만 보기 표시 */
+.ws-tag { display: inline-flex; flex: none; align-items: center; gap: 3px; height: 20px; padding: 0 7px; border-radius: 10px; background: #1f1f1f; color: #fff; font-size: 11px; font-style: normal; font-weight: 600; letter-spacing: 0; }
+.ws-row__title .ws-tag { margin-left: 4px; }

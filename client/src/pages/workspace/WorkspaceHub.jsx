@@ -4,14 +4,15 @@
 // 문서와 시트는 /workspace/files, 폼은 기존 /admin/forms를 쓴다.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock } from 'lucide-react'
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock, Eye, EyeOff, UsersRound } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import AccountMenu, { GoogleG, startGoogleLogin, useMe } from '../../components/common/AccountMenu'
 import NoAccess from '../../components/common/NoAccess'
 import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
+import { useLoginModal } from '../../context/LoginModalContext'
 import { ICONS, KINDS } from './icons'
 import './workspace.css'
 
@@ -235,12 +236,13 @@ function LockedThumb() {
   )
 }
 
-function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extraMenu = [] }) {
+function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHide, extraMenu = [] }) {
   const [menu, setMenu] = useState(false)
   const btn = useRef(null)
   const Icon = ICONS[kind]
   const items = [
     { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.system || file.my_role === 'viewer' },
+    ...(file.can_hide ? [{ label: file.hidden ? '비공개 해제' : '비공개로 전환', icon: file.hidden ? <Eye size={20} /> : <EyeOff size={20} />, onClick: () => onHide(file) }] : []),
     ...(file.can_delete ? [{ label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system }] : []),
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
@@ -252,7 +254,7 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extr
   if (view === 'list') {
     return (
       <div className="ws-row" onClick={() => onOpen(file)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
-        <span className="ws-row__title">{file.locked ? <Lock size={24} /> : <Icon size={24} />}{file.title}</span>
+        <span className="ws-row__title">{file.locked ? <Lock size={24} /> : <Icon size={24} />}{file.title}{file.owner_only ? <em className="ws-tag">나만 보기</em> : file.hidden ? <em className="ws-tag">비공개</em> : null}</span>
         <span className="ws-row__owner">{file.system ? '자동 연결' : file.created_by || '-'}</span>
         <span className="ws-row__date">{fmtDate(file.opened_at || file.updated_at)}</span>
         <span className="ws-row__more" onClick={(e) => e.stopPropagation()}>
@@ -269,6 +271,7 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extr
         <strong title={file.title}>{file.title}</strong>
         <div className="ws-card__meta">
           {file.locked ? <Lock size={20} /> : <Icon size={22} />}
+          {file.owner_only ? <em className="ws-tag" title="만든 사람만 볼 수 있습니다"><Lock size={12} />나만 보기</em> : file.hidden ? <em className="ws-tag" title="공유받지 않은 사람의 목록에 나오지 않습니다"><EyeOff size={12} />비공개</em> : null}
           <span>{file.locked ? '접근 권한 없음' : file.system ? '자동 연결 시트' : fmtDate(file.opened_at || file.updated_at, true)}</span>
           <span className="ws-card__more" onClick={(e) => e.stopPropagation()}>
             {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
@@ -290,9 +293,12 @@ export default function WorkspaceHub() {
   const { kind } = useParams()
   const navigate = useNavigate()
   const { user, hasRole, loading: authLoading } = useAuth()
-  const { me } = useMe()
+  const { me, reload: reloadMe } = useMe()
+  const { openLogin } = useLoginModal()
+  const [params, setParams] = useSearchParams()
   const isStaff = hasRole('manager')
   const signedIn = Boolean(me?.user)
+  const committee = Boolean(me?.committee)
   const [files, setFiles] = useState([])
   const [templates, setTemplates] = useState({ doc: [], sheet: [] })
   const [loading, setLoading] = useState(true)
@@ -322,19 +328,20 @@ export default function WorkspaceHub() {
     setLoading(true)
     setError('')
     try {
+      const hiddenOnly = owner === 'hidden' ? { hidden: '1' } : {}
       if (kind === 'forms') {
-        const r = await api.get('/admin/forms')
+        const r = await api.get('/admin/forms', hiddenOnly)
         setFiles(
           (r.items || []).map((x) => ({
             id: x.id, title: x.title_ko || '제목 없는 설문지', created_by: '', opened_at: x.updated_at, updated_at: x.updated_at,
             fields: Array.isArray(x.fields) ? x.fields : [], response_count: x.response_count, slug: x.slug,
-            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete, locked: x.locked,
+            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete, locked: x.locked, hidden: x.hidden, can_hide: x.can_hide,
           }))
         )
       } else {
-        const r = await api.get('/workspace/files', { kind: kind === 'docs' ? 'doc' : 'sheet' })
+        const r = await api.get('/workspace/files', { kind: kind === 'docs' ? 'doc' : 'sheet', ...hiddenOnly })
         let items = r.items
-        if (kind === 'sheets') items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
+        if (kind === 'sheets' && owner !== 'hidden') items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
         setFiles(items)
       }
     } catch (e) {
@@ -342,11 +349,31 @@ export default function WorkspaceHub() {
     } finally {
       setLoading(false)
     }
-  }, [kind])
+  }, [kind, owner])
 
   useEffect(() => {
     if (K && !authLoading) load()
   }, [K, load, authLoading])
+
+  // 운영위원회 사이트 계정으로 로그인(모달)하면 계정 정보와 목록을 다시 읽는다
+  const staffId = user?.id ?? null
+  const firstStaff = useRef(true)
+  useEffect(() => {
+    if (firstStaff.current) { firstStaff.current = false; return }
+    reloadMe()
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [staffId])
+
+  // 구글 로그인이 실패하면 서버가 ?login_error=로 돌려보낸다. 안내를 띄우고 주소에서 지운다.
+  useEffect(() => {
+    const msg = params.get('login_error')
+    if (!msg) return
+    const next = new URLSearchParams(params)
+    next.delete('login_error')
+    setParams(next, { replace: true })
+    alertDialog({ title: '로그인하지 못했습니다', message: msg })
+  }, [params, setParams])
 
   useEffect(() => {
     if (signedIn) api.get('/workspace/templates').then(setTemplates).catch(() => {})
@@ -360,7 +387,7 @@ export default function WorkspaceHub() {
 
   const shown = useMemo(() => {
     let list = files.filter((x) => !q.trim() || x.title.toLowerCase().includes(q.trim().toLowerCase()))
-    if (owner === 'mine') list = list.filter((x) => x.mine && !x.locked)
+    if (owner === 'mine') list = list.filter((x) => (x.mine || kind === 'forms') && !x.locked)
     const pinned = list.filter((x) => x.system)
     const rest = list.filter((x) => !x.system)
     rest.sort(sort === 'name' ? (a, b) => a.title.localeCompare(b.title, 'ko') : (a, b) => new Date(b.opened_at || b.updated_at) - new Date(a.opened_at || a.updated_at))
@@ -428,6 +455,22 @@ export default function WorkspaceHub() {
     }
   }
 
+  async function toggleHidden(file) {
+    const hide = !file.hidden
+    const wsId = kind === 'forms' ? file.ws_id : file.id
+    if (hide && !(await confirmDialog({
+      title: '비공개로 전환',
+      message: `'${file.title}'을(를) 비공개로 바꿀까요? 소유자와 이메일로 추가된 사람의 목록에만 나오고, 그 밖의 사람에게는 잠긴 카드로도 보이지 않습니다. 공유 설정은 그대로입니다.`,
+      confirmLabel: '비공개로 전환',
+    }))) return
+    try {
+      await api.put(`/workspace/files/${wsId}/hidden`, { hidden: hide })
+      load()
+    } catch (e) {
+      setError(e.hint ? `${e.message} (${e.hint})` : e.message)
+    }
+  }
+
   return (
     <div className="ws">
       <header className="ws-top">
@@ -453,10 +496,24 @@ export default function WorkspaceHub() {
               return <Link key={k.id} to={k.path} onClick={() => closeDrawer()} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
             })}
             <hr />
+            {me?.admin && <Link to="/workspace/members" className="ws-drawer__item"><UsersRound size={24} />운영위원회 구성원</Link>}
             {isStaff && <Link to="/admin" className="ws-drawer__item">관리 대시보드</Link>}
             <Link to="/" className="ws-drawer__item">사이트로 돌아가기</Link>
           </nav>
         </div>
+      )}
+
+      {me && !signedIn && (
+        <section className="ws-band ws-signin">
+          <div className="ws-wrap">
+            <h2>{K.name}에 로그인</h2>
+            <p>구글 계정으로 로그인하면 누구나 새 {kind === 'docs' ? '문서' : kind === 'sheets' ? '스프레드시트' : '설문지'}를 만들고, 공유받은 파일을 열 수 있습니다.</p>
+            <div className="ws-signin__btns">
+              <button type="button" className="gbtn" onClick={() => startGoogleLogin()}><GoogleG size={22} /> 구글 계정으로 로그인</button>
+              <button type="button" className="ws-signin__alt" onClick={() => openLogin()}>운영위원회 사이트 계정으로 로그인</button>
+            </div>
+          </div>
+        </section>
       )}
 
       {signedIn && (
@@ -492,11 +549,12 @@ export default function WorkspaceHub() {
             <h2>{K.recent}</h2>
             <div className="ws-recent__tools">
               <div className="ws-owner">
-                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : '내가 만든 항목'}<ChevronDown size={16} /></button>
+                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : owner === 'hidden' ? '비공개 항목' : '내가 만든 항목'}<ChevronDown size={16} /></button>
                 {ownerMenu && (
                   <CardMenu anchorRef={ownerBtn} align="left" onClose={() => setOwnerMenu(false)} items={[
                     { label: '모든 항목', icon: null, onClick: () => setOwner('all') },
                     { label: '내가 만든 항목', icon: null, onClick: () => setOwner('mine') },
+                    ...(committee ? [{ label: '비공개 항목', icon: <EyeOff size={20} />, onClick: () => setOwner('hidden') }] : []),
                   ]} />
                 )}
               </div>
@@ -510,19 +568,16 @@ export default function WorkspaceHub() {
             <p className="ws-empty">불러오는 중</p>
           ) : shown.length === 0 ? (
             <div className="ws-empty">
-              {me && !me.user && !q && (
-                <button type="button" className="gbtn" onClick={() => startGoogleLogin()}><GoogleG size={22} /> 구글 계정으로 로그인</button>
-              )}
-              <p style={{ margin: me && !me.user && !q ? '16px 0 0' : 0 }}>{q ? '검색 결과가 없습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '한림대 구글 계정으로 로그인하면 새로 만들 수 있고, 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
+              <p style={{ margin: 0 }}>{q ? '검색 결과가 없습니다.' : owner === 'hidden' ? '비공개 항목이 없습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 내 파일과 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
             </div>
           ) : view === 'list' ? (
             <div className="ws-list">
               <div className="ws-row ws-row--head"><span>이름</span><span>소유자</span><span>마지막으로 연 시간</span><span /></div>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           ) : (
             <div className={`ws-grid ws-grid--${kind}`}>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           )}
         </div>

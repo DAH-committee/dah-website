@@ -56,6 +56,7 @@ const FormEditorPage = lazy(() => import('./pages/admin/FormEditor'))
 const FormResponsesPage = lazy(() => import('./pages/admin/FormResponsesSheet'))
 const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
 const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
+const WorkspaceMembers = lazy(() => import('./pages/workspace/WorkspaceMembers'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
 // .page-fade(opacity 0→1, translate 금지). reduced-motion은 index.css 전역 미디어쿼리가 무효화.
@@ -169,6 +170,14 @@ const PUBLIC_ROUTES = [
     ),
   },
   { path: '/workspace', element: <Navigate to="/workspace/docs" replace /> },
+  {
+    path: '/workspace/members',
+    element: (
+      <Suspense fallback={null}>
+        <WorkspaceMembers />
+      </Suspense>
+    ),
+  },
   {
     path: '/workspace/:kind',
     element: (

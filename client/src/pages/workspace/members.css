@@ -1,0 +1,25 @@
+/* 운영위원회 구성원 관리: 작업공간과 같은 밝은 작업면. 테두리 없음, 입력칸은 흰 바탕 */
+.mb-add__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.mb-add__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.mb-field { display: flex; flex-direction: column; gap: 6px; width: 200px; font-size: 13px; color: var(--ws-sub); }
+.mb-field--wide { flex: 1; min-width: 280px; }
+.mb-field input, .mb-field textarea { height: 44px; padding: 11px 14px; border: 0; border-radius: 8px; background: #fff; color: var(--ws-ink); font: inherit; font-size: 15px; outline: none; resize: vertical; }
+.mb-field textarea { min-height: 44px; line-height: 22px; }
+.mb-field input:focus, .mb-field textarea:focus { box-shadow: 0 0 0 2px #7a3cff; }
+.ws .mb-add__btn { height: 44px; }
+.ws .mb-link { padding: 0; color: #7a3cff; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.mb-list { display: flex; flex-direction: column; }
+.mb-row { display: grid; grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 1fr) 220px 96px; align-items: center; gap: 16px; min-height: 64px; padding: 0 8px 0 12px; border-radius: 32px; font-size: 14px; }
+.mb-row:hover { background: rgba(0, 0, 0, 0.05); }
+.mb-who { display: flex; flex-direction: column; min-width: 0; }
+.mb-who b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-who small, .mb-meta { color: var(--ws-sub); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-note { color: var(--ws-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mb-acts { display: flex; justify-content: flex-end; gap: 4px; }
+.ws .mb-pill { height: 36px; padding: 0 16px; border-radius: 18px; background: #7a3cff; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.ws .mb-pill:hover:not(:disabled) { background: #6200ea; }
+@media (max-width: 900px) {
+  .mb-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
+  .mb-note, .mb-meta { display: none; }
+  .mb-field { width: 100%; }
+}
