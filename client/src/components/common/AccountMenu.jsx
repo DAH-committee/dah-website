@@ -5,12 +5,23 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { LogOut, Plus, UserRound, LayoutDashboard } from 'lucide-react'
 import { API_BASE, api } from '../../hooks/useApi'
 import { useLoginModal } from '../../context/LoginModalContext'
+import { confirmDialog } from './AppDialog'
 import './accountMenu.css'
 
 export const AVATAR_PURPLE = '#7A3CFF'
 
 /** 구글 로그인으로 이동(로그인 뒤 현재 화면으로 돌아온다) */
-export function startGoogleLogin(hint) {
+export async function startGoogleLogin(hint) {
+  // 카카오톡·인스타그램·네이버 앱처럼 앱 안에 들어 있는 브라우저(웹뷰)에서는 구글이 로그인을 막는다(disallowed_useragent).
+  // 막힌 화면만 보고 돌아오지 않도록, 먼저 안내하고 원하면 그대로 진행하게 한다.
+  if (/KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|DaumApps|; wv\)/i.test(navigator.userAgent)) {
+    const go = await confirmDialog({
+      title: '브라우저에서 열어 주세요',
+      message: '앱 안의 브라우저에서는 구글 로그인이 막힐 수 있습니다. 오른쪽 위(또는 아래) 메뉴에서 "다른 브라우저로 열기" 또는 "사파리·크롬으로 열기"를 선택한 뒤 로그인하세요.',
+      confirmLabel: '그래도 로그인',
+    })
+    if (!go) return
+  }
   const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`)
   window.location.href = `${API_BASE}/auth/google/login?next=${next}${hint ? `&hint=${encodeURIComponent(hint)}` : ''}`
 }
