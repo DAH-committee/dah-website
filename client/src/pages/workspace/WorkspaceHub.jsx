@@ -21,31 +21,87 @@ const FORM_SETTINGS = {
   drive_auto_folder: true, drive_semester: '', drive_course_field_id: '', drive_share_mode: 'restricted', drive_connection_id: '',
 }
 const f = (id, label_ko, type, extra = {}) => ({ id, label_ko, type, required: false, options: [], ...extra })
+// 개인정보 수집·이용 동의(공개 대학 동의서의 공통 요소: 수집 항목, 목적, 보유 기간, 거부 권리와 불이익). 보유 기간은 행사에 맞게 고친다.
+const consent = (id, items, purpose) =>
+  f(id, '개인정보 수집·이용 동의', 'radio', {
+    required: true,
+    options: ['동의합니다', '동의하지 않습니다'],
+    hint_ko: `수집 항목: ${items}\n이용 목적: ${purpose}\n보유 기간: 목적 달성 후 ○년(행사에 맞게 수정)\n동의를 거부할 수 있으며, 거부하면 신청이 제한될 수 있습니다.`,
+  })
+// 템플릿 근거: 운영위원회 개강·종강총회 방명록 hwp, 기말전시 기획안(참여형 방명록), 포스터 공모전 요강·출품자 명단,
+// 근로일지 기록카드 hwp, 멘토 결과 보고서 hwpx (구조만 옮김)
 const FORM_TEMPLATES = [
   { id: 'blank', name: '빈 양식', sub: '', title: '제목 없는 설문지', category: 'other', fields: [f('f1', '제목 없는 질문', 'radio', { options: ['옵션 1'] })] },
   {
-    id: 'attend', name: '행사 참석 여부', sub: '참석, 동행, 문의', title: '행사 참석 여부', category: 'event',
-    desc: '행사 참석 여부를 알려 주세요.',
-    fields: [f('f1', '이름', 'text', { required: true }), f('f2', '참석 여부', 'radio', { required: true, options: ['참석', '불참'] }), f('f3', '동행 인원', 'select', { options: ['0', '1', '2', '3'] }), f('f4', '문의 사항', 'textarea')],
+    id: 'register', name: '행사 참가 신청', sub: '학과, 학번, 참석 여부', title: '행사 참가 신청', category: 'event',
+    desc: '행사 참가 신청서입니다.\n일시: \n장소: ',
+    fields: [
+      f('f1', '학과', 'text', { required: true }),
+      f('f2', '학번', 'studentid', { required: true }),
+      f('f3', '성명', 'text', { required: true }),
+      f('f4', '연락처', 'phone', { required: true }),
+      f('f5', '참석 여부', 'radio', { required: true, options: ['참석', '불참'] }),
+      f('f6', '문의 사항', 'textarea'),
+      consent('f7', '학과, 학번, 성명, 연락처', '참가자 확인과 행사 안내 연락'),
+    ],
   },
   {
-    id: 'recruit', name: '신입 부원 모집', sub: '지원 동기, 연락처', title: '신입 부원 모집', category: 'recruit',
-    desc: '디지털인문예술전공 운영위원회 신입 부원 모집 지원서입니다.',
-    fields: [f('f1', '이름', 'text', { required: true }), f('f2', '학번', 'studentid', { required: true }), f('f3', '전공', 'text', { required: true }), f('f4', '연락처', 'phone', { required: true }), f('f5', '지원 부서', 'radio', { required: true, options: ['홍보부', '기획부', '웹전시부'] }), f('f6', '지원 동기', 'textarea', { required: true }), f('f7', '개인정보 수집·이용 동의', 'checkbox', { required: true, options: ['동의'] })],
+    id: 'guestbook', name: '방명록', sub: '이름과 남길 말', title: '방명록', category: 'event',
+    desc: '행사에 와 주셔서 고맙습니다. 남기고 싶은 말을 적어 주세요.',
+    fields: [
+      f('f1', '학과', 'text', { required: true }),
+      f('f2', '학번', 'studentid'),
+      f('f3', '성명', 'text', { required: true }),
+      f('f4', '남길 말', 'textarea', { required: true }),
+      f('f5', '남긴 말을 전시·홍보에 공개해도 될까요?', 'radio', { required: true, options: ['공개해도 됩니다', '공개하지 않습니다'] }),
+    ],
   },
   {
-    id: 'survey', name: '만족도 조사', sub: '점수와 의견', title: '만족도 조사', category: 'other',
-    desc: '행사 만족도를 알려 주세요.',
-    fields: [f('f1', '전체 만족도', 'scale', { required: true, validation: { min: 1, max: 5 } }), f('f2', '좋았던 점', 'textarea'), f('f3', '아쉬운 점', 'textarea')],
+    id: 'contest', name: '공모전 출품 신청', sub: '작품, 소개, AI 활용', title: '공모전 출품 신청', category: 'other',
+    desc: '공모전 출품 신청서입니다. 작품 규격과 파일 형식은 공모전 안내를 확인해 주세요.',
+    fields: [
+      f('f1', '참가 유형', 'radio', { required: true, options: ['개인', '팀'] }),
+      f('f2', '이름(팀이면 대표자)', 'text', { required: true }),
+      f('f3', '학과', 'text', { required: true }),
+      f('f4', '학번', 'studentid', { required: true }),
+      f('f5', '연락처', 'phone', { required: true }),
+      f('f6', '이메일', 'email', { required: true }),
+      f('f7', '작품명', 'text', { required: true }),
+      f('f8', '작품 소개', 'textarea', { required: true }),
+      f('f9', '생성형 AI 활용 도구와 활용 내용', 'textarea', { hint_ko: '사용하지 않았다면 비워 두세요.' }),
+      consent('f10', '이름, 학과, 학번, 연락처, 이메일', '출품자 확인, 심사, 결과 안내, 시상'),
+      f('f11', '수상작 공개 동의', 'radio', { required: true, options: ['동의합니다', '동의하지 않습니다'], hint_ko: '수상작은 전시, 웹사이트, 인스타그램에 작품명과 이름이 공개될 수 있습니다.' }),
+    ],
   },
   {
-    id: 'vote', name: '투표', sub: '후보 선택, 의견', title: '투표', category: 'event',
-    desc: '후보를 한 명 선택해 주세요.',
-    fields: [f('f1', '학번', 'studentid', { required: true }), f('f2', '후보', 'radio', { required: true, options: ['후보 1', '후보 2', '기권'] }), f('f3', '의견', 'textarea')],
+    id: 'worklog', name: '근무 기록 제출', sub: '날짜, 시간, 내용', title: '근무 기록 제출', category: 'other',
+    desc: '근무한 날마다 한 번씩 제출합니다.',
+    fields: [
+      f('f1', '이름', 'text', { required: true }),
+      f('f2', '학번', 'studentid', { required: true }),
+      f('f3', '근무 날짜', 'date', { required: true }),
+      f('f4', '시작 시각', 'time', { required: true }),
+      f('f5', '종료 시각', 'time', { required: true }),
+      f('f6', '근무 내용', 'textarea', { required: true }),
+      f('f7', '확인', 'checkbox', { required: true, options: ['위 내용이 사실과 같음을 확인합니다'] }),
+    ],
   },
   {
-    id: 'contact', name: '연락처 정보', sub: '이름, 이메일, 전화', title: '연락처 정보', category: 'other',
-    fields: [f('f1', '이름', 'text', { required: true }), f('f2', '이메일', 'email', { required: true }), f('f3', '전화번호', 'phone'), f('f4', '소속', 'text')],
+    id: 'mentoring', name: '멘토링·특강 결과 보고', sub: '활동, 의견, 만족도', title: '멘토링·특강 결과 보고', category: 'other',
+    desc: '멘토링 또는 특강이 끝난 뒤 작성합니다.',
+    fields: [
+      f('f1', '이름', 'text', { required: true }),
+      f('f2', '학과·전공', 'text', { required: true }),
+      f('f3', '학번', 'studentid', { required: true }),
+      f('f4', '활동 날짜', 'date', { required: true }),
+      f('f5', '활동 시간(시간)', 'text', { required: true }),
+      f('f6', '참여 인원', 'text'),
+      f('f7', '활동 내용', 'textarea', { required: true }),
+      f('f8', '참여 학생에게 필요한 사항', 'textarea'),
+      f('f9', '프로그램을 위한 건의 사항', 'textarea'),
+      f('f10', '종합 소감', 'textarea'),
+      f('f11', '전체 만족도', 'scale', { required: true, validation: { min: 1, max: 5 } }),
+    ],
   },
 ]
 
@@ -98,19 +154,28 @@ function TemplateThumb({ kind, tpl }) {
   return <FormThumb title={tpl.title} fields={tpl.fields} />
 }
 
+// 한글(HWPX) 양식: 같은 문서 템플릿을 kordoc으로 공문서 서식의 HWPX로 만든 파일(client/public/templates)
+const HWPX_FILES = [
+  { name: '행사·전시 기획안', href: '/templates/dah-plan.hwpx' },
+  { name: '행사 결과 보고서', href: '/templates/dah-report.hwpx' },
+  { name: '회의록', href: '/templates/dah-minutes.hwpx' },
+  { name: '공모전 안내', href: '/templates/dah-contest.hwpx' },
+  { name: '방명록', href: '/templates/dah-guestbook.hwpx' },
+]
+
 const DOC_PREVIEW = {
-  minutes: '회의록\n항목 내용\n일시\n장소\n참석\n안건\n논의 내용\n결정 사항',
-  plan: '행사 기획안\n행사명 일시 장소\n목적\n진행 순서\n역할 분담\n예산\n홍보 계획',
-  notice: '공지문\n안녕하세요. 운영위원회 LUCID입니다.\n일정\n내용\n신청 방법\n문의',
-  report: '결과 보고서\n행사명 일시 장소\n진행 내용\n결과\n정산\n현장 사진\n개선할 점',
-  handover: '인수인계 문서\n업무 개요\n연간 일정\n계정과 링크\n주의사항\n체크리스트',
+  plan: '행사·전시 기획안\n행사명 슬로건 일시 장소\n1. 기획 의도 및 목적\n2. 실행 방안\n현장 프로그램 공간 구성\n홍보 방안\n3. 필요 물품 및 예산\n4. 추진 일정\n5. 운영 인원',
+  report: '행사 결과 보고서\n행사명 일시 장소\n참석 인원 추진 목적\n1. 주요 행사 내용\n2. 행사 효과\n3. 행사 현장 사진\n4. 정산\n참여자 명단',
+  minutes: '회의록\n1. 회의 개요\n2. 참석자\n3. 상정 안건\n4. 논의 내용\n5. 결정 사항\n6. 기타',
+  contest: '공모전 안내\n접수 기간 참가 대상\n1. 공모 주제\n2. 출품 양식\n3. 시상 내용\n4. 세부 일정\n5. 출품 방법\n6. 유의 사항',
+  guestbook: '방명록\n행사명 일시 장소\n순번 학과 학번 성명 서명\n1\n2\n3\n4\n5',
 }
 const SHEET_PREVIEW = {
-  todo: { head: ['할 일', '담당', '기한', '상태'], rows: [['', '', '', '진행 전'], ['', '', '', '진행 전']] },
-  budget: { head: ['날짜', '항목', '예산', '집행', '잔액'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
-  attendance: { head: ['이름', '학번', '전공', '참석'], rows: [['', '', '', ''], ['', '', '', '']] },
-  shift: { head: ['날짜', '시간', '구역', '근무자'], rows: [['', '', '', ''], ['', '', '', '']] },
-  calendar: { head: ['월', '화', '수', '목', '금'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
+  participants: { head: ['순번', '학과', '학번', '성명', '참석'], rows: [['1', '', '', '', ''], ['2', '', '', '', ''], ['3', '', '', '', '']] },
+  budget: { head: ['구분', '물품', '단가', '수량', '금액'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
+  entries: { head: ['순번', '학과', '이름', '작품명', '수상'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
+  worklog: { head: ['날짜', '요일', '근무자', '내용', '시간'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
+  files: { head: ['ID', '과목', '작품명', '파일명', '제출'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
 }
 
 function CardMenu({ items, onClose, anchorRef, align = 'right' }) {
@@ -244,6 +309,8 @@ export default function WorkspaceHub() {
   }
   const [busy, setBusy] = useState(false)
   const ownerBtn = useRef(null)
+  const hwpBtn = useRef(null)
+  const [hwpMenu, setHwpMenu] = useState(false)
   const K = KINDS[kind]
   const Icon = ICONS[kind] || ICONS.docs
 
@@ -395,7 +462,17 @@ export default function WorkspaceHub() {
       {signedIn && (
       <section className="ws-band">
         <div className="ws-wrap">
-          <div className="ws-band__head"><h2>{K.start}</h2></div>
+          <div className="ws-band__head">
+            <h2>{K.start}</h2>
+            {kind === 'docs' && (
+              <span className="ws-owner">
+                <button ref={hwpBtn} type="button" className="ws-owner__btn" onClick={() => setHwpMenu((v) => !v)}>한글(HWPX) 양식<ChevronDown size={16} /></button>
+                {hwpMenu && (
+                  <CardMenu anchorRef={hwpBtn} onClose={() => setHwpMenu(false)} items={HWPX_FILES.map((x) => ({ label: x.name, icon: <ExternalLink size={20} />, onClick: () => { const a = document.createElement('a'); a.href = x.href; a.download = `${x.name}.hwpx`; a.click() } }))} />
+                )}
+              </span>
+            )}
+          </div>
           <div className={`ws-tpls ws-tpls--${kind}`}>
             {tplList.map((t) => (
               <button key={t.id} type="button" className="ws-tpl" disabled={busy} onClick={() => createFrom(t)}>

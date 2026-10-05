@@ -7,7 +7,7 @@
 // 접수 정보(기간 설정)와 개인정보 초기화는 /admin/exhibition 화면에 그대로 있다.
 //
 // 표면: G4 밝은 읽기 표면(tokens.reading). 사이트 전역 다크 테마의 명시적 예외이며 색은 토큰 경유로만 쓴다.
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SheetWorkspace from '../../components/admin/sheet/SheetWorkspace'
 import { api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
@@ -61,11 +61,11 @@ const FIELD_ORDER = [
 
 // 컬럼 폭(px) — table-layout:fixed의 기준. 필터·선택에도 이 값은 변하지 않는다.
 const COLUMN_WIDTH = {
-  id: 72,
-  created_at: 150,
-  updated_at: 150,
+  id: 112,
+  created_at: 170,
+  updated_at: 170,
   semester_label: 110,
-  entry_type: 88,
+  entry_type: 104,
   email: 220,
   'fields.name': 120,
   'fields.student_no': 120,
@@ -298,6 +298,19 @@ function EntriesSheet() {
     [entryColumns, peopleColumns, rows, peopleRows]
   )
 
+  // DAH Sheet와 같은 "마지막으로 수정" 표시와 이동
+  const [lastEdit, setLastEdit] = useState(null)
+  const editTimer = useRef(null)
+  useEffect(() => {
+    api.get('/admin/exhibition/entries-last-edit').then((r) => setLastEdit(r.last_edit)).catch(() => {})
+  }, [])
+  const onCellEdited = useCallback((sheet, row, col) => {
+    clearTimeout(editTimer.current)
+    editTimer.current = setTimeout(() => {
+      api.put('/admin/exhibition/entries-last-edit', { sheet, row: String(row), col }).then((r) => setLastEdit(r.last_edit)).catch(() => {})
+    }, 900)
+  }, [])
+
   return (
     <SheetWorkspace
       title="접수 관리 시트"
@@ -311,6 +324,9 @@ function EntriesSheet() {
       onInsertRow={onInsertRow}
       onDeleteRows={onDeleteRows}
       exportName="접수"
+      homeHref="/workspace/sheets"
+      lastEdit={lastEdit}
+      onCellEdited={onCellEdited}
     />
   )
 }

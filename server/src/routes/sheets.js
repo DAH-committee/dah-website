@@ -160,4 +160,33 @@ router.post(
   })
 )
 
+// 전시 접수 시트의 마지막 수정 위치(DAH Sheet와 같은 "마지막으로 수정" 표시·이동용)
+router.get(
+  '/admin/exhibition/entries-last-edit',
+  requireAuth,
+  requireRole('manager'),
+  wrap(async (req, res) => {
+    const r = (await query("SELECT value FROM handover_settings WHERE key = 'entries_last_edit'")).rows[0]
+    let v = null
+    try { v = r ? JSON.parse(r.value) : null } catch { v = null }
+    res.json({ last_edit: v })
+  })
+)
+router.put(
+  '/admin/exhibition/entries-last-edit',
+  requireAuth,
+  requireRole('manager'),
+  wrap(async (req, res) => {
+    const b = req.body || {}
+    const clip = (v, n) => (typeof v === 'string' ? v.slice(0, n) : undefined)
+    const value = { sheet: clip(b.sheet, 40), row: clip(String(b.row ?? ''), 40), col: clip(b.col, 80), by: req.user.name, at: new Date().toISOString() }
+    await query(
+      `INSERT INTO handover_settings (key, value, updated_at) VALUES ('entries_last_edit', $1, now())
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+      [JSON.stringify(value)]
+    )
+    res.json({ last_edit: value })
+  })
+)
+
 export default router
