@@ -5,7 +5,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth, hasRole } from '../middleware/auth.js'
-import { authorOf, fileRow, identityOf, levelFor } from '../lib/wsAccess.js'
+import { authorOf, fileRow, identityOf, levelFor, touchRecent } from '../lib/wsAccess.js'
 
 const router = Router()
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
@@ -41,6 +41,7 @@ const guard = (resolve, { member = false } = {}) =>
     req.wsLevel = level
     req.handoverAccess = level === 'editor' ? 'member' : 'viewer'
     req.wsId = ws
+    if (req.method === 'GET' && /^\/handover\/docs\/\d+\/?$/.test(req.path)) await touchRecent(req, res, file) // 링크로 열면 내 "최근"에 남는다
     next()
   })
 

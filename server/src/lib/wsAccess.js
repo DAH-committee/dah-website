@@ -194,7 +194,27 @@ export async function purgeFile(file) {
   if (file.kind === 'sheet') await query('DELETE FROM admin_sheet_state WHERE key = $1', [`ws-sheet-${file.id}`])
   if (file.kind === 'form' && file.form_id) await query('DELETE FROM custom_forms WHERE id = $1', [file.form_id])
   await query('DELETE FROM ws_shares WHERE ws_id = $1', [file.id])
+  await query('DELETE FROM ws_recent WHERE ws_id = $1', [file.id])
   await query('DELETE FROM ws_files WHERE id = $1', [file.id])
+}
+
+/**
+ * 링크로 연 파일을 내 "최근" 목록에 남긴다(소유자는 이미 목록에 있으니 제외, 비공개·나만 보기 파일은 남기지 않음).
+ * 목록은 열 수 있는 권한으로 한 번 더 걸러지므로, 권한이 사라지면 목록에서도 사라진다.
+ */
+export async function touchRecent(req, res, file) {
+  try {
+    const id = await identityOf(req, res)
+    if (!id.emails.length || file.hidden || file.owner_only || file.deleted_at) return
+    if (isOwnerOf(id, file)) return
+    await query(
+      `INSERT INTO ws_recent (email, ws_id, opened_at) VALUES ($1, $2, now())
+       ON CONFLICT (email, ws_id) DO UPDATE SET opened_at = now()`,
+      [id.emails[0], file.id]
+    )
+  } catch {
+    /* 기록 실패는 열기를 막지 않는다 */
+  }
 }
 
 let lastPurge = 0

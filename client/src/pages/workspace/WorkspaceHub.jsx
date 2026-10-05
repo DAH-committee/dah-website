@@ -483,7 +483,7 @@ export default function WorkspaceHub() {
     const wsId = kind === 'forms' ? file.ws_id : file.id
     if (hide && !(await confirmDialog({
       title: '비공개로 전환',
-      message: `'${file.title}'을(를) 비공개로 바꿀까요? 소유자와 이메일로 추가된 사람의 목록에만 나오고, 열 수 있는 다른 사람의 목록에서도 숨겨집니다. 공유 설정은 그대로입니다.`,
+      message: `'${file.title}'을(를) 비공개로 바꿀까요? 소유자와 이메일로 추가된 사람의 목록에만 나오고, 링크로 연 다른 사람의 목록에는 남지 않습니다. 공유 설정은 그대로입니다.`,
       confirmLabel: '비공개로 전환',
     }))) return
     try {

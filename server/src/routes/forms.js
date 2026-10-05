@@ -15,7 +15,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth } from '../middleware/auth.js'
-import { canDeleteFile, canManageTrash, daysLeft, formFile, identityOf, isOwnerOf, levelFor, purgeExpired, trashFile } from '../lib/wsAccess.js'
+import { canDeleteFile, canManageTrash, daysLeft, formFile, identityOf, isOwnerOf, levelFor, purgeExpired, touchRecent, trashFile } from '../lib/wsAccess.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
@@ -455,6 +455,8 @@ router.get(
       `SELECT f.*, (SELECT COUNT(*)::int FROM custom_form_responses r WHERE r.form_id = f.id) AS response_count
        FROM custom_forms f ORDER BY f.created_at DESC, f.id DESC`
     )
+    // 내 목록: 내가 만든 폼, 이메일로 공유받은 폼, 링크로 열어 본 폼(문서·시트와 같은 규칙). 위원회·전공 공개 설정만으로는 목록에 나오지 않는다.
+    const recent = new Set((await query('SELECT ws_id FROM ws_recent WHERE email = ANY($1::text[])', [idn.emails])).rows.map((r) => r.ws_id))
     const items = []
     for (const f of rows) {
       const ws = await formFile(f.id)
@@ -463,15 +465,10 @@ router.get(
       const probe = { ...ws, deleted_at: null }
       const level = await levelFor(req, res, probe)
       if (!level) continue
-      // 목록 규칙(문서·시트와 같음): 내가 소유했거나 이메일로 공유받은 폼, 그리고 스태프에게는
-      // "운영위원회 및 교수진"·"전체 공개" 폼. 그 밖(남의 제한된 폼, 링크 전용 공개 폼)은 주소로만 연다.
       const mine = isOwnerOf(idn, ws)
       const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
-      // 비공개 폼은 소유자·공유받은 사람만 본다(비공개 모아 보기에서는 운영위원회 및 교수진도 본다)
-      const general =
-        ((idn.committee && ['committee', 'major', 'public'].includes(ws.general_access)) || (idn.hallym && ws.general_access === 'major')) &&
-        (!ws.hidden || onlyHidden || trash)
-      if (!mine && !shared && !general) continue
+      const opened = !trash && !ws.hidden && recent.has(ws.id)
+      if (!mine && !shared && !opened) continue
       if (trash && !canManageTrash(idn, req.user, probe, Boolean(shared))) continue
       items.push({
         ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: canDeleteFile(idn, req.user, probe),
@@ -490,6 +487,7 @@ router.get(
   wrap(async (req, res) => {
     const { rows } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    await touchRecent(req, res, req.formWs)
     res.json({ item: { ...rows[0], ws_id: req.formWs.id }, level: req.formLevel, canEdit: req.formLevel === 'editor', last_edit: req.formWs.last_edit || null })
   })
 )

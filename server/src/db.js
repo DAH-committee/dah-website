@@ -198,6 +198,17 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_only BOOLEAN NOT NULL DEFAULT false',
   // 사이트 계정과 별개인 DAH Docs·Sheet·Form 운영위원회 구성원(구글 이메일). 사이트 관리자가 등록한다.
   // 휴지통: 지우면 deleted_at만 찍고 30일 보관한 뒤 영구 삭제한다. 그 전에는 복원할 수 있다.
+  // 목록이 "내 파일·공유받은 파일·링크로 연 파일"만 보이도록 바뀌어, 소유자가 없는 예전 파일(폼 등)은 만든 계정에 붙이고
+  // 만든 사람을 알 수 없으면 사이트 오너(id가 가장 작은 오너 계정)에게 붙인다. 이미 소유자가 있는 파일은 건드리지 않는다.
+  "UPDATE ws_files f SET owner_email = lower(u.email) FROM custom_forms c JOIN users u ON u.id = c.created_by WHERE f.kind = 'form' AND f.form_id = c.id AND f.owner_email IS NULL",
+  "UPDATE ws_files SET owner_email = (SELECT lower(email) FROM users WHERE role = 'owner' ORDER BY id LIMIT 1) WHERE owner_email IS NULL AND created_by IS NULL",
+  // 링크로 열어 본 파일(구글 독스의 "최근"처럼): 내 목록에는 내가 만든 파일, 공유받은 파일, 링크로 열어 본 파일만 나온다
+  `CREATE TABLE IF NOT EXISTS ws_recent (
+     email     TEXT NOT NULL,
+     ws_id     INTEGER NOT NULL,
+     opened_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (email, ws_id)
+   )`,
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ',
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS deleted_by TEXT',
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS trash_meta JSONB',

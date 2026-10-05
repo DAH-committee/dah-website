@@ -5,7 +5,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth, hasRole } from '../middleware/auth.js'
-import { GENERAL, ROLES, authorOf, canDeleteFile, canManageTrash, committeeOnly, daysLeft, fileRow, identityOf, isOwnerOf, levelFor, newToken, purgeExpired, purgeFile, restoreFile, trashFile } from '../lib/wsAccess.js'
+import { GENERAL, ROLES, authorOf, canDeleteFile, canManageTrash, committeeOnly, daysLeft, fileRow, identityOf, isOwnerOf, levelFor, newToken, purgeExpired, purgeFile, restoreFile, touchRecent, trashFile } from '../lib/wsAccess.js'
 import { DOC_TEMPLATES, SHEET_TEMPLATES, DOC_TEMPLATE_META, SHEET_TEMPLATE_META } from '../lib/workspaceTemplates.js'
 
 const router = Router()
@@ -56,11 +56,10 @@ router.get(
   })
 )
 
-// 허브 목록은 누구나 열 수 있다. 각 문서의 공유 설정을 따르므로 사이트 관리자라도 '제한됨'인 남의 문서는 목록에 나오지 않는다(주소로는 열 수 있음).
-// 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(운영위원회 및 교수진: 소유·공유·운영위원회 공개 파일,
-// 게스트: 소유하거나 이메일로 공유받은 파일), 로그인하지 않았다면 빈 목록이다. 전체 공개 파일은 링크를 아는 사람만 연다.
-// 비공개(hidden) 파일은 소유자와 이메일로 공유받은 사람의 목록에만 나오고(비공개 배지), 그 밖의 사람에게는
-// 잠긴 카드로도 나오지 않는다. ?hidden=1 이면 운영위원회 및 교수진에게 비공개 파일만 모아 보여 준다(비공개 해제용).
+// 허브 목록은 구글 독스처럼 계정마다 빈 화면에서 시작한다. 내 목록에는 아래 셋만 나온다.
+//   1. 내가 만든 파일  2. 이메일로 공유받은 파일  3. 링크로 열어 본 파일(최근, 지금도 열 수 있는 것만)
+// 위원회·전공·전체 공개로 설정된 파일도 목록에는 저절로 나오지 않는다(그 설정은 "링크로 누가 열 수 있나"만 정한다).
+// 비공개(hidden) 파일은 3번에서 빠진다. ?hidden=1 은 내 목록 중 비공개만, ?trash=1 은 내 휴지통이다.
 router.get(
   '/workspace/files',
   wrap(async (req, res) => {
@@ -80,15 +79,14 @@ router.get(
               CASE WHEN f.kind = 'sheet' THEN f.content END AS sheet_content
          FROM ws_files f
         WHERE f.kind = $1
-          AND (($7::boolean AND f.deleted_at IS NOT NULL) OR (NOT $7::boolean AND f.deleted_at IS NULL))
-          AND ($7::boolean OR NOT $2::boolean OR f.hidden)
+          AND (($5::boolean AND f.deleted_at IS NOT NULL) OR (NOT $5::boolean AND f.deleted_at IS NULL))
+          AND ($5::boolean OR NOT $2::boolean OR f.hidden)
           AND (lower(f.owner_email) = ANY($3::text[])
                OR (f.owner_email IS NULL AND f.created_by = $4)
-               OR ($5::boolean AND f.general_access IN ('committee', 'major', 'public') AND (NOT f.hidden OR $2::boolean OR $7::boolean))
-               OR ($6::boolean AND f.general_access = 'major' AND $7::boolean = false AND (NOT f.hidden OR $2::boolean))
-               OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
+               OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[]))
+               OR (NOT $5::boolean AND NOT f.hidden AND EXISTS (SELECT 1 FROM ws_recent r WHERE r.ws_id = f.id AND r.email = ANY($3::text[]))))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee, idn.hallym, trash]
+      [kind, onlyHidden, idn.emails, idn.staff?.name || '', trash]
     )
     const items = []
     for (const r of rows) {
@@ -112,8 +110,6 @@ router.get(
       const preview = (first?.rows || []).slice(0, 8).map((row) => (first.columns || []).slice(0, 6).map((c) => String(row.cells?.[c.key] ?? '')))
       items.push({ ...base, head: (first?.columns || []).slice(0, 6).map((c) => c.label), preview })
     }
-    // 구글 독스처럼 새 계정은 빈 화면에서 시작한다: 내가 만든 파일, 공유받은 파일, 내가 볼 수 있는 위원회·전공 공개 파일만 나온다.
-    // 열 수 없는 파일은 이름도 보이지 않는다(잠긴 카드 없음).
     res.json({ items, staff: Boolean(idn.staff), committee: idn.committee })
   })
 )
@@ -184,6 +180,7 @@ router.post(
   wrap(async (req, res) => {
     const file = await loadFile(req, res)
     if (!file) return
+    await touchRecent(req, res, file)
     await query('UPDATE ws_files SET opened_at = now() WHERE id = $1', [file.id])
     res.json({ ok: true })
   })
@@ -274,6 +271,7 @@ router.get(
   wrap(async (req, res) => {
     const file = await loadFile(req, res)
     if (!file || file.kind !== 'sheet') return file ? res.status(404).json({ error: 'not found' }) : undefined
+    await touchRecent(req, res, file)
     const { rows } = await query('SELECT id, title, content, updated_at FROM ws_files WHERE id = $1', [file.id])
     if (req.fileLevel === 'editor') await query('UPDATE ws_files SET opened_at = now() WHERE id = $1', [file.id])
     res.json({ item: rows[0], level: req.fileLevel, canEdit: req.fileLevel === 'editor', last_edit: file.last_edit || null })

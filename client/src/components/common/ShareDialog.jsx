@@ -14,8 +14,8 @@ import './shareDialog.css'
 const ROLE_LABEL = { viewer: '뷰어', editor: '편집자' }
 const GENERAL = [
   { id: 'restricted', label: '제한됨', desc: '추가된 사용자만 열 수 있습니다', Icon: Lock },
-  { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정과 등록된 운영위원회 구성원은 누구나 열 수 있습니다', Icon: Users },
-  { id: 'major', label: '디지털인문예술전공', desc: '한림대 구글 계정(@hallym.ac.kr)으로 로그인한 사람은 누구나 목록에서 보고 열 수 있습니다', Icon: GraduationCap },
+  { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정과 등록된 구성원은 링크로 열 수 있습니다(목록에는 자동으로 나오지 않음)', Icon: Users },
+  { id: 'major', label: '디지털인문예술전공', desc: '한림대 구글 계정(@hallym.ac.kr)으로 로그인한 사람은 링크로 열 수 있습니다(목록에는 자동으로 나오지 않음)', Icon: GraduationCap },
   { id: 'public', label: '전체 공개', desc: '링크가 있는 인터넷 사용자는 누구나 열 수 있습니다', Icon: Globe },
 ]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -330,12 +330,12 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
                       align="left"
                       label="목록 표시"
                       options={[
-                        { id: 'shown', label: '목록에 표시', desc: '열 수 있는 사람의 목록에 나옵니다' },
+                        { id: 'shown', label: '목록에 표시', desc: '링크로 연 사람의 최근 목록에 남습니다' },
                         { id: 'hidden', label: '비공개', desc: '소유자와 이메일로 추가된 사람의 목록에만 나옵니다' },
                       ]}
                       onChange={(v) => apply(() => api.put(`/workspace/files/${fileId}/hidden`, { hidden: v === 'hidden' }))}
                     />
-                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 열 수 있는 다른 사람의 목록에서도 숨겨집니다.' : '열 수 있는 사람의 목록에 나옵니다'}</small>
+                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 링크로 연 다른 사람의 목록에는 남지 않습니다.' : '링크로 연 사람의 최근 목록에 남습니다'}</small>
                   </div>
                 </div>
               </>
