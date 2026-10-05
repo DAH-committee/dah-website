@@ -318,7 +318,7 @@ function EntriesSheet() {
       sheets={sheets}
       loading={loading}
       error={error}
-      updatedAt={updatedAt ? formatDateTime(updatedAt) : ''}
+      updatedAt={updatedAt ? new Date(updatedAt).toLocaleString('ko-KR') : ''}
       onRefresh={load}
       onEditCell={onEditCell}
       onInsertRow={onInsertRow}
