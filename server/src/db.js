@@ -197,6 +197,10 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
   // 나만 보기: 만든 사람만 열 수 있고 공유도 할 수 없다(사이트 관리자도 열 수 없음). 심사채점표가 이 상태로 만들어진다.
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_only BOOLEAN NOT NULL DEFAULT false',
   // 사이트 계정과 별개인 DAH Docs·Sheet·Form 운영위원회 구성원(구글 이메일). 사이트 관리자가 등록한다.
+  // 휴지통: 지우면 deleted_at만 찍고 30일 보관한 뒤 영구 삭제한다. 그 전에는 복원할 수 있다.
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ',
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS deleted_by TEXT',
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS trash_meta JSONB',
   `CREATE TABLE IF NOT EXISTS ws_members (
      id         SERIAL PRIMARY KEY,
      email      TEXT NOT NULL,

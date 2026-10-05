@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock, Eye, EyeOff, UsersRound } from 'lucide-react'
+import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock, Eye, EyeOff, UsersRound, Undo2 } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import AccountMenu, { GoogleG, startGoogleLogin, useMe } from '../../components/common/AccountMenu'
@@ -236,17 +236,19 @@ function LockedThumb() {
   )
 }
 
-function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHide, extraMenu = [] }) {
+function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHide, onRestore, onPurge, extraMenu = [] }) {
   const [menu, setMenu] = useState(false)
   const btn = useRef(null)
   const Icon = ICONS[kind]
-  const items = [
+  const items = file.trashed ? [
+    ...(file.can_delete ? [{ label: '복원', icon: <Undo2 size={20} />, onClick: () => onRestore(file) }, { label: '영구 삭제', icon: <Trash2 size={20} />, onClick: () => onPurge(file) }] : []),
+  ] : [
     { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.system || file.my_role === 'viewer' },
     ...(file.can_hide ? [{ label: file.hidden ? '비공개 해제' : '비공개로 전환', icon: file.hidden ? <Eye size={20} /> : <EyeOff size={20} />, onClick: () => onHide(file) }] : []),
-    ...(file.can_delete ? [{ label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system }] : []),
+    ...(file.can_delete ? [{ label: '휴지통으로 이동', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system }] : []),
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
-  ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '삭제')))
+  ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '휴지통으로 이동')))
   const hasMenu = !file.locked
   const thumb = file.locked ? <LockedThumb /> :
     kind === 'docs' ? <DocThumb text={file.excerpt} /> : kind === 'sheets' ? <SheetThumb head={file.head} rows={file.preview} /> : <FormThumb title={file.title} fields={file.fields} />
@@ -256,7 +258,7 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHi
       <div className="ws-row" onClick={() => onOpen(file)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
         <span className="ws-row__title">{file.locked ? <Lock size={24} /> : <Icon size={24} />}{file.title}{file.owner_only ? <em className="ws-tag">나만 보기</em> : file.hidden ? <em className="ws-tag">비공개</em> : null}</span>
         <span className="ws-row__owner">{file.system ? '자동 연결' : file.created_by || '-'}</span>
-        <span className="ws-row__date">{fmtDate(file.opened_at || file.updated_at)}</span>
+        <span className="ws-row__date">{file.trashed ? `${file.days_left}일 뒤 삭제` : fmtDate(file.opened_at || file.updated_at)}</span>
         <span className="ws-row__more" onClick={(e) => e.stopPropagation()}>
           {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
           {menu && <CardMenu items={items} onClose={() => setMenu(false)} anchorRef={btn} />}
@@ -272,7 +274,7 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHi
         <div className="ws-card__meta">
           {file.locked ? <Lock size={20} /> : <Icon size={22} />}
           {file.owner_only ? <em className="ws-tag" title="만든 사람만 볼 수 있습니다"><Lock size={12} />나만 보기</em> : file.hidden ? <em className="ws-tag" title="공유받지 않은 사람의 목록에 나오지 않습니다"><EyeOff size={12} />비공개</em> : null}
-          <span>{file.locked ? '접근 권한 없음' : file.system ? '자동 연결 시트' : fmtDate(file.opened_at || file.updated_at, true)}</span>
+          <span>{file.locked ? '접근 권한 없음' : file.system ? '자동 연결 시트' : file.trashed ? `${file.days_left}일 뒤 삭제` : fmtDate(file.opened_at || file.updated_at, true)}</span>
           <span className="ws-card__more" onClick={(e) => e.stopPropagation()}>
             {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
             {menu && <CardMenu items={items} onClose={() => setMenu(false)} anchorRef={btn} />}
@@ -328,7 +330,7 @@ export default function WorkspaceHub() {
     setLoading(true)
     setError('')
     try {
-      const hiddenOnly = owner === 'hidden' ? { hidden: '1' } : {}
+      const hiddenOnly = owner === 'hidden' ? { hidden: '1' } : owner === 'trash' ? { trash: '1' } : {}
       if (kind === 'forms') {
         const r = await api.get('/admin/forms', hiddenOnly)
         setFiles(
@@ -336,13 +338,14 @@ export default function WorkspaceHub() {
             id: x.id, title: x.title_ko || '제목 없는 설문지', created_by: '', opened_at: x.updated_at, updated_at: x.updated_at,
             fields: Array.isArray(x.fields) ? x.fields : [], response_count: x.response_count, slug: x.slug,
             ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete, locked: x.locked, hidden: x.hidden, can_hide: x.can_hide,
+            trashed: x.trashed, days_left: x.days_left,
           }))
         )
       } else {
         const r = await api.get('/workspace/files', { kind: kind === 'docs' ? 'doc' : 'sheet', ...hiddenOnly })
         let items = r.items
         // 전시회 접수 현황은 접수자 개인정보라 사이트 스태프에게만 보인다
-        if (kind === 'sheets' && owner !== 'hidden' && isStaff) items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
+        if (kind === 'sheets' && owner !== 'hidden' && owner !== 'trash' && isStaff) items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
         setFiles(items)
       }
     } catch (e) {
@@ -399,6 +402,7 @@ export default function WorkspaceHub() {
   if (authLoading) return null
 
   const open = (file) => {
+    if (file.trashed) return alertDialog({ title: '휴지통에 있는 파일입니다', message: `"${file.title}"은(는) 복원해야 열 수 있습니다. 카드의 ⋮ 메뉴에서 복원하세요. ${file.days_left}일 뒤에 영구 삭제됩니다.` })
     if (file.locked) return alertDialog({ title: '접근 권한이 없습니다', message: `"${file.title}"은(는) 운영위원회 및 교수진만 열 수 있습니다. 소유자에게 이메일 공유를 요청하세요.` })
     if (file.to) return navigate(file.to)
     if (kind === 'docs') {
@@ -446,10 +450,28 @@ export default function WorkspaceHub() {
     }
   }
   async function remove(file) {
-    if (!(await confirmDialog({ title: '삭제', message: `'${file.title}'을(를) 삭제할까요? 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' }))) return
+    if (!(await confirmDialog({ title: '휴지통으로 이동', message: `'${file.title}'을(를) 휴지통으로 옮길까요? 30일 동안 보관되며, 그 안에는 휴지통에서 복원할 수 있습니다. 30일이 지나면 영구 삭제됩니다.`, confirmLabel: '휴지통으로 이동' }))) return
     try {
       if (kind === 'forms') await api.del(`/admin/forms/${file.id}`)
       else await api.del(`/workspace/files/${file.id}`)
+      setFiles((l) => l.filter((x) => x.id !== file.id))
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+  const wsIdOf = (file) => (kind === 'forms' ? file.ws_id : file.id)
+  async function restore(file) {
+    try {
+      await api.post(`/workspace/files/${wsIdOf(file)}/restore`)
+      setFiles((l) => l.filter((x) => x.id !== file.id))
+    } catch (e) {
+      setError(e.message)
+    }
+  }
+  async function purge(file) {
+    if (!(await confirmDialog({ title: '영구 삭제', message: `'${file.title}'을(를) 영구 삭제할까요? 복원할 수 없습니다.`, confirmLabel: '영구 삭제' }))) return
+    try {
+      await api.del(`/workspace/files/${wsIdOf(file)}/permanent`)
       setFiles((l) => l.filter((x) => x.id !== file.id))
     } catch (e) {
       setError(e.message)
@@ -550,12 +572,13 @@ export default function WorkspaceHub() {
             <h2>{K.recent}</h2>
             <div className="ws-recent__tools">
               <div className="ws-owner">
-                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : owner === 'hidden' ? '비공개 항목' : '내가 만든 항목'}<ChevronDown size={16} /></button>
+                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : owner === 'hidden' ? '비공개 항목' : owner === 'trash' ? '휴지통' : '내가 만든 항목'}<ChevronDown size={16} /></button>
                 {ownerMenu && (
                   <CardMenu anchorRef={ownerBtn} align="left" onClose={() => setOwnerMenu(false)} items={[
                     { label: '모든 항목', icon: null, onClick: () => setOwner('all') },
                     { label: '내가 만든 항목', icon: null, onClick: () => setOwner('mine') },
                     ...(committee ? [{ label: '비공개 항목', icon: <EyeOff size={20} />, onClick: () => setOwner('hidden') }] : []),
+                    ...(signedIn ? [{ label: '휴지통', icon: <Trash2 size={20} />, onClick: () => setOwner('trash') }] : []),
                   ]} />
                 )}
               </div>
@@ -564,21 +587,22 @@ export default function WorkspaceHub() {
             </div>
           </div>
 
+          {owner === 'trash' && <p className="ws-note">휴지통에 넣은 파일은 30일 동안 보관되며, 그 안에는 복원할 수 있습니다. 30일이 지나면 영구 삭제됩니다.</p>}
           {error && <p className="ws-error" role="alert">{error}</p>}
           {loading ? (
             <p className="ws-empty">불러오는 중</p>
           ) : shown.length === 0 ? (
             <div className="ws-empty">
-              <p style={{ margin: 0 }}>{q ? '검색 결과가 없습니다.' : owner === 'hidden' ? '비공개 항목이 없습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 내 파일과 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
+              <p style={{ margin: 0 }}>{q ? '검색 결과가 없습니다.' : owner === 'hidden' ? '비공개 항목이 없습니다.' : owner === 'trash' ? '휴지통이 비어 있습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 내 파일과 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
             </div>
           ) : view === 'list' ? (
             <div className="ws-list">
               <div className="ws-row ws-row--head"><span>이름</span><span>소유자</span><span>마지막으로 연 시간</span><span /></div>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onRestore={restore} onPurge={purge} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           ) : (
             <div className={`ws-grid ws-grid--${kind}`}>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onRestore={restore} onPurge={purge} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           )}
         </div>

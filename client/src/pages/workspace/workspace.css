@@ -157,3 +157,6 @@
 /* 비공개·나만 보기 표시 */
 .ws-tag { display: inline-flex; flex: none; align-items: center; gap: 3px; height: 20px; padding: 0 7px; border-radius: 10px; background: #1f1f1f; color: #fff; font-size: 11px; font-style: normal; font-weight: 600; letter-spacing: 0; }
 .ws-row__title .ws-tag { margin-left: 4px; }
+
+/* 휴지통 안내 */
+.ws-note { margin: 0 0 16px; padding: 10px 16px; border-radius: 4px; background: #e2e2e2; color: var(--ws-ink); font-size: 14px; }

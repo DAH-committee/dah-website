@@ -61,7 +61,7 @@ export function authorOf(req) {
 export async function fileRow(wsId) {
   if (wsId === null || wsId === undefined) return null
   const { rows } = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, last_edit, hidden, owner_only FROM ws_files WHERE id = $1',
+    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at FROM ws_files WHERE id = $1',
     [wsId]
   )
   return rows[0] || null
@@ -72,6 +72,7 @@ export async function levelFor(req, res, file) {
   if (!file) return null
   const id = await identityOf(req, res)
   let level = null
+  if (file.deleted_at) return null // 휴지통에 있는 파일은 복원하기 전까지 아무도 열 수 없다
   if (file.owner_only) return file.owner_email && id.emails.includes(lower(file.owner_email)) ? 'editor' : null
   if (id.isSite) return 'editor'
   // 소유자: 이메일이 같거나, 예전 파일은 만든 사람 이름이 같을 때
@@ -117,7 +118,7 @@ export async function formFile(formId, init = null) {
   const id = parseInt(formId, 10)
   if (!Number.isInteger(id)) return null
   const found = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only FROM ws_files WHERE form_id = $1',
+    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at FROM ws_files WHERE form_id = $1',
     [id]
   )
   if (found.rows[0]) return found.rows[0]
@@ -128,8 +129,80 @@ export async function formFile(formId, init = null) {
     `INSERT INTO ws_files (kind, title, form_id, general_access, general_role, owner_email, created_by, share_token)
      VALUES ('form', $1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (form_id) WHERE form_id IS NOT NULL DO UPDATE SET title = EXCLUDED.title
-     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only`,
+     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at`,
     [form.title_ko || '제목 없는 설문지', id, g.general_access, g.general_role, g.owner_email, g.created_by, newToken()]
   )
   return rows[0]
+}
+
+// ── 휴지통 ──────────────────────────────────────────────────
+// 지운 파일은 deleted_at을 찍어 30일 보관한다(복원 가능). 30일이 지나면 영구 삭제한다.
+// 폼은 사이트에 공개되어 있을 수 있어, 휴지통에 넣는 동안 응답 받기를 끄고 복원 때 원래 상태로 돌린다.
+export const TRASH_DAYS = 30
+
+/** 이 파일의 소유자인가 */
+export function isOwnerOf(id, file) {
+  if (file.owner_email && id.emails.includes(lower(file.owner_email))) return true
+  return Boolean(!file.owner_email && id.staff && file.created_by && id.staff.name === file.created_by)
+}
+
+/** 지울 수 있는가: 소유자 본인, 또는 운영위원회 및 교수진. 나만 보기 파일은 소유자만, 인수인계 문서는 오너만 */
+export function canDeleteFile(id, user, file) {
+  if (file.gated && !hasRole(user, 'owner')) return false
+  const mine = isOwnerOf(id, file)
+  if (file.owner_only) return mine
+  return mine || id.committee
+}
+
+/** 휴지통 목록에서 이 파일을 다룰 수 있는가(복원·영구 삭제): 지울 수 있는 사람 중 원래 목록에서 보이던 범위 */
+export function canManageTrash(id, user, file, shared = false) {
+  if (!canDeleteFile(id, user, file)) return false
+  if (isOwnerOf(id, file) || shared) return true
+  return ['committee', 'major', 'public'].includes(file.general_access) && id.committee
+}
+
+export function daysLeft(deletedAt) {
+  const end = new Date(deletedAt).getTime() + TRASH_DAYS * 86400000
+  return Math.max(0, Math.ceil((end - Date.now()) / 86400000))
+}
+
+export async function trashFile(file, byName) {
+  let meta = null
+  if (file.kind === 'form' && file.form_id) {
+    const f = (await query('SELECT published FROM custom_forms WHERE id = $1', [file.form_id])).rows[0]
+    meta = { published: Boolean(f?.published) }
+    await query('UPDATE custom_forms SET published = false WHERE id = $1', [file.form_id])
+  }
+  await query('UPDATE ws_files SET deleted_at = now(), deleted_by = $2, trash_meta = $3::jsonb WHERE id = $1', [file.id, byName || null, meta ? JSON.stringify(meta) : null])
+}
+
+export async function restoreFile(file) {
+  if (file.kind === 'form' && file.form_id) {
+    const meta = (await query('SELECT trash_meta FROM ws_files WHERE id = $1', [file.id])).rows[0]?.trash_meta
+    if (meta?.published) await query('UPDATE custom_forms SET published = true WHERE id = $1', [file.form_id])
+  }
+  await query('UPDATE ws_files SET deleted_at = NULL, deleted_by = NULL, trash_meta = NULL WHERE id = $1', [file.id])
+}
+
+/** 영구 삭제(되돌릴 수 없음) */
+export async function purgeFile(file) {
+  if (file.kind === 'doc') {
+    await query('DELETE FROM handover_comments WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [file.id])
+    await query('DELETE FROM handover_versions WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [file.id])
+    await query('DELETE FROM handover_docs WHERE ws_id = $1', [file.id])
+  }
+  if (file.kind === 'sheet') await query('DELETE FROM admin_sheet_state WHERE key = $1', [`ws-sheet-${file.id}`])
+  if (file.kind === 'form' && file.form_id) await query('DELETE FROM custom_forms WHERE id = $1', [file.form_id])
+  await query('DELETE FROM ws_shares WHERE ws_id = $1', [file.id])
+  await query('DELETE FROM ws_files WHERE id = $1', [file.id])
+}
+
+let lastPurge = 0
+/** 30일이 지난 휴지통 파일을 영구 삭제한다. 서버가 잠들어도 되도록 목록을 읽을 때 10분에 한 번 돌린다 */
+export async function purgeExpired(force = false) {
+  if (!force && Date.now() - lastPurge < 10 * 60 * 1000) return 0
+  lastPurge = Date.now()
+  const { rows } = await query("SELECT id, kind, form_id FROM ws_files WHERE deleted_at IS NOT NULL AND deleted_at < now() - ($1 || ' days')::interval", [String(TRASH_DAYS)])
+  for (const r of rows) await purgeFile(r)
+  return rows.length
 }

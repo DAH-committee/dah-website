@@ -15,7 +15,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth } from '../middleware/auth.js'
-import { committeeOnly, formFile, identityOf, levelFor } from '../lib/wsAccess.js'
+import { canDeleteFile, canManageTrash, daysLeft, formFile, identityOf, isOwnerOf, levelFor, purgeExpired, trashFile } from '../lib/wsAccess.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
@@ -449,6 +449,8 @@ router.get(
     const idn = await identityOf(req, res)
     if (!idn.emails.length) return res.json({ items: [], total: 0, staff: false, committee: false })
     const onlyHidden = req.query.hidden === '1' && idn.committee
+    const trash = req.query.trash === '1'
+    await purgeExpired().catch(() => {})
     const { rows } = await query(
       `SELECT f.*, (SELECT COUNT(*)::int FROM custom_form_responses r WHERE r.form_id = f.id) AS response_count
        FROM custom_forms f ORDER BY f.created_at DESC, f.id DESC`
@@ -456,23 +458,30 @@ router.get(
     const items = []
     for (const f of rows) {
       const ws = await formFile(f.id)
+      if (Boolean(ws.deleted_at) !== trash) continue
       if (onlyHidden && !ws.hidden) continue
-      const level = await levelFor(req, res, ws)
+      const probe = { ...ws, deleted_at: null }
+      const level = await levelFor(req, res, probe)
       if (!level) continue
       // 목록 규칙(문서·시트와 같음): 내가 소유했거나 이메일로 공유받은 폼, 그리고 스태프에게는
       // "운영위원회 및 교수진"·"전체 공개" 폼. 그 밖(남의 제한된 폼, 링크 전용 공개 폼)은 주소로만 연다.
-      const mine = ws.owner_email && idn.emails.includes(String(ws.owner_email).toLowerCase())
+      const mine = isOwnerOf(idn, ws)
       const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
       // 비공개 폼은 소유자·공유받은 사람만 본다(비공개 모아 보기에서는 운영위원회 및 교수진도 본다)
       const general =
         ((idn.committee && ['committee', 'major', 'public'].includes(ws.general_access)) || (idn.hallym && ws.general_access === 'major')) &&
-        (!ws.hidden || onlyHidden)
+        (!ws.hidden || onlyHidden || trash)
       if (!mine && !shared && !general) continue
-      items.push({ ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: idn.committee, can_hide: idn.committee && level === 'editor' })
+      if (trash && !canManageTrash(idn, req.user, probe, Boolean(shared))) continue
+      items.push({
+        ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: canDeleteFile(idn, req.user, probe),
+        can_hide: idn.committee && level === 'editor' && !ws.owner_only,
+        ...(trash ? { trashed: true, days_left: daysLeft(ws.deleted_at) } : {}),
+      })
     }
     // 열 수 없는 운영위원회 및 교수진 폼은 이름만 있는 잠긴 항목으로 보여 준다.
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = onlyHidden || !idn.hallym ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND form_id IS NOT NULL")).rows
+    const lockedRows = onlyHidden || trash || !idn.hallym ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND deleted_at IS NULL AND form_id IS NOT NULL")).rows
     for (const r of lockedRows) if (!have.has(r.form_id)) items.push({ id: r.form_id, ws_id: r.id, title_ko: r.title, locked: true, fields: [], my_role: null, can_delete: false, updated_at: null })
     res.json({ items, total: items.length, staff: Boolean(idn.staff), committee: idn.committee })
   })
@@ -579,17 +588,16 @@ router.put(
   })
 )
 
+// 삭제: 휴지통으로 옮긴다(30일 보관, 복원 가능). 소유자 본인과 운영위원회 및 교수진이 할 수 있다.
+// 휴지통에 있는 동안은 응답 받기가 꺼지고, 복원하면 원래 상태로 돌아온다. 복원·영구 삭제는 /workspace/files/:wsId/restore, /permanent.
 router.delete(
   '/admin/forms/:id',
-  optionalAuth,
-  committeeOnly,
   ...formGuard('viewer'),
   wrap(async (req, res) => {
-    const { rowCount } = await query('DELETE FROM custom_forms WHERE id = $1', [req.params.id])
-    if (!rowCount) return res.status(404).json({ error: 'not found' })
-    const ws = (await query('DELETE FROM ws_files WHERE form_id = $1 RETURNING id', [req.params.id])).rows[0]
-    if (ws) await query('DELETE FROM ws_shares WHERE ws_id = $1', [ws.id])
-    res.json({ ok: true })
+    const idn = await identityOf(req, res)
+    if (!canDeleteFile(idn, req.user, req.formWs)) return res.status(403).json({ error: '설문지를 만든 사람이나 운영위원회 및 교수진만 삭제할 수 있습니다' })
+    await trashFile(req.formWs, req.user?.name || req.publicUser?.name || req.publicUser?.email)
+    res.json({ ok: true, trashed: true, days: 30 })
   })
 )
 

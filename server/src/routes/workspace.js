@@ -1,10 +1,11 @@
 // 작업공간 허브 API: 문서·시트 파일 목록, 템플릿으로 새로 만들기, 이름 바꾸기, 삭제, 시트 내용 저장.
 // 목록·열기·편집은 공유 설정(lib/wsAccess.js)에 따른다. 새로 만들기는 구글로 로그인한 누구나,
-// 삭제·비공개 전환은 운영위원회 및 교수진(스태프 + 등록된 위원회 구성원)만, 구성원 등록은 사이트 관리자만.
+// 삭제는 소유자 본인과 운영위원회 및 교수진(스태프 + 등록된 위원회 구성원). 지운 파일은 휴지통에 30일 보관(복원 가능) 뒤 영구 삭제.
+// 비공개 전환은 운영위원회 및 교수진만, 구성원 등록은 사이트 관리자만.
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth, hasRole } from '../middleware/auth.js'
-import { GENERAL, ROLES, authorOf, committeeOnly, fileRow, identityOf, levelFor, newToken } from '../lib/wsAccess.js'
+import { GENERAL, ROLES, authorOf, canDeleteFile, canManageTrash, committeeOnly, daysLeft, fileRow, identityOf, isOwnerOf, levelFor, newToken, purgeExpired, purgeFile, restoreFile, trashFile } from '../lib/wsAccess.js'
 import { DOC_TEMPLATES, SHEET_TEMPLATES, DOC_TEMPLATE_META, SHEET_TEMPLATE_META } from '../lib/workspaceTemplates.js'
 
 const router = Router()
@@ -48,7 +49,10 @@ router.get(
   '/workspace/templates',
   signedIn,
   wrap(async (req, res) => {
-    res.json({ doc: DOC_TEMPLATE_META, sheet: SHEET_TEMPLATE_META })
+    // siteOwnerOnly 템플릿(심사채점표)은 사이트 오너에게만 보인다
+    const ownerRole = Boolean(req.user && hasRole(req.user, 'owner'))
+    const show = (m) => !m.siteOwnerOnly || ownerRole
+    res.json({ doc: DOC_TEMPLATE_META.filter(show), sheet: SHEET_TEMPLATE_META.filter(show) })
   })
 )
 
@@ -64,8 +68,11 @@ router.get(
     const idn = await identityOf(req, res)
     if (!idn.emails.length) return res.json({ items: [], staff: false, committee: false })
     const onlyHidden = req.query.hidden === '1' && idn.committee
+    const trash = req.query.trash === '1'
+    await purgeExpired().catch(() => {})
     const { rows } = await query(
-      `SELECT f.id, f.kind, f.title, f.gated, f.created_by, f.owner_email, f.general_access, f.general_role, f.created_at, f.opened_at, f.hidden, f.owner_only,
+      `SELECT f.id, f.kind, f.title, f.gated, f.created_by, f.owner_email, f.general_access, f.general_role, f.created_at, f.opened_at, f.hidden, f.owner_only, f.deleted_at,
+              EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])) AS shared,
               GREATEST(f.updated_at, COALESCE((SELECT MAX(d.updated_at) FROM handover_docs d WHERE d.ws_id = f.id), f.updated_at)) AS updated_at,
               (SELECT d.id FROM handover_docs d WHERE d.ws_id = f.id ORDER BY d.sort, d.id LIMIT 1) AS first_tab,
               (SELECT d.content FROM handover_docs d WHERE d.ws_id = f.id ORDER BY d.sort, d.id LIMIT 1) AS first_content,
@@ -73,22 +80,30 @@ router.get(
               CASE WHEN f.kind = 'sheet' THEN f.content END AS sheet_content
          FROM ws_files f
         WHERE f.kind = $1
-          AND (NOT $2::boolean OR f.hidden)
+          AND (($7::boolean AND f.deleted_at IS NOT NULL) OR (NOT $7::boolean AND f.deleted_at IS NULL))
+          AND ($7::boolean OR NOT $2::boolean OR f.hidden)
           AND (lower(f.owner_email) = ANY($3::text[])
                OR (f.owner_email IS NULL AND f.created_by = $4)
-               OR ($5::boolean AND f.general_access IN ('committee', 'major', 'public') AND (NOT f.hidden OR $2::boolean))
-               OR ($6::boolean AND f.general_access = 'major' AND (NOT f.hidden OR $2::boolean))
+               OR ($5::boolean AND f.general_access IN ('committee', 'major', 'public') AND (NOT f.hidden OR $2::boolean OR $7::boolean))
+               OR ($6::boolean AND f.general_access = 'major' AND $7::boolean = false AND (NOT f.hidden OR $2::boolean))
                OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee, idn.hallym]
+      [kind, onlyHidden, idn.emails, idn.staff?.name || '', idn.committee, idn.hallym, trash]
     )
     const items = []
     for (const r of rows) {
       const { first_content: fc, first_html: fh, sheet_content: sc, owner_email, ...rest } = r
-      const level = await levelFor(req, res, { ...r, id: r.id, owner_email })
+      const probe = { ...r, id: r.id, owner_email, deleted_at: null }
+      const level = await levelFor(req, res, probe)
       if (!level) continue
-      const mine = Boolean((owner_email && idn.emails.includes(lower(owner_email))) || (!owner_email && r.created_by === idn.staff?.name))
-      const base = { ...rest, my_role: level, mine, can_delete: idn.committee && (!r.owner_only || mine), can_hide: idn.committee && level === 'editor' && !r.owner_only }
+      const mine = isOwnerOf(idn, probe)
+      if (trash && !canManageTrash(idn, req.user, probe, r.shared)) continue
+      const base = {
+        ...rest, my_role: level, mine,
+        can_delete: canDeleteFile(idn, req.user, probe),
+        can_hide: idn.committee && level === 'editor' && !r.owner_only,
+        ...(trash ? { trashed: true, days_left: daysLeft(r.deleted_at) } : {}),
+      }
       if (r.kind === 'doc') {
         items.push({ ...base, excerpt: fc ? excerpt(fc) : String(fh || '').replace(/<\/(p|h[1-6]|li|tr)>/g, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\n{2,}/g, '\n').trim().slice(0, 520) })
         continue
@@ -100,7 +115,7 @@ router.get(
     // 열 수 없는 운영위원회 및 교수진 파일은 이름만 있는 잠긴 항목으로 보여 준다(내용·미리보기·열기 정보는 보내지 않는다).
     // 잠긴 카드는 한림대 계정에게만 보인다. 한림대 밖의 일반 구글 계정에는 파일 이름도 보이지 않는다.
     const have = new Set(items.map((i) => i.id))
-    const lockedRows = onlyHidden || !idn.hallym ? [] : (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' AND NOT hidden AND NOT owner_only ORDER BY opened_at DESC, id DESC", [kind])).rows
+    const lockedRows = onlyHidden || trash || !idn.hallym ? [] : (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' AND NOT hidden AND NOT owner_only AND deleted_at IS NULL ORDER BY opened_at DESC, id DESC", [kind])).rows
     for (const r of lockedRows) if (!have.has(r.id)) items.push({ id: r.id, kind: r.kind, title: r.title, locked: true, updated_at: r.updated_at, opened_at: r.opened_at, my_role: null, mine: false, can_delete: false })
     res.json({ items, staff: Boolean(idn.staff), committee: idn.committee })
   })
@@ -115,6 +130,7 @@ router.post(
     const tpl = String(req.body?.template || 'blank')
     const name = (kind === 'doc' ? DOC_TEMPLATE_META : SHEET_TEMPLATE_META).find((m) => m.id === tpl)
     const title = String(req.body?.title || (tpl === 'blank' ? (kind === 'doc' ? '제목 없는 문서' : '제목 없는 스프레드시트') : name?.name || '제목 없음')).slice(0, 200)
+    if (name?.siteOwnerOnly && !(req.user && hasRole(req.user, 'owner'))) return res.status(403).json({ error: 'not allowed', hint: '이 템플릿은 사이트 오너만 쓸 수 있습니다.' })
     const idn = await identityOf(req, res)
     const owner = lower(req.user?.email || req.publicUser?.email)
     const ownerName = req.user?.name || req.publicUser?.name || req.publicUser?.email
@@ -176,22 +192,49 @@ router.post(
   })
 )
 
+// 삭제: 휴지통으로 옮긴다(30일 보관, 복원 가능). 소유자 본인과 운영위원회 및 교수진이 할 수 있다.
 router.delete(
   '/workspace/files/:id',
-  committeeOnly,
+  signedIn,
   wrap(async (req, res) => {
     const f = await fileRow(pid(req))
-    if (!f) return res.status(404).json({ error: 'not found' })
-    // 삭제는 운영위원회 및 교수진만 할 수 있다(committeeOnly). 나만 보기 파일은 만든 사람만 지운다.
-    if (f.gated && !hasRole(req.user, 'owner')) return res.status(403).json({ error: '인수인계 문서는 오너만 삭제할 수 있습니다' })
-    if (f.owner_only && !(await levelFor(req, res, f))) return res.status(403).json({ error: '나만 보기 파일은 만든 사람만 삭제할 수 있습니다' })
-    if (f.kind === 'doc') {
-      await query('DELETE FROM handover_comments WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [f.id])
-      await query('DELETE FROM handover_versions WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [f.id])
-      await query('DELETE FROM handover_docs WHERE ws_id = $1', [f.id])
+    if (!f || f.deleted_at) return res.status(404).json({ error: 'not found' })
+    const idn = await identityOf(req, res)
+    if (!canDeleteFile(idn, req.user, f)) {
+      const why = f.gated ? '인수인계 문서는 오너만 삭제할 수 있습니다' : f.owner_only ? '나만 보기 파일은 만든 사람만 삭제할 수 있습니다' : '파일을 만든 사람이나 운영위원회 및 교수진만 삭제할 수 있습니다'
+      return res.status(403).json({ error: why })
     }
-    await query('DELETE FROM ws_shares WHERE ws_id = $1', [f.id])
-    await query('DELETE FROM ws_files WHERE id = $1', [f.id])
+    await trashFile(f, authorOf(req))
+    res.json({ ok: true, trashed: true, days: 30 })
+  })
+)
+
+// 휴지통에서 복원
+router.post(
+  '/workspace/files/:id/restore',
+  signedIn,
+  wrap(async (req, res) => {
+    const f = await fileRow(pid(req))
+    if (!f || !f.deleted_at) return res.status(404).json({ error: 'not found' })
+    const idn = await identityOf(req, res)
+    const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [f.id, idn.emails])).rows.length > 0
+    if (!canManageTrash(idn, req.user, f, shared)) return res.status(403).json({ error: 'not allowed' })
+    await restoreFile(f)
+    res.json({ ok: true })
+  })
+)
+
+// 휴지통에서 영구 삭제(되돌릴 수 없음)
+router.delete(
+  '/workspace/files/:id/permanent',
+  signedIn,
+  wrap(async (req, res) => {
+    const f = await fileRow(pid(req))
+    if (!f || !f.deleted_at) return res.status(404).json({ error: '휴지통에 있는 파일만 영구 삭제할 수 있습니다' })
+    const idn = await identityOf(req, res)
+    const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [f.id, idn.emails])).rows.length > 0
+    if (!canManageTrash(idn, req.user, f, shared)) return res.status(403).json({ error: 'not allowed' })
+    await purgeFile(f)
     res.json({ ok: true })
   })
 )
