@@ -145,7 +145,7 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extr
   const Icon = ICONS[kind]
   const items = [
     { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.system || file.my_role === 'viewer' },
-    { label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system || file.mine === false },
+    ...(file.can_delete ? [{ label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system }] : []),
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
   ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '삭제')))
@@ -195,6 +195,7 @@ export default function WorkspaceHub() {
   const { user, hasRole, loading: authLoading } = useAuth()
   const { me } = useMe()
   const isStaff = hasRole('manager')
+  const signedIn = Boolean(me?.user)
   const [files, setFiles] = useState([])
   const [templates, setTemplates] = useState({ doc: [], sheet: [] })
   const [loading, setLoading] = useState(true)
@@ -222,14 +223,13 @@ export default function WorkspaceHub() {
     setLoading(true)
     setError('')
     try {
-      if (kind === 'forms' && !isStaff) {
-        setFiles([])
-      } else if (kind === 'forms') {
+      if (kind === 'forms') {
         const r = await api.get('/admin/forms')
         setFiles(
           (r.items || []).map((x) => ({
             id: x.id, title: x.title_ko || '제목 없는 설문지', created_by: '', opened_at: x.updated_at, updated_at: x.updated_at,
             fields: Array.isArray(x.fields) ? x.fields : [], response_count: x.response_count, slug: x.slug,
+            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete,
           }))
         )
       } else {
@@ -243,15 +243,15 @@ export default function WorkspaceHub() {
     } finally {
       setLoading(false)
     }
-  }, [kind, isStaff])
+  }, [kind])
 
   useEffect(() => {
     if (K && !authLoading) load()
   }, [K, load, authLoading])
 
   useEffect(() => {
-    if (isStaff) api.get('/workspace/templates').then(setTemplates).catch(() => {})
-  }, [isStaff])
+    if (signedIn) api.get('/workspace/templates').then(setTemplates).catch(() => {})
+  }, [signedIn])
 
   const tplList = useMemo(() => {
     if (kind === 'forms') return FORM_TEMPLATES
@@ -278,9 +278,9 @@ export default function WorkspaceHub() {
       return navigate(`/docs/${file.first_tab}`)
     }
     if (kind === 'sheets') return navigate(`/sheets/${file.id}`)
-    return navigate(`/admin/forms/${file.id}/edit`)
+    return navigate(`/form/${file.id}/edit`)
   }
-  const urlOf = (file) => (file.to ? file.to : kind === 'docs' ? `/docs/${file.first_tab}` : kind === 'sheets' ? `/sheets/${file.id}` : `/admin/forms/${file.id}/edit`)
+  const urlOf = (file) => (file.to ? file.to : kind === 'docs' ? `/docs/${file.first_tab}` : kind === 'sheets' ? `/sheets/${file.id}` : `/form/${file.id}/edit`)
 
   async function createFrom(tpl) {
     if (busy) return
@@ -292,7 +292,7 @@ export default function WorkspaceHub() {
           category: tpl.category, fields: tpl.fields, published: false, settings: FORM_SETTINGS,
         }
         const r = await api.post('/admin/forms', payload)
-        navigate(`/admin/forms/${r.item.id}/edit`)
+        navigate(`/form/${r.item.id}/edit`, { state: { justSaved: true } })
       } else if (kind === 'docs') {
         const r = await api.post('/workspace/files', { kind: 'doc', template: tpl.id })
         navigate(`/docs/${r.item.first_tab}`)
@@ -359,7 +359,7 @@ export default function WorkspaceHub() {
         </div>
       )}
 
-      {isStaff && (
+      {signedIn && (
       <section className="ws-band">
         <div className="ws-wrap">
           <div className="ws-band__head"><h2>{K.start}</h2></div>
@@ -403,16 +403,16 @@ export default function WorkspaceHub() {
               {me && !me.user && !q && (
                 <button type="button" className="gbtn" onClick={() => startGoogleLogin()}><GoogleG size={22} /> 구글 계정으로 로그인</button>
               )}
-              <p style={{ margin: me && !me.user && !q ? '16px 0 0' : 0 }}>{q ? '검색 결과가 없습니다.' : isStaff ? '아직 만든 항목이 없습니다. 위 템플릿으로 시작하세요.' : kind === 'forms' ? '설문지는 운영위원회 및 교수진 계정으로 로그인해야 볼 수 있습니다.' : me?.user ? '공유받은 파일이 없습니다. 소유자가 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
+              <p style={{ margin: me && !me.user && !q ? '16px 0 0' : 0 }}>{q ? '검색 결과가 없습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '한림대 구글 계정으로 로그인하면 새로 만들 수 있고, 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
             </div>
           ) : view === 'list' ? (
             <div className="ws-list">
               <div className="ws-row ws-row--head"><span>이름</span><span>소유자</span><span>마지막으로 연 시간</span><span /></div>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/admin/forms/${file.id}/responses/sheet`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           ) : (
             <div className={`ws-grid ws-grid--${kind}`}>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/admin/forms/${file.id}/responses/sheet`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
             </div>
           )}
         </div>

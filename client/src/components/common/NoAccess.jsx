@@ -2,16 +2,16 @@
 // 다른 계정으로 로그인하거나 계정을 바꿀 수 있다.
 import { Link } from 'react-router-dom'
 import AccountMenu, { GoogleG, startGoogleLogin, useMe } from './AccountMenu'
-import { DocsIcon, SheetsIcon } from '../../pages/workspace/icons'
+import { DocsIcon, FormsIcon, SheetsIcon } from '../../pages/workspace/icons'
 import './noAccess.css'
 
 export default function NoAccess({ kind = 'doc', notFound = false, hub = false }) {
-  const Icon = kind === 'sheet' ? SheetsIcon : DocsIcon
+  const Icon = kind === 'sheet' ? SheetsIcon : kind === 'form' ? FormsIcon : DocsIcon
   const { me } = useMe()
   return (
     <div className="noacc">
       <div className="noacc__top">
-        <Link to={kind === 'sheet' ? '/workspace/sheets' : '/workspace/docs'} className="ed-icon" aria-label="작업공간으로"><Icon size={40} /></Link>
+        <Link to={kind === 'sheet' ? '/workspace/sheets' : kind === 'form' ? '/workspace/forms' : '/workspace/docs'} className="ed-icon" aria-label="작업공간으로"><Icon size={40} /></Link>
         <div className="noacc__acct"><AccountMenu size={40} /></div>
       </div>
       <div className="noacc__box">

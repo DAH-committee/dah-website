@@ -99,6 +99,7 @@ function FormResponsesSheet() {
   const [range, setRange] = useState(null) // { anchor: {r,c}, focus: {r,c} } | null
   const dragging = useRef(false)
 
+  const [denied, setDenied] = useState(false)
   useTitle(form?.title_ko ? `${form.title_ko} 응답` : '폼 응답 시트')
 
   const load = useCallback(async () => {
@@ -110,6 +111,7 @@ function FormResponsesSheet() {
       setError(null)
       setUpdatedAt(new Date())
     } catch (err) {
+      if (err.status === 401 || err.status === 403) setDenied(true)
       setError(err.hint ? `${err.message} (${err.hint})` : err.message)
     } finally {
       setLoading(false)
@@ -333,6 +335,7 @@ function FormResponsesSheet() {
     return () => window.removeEventListener('mouseup', stop)
   }, [])
 
+  if (denied) return <NoAccess kind="form" />
   return (
     <div className="flex h-[100dvh] flex-col bg-reading-bg text-reading-text">
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-16 px-gutter-m py-24 md:px-gutter-t lg:px-gutter-d">

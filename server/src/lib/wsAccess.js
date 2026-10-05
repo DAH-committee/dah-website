@@ -95,3 +95,28 @@ export function listVisibleSql() {
     OR f.general_access IN ('committee', 'public')
   )`
 }
+
+/**
+ * 폼(custom_forms)마다 공유 설정 행(ws_files kind=form)을 보장하고 돌려준다.
+ * 예전 폼은 "운영위원회 및 교수진 / 편집자"로 시작한다(지금까지 스태프만 다루던 것과 같은 범위).
+ */
+export async function formFile(formId, init = null) {
+  const id = parseInt(formId, 10)
+  if (!Number.isInteger(id)) return null
+  const found = await query(
+    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id FROM ws_files WHERE form_id = $1',
+    [id]
+  )
+  if (found.rows[0]) return found.rows[0]
+  const form = (await query('SELECT id, title_ko FROM custom_forms WHERE id = $1', [id])).rows[0]
+  if (!form) return null
+  const g = init || { general_access: 'committee', general_role: 'editor', owner_email: null, created_by: null }
+  const { rows } = await query(
+    `INSERT INTO ws_files (kind, title, form_id, general_access, general_role, owner_email, created_by, share_token)
+     VALUES ('form', $1, $2, $3, $4, $5, $6, $7)
+     ON CONFLICT (form_id) WHERE form_id IS NOT NULL DO UPDATE SET title = EXCLUDED.title
+     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id`,
+    [form.title_ko || '제목 없는 설문지', id, g.general_access, g.general_role, g.owner_email, g.created_by, newToken()]
+  )
+  return rows[0]
+}

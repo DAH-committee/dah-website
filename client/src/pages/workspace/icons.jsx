@@ -1,9 +1,9 @@
 // 작업공간 제품 아이콘 3종: 같은 보라색, 안쪽 모양으로만 구분(문서 줄, 시트 격자, 폼 체크 막대).
 // 구글 아이콘을 쓰지 않고 우리 보라(#7A3CFF)로 그린다.
 export const KINDS = {
-  docs: { id: 'docs', name: '문서', plural: '문서', start: '새 문서 시작', recent: '최근 문서', path: '/workspace/docs' },
-  sheets: { id: 'sheets', name: '스프레드시트', plural: '스프레드시트', start: '새 스프레드시트 시작하기', recent: '최근 스프레드시트', path: '/workspace/sheets' },
-  forms: { id: 'forms', name: '설문지', plural: '설문지', start: '새 양식 시작하기', recent: '최근 설문지', path: '/workspace/forms' },
+  docs: { id: 'docs', name: '디인예 독스', plural: '문서', start: '새 문서 시작', recent: '최근 문서', path: '/workspace/docs' },
+  sheets: { id: 'sheets', name: '디인예 시트', plural: '스프레드시트', start: '새 스프레드시트 시작하기', recent: '최근 스프레드시트', path: '/workspace/sheets' },
+  forms: { id: 'forms', name: '디인예 폼', plural: '설문지', start: '새 양식 시작하기', recent: '최근 설문지', path: '/workspace/forms' },
 }
 
 const PURPLE = '#7A3CFF'

@@ -52,6 +52,8 @@ const MajorCompassExperience = lazy(() => import('./pages/MajorCompassExperience
 const AnnualReport = lazy(() => import('./pages/annual/AnnualReport'))
 const AnnualRender = lazy(() => import('./pages/annual/AnnualRender'))
 const HandoverDoc = lazy(() => import('./pages/handover/HandoverDoc'))
+const FormEditorPage = lazy(() => import('./pages/admin/FormEditor'))
+const FormResponsesPage = lazy(() => import('./pages/admin/FormResponsesSheet'))
 const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
 const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
 
@@ -86,7 +88,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실 상세에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname)) return children
+  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/form\/(?:new|[^/]+\/(?:edit|responses))$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname)) return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -180,6 +182,30 @@ const PUBLIC_ROUTES = [
     element: (
       <Suspense fallback={null}>
         <HandoverDoc />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/form/new',
+    element: (
+      <Suspense fallback={null}>
+        <div className="reading-scope min-h-screen bg-bg-base text-text-pri"><FormEditorPage /></div>
+      </Suspense>
+    ),
+  },
+  {
+    path: '/form/:id/edit',
+    element: (
+      <Suspense fallback={null}>
+        <div className="reading-scope min-h-screen bg-bg-base text-text-pri"><FormEditorPage /></div>
+      </Suspense>
+    ),
+  },
+  {
+    path: '/form/:id/responses',
+    element: (
+      <Suspense fallback={null}>
+        <div className="reading-scope min-h-screen bg-bg-base text-text-pri"><FormResponsesPage /></div>
       </Suspense>
     ),
   },

@@ -189,11 +189,12 @@ router.get(
       staffIn = true
     }
 
-    // 2) 게스트: 관리자가 미리 등록한 이메일이거나, 문서·시트에 이메일로 초대된 이메일만 로그인할 수 있다.
-    //    그 밖의 이메일은 새 계정으로 나타나지 않는다.
+    // 2) 게스트: 한림대 이메일(@hallym.ac.kr)은 누구나, 그 밖의 이메일은 관리자가 미리 등록했거나
+    //    디인예 독스·시트·폼에 이메일로 초대된 경우만 로그인할 수 있다. 그 밖의 이메일은 계정이 생기지 않는다.
     let user = (await query('SELECT id, google_sub, email, name FROM public_users WHERE lower(email) = $1', [email])).rows[0]
     if (!user) {
-      const invited = (await query('SELECT 1 FROM ws_shares WHERE lower(email) = $1 LIMIT 1', [email])).rows[0]
+      const hallym = /@hallym\.ac\.kr$/.test(email)
+      const invited = hallym || (await query('SELECT 1 FROM ws_shares WHERE lower(email) = $1 LIMIT 1', [email])).rows[0]
       if (invited) {
         user = (
           await query(
@@ -209,7 +210,7 @@ router.get(
       if (staffIn) return res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
       return res.status(403).json({
         error: 'email is not registered',
-        hint: '관리자가 미리 등록했거나 문서·시트에 초대된 이메일만 로그인할 수 있습니다.',
+        hint: '한림대 이메일(@hallym.ac.kr) 구글 계정으로 로그인하세요. 다른 이메일은 문서에 초대된 경우에만 로그인할 수 있습니다.',
       })
     }
     if (user.google_sub !== googleSub) {

@@ -14,7 +14,7 @@ import {
   AlignLeft, ArrowDown, ArrowLeft, ArrowUp, Calendar, Check, ChevronDown, ChevronDownCircle, ChevronUp,
   CircleDot, Clock, Copy, Download, EllipsisVertical, Eye, FileText, GraduationCap, Link as LinkIcon, Mail,
   Phone, Plus, PlusCircle, Rows3, Save, SlidersHorizontal, SquareCheck, Table2, Text, TextCursorInput,
-  Trash2, Upload, UploadCloud, X, Cloud,
+  Trash2, Upload, UploadCloud, X, Cloud, Lock,
 } from 'lucide-react'
 import { API_BASE, useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
@@ -25,6 +25,8 @@ import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
 import { confirmDialog } from '../../components/common/AppDialog'
 import AccountMenu from '../../components/common/AccountMenu'
+import ShareDialog from '../../components/common/ShareDialog'
+import NoAccess from '../../components/common/NoAccess'
 import { FormsIcon } from '../workspace/icons'
 import {
   DateInput,
@@ -1250,7 +1252,7 @@ function ResponsesTab({ formId, fields, resp }) {
             <p className={`text-h2-m font-bold md:text-h2-d ${INK}`}>{loading ? '불러오는 중' : `${items.length}건`}</p>
           </div>
           <div className="flex flex-wrap items-center gap-8">
-            <a href={`/admin/forms/${formId}/responses/sheet`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-8 rounded-sm bg-purple-primary px-24 text-body-m font-semibold text-button-primaryText transition hover:bg-purple-deep">
+            <a href={`/form/${formId}/responses`} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-8 rounded-sm bg-purple-primary px-24 text-body-m font-semibold text-button-primaryText transition hover:bg-purple-deep">
               <Table2 size={16} aria-hidden="true" /> 표로 보기
             </a>
             <GhostButton onClick={download} disabled={busy || !items.length} className="border-border-subtle text-text-pri">
@@ -1300,7 +1302,7 @@ function FormEditor() {
   const navigate = useNavigate()
   const location = useLocation()
   const isNew = !id
-  useTitle(isNew ? '신청 폼 만들기' : '신청 폼 고치기')
+  useTitle(isNew ? '디인예 폼 만들기' : '디인예 폼')
 
   const { data, loading, error, refetch } = useApi(isNew ? null : `/admin/forms/${id}`)
   // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 질문 탭 맨 위에서 바로 편집한다.
@@ -1337,6 +1339,9 @@ function FormEditor() {
   }, [hydrated, data])
 
   const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
+  const [shareOpen, setShareOpen] = useState(false)
+  const canEditForm = isNew || data?.canEdit !== false
+  const wsId = data?.item?.ws_id
   const dirty = hydrated && (isNew ? form.title_ko !== '' || form.fields.length > 0 : JSON.stringify(form) !== savedSnap.current)
 
   useEffect(() => {
@@ -1491,7 +1496,7 @@ function FormEditor() {
       const payload = toPayload(form)
       if (isNew) {
         const res = await api.post('/admin/forms', payload)
-        navigate(`/admin/forms/${res.item.id}/edit`, { replace: true, state: { justSaved: true } })
+        navigate(`/form/${res.item.id}/edit`, { replace: true, state: { justSaved: true } })
         return
       }
       await api.put(`/admin/forms/${id}`, payload)
@@ -1546,6 +1551,8 @@ function FormEditor() {
     preparing,
   }
 
+  if (!isNew && (error?.status === 401 || error?.status === 403)) return <NoAccess kind="form" />
+  if (!isNew && !loading && !data && error?.status === 404) return <NoAccess kind="form" notFound />
   return (
     <section className="isolate flex h-[100dvh] flex-col bg-bg-base text-text-pri">
       <header className="relative z-30 shrink-0 bg-bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
@@ -1562,7 +1569,7 @@ function FormEditor() {
           />
           <span aria-live="polite" className={`ed-status ${dirty ? '!font-semibold !text-purple-light' : ''}`}>
             <Cloud size={16} aria-hidden="true" />
-            {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
+            {!canEditForm ? '보기 전용' : busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
           </span>
           <div className="ml-auto flex shrink-0 items-center gap-8">
             <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full bg-bg-elev px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
@@ -1574,7 +1581,12 @@ function FormEditor() {
             <button type="button" onClick={copyPublicUrl} disabled={!form.slug} aria-label="신청 페이지 주소 복사" title={copied ? '복사됨' : '신청 페이지 주소 복사'} className="flex h-40 w-40 cursor-pointer items-center justify-center rounded-full text-text-sec transition hover:bg-bg-elev disabled:opacity-40">
               {copied ? <Check size={20} aria-hidden="true" /> : <LinkIcon size={20} aria-hidden="true" />}
             </button>
-            <button type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="h-40 cursor-pointer rounded-full bg-button-primary px-24 text-small-m font-semibold text-button-primaryText transition hover:bg-button-primaryHover disabled:cursor-default disabled:!bg-bg-elev disabled:!text-text-meta">
+            {wsId && (
+              <button type="button" className="ed-share" onClick={() => setShareOpen(true)}>
+                <Lock size={16} aria-hidden="true" /> 공유
+              </button>
+            )}
+            <button type="submit" form="form-editor" disabled={busy || !canEditForm || (!dirty && !isNew)} className="h-40 cursor-pointer rounded-full bg-button-primary px-24 text-small-m font-semibold text-button-primaryText transition hover:bg-button-primaryHover disabled:cursor-default disabled:!bg-bg-elev disabled:!text-text-meta">
               {busy ? '저장 중' : '저장'}
             </button>
             <AccountMenu size={40} />
@@ -1728,6 +1740,7 @@ function FormEditor() {
       )}
 
       </div>
+      {shareOpen && wsId && <ShareDialog fileId={wsId} title={form.title_ko || '제목 없는 설문지'} linkPath={`/form/${id}/edit`} onClose={() => setShareOpen(false)} />}
       {preview && (
         <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/80 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
           <div className="mx-auto min-h-full w-full max-w-[704px] overflow-hidden rounded-md border border-border-subtle bg-bg-base" onMouseDown={(e) => e.stopPropagation()}>

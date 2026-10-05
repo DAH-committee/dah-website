@@ -14,7 +14,8 @@
 // 검증은 서버가 최종 권한이다. 클라이언트 검증은 사용자 편의일 뿐 신뢰하지 않는다.
 import { Router } from 'express'
 import { query } from '../db.js'
-import { requireAuth, requireRole } from '../middleware/auth.js'
+import { requireAuth, requireRole, optionalAuth } from '../middleware/auth.js'
+import { formFile, identityOf, levelFor } from '../lib/wsAccess.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
@@ -24,6 +25,30 @@ import { preflightForm } from '../lib/drivePreflight.js'
 import { sendFormConfirmation } from '../lib/mailer.js'
 
 const router = Router()
+
+// 디인예 폼 권한: 공유 설정(lib/wsAccess.js)으로 판단한다. need = 'viewer' | 'editor'
+const formGuard = (need = 'viewer') => [
+  optionalAuth,
+  wrap(async (req, res, next) => {
+    const file = await formFile(req.params.id)
+    if (!file) return res.status(404).json({ error: 'not found' })
+    const level = await levelFor(req, res, file)
+    if (!level) return res.status(req.user || req.publicUser ? 403 : 401).json({ error: 'not allowed' })
+    if (need === 'editor' && level !== 'editor') return res.status(403).json({ error: 'editor only' })
+    req.formWs = file
+    req.formLevel = level
+    next()
+  }),
+]
+const signedIn = [
+  optionalAuth,
+  wrap(async (req, res, next) => {
+    const idn = await identityOf(req, res)
+    if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '한림대 구글 계정으로 로그인하세요.' })
+    req.wsIdentity = idn
+    next()
+  }),
+]
 
 const FIELD_TYPES = [
   'text', 'textarea', 'select', 'radio', 'checkbox',
@@ -419,25 +444,38 @@ function pickFormBody(body) {
 
 router.get(
   '/admin/forms',
-  requireAuth,
-  requireRole('manager'),
+  optionalAuth,
   wrap(async (req, res) => {
+    const idn = await identityOf(req, res)
+    if (!idn.emails.length) return res.json({ items: [], total: 0, staff: false })
     const { rows } = await query(
       `SELECT f.*, (SELECT COUNT(*)::int FROM custom_form_responses r WHERE r.form_id = f.id) AS response_count
        FROM custom_forms f ORDER BY f.created_at DESC, f.id DESC`
     )
-    res.json({ items: rows, total: rows.length })
+    const items = []
+    for (const f of rows) {
+      const ws = await formFile(f.id)
+      const level = await levelFor(req, res, ws)
+      if (!level) continue
+      // 목록 규칙(문서·시트와 같음): 내가 소유했거나 이메일로 공유받은 폼, 그리고 스태프에게는
+      // "운영위원회 및 교수진"·"전체 공개" 폼. 그 밖(남의 제한된 폼, 링크 전용 공개 폼)은 주소로만 연다.
+      const mine = ws.owner_email && idn.emails.includes(String(ws.owner_email).toLowerCase())
+      const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
+      const general = idn.staff && ['committee', 'public'].includes(ws.general_access)
+      if (!mine && !shared && !general) continue
+      items.push({ ...f, ws_id: ws.id, my_role: level, can_delete: Boolean(idn.staff) })
+    }
+    res.json({ items, total: items.length, staff: Boolean(idn.staff) })
   })
 )
 
 router.get(
   '/admin/forms/:id',
-  requireAuth,
-  requireRole('manager'),
+  ...formGuard('viewer'),
   wrap(async (req, res) => {
     const { rows } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
-    res.json({ item: rows[0] })
+    res.json({ item: { ...rows[0], ws_id: req.formWs.id }, level: req.formLevel, canEdit: req.formLevel === 'editor' })
   })
 )
 
@@ -470,8 +508,7 @@ async function publishPreflight(body, existing) {
 
 router.post(
   '/admin/forms',
-  requireAuth,
-  requireRole('manager'),
+  ...signedIn,
   wrap(async (req, res) => {
     const data = pickFormBody(req.body || {})
     if (!data.slug || !data.title_ko) {
@@ -489,21 +526,32 @@ router.post(
       `INSERT INTO custom_forms (${cols.join(', ')}, created_by)
        VALUES (${cols.map((_, i) => `$${i + 1}`).join(', ')}, $${cols.length + 1})
        RETURNING *`,
-      [...cols.map((c) => data[c]), req.user.id]
+      [...cols.map((c) => data[c]), req.user?.id ?? null]
     )
-    res.status(201).json({ item: rows[0] })
+    // 만든 사람이 소유자. 새 폼은 "제한됨"으로 시작한다(구글 폼과 같음).
+    const owner = String(req.user?.email || req.publicUser?.email || '').toLowerCase() || null
+    const ws = await formFile(rows[0].id, {
+      general_access: 'restricted',
+      general_role: 'viewer',
+      owner_email: owner,
+      created_by: req.user?.name || req.publicUser?.name || owner,
+    })
+    res.status(201).json({ item: { ...rows[0], ws_id: ws.id } })
   })
 )
 
 router.put(
   '/admin/forms/:id',
-  requireAuth,
-  requireRole('manager'),
+  ...formGuard('editor'),
   wrap(async (req, res) => {
     const data = pickFormBody(req.body || {})
     const cols = Object.keys(data)
     if (!cols.length) return res.status(400).json({ error: 'empty body' })
     const { rows: current } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
+    const idnPut = await identityOf(req, res)
+    if (!idnPut.staff && req.body?.published === true && normalizeFields(req.body?.fields ?? current[0]?.fields ?? []).some((f) => f?.type === 'file')) {
+      return res.status(403).json({ error: '파일 질문이 있는 설문지는 운영위원회 및 교수진만 공개할 수 있습니다.', hint: '파일 질문을 빼거나 운영위원회에 공개를 요청하세요.' })
+    }
     const blocked = await publishPreflight(req.body || {}, current[0] || null)
     if (blocked) {
       return res.status(422).json({
@@ -517,6 +565,7 @@ router.put(
       [...cols.map((c) => data[c]), req.params.id]
     )
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    if (data.title_ko) await query('UPDATE ws_files SET title = $1, updated_at = now() WHERE form_id = $2', [data.title_ko, rows[0].id])
     res.json({ item: rows[0] })
   })
 )
@@ -528,14 +577,15 @@ router.delete(
   wrap(async (req, res) => {
     const { rowCount } = await query('DELETE FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rowCount) return res.status(404).json({ error: 'not found' })
+    const ws = (await query('DELETE FROM ws_files WHERE form_id = $1 RETURNING id', [req.params.id])).rows[0]
+    if (ws) await query('DELETE FROM ws_shares WHERE ws_id = $1', [ws.id])
     res.json({ ok: true })
   })
 )
 
 router.get(
   '/admin/forms/:id/responses',
-  requireAuth,
-  requireRole('manager'),
+  ...formGuard('viewer'),
   wrap(async (req, res) => {
     const { rows: formRows } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
     const form = formRows[0]
@@ -554,8 +604,7 @@ router.get(
 // 삭제되지 않는다. 관리자 화면에서 제목과 건수를 다시 확인한 뒤 호출한다.
 router.delete(
   '/admin/forms/:id/responses',
-  requireAuth,
-  requireRole('manager'),
+  ...formGuard('editor'),
   wrap(async (req, res) => {
     const { rows } = await query('SELECT id, title_ko FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
@@ -572,8 +621,7 @@ function csvCell(v) {
 
 router.get(
   '/admin/forms/:id/responses/export',
-  requireAuth,
-  requireRole('manager'),
+  ...formGuard('viewer'),
   wrap(async (req, res) => {
     const { rows: formRows } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
     const form = formRows[0]

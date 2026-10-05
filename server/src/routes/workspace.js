@@ -1,6 +1,6 @@
 // 작업공간 허브 API: 문서·시트 파일 목록, 템플릿으로 새로 만들기, 이름 바꾸기, 삭제, 시트 내용 저장.
-// 폼은 기존 /admin/forms를 그대로 쓴다. 목록·새로 만들기는 manager 이상(운영위원회 및 교수진),
-// 파일을 여는 일은 공유 설정(lib/wsAccess.js)에 따른다.
+// 목록·열기·편집은 공유 설정(lib/wsAccess.js)에 따른다. 새로 만들기는 로그인한 누구나(한림대 구글 계정 또는 초대된 계정),
+// 삭제는 운영위원회 및 교수진(manager 이상)만.
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth, requireAuth, requireRole, hasRole } from '../middleware/auth.js'
@@ -37,15 +37,24 @@ function excerpt(json, limit = 520) {
   return out.join('').replace(/\n{2,}/g, '\n').trim().slice(0, limit)
 }
 
+// 로그인한 사람(스태프 또는 구글 게스트)이면 통과
+async function requireSignedIn(req, res, next) {
+  const idn = await identityOf(req, res)
+  if (!idn.emails.length) return res.status(401).json({ error: 'login required', hint: '한림대 구글 계정으로 로그인하세요.' })
+  next()
+}
+const signedIn = wrap(requireSignedIn)
+
 router.get(
   '/workspace/templates',
-  ...guard,
+  signedIn,
   wrap(async (req, res) => {
     res.json({ doc: DOC_TEMPLATE_META, sheet: SHEET_TEMPLATE_META })
   })
 )
 
-// 허브 목록은 누구나 열 수 있다. 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(스태프: 소유·공유·운영위원회 공개 파일,
+// 허브 목록은 누구나 열 수 있다. 각 문서의 공유 설정을 따르므로 사이트 관리자라도 '제한됨'인 남의 문서는 목록에 나오지 않는다(주소로는 열 수 있음).
+// 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(스태프: 소유·공유·운영위원회 공개 파일,
 // 게스트: 소유하거나 이메일로 공유받은 파일), 로그인하지 않았다면 빈 목록이다. 전체 공개 파일은 링크를 아는 사람만 연다.
 router.get(
   '/workspace/files',
@@ -68,15 +77,15 @@ router.get(
                OR ($5::boolean AND f.general_access IN ('committee', 'public'))
                OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, idn.isSite, idn.emails, idn.staff?.name || '', Boolean(idn.staff)]
+      [kind, false, idn.emails, idn.staff?.name || '', Boolean(idn.staff)]
     )
     const items = []
     for (const r of rows) {
       const { first_content: fc, first_html: fh, sheet_content: sc, owner_email, ...rest } = r
       const level = await levelFor(req, res, { ...r, id: r.id, owner_email })
       if (!level) continue
-      const mine = Boolean(idn.isSite || (owner_email && idn.emails.includes(lower(owner_email))) || (!owner_email && r.created_by === idn.staff?.name))
-      const base = { ...rest, my_role: level, mine }
+      const mine = Boolean((owner_email && idn.emails.includes(lower(owner_email))) || (!owner_email && r.created_by === idn.staff?.name))
+      const base = { ...rest, my_role: level, mine, can_delete: Boolean(idn.staff) }
       if (r.kind === 'doc') {
         items.push({ ...base, excerpt: fc ? excerpt(fc) : String(fh || '').replace(/<\/(p|h[1-6]|li|tr)>/g, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\n{2,}/g, '\n').trim().slice(0, 520) })
         continue
@@ -91,32 +100,34 @@ router.get(
 
 router.post(
   '/workspace/files',
-  ...guard,
+  signedIn,
   wrap(async (req, res) => {
     const kind = req.body?.kind
     if (!KINDS.includes(kind)) return res.status(400).json({ error: 'kind must be doc or sheet' })
     const tpl = String(req.body?.template || 'blank')
     const name = (kind === 'doc' ? DOC_TEMPLATE_META : SHEET_TEMPLATE_META).find((m) => m.id === tpl)
     const title = String(req.body?.title || (tpl === 'blank' ? (kind === 'doc' ? '제목 없는 문서' : '제목 없는 스프레드시트') : name?.name || '제목 없음')).slice(0, 200)
-    const owner = lower(req.user.email)
+    const idn = await identityOf(req, res)
+    const owner = lower(req.user?.email || req.publicUser?.email)
+    const ownerName = req.user?.name || req.publicUser?.name || req.publicUser?.email
     if (kind === 'doc') {
       const build = DOC_TEMPLATES[tpl] || DOC_TEMPLATES.blank
       const { rows } = await query(
         "INSERT INTO ws_files (kind, title, template, created_by, owner_email, share_token) VALUES ('doc', $1, $2, $3, $4, $5) RETURNING *",
-        [title, tpl, req.user.name, owner, newToken()]
+        [title, tpl, ownerName, owner, newToken()]
       )
       const f = rows[0]
       const tab = await query(
         `INSERT INTO handover_docs (title, content, content_html, sort, updated_by, ws_id)
          VALUES ('탭 1', $1::jsonb, '<p></p>', 0, $2, $3) RETURNING id`,
-        [JSON.stringify(build()), req.user.name, f.id]
+        [JSON.stringify(build()), ownerName, f.id]
       )
       return res.status(201).json({ item: { ...f, first_tab: tab.rows[0].id } })
     }
     const build = SHEET_TEMPLATES[tpl] || SHEET_TEMPLATES.blank
     const { rows } = await query(
       "INSERT INTO ws_files (kind, title, template, content, created_by, owner_email, share_token) VALUES ('sheet', $1, $2, $3::jsonb, $4, $5, $6) RETURNING *",
-      [title, tpl, JSON.stringify(build()), req.user.name, owner, newToken()]
+      [title, tpl, JSON.stringify(build()), ownerName, owner, newToken()]
     )
     res.status(201).json({ item: rows[0] })
   })
@@ -161,9 +172,7 @@ router.delete(
   wrap(async (req, res) => {
     const f = await fileRow(pid(req))
     if (!f) return res.status(404).json({ error: 'not found' })
-    const idn = await identityOf(req, res)
-    const isOwner = idn.isSite || (f.owner_email && idn.emails.includes(lower(f.owner_email))) || (!f.owner_email && f.created_by === req.user.name)
-    if (!isOwner) return res.status(403).json({ error: '소유자만 삭제할 수 있습니다' })
+    // 삭제는 운영위원회 및 교수진(manager 이상)만 할 수 있다. guard가 이미 확인한다.
     if (f.gated && !hasRole(req.user, 'owner')) return res.status(403).json({ error: '인수인계 문서는 오너만 삭제할 수 있습니다' })
     if (f.kind === 'doc') {
       await query('DELETE FROM handover_comments WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [f.id])
