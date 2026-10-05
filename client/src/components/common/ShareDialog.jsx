@@ -173,6 +173,9 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
                     placeholder={chips.length ? '' : '이메일 주소로 사용자 추가 (구글 이메일도 가능)'}
                     aria-label="이메일 주소로 사용자 추가"
                     autoComplete="off"
+                    data-1p-ignore="true"
+                    data-lpignore="true"
+                    data-form-type="other"
                     inputMode="email"
                   />
                 </div>
