@@ -189,6 +189,27 @@ function shareHeaders(base = {}) {
   }
 }
 
+// 파일 업로드는 서버로 직접 보낸다: 같은 사이트 경로(/api, Vercel 전달)는 요청 본문이 4.5MB를 넘으면 거절된다.
+// 직접 요청은 다른 사이트라 쿠키가 안 실리는 브라우저가 있어, 로그인한 경우 같은 사이트 경로로 10분짜리 업로드 토큰을 받아
+// Authorization 헤더로 보낸다(로그인하지 않았으면 토큰 없이 보내며, 서버가 비로그인 허용 용도만 받는다).
+async function uploadToServer(fd) {
+  let headers = {}
+  if (API_BASE === '/api' && ENV_API) {
+    try {
+      const r = await fetch(`${API_BASE}/auth/upload-token`, { method: 'POST', credentials: 'include' })
+      if (r.ok) headers = { Authorization: `Bearer ${(await r.json()).token}` }
+    } catch {
+      /* 토큰 없이 진행 */
+    }
+  }
+  return fetch(`${API_BASE === '/api' ? ENV_API : API_BASE}/upload`, {
+    method: 'POST',
+    credentials: API_BASE === '/api' ? 'omit' : 'include',
+    headers,
+    body: fd,
+  }).then(parseResponse)
+}
+
 export const api = {
   get: (path, params) =>
     fetch(`${API_BASE}${path}${buildQuery(params)}`, { credentials: 'include', headers: shareHeaders() }).then(
@@ -223,10 +244,6 @@ export const api = {
     const fd = new FormData()
     fd.append('file', file)
     if (extra) for (const [k, v] of Object.entries(extra)) fd.append(k, v)
-    return fetch(`${API_BASE}/upload`, {
-      method: 'POST',
-      credentials: 'include',
-      body: fd,
-    }).then(parseResponse)
+    return uploadToServer(fd)
   },
 }

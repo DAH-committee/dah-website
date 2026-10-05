@@ -19,6 +19,9 @@ import {
   setPublicAuthCookies,
   clearPublicAuthCookies,
 } from '../middleware/publicAuth.js'
+import { optionalAuth } from '../middleware/auth.js'
+import { optionalPublicAuth } from '../middleware/publicAuth.js'
+import { signUploadToken } from '../middleware/uploadToken.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -111,6 +114,13 @@ router.post(
     res.json({ ok: true })
   })
 )
+
+// 큰 파일 업로드용 임시 토큰(10분). 로그인한 사람만 받는다. 설명은 middleware/uploadToken.js
+router.post('/upload-token', optionalAuth, optionalPublicAuth, (req, res) => {
+  if (req.user) return res.json({ token: signUploadToken({ staff: { id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role } }), expiresIn: 600 })
+  if (req.publicUser) return res.json({ token: signUploadToken({ pub: { id: req.publicUser.id, email: req.publicUser.email, name: req.publicUser.name, wsOnly: req.publicUser.wsOnly } }), expiresIn: 600 })
+  res.status(401).json({ error: 'login required' })
+})
 
 router.get('/google/login', (req, res) => {
   const cfg = oauthConfig()

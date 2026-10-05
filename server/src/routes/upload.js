@@ -20,6 +20,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { optionalAuth } from '../middleware/auth.js'
 import { optionalPublicAuth } from '../middleware/publicAuth.js'
+import { uploadTokenAuth } from '../middleware/uploadToken.js'
 import { anonUploadLimiter } from '../middleware/rateLimit.js'
 import { query } from '../db.js'
 import {
@@ -559,6 +560,7 @@ router.post(
   '/',
   optionalAuth,
   optionalPublicAuth,
+  uploadTokenAuth,
   anonLimit,
   upload.single('file'),
   wrap(async (req, res) => {
