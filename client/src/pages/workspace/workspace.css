@@ -15,6 +15,7 @@
   font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
   letter-spacing: -0.01em;
   color-scheme: light;
+  scrollbar-gutter: stable;
 }
 .ws button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 .ws button:disabled { cursor: default; opacity: 0.45; }
@@ -26,7 +27,7 @@
 .ws-iconbtn:hover { background: var(--ws-hover); }
 .ws-iconbtn--lg { width: 48px; height: 48px; }
 .ws-iconbtn.is-on { color: var(--ws-purple); }
-.ws-brand { display: inline-flex; align-items: center; gap: 8px; margin-right: 96px; padding: 0 4px; font-size: 22px; color: #444; text-decoration: none; white-space: nowrap; }
+.ws-brand { display: inline-flex; flex: none; align-items: center; gap: 8px; width: 240px; margin-right: 0; padding: 0 4px; font-size: 22px; color: #444; text-decoration: none; white-space: nowrap; }
 .ws-search { display: flex; align-items: center; gap: 12px; flex: 1; max-width: 720px; height: 48px; padding: 0 16px; border-radius: 28px; background: var(--ws-band); color: #444; }
 .ws-search:focus-within { background: #fff; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.28); }
 .ws-search input { flex: 1; min-width: 0; height: 100%; background: transparent; border: 0; outline: none; font: inherit; font-size: 16px; color: var(--ws-ink); }
@@ -34,15 +35,13 @@
 .ws-avatar { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ws-purple); color: #fff; font-size: 16px; font-weight: 600; }
 
 /* 템플릿 띠 */
-.ws-wrap { width: 100%; max-width: 1224px; margin: 0 auto; padding: 0 24px; }
+.ws-wrap { width: 100%; max-width: 1408px; margin: 0 auto; padding: 0 24px; }
 .ws-band { background: var(--ws-band); padding: 20px 0 28px; }
 .ws-band__head { display: flex; align-items: center; justify-content: space-between; height: 36px; margin-bottom: 8px; }
-.ws-tpls { display: flex; gap: 20px; overflow-x: auto; padding: 4px 4px 8px; scrollbar-width: none; }
+.ws-tpls { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0 -4px; padding: 4px 4px 8px; scrollbar-width: none; }
 .ws-tpls::-webkit-scrollbar { display: none; }
-.ws-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 0 0 auto; width: 144px; text-align: left; border-radius: 4px; padding: 0; }
-.ws-tpls--sheets .ws-tpl, .ws-tpls--forms .ws-tpl { width: 160px; }
-.ws-tpl__thumb { display: block; position: relative; width: 100%; height: 184px; margin-bottom: 8px; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); }
-.ws-tpls--sheets .ws-tpl__thumb, .ws-tpls--forms .ws-tpl__thumb { height: 128px; }
+.ws-tpl { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 0 0 auto; width: 210px; text-align: left; border-radius: 4px; padding: 0; }
+.ws-tpl__thumb { display: block; position: relative; width: 100%; height: 168px; margin-bottom: 8px; overflow: hidden; border-radius: 4px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); }
 .ws-tpl:hover:not(:disabled) .ws-tpl__thumb { box-shadow: 0 0 0 3px var(--ws-purple); }
 .ws-tpl strong { font-size: 14px; font-weight: 500; line-height: 20px; }
 .ws-tpl small { font-size: 14px; line-height: 20px; color: var(--ws-sub); }
@@ -55,14 +54,13 @@
 .ws-owner { position: relative; margin-right: 12px; }
 .ws-owner__btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 4px; font-size: 14px; }
 .ws-owner__btn:hover { background: var(--ws-hover); }
-.ws-grid { display: grid; grid-template-columns: repeat(auto-fill, 210px); gap: 26px 24px; justify-content: start; }
+.ws-grid { display: grid; grid-template-columns: repeat(auto-fill, 210px); gap: 26px 20px; justify-content: start; }
 .ws-card { position: relative; display: flex; flex-direction: column; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); cursor: pointer; transition: box-shadow 140ms ease; }
 .ws-card:hover { box-shadow: 0 0 0 3px var(--ws-purple); }
 .ws-card__thumb { position: relative; overflow: hidden; border-radius: 4px 4px 0 0; background: #f2f2f2; }
-.ws-card__thumb--docs { height: 260px; }
-.ws-card__thumb--sheets, .ws-card__thumb--forms { height: 150px; }
+.ws-card__thumb, .ws-card__thumb--docs, .ws-card__thumb--sheets, .ws-card__thumb--forms { height: 190px; }
 .ws-card__foot { padding: 12px 8px 8px 16px; background: #fff; border-radius: 0 0 4px 4px; }
-.ws-card__foot strong { display: block; font-size: 14px; font-weight: 500; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-card__foot strong { display: -webkit-box; height: 40px; font-size: 14px; font-weight: 500; line-height: 20px; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: keep-all; }
 .ws-card__meta { position: relative; display: flex; align-items: center; gap: 8px; height: 36px; color: var(--ws-sub); font-size: 13px; letter-spacing: -0.02em; }
 .ws-card__meta > span:not(.ws-card__more) { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ws-card__meta svg:first-child { flex-shrink: 0; }
@@ -73,7 +71,8 @@
 .ws-thumb--doc { padding: 16px 14px; font-size: 6.5px; line-height: 1.55; }
 .ws-thumb--doc b { display: block; margin-bottom: 4px; font-size: 9px; color: #111; }
 .ws-thumb--doc p { margin: 0; white-space: pre-wrap; word-break: keep-all; }
-.ws-tpl .ws-thumb--doc { padding: 12px 10px; }
+.ws-tpl .ws-thumb--doc, .ws-card .ws-thumb--doc { padding: 16px 14px; font-size: 6.5px; }
+.ws-tpl .ws-thumb--doc b, .ws-card .ws-thumb--doc b { font-size: 9px; }
 .ws-thumb--sheet { padding: 0; }
 .ws-thumb--sheet table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6px; }
 .ws-thumb--sheet th, .ws-thumb--sheet td { height: 14px; padding: 0 3px; overflow: hidden; white-space: nowrap; text-overflow: clip; text-align: left; font-weight: 400; box-shadow: inset -1px -1px 0 #dcdcdc; }
@@ -118,5 +117,4 @@
   .ws-row { grid-template-columns: minmax(0, 1fr) 48px; }
   .ws-row__owner, .ws-row__date { display: none; }
   .ws-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-  .ws-card__thumb--docs { height: 200px; }
 }

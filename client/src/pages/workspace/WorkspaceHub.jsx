@@ -51,7 +51,7 @@ function fmtDate(iso, prefixToday = false) {
   const n = new Date()
   if (d.toDateString() === n.toDateString()) {
     const h = d.getHours()
-    return `${prefixToday ? '마지막으로 연 시간 ' : ''}${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${String(d.getMinutes()).padStart(2, '0')}`
+    return `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${String(d.getMinutes()).padStart(2, '0')}`
   }
   return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`
 }
