@@ -224,4 +224,23 @@ export async function ensureHandoverSchema() {
   } catch (err) {
     console.error('[schema] 공유 설정 초기화 실패(계속 진행):', err.message)
   }
+  // 1회 이관(2026-10-05): 공개 전까지 만들어진 문서·시트·폼은 모두 "운영위원회 및 교수진 / 편집자"로 둔다.
+  // 이후 새로 만드는 파일은 "제한됨"(만든 사람만)으로 시작하고, 공유는 각자 공유 버튼으로 정한다.
+  try {
+    const done = (await impl.query("SELECT 1 FROM handover_settings WHERE key = 'ws_committee_migrated'")).rows[0]
+    if (!done) {
+      const forms = await impl.query('SELECT f.id, f.title_ko FROM custom_forms f WHERE NOT EXISTS (SELECT 1 FROM ws_files w WHERE w.form_id = f.id)')
+      for (const f of forms.rows) {
+        await impl.query(
+          "INSERT INTO ws_files (kind, title, form_id, general_access, general_role, share_token) VALUES ('form', $1, $2, 'committee', 'editor', $3) ON CONFLICT DO NOTHING",
+          [f.title_ko || '제목 없는 설문지', f.id, crypto.randomBytes(18).toString('base64url')]
+        )
+      }
+      const r = await impl.query("UPDATE ws_files SET general_access = 'committee', general_role = 'editor'")
+      await impl.query("INSERT INTO handover_settings (key, value, updated_at) VALUES ('ws_committee_migrated', now()::text, now()) ON CONFLICT (key) DO NOTHING")
+      console.log(`[schema] 기존 문서·시트·폼 ${r.rowCount}개를 운영위원회 및 교수진 전용으로 이관`)
+    }
+  } catch (err) {
+    console.error('[schema] 운영위원회 전용 이관 실패(계속 진행):', err.message)
+  }
 }
