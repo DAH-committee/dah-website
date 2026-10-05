@@ -29,7 +29,9 @@ export function createApp(options = {}) {
   if ('db' in options) setDb(options.db)
 
   const app = express()
-  app.set('trust proxy', 1) // Render 등 리버스 프록시 뒤 — rate limit의 IP 식별용
+  // 접속 경로: 브라우저 → Vercel(/api 전달) → Render 입구 → 이 서버. 프록시가 두 겹이라 2로 두어야 rate limit이 실제 접속자 IP를 본다
+  // (1이면 모든 접속자가 Vercel의 IP 하나로 보여 접수 한도를 서로 나눠 쓰게 된다).
+  app.set('trust proxy', 2)
 
   // CORS: 프론트 도메인 화이트리스트 + 쿠키 자격증명 (httpOnly 인증 쿠키)
   app.use(

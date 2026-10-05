@@ -76,6 +76,42 @@ function decodeIdToken(idToken) {
   }
 }
 
+// 로그인 마무리(handoff): 프론트(vercel.app)와 API(onrender.com)가 다른 사이트라, 구글에서 돌아온 이 콜백이 심는 쿠키는
+// 사파리·아이폰·파이어폭스·시크릿 창에서 "제3자 쿠키"로 막혀 로그인이 안 된 것처럼 보였다.
+// 그래서 콜백은 쿠키 대신 2분짜리 1회용 전달표(handoff)를 만들어 프론트 /auth/finish 로 보내고,
+// 프론트가 같은 사이트 경로(/api, vercel이 서버로 전달)로 POST /auth/google/finish 를 부르면 그때 쿠키를 심는다(제1자 쿠키).
+const HANDOFF_TTL_SEC = 120
+const usedHandoffs = new Map() // jti -> 만료 시각(ms). 1회용 확인용(서버 하나일 때 충분, 재시작하면 전달표가 만료되어 다시 로그인)
+
+function handoffRedirect(res, next, session) {
+  const jti = crypto.randomBytes(12).toString('hex')
+  const h = jwt.sign({ typ: 'handoff', jti, staffId: session.staffId || null, pub: session.pub || null }, jwtSecret(), { expiresIn: HANDOFF_TTL_SEC })
+  return res.redirect(`${clientOrigin()}/auth/finish?h=${encodeURIComponent(h)}&next=${encodeURIComponent(safeNext(next))}`)
+}
+
+router.post(
+  '/google/finish',
+  wrap(async (req, res) => {
+    let p = null
+    try {
+      p = jwt.verify(String(req.body?.h || ''), jwtSecret())
+    } catch {
+      p = null
+    }
+    if (!p || p.typ !== 'handoff' || !p.jti) return res.status(400).json({ error: 'invalid handoff', hint: '로그인 확인이 만료되었습니다. 다시 로그인하세요.' })
+    const now = Date.now()
+    for (const [k, exp] of usedHandoffs) if (exp < now) usedHandoffs.delete(k)
+    if (usedHandoffs.has(p.jti)) return res.status(400).json({ error: 'handoff already used', hint: '이미 사용된 로그인 확인입니다. 다시 로그인하세요.' })
+    usedHandoffs.set(p.jti, now + HANDOFF_TTL_SEC * 1000 + 5000)
+    if (p.staffId) {
+      const staff = (await query('SELECT id, email, name, role, must_set_pw FROM users WHERE id = $1', [p.staffId])).rows[0]
+      if (staff && !staff.must_set_pw) setAuthCookies(res, staff)
+    }
+    if (p.pub) setPublicAuthCookies(res, p.pub)
+    res.json({ ok: true })
+  })
+)
+
 router.get('/google/login', (req, res) => {
   const cfg = oauthConfig()
   if (!cfg) return res.status(503).json(NOT_CONFIGURED)
@@ -200,7 +236,7 @@ router.get(
       ).rows[0]
     }
     if (user.google_sub !== googleSub) {
-      if (staffIn) return res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
+      if (staffIn) return handoffRedirect(res, statePayload.next, { staffId: staff.id })
       return fail('이 이메일은 다른 구글 계정으로 이미 등록되어 있습니다. 운영위원회에 문의하세요.')
     }
 
@@ -211,8 +247,9 @@ router.get(
        RETURNING id, email, name, ws_only`,
       [claims.name || user.name || null, picture, user.id, !known]
     )
-    setPublicAuthCookies(res, { ...rows[0], wsOnly: rows[0].ws_only })
-    res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
+    const pub = { id: rows[0].id, email: rows[0].email, name: rows[0].name, wsOnly: rows[0].ws_only }
+    setPublicAuthCookies(res, pub) // 서버 주소로 직접 접속하는 환경(개발)을 위해 쿠키도 함께 심는다
+    handoffRedirect(res, statePayload.next, { staffId: staffIn ? staff.id : null, pub })
   })
 )
 

@@ -57,6 +57,7 @@ const FormResponsesPage = lazy(() => import('./pages/admin/FormResponsesSheet'))
 const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
 const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
 const WorkspaceMembers = lazy(() => import('./pages/workspace/WorkspaceMembers'))
+const AuthFinish = lazy(() => import('./pages/auth/AuthFinish'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
 // .page-fade(opacity 0→1, translate 금지). reduced-motion은 index.css 전역 미디어쿼리가 무효화.
@@ -89,7 +90,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실 상세에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/form\/(?:new|[^/]+\/(?:edit|responses))$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname)) return children
+  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/form\/(?:new|[^/]+\/(?:edit|responses))$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname) || pathname === '/auth/finish') return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -170,6 +171,14 @@ const PUBLIC_ROUTES = [
     ),
   },
   { path: '/workspace', element: <Navigate to="/workspace/docs" replace /> },
+  {
+    path: '/auth/finish',
+    element: (
+      <Suspense fallback={null}>
+        <AuthFinish />
+      </Suspense>
+    ),
+  },
   {
     path: '/workspace/members',
     element: (

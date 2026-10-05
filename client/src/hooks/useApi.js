@@ -4,7 +4,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// 배포(https)에서는 서버가 다른 사이트(onrender.com)라 로그인 쿠키가 "제3자 쿠키"로 막히는 브라우저가 많다
+// (사파리·아이폰·파이어폭스·시크릿 창). 그래서 같은 사이트의 /api 로 부르고, vercel.json 이 이를 서버로 전달한다.
+// 그러면 쿠키가 이 사이트의 쿠키가 되어 어느 브라우저에서도 유지된다. 개발(http)은 환경 변수 주소를 그대로 쓴다.
+const ENV_API = import.meta.env.VITE_API_URL
+export const API_BASE =
+  typeof window !== 'undefined' && window.location.protocol === 'https:' && ENV_API && !ENV_API.startsWith(window.location.origin)
+    ? '/api'
+    : ENV_API || 'http://localhost:4000'
 
 const TIMEOUT_MS = 3000
 // G3: 어드민 조회는 스냅샷 폴백이 없어 조기 중단이 순손실 — 콜드 스타트(Render)·원거리 지연 허용
