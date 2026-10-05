@@ -8,6 +8,17 @@ import { useLoginModal } from '../../context/LoginModalContext'
 import './accountMenu.css'
 
 export const AVATAR_PURPLE = '#7A3CFF'
+
+/** 구글 로그인으로 이동(로그인 뒤 현재 화면으로 돌아온다) */
+export function startGoogleLogin(hint) {
+  const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`)
+  window.location.href = `${API_BASE}/auth/google/login?next=${next}${hint ? `&hint=${encodeURIComponent(hint)}` : ''}`
+}
+
+/** 구글 로고(4색) 대신 쓰는 단색 G 표시 */
+export function GoogleG({ size = 18 }) {
+  return <span className="acct-g" style={{ width: size, height: size, fontSize: Math.round(size * 0.75) }} aria-hidden="true">G</span>
+}
 const STORE = 'dah.accounts'
 
 let cache = { at: 0, me: undefined, pending: null }
@@ -65,8 +76,7 @@ export default function AccountMenu({ size = 40, className = '' }) {
     return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key) }
   }, [open])
 
-  const next = () => encodeURIComponent(`${window.location.pathname}${window.location.search}`)
-  const googleLogin = (hint) => { window.location.href = `${API_BASE}/auth/google/login?next=${next()}${hint ? `&hint=${encodeURIComponent(hint)}` : ''}` }
+  const googleLogin = startGoogleLogin
   const signOut = async () => {
     await Promise.allSettled([api.post('/auth/logout'), api.post('/auth/public/logout')])
     cache = { at: 0, me: undefined, pending: null }
@@ -81,9 +91,15 @@ export default function AccountMenu({ size = 40, className = '' }) {
 
   return (
     <div ref={ref} className={`acct ${className}`}>
-      <button type="button" className="acct-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={open} aria-label={user ? `${user.name} 계정` : '로그인'} title={user ? `${user.name}\n${user.email}` : '로그인'}>
-        <Avatar name={user?.name} picture={user?.picture} size={size} />
-      </button>
+      {me && !user ? (
+        <button type="button" className="acct-login" onClick={() => setOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={open} style={{ height: size }}>
+          로그인
+        </button>
+      ) : (
+        <button type="button" className="acct-btn" onClick={() => setOpen((v) => !v)} aria-haspopup="dialog" aria-expanded={open} aria-label={user ? `${user.name} 계정` : '로그인'} title={user ? `${user.name}\n${user.email}` : '로그인'}>
+          <Avatar name={user?.name} picture={user?.picture} size={size} />
+        </button>
+      )}
       {open && (
         <div className="acct-pop" role="dialog" aria-label="계정">
           {user ? (
@@ -119,7 +135,7 @@ export default function AccountMenu({ size = 40, className = '' }) {
               <Avatar size={72} />
               <h3>로그인하지 않았습니다</h3>
               <p>구글 계정이나 운영위원회 계정으로 로그인하세요.</p>
-              <button type="button" className="acct-pill acct-pill--on" onClick={() => googleLogin()}>구글 계정으로 로그인</button>
+              <button type="button" className="acct-pill acct-pill--on" onClick={() => googleLogin()}><GoogleG /> 구글 계정으로 로그인</button>
               <button type="button" className="acct-pill" onClick={() => { setOpen(false); openLogin() }}>운영위원회 계정으로 로그인</button>
             </div>
           )}

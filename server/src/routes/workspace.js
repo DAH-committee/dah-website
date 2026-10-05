@@ -45,12 +45,14 @@ router.get(
   })
 )
 
+// 허브 목록은 누구나 열 수 있다. 로그인한 사람은 자기가 접근할 수 있는 파일만 보이고(스태프: 소유·공유·운영위원회 공개 파일,
+// 게스트: 소유하거나 이메일로 공유받은 파일), 로그인하지 않았다면 빈 목록이다. 전체 공개 파일은 링크를 아는 사람만 연다.
 router.get(
   '/workspace/files',
-  ...guard,
   wrap(async (req, res) => {
     const kind = KINDS.includes(req.query.kind) ? req.query.kind : 'doc'
     const idn = await identityOf(req, res)
+    if (!idn.emails.length) return res.json({ items: [], staff: false })
     const { rows } = await query(
       `SELECT f.id, f.kind, f.title, f.gated, f.created_by, f.owner_email, f.general_access, f.general_role, f.created_at, f.opened_at,
               GREATEST(f.updated_at, COALESCE((SELECT MAX(d.updated_at) FROM handover_docs d WHERE d.ws_id = f.id), f.updated_at)) AS updated_at,
@@ -63,10 +65,10 @@ router.get(
           AND ($2::boolean
                OR lower(f.owner_email) = ANY($3::text[])
                OR (f.owner_email IS NULL AND f.created_by = $4)
-               OR f.general_access IN ('committee', 'public')
+               OR ($5::boolean AND f.general_access IN ('committee', 'public'))
                OR EXISTS (SELECT 1 FROM ws_shares s WHERE s.ws_id = f.id AND lower(s.email) = ANY($3::text[])))
         ORDER BY f.opened_at DESC, f.id DESC`,
-      [kind, idn.isSite, idn.emails, idn.staff?.name || '']
+      [kind, idn.isSite, idn.emails, idn.staff?.name || '', Boolean(idn.staff)]
     )
     const items = []
     for (const r of rows) {
@@ -83,7 +85,7 @@ router.get(
       const preview = (first?.rows || []).slice(0, 8).map((row) => (first.columns || []).slice(0, 6).map((c) => String(row.cells?.[c.key] ?? '')))
       items.push({ ...base, head: (first?.columns || []).slice(0, 6).map((c) => c.label), preview })
     }
-    res.json({ items })
+    res.json({ items, staff: Boolean(idn.staff) })
   })
 )
 

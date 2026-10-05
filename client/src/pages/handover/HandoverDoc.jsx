@@ -971,7 +971,7 @@ export default function HandoverDoc() {
     }
   }, [zoom, showComments, historyOpen, showSidebar, doc, access.loading])
 
-  const listHref = staffUser ? '/workspace/docs' : '/'
+  const listHref = '/workspace/docs'
   if (access.loading) return <div className="gd-loading">문서 불러오는 중</div>
   if (access.denied) return <NoAccess kind="doc" notFound={access.notFound} />
   if (access.error) return <div className="gd-loading">문서를 불러오지 못했습니다. <Link to="/">처음으로</Link></div>

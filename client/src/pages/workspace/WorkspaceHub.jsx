@@ -7,7 +7,7 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
-import AccountMenu from '../../components/common/AccountMenu'
+import AccountMenu, { GoogleG, startGoogleLogin, useMe } from '../../components/common/AccountMenu'
 import NoAccess from '../../components/common/NoAccess'
 import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
@@ -144,8 +144,8 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extr
   const btn = useRef(null)
   const Icon = ICONS[kind]
   const items = [
-    { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file) },
-    { label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system },
+    { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.system || file.my_role === 'viewer' },
+    { label: '삭제', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system || file.mine === false },
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
   ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '삭제')))
@@ -193,6 +193,8 @@ export default function WorkspaceHub() {
   const { kind } = useParams()
   const navigate = useNavigate()
   const { user, hasRole, loading: authLoading } = useAuth()
+  const { me } = useMe()
+  const isStaff = hasRole('manager')
   const [files, setFiles] = useState([])
   const [templates, setTemplates] = useState({ doc: [], sheet: [] })
   const [loading, setLoading] = useState(true)
@@ -220,7 +222,9 @@ export default function WorkspaceHub() {
     setLoading(true)
     setError('')
     try {
-      if (kind === 'forms') {
+      if (kind === 'forms' && !isStaff) {
+        setFiles([])
+      } else if (kind === 'forms') {
         const r = await api.get('/admin/forms')
         setFiles(
           (r.items || []).map((x) => ({
@@ -239,15 +243,15 @@ export default function WorkspaceHub() {
     } finally {
       setLoading(false)
     }
-  }, [kind])
+  }, [kind, isStaff])
 
   useEffect(() => {
-    if (K && !authLoading && hasRole('manager')) load()
-  }, [K, load, authLoading, hasRole])
+    if (K && !authLoading) load()
+  }, [K, load, authLoading])
 
   useEffect(() => {
-    api.get('/workspace/templates').then(setTemplates).catch(() => {})
-  }, [])
+    if (isStaff) api.get('/workspace/templates').then(setTemplates).catch(() => {})
+  }, [isStaff])
 
   const tplList = useMemo(() => {
     if (kind === 'forms') return FORM_TEMPLATES
@@ -257,7 +261,7 @@ export default function WorkspaceHub() {
 
   const shown = useMemo(() => {
     let list = files.filter((x) => !q.trim() || x.title.toLowerCase().includes(q.trim().toLowerCase()))
-    if (owner === 'mine') list = list.filter((x) => x.created_by === user?.name)
+    if (owner === 'mine') list = list.filter((x) => x.mine)
     const pinned = list.filter((x) => x.system)
     const rest = list.filter((x) => !x.system)
     rest.sort(sort === 'name' ? (a, b) => a.title.localeCompare(b.title, 'ko') : (a, b) => new Date(b.opened_at || b.updated_at) - new Date(a.opened_at || a.updated_at))
@@ -266,7 +270,6 @@ export default function WorkspaceHub() {
 
   if (!K) return <Navigate to="/workspace/docs" replace />
   if (authLoading) return null
-  if (!hasRole('manager')) return <NoAccess kind="doc" hub />
 
   const open = (file) => {
     if (file.to) return navigate(file.to)
@@ -350,12 +353,13 @@ export default function WorkspaceHub() {
               return <Link key={k.id} to={k.path} onClick={() => closeDrawer()} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
             })}
             <hr />
-            <Link to="/admin" className="ws-drawer__item">관리 대시보드</Link>
+            {isStaff && <Link to="/admin" className="ws-drawer__item">관리 대시보드</Link>}
             <Link to="/" className="ws-drawer__item">사이트로 돌아가기</Link>
           </nav>
         </div>
       )}
 
+      {isStaff && (
       <section className="ws-band">
         <div className="ws-wrap">
           <div className="ws-band__head"><h2>{K.start}</h2></div>
@@ -370,6 +374,7 @@ export default function WorkspaceHub() {
           </div>
         </div>
       </section>
+      )}
 
       <section className="ws-recent">
         <div className="ws-wrap">
@@ -394,7 +399,12 @@ export default function WorkspaceHub() {
           {loading ? (
             <p className="ws-empty">불러오는 중</p>
           ) : shown.length === 0 ? (
-            <p className="ws-empty">{q ? '검색 결과가 없습니다.' : '아직 만든 항목이 없습니다. 위 템플릿으로 시작하세요.'}</p>
+            <div className="ws-empty">
+              {me && !me.user && !q && (
+                <button type="button" className="gbtn" onClick={() => startGoogleLogin()}><GoogleG size={22} /> 구글 계정으로 로그인</button>
+              )}
+              <p style={{ margin: me && !me.user && !q ? '16px 0 0' : 0 }}>{q ? '검색 결과가 없습니다.' : isStaff ? '아직 만든 항목이 없습니다. 위 템플릿으로 시작하세요.' : kind === 'forms' ? '설문지는 운영위원회 및 교수진 계정으로 로그인해야 볼 수 있습니다.' : me?.user ? '공유받은 파일이 없습니다. 소유자가 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
+            </div>
           ) : view === 'list' ? (
             <div className="ws-list">
               <div className="ws-row ws-row--head"><span>이름</span><span>소유자</span><span>마지막으로 연 시간</span><span /></div>
