@@ -963,15 +963,24 @@ export default function HandoverDoc() {
     try {
       const list = (await api.get(`/handover/docs/${id}/versions`)).items
       if (list.length < 2) return null
-      const [a, b] = await Promise.all([api.get(`/handover/versions/${list[0].id}`), api.get(`/handover/versions/${list[1].id}`)])
+      // 내용이 같은 버전(저장만 하고 바뀐 게 없는 경우)은 건너뛰고, 실제로 달라진 가장 가까운 이전 버전과 비교한다
+      const a = await api.get(`/handover/versions/${list[0].id}`)
+      const newestJson = JSON.stringify(a.item.content)
+      let b = null
+      let by = list[0].author
+      for (let k = 1; k < Math.min(list.length, 8); k += 1) {
+        const prev = await api.get(`/handover/versions/${list[k].id}`)
+        if (JSON.stringify(prev.item.content) !== newestJson) { b = prev; by = list[k - 1].author; break }
+      }
+      if (!b) return null
+      // 문단마다 글자(text)와 서식까지 담은 열쇠(key)로 비교한다. 글자가 같아도 서식·순서가 바뀐 곳을 찾기 위해서다.
       const blocks = (c) => {
         const out = []
         const walk = (n) => {
           if (!n) return
-          if (n.type === 'text') return
           if (['paragraph', 'heading'].includes(n.type)) {
-            const t = (n.content || []).map((x) => x.text || '').join('').trim()
-            if (t) out.push(t)
+            const text = (n.content || []).map((x) => x.text || '').join('').trim()
+            if (text) out.push({ text, key: JSON.stringify(n) })
           }
           ;(n.content || []).forEach(walk)
         }
@@ -979,9 +988,21 @@ export default function HandoverDoc() {
         return out
       }
       const newer = blocks(a.item.content)
-      const older = new Set(blocks(b.item.content))
-      const changed = newer.find((t) => !older.has(t))
-      return changed ? { by: list[0].author, text: changed.slice(0, 120), tab: String(id) } : null
+      const older = blocks(b.item.content)
+      const olderKeys = new Set(older.map((x) => x.key))
+      let changed = newer.find((x) => !olderKeys.has(x.key))
+      if (!changed) {
+        // 같은 문단들이 순서만 바뀌었거나 일부가 지워진 경우: 처음으로 달라지는 자리
+        const at = newer.findIndex((x, k) => older[k]?.key !== x.key)
+        if (at >= 0) changed = newer[at]
+      }
+      if (!changed) {
+        // 지운 문단만 있는 경우: 지워진 문단 바로 앞 문단
+        const newKeys = new Set(newer.map((x) => x.key))
+        const gone = older.findIndex((x) => !newKeys.has(x.key))
+        if (gone > 0) changed = newer[Math.min(gone - 1, newer.length - 1)]
+      }
+      return changed ? { by, text: changed.text.slice(0, 120), tab: String(id) } : null
     } catch {
       return null
     }
