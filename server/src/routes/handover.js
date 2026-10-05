@@ -179,7 +179,8 @@ router.get(
   guard(wsFromReq),
   wrap(async (req, res) => {
     const { rows } = await query('SELECT id, title FROM ws_files WHERE id = $1', [req.wsId])
-    res.json({ ws: rows[0].id, title: rows[0].title, access: req.handoverAccess, level: req.wsLevel, canEdit: req.wsLevel === 'editor' })
+    const le = (await query('SELECT last_edit FROM ws_files WHERE id = $1', [req.wsId])).rows[0]?.last_edit || null
+    res.json({ ws: rows[0].id, title: rows[0].title, access: req.handoverAccess, level: req.wsLevel, canEdit: req.wsLevel === 'editor', last_edit: le })
   })
 )
 

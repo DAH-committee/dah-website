@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import AccountMenu, { AVATAR_PURPLE, useMe } from '../../components/common/AccountMenu'
-import ShareDialog from '../../components/common/ShareDialog'
+import ShareDialog, { useShareIcon } from '../../components/common/ShareDialog'
 import NoAccess from '../../components/common/NoAccess'
 import { DocsIcon } from '../workspace/icons'
 import { useEditor, EditorContent } from '@tiptap/react'
@@ -34,7 +34,7 @@ import {
 } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
-import { CommentMark, SecretNode, HandoverStorage, FontSize } from './extensions'
+import { CommentMark, SecretNode, HandoverStorage, FontSize, Flash, flashKey } from './extensions'
 import { download, safeName, toDocx, toHtml, toMarkdown, toPdf, toPlainText } from './exporters'
 import './handoverDoc.css'
 
@@ -469,19 +469,23 @@ function blockTexts(json) {
 export default function HandoverDoc() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const loc = useLocation()
+  const { pathname } = loc
   const base = pathname.startsWith('/docs') ? '/docs' : '/handover'
   const { user: staffUser } = useAuth()
   const { me } = useMe()
   const user = staffUser || me?.user || null
   const [shareOpen, setShareOpen] = useState(false)
+  const [shareTick, setShareTick] = useState(0)
   const nav = (to) => navigate(`${to}${window.location.search}`)
   const [doc, setDoc] = useState(null)
+  const ShareIcon = useShareIcon(doc?.ws_id, shareTick)
   const [tabs, setTabs] = useState([])
   const [docTitle, setDocTitle] = useState('')
   const [titleDraft, setTitleDraft] = useState('')
   const [comments, setComments] = useState([])
   const [access, setAccess] = useState({ loading: true })
+  const [lastEdit, setLastEdit] = useState(null)
   const [saveState, setSaveState] = useState('saved')
   const [mode, setMode] = useState('edit')
   const [active, setActive] = useState(null)
@@ -541,10 +545,12 @@ export default function HandoverDoc() {
         ])
         if (off) return
         setDoc(d.item)
+        docWsRef.current = ws
         setTabs(list.items)
         setComments(cm.items)
         setDocTitle(meta.title)
         setTitleDraft(meta.title)
+        setLastEdit(meta.last_edit || null)
         setAccess({ loading: false, access: d.access, canEdit: d.canEdit })
         setMode(d.canEdit ? 'edit' : 'view')
         document.title = `${meta.title} | 디지털인문예술전공`
@@ -560,6 +566,7 @@ export default function HandoverDoc() {
     }
   }, [id, navigate])
 
+  const docWsRef = useRef(null)
   const save = useCallback(
     async (ed) => {
       if (!canEdit) return
@@ -567,6 +574,14 @@ export default function HandoverDoc() {
       try {
         await api.put(`/handover/docs/${id}`, { content: ed.getJSON() })
         setSaveState('saved')
+        // 마지막으로 수정한 위치(커서가 있는 문단)를 기록한다. 이후 "마지막으로 수정"을 누르면 그 문단으로 이동한다.
+        const { $from } = ed.state.selection
+        const text = ($from.parent.textContent || $from.node(1)?.textContent || '').trim().slice(0, 120)
+        if (docWsRef.current) {
+          api.put(`/workspace/files/${docWsRef.current}/last-edit`, { tab: String(id), text })
+            .then((r) => setLastEdit(r.last_edit))
+            .catch(() => {})
+        }
       } catch {
         setSaveState('error')
       }
@@ -598,6 +613,7 @@ export default function HandoverDoc() {
         TaskList,
         TaskItem.configure({ nested: true }),
         TextStyle,
+        Flash,
         FontFamily,
         FontSize,
         Color,
@@ -941,6 +957,75 @@ export default function HandoverDoc() {
     window.open('https://docs.new', '_blank')
   }
 
+  // "마지막으로 수정": 수정한 문단으로 이동해 잠깐 노랗게 표시한다(다른 탭에서 고쳤다면 그 탭으로 먼저 이동)
+  // 위치 기록이 없는 문서(공개 전에 고친 문서)는 가장 최근 두 버전을 비교해 바뀐 문단을 찾는다
+  const deriveFromVersions = useCallback(async () => {
+    try {
+      const list = (await api.get(`/handover/docs/${id}/versions`)).items
+      if (list.length < 2) return null
+      const [a, b] = await Promise.all([api.get(`/handover/versions/${list[0].id}`), api.get(`/handover/versions/${list[1].id}`)])
+      const blocks = (c) => {
+        const out = []
+        const walk = (n) => {
+          if (!n) return
+          if (n.type === 'text') return
+          if (['paragraph', 'heading'].includes(n.type)) {
+            const t = (n.content || []).map((x) => x.text || '').join('').trim()
+            if (t) out.push(t)
+          }
+          ;(n.content || []).forEach(walk)
+        }
+        walk(c)
+        return out
+      }
+      const newer = blocks(a.item.content)
+      const older = new Set(blocks(b.item.content))
+      const changed = newer.find((t) => !older.has(t))
+      return changed ? { by: list[0].author, text: changed.slice(0, 120), tab: String(id) } : null
+    } catch {
+      return null
+    }
+  }, [id])
+
+  const jumpToLastEdit = useCallback(async () => {
+    let le = lastEdit
+    if (!le) le = await deriveFromVersions()
+    if (!le) {
+      flash('수정한 위치를 찾지 못했습니다')
+      return
+    }
+    if (le.tab && String(le.tab) !== String(id)) {
+      navigate(`${base}/${le.tab}${window.location.search}`, { state: { jumpLast: true } })
+      return
+    }
+    const ed = editor
+    if (!ed) return
+    const snippet = (le.text || '').trim()
+    let hit = null
+    if (snippet) {
+      ed.state.doc.descendants((node, pos) => {
+        if (hit || !node.isTextblock) return
+        const t = node.textContent.trim()
+        if (t === snippet || t.startsWith(snippet.slice(0, 40)) || t.includes(snippet.slice(0, 40))) hit = { pos, size: node.nodeSize }
+      })
+    }
+    if (!hit) {
+      flash('수정한 문단을 찾지 못했습니다. 그 뒤에 내용이 바뀌었을 수 있습니다')
+      return
+    }
+    ed.view.dispatch(ed.state.tr.setMeta(flashKey, { from: hit.pos, to: hit.pos + hit.size }))
+    const dom = ed.view.nodeDOM(hit.pos)
+    ;(dom?.scrollIntoView ? dom : dom?.parentElement)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    setTimeout(() => { try { ed.view.dispatch(ed.state.tr.setMeta(flashKey, null)) } catch { /* 편집기가 이미 닫힘 */ } }, 3600)
+  }, [lastEdit, id, base, editor, navigate, deriveFromVersions])
+
+  // 다른 탭에서 넘어온 경우 로드가 끝나면 이어서 이동
+  useEffect(() => {
+    if (!loc.state?.jumpLast || !editor || !doc) return undefined
+    const t = setTimeout(() => { jumpToLastEdit(); window.history.replaceState({}, '') }, 500)
+    return () => clearTimeout(t)
+  }, [loc.state, editor, doc, jumpToLastEdit])
+
   // 눈금자: 페이지의 실제 위치와 폭에 맞춘다(댓글 칸, 개요 칸, 확대 비율, 창 크기가 바뀌어도 어긋나지 않게)
   const rulerRef = useRef(null)
   const [rulerBox, setRulerBox] = useState(null)
@@ -1074,7 +1159,11 @@ export default function HandoverDoc() {
         />
         <span className="ed-status"><Cloud size={16} aria-hidden="true" />{saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중' : saveState === 'error' ? '저장 실패' : ''}</span>
         <div className="gd-actions">
-          <span className="gd-meta">{doc.updated_by ? `${doc.updated_by} 님이 마지막으로 수정` : ''}</span>
+          {lastEdit || doc.updated_by ? (
+            <button type="button" className="gd-meta gd-meta--link" onClick={jumpToLastEdit} title="수정한 위치로 이동">
+              {`${lastEdit?.by || doc.updated_by} 님이 마지막으로 수정`}
+            </button>
+          ) : null}
           <button type="button" className={`gd-round${historyOpen ? ' is-on' : ''}`} aria-label="버전 기록" title="버전 기록 (⌘⌥⇧H)" onClick={() => (historyOpen ? closeHistory() : openHistory())}>
             <History size={20} />
           </button>
@@ -1082,7 +1171,7 @@ export default function HandoverDoc() {
             <MessageSquareText size={20} />
           </button>
           <button type="button" className="gd-share" onClick={() => setShareOpen(true)}>
-            <Lock size={16} /> <span>공유</span>
+            <ShareIcon size={16} /> <span>공유</span>
           </button>
           <AccountMenu size={40} />
         </div>
@@ -1320,7 +1409,7 @@ export default function HandoverDoc() {
       )}
 
       {!canEdit && <div className="gd-banner">보기 전용: 이 문서를 고칠 권한이 없습니다</div>}
-      {shareOpen && <ShareDialog fileId={doc.ws_id} title={docTitle} linkPath={window.location.pathname} onClose={() => setShareOpen(false)} />}
+      {shareOpen && <ShareDialog fileId={doc.ws_id} title={docTitle} linkPath={window.location.pathname} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}
       {toast && <div className="gd-toast">{toast}</div>}
       {lightbox && <Lightbox images={lightbox.images} index={lightbox.index} onClose={() => setLightbox(null)} />}
     </div>

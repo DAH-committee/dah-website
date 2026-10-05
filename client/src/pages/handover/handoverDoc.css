@@ -389,3 +389,10 @@ button.gd-tab__chev:hover { background: rgba(68, 71, 70, 0.12); }
 /* 드래그 선택 영역: 잘 보이게 */
 .gd-page ::selection, .gd-title::selection, .gd-cc ::selection { background: #8FB3FF; color: inherit; }
 .gd-page .ProseMirror-selectednode { outline: none; background: #8FB3FF; }
+
+/* 마지막으로 수정: 누르면 수정한 문단으로 이동 */
+.gd-meta--link { background: none; border: 0; padding: 6px 10px; border-radius: 16px; font: inherit; color: var(--gd-meta); cursor: pointer; transition: background 120ms ease, color 120ms ease; }
+.gd-meta--link:hover:not(:disabled) { background: var(--gd-hover); color: var(--gd-ink); text-decoration: underline; }
+.gd-meta--link:disabled { cursor: default; opacity: 1; }
+.gd-page .gd-flash { background: #FFEA00; border-radius: 3px; box-shadow: 0 0 0 4px #FFEA00; animation: gd-flash-out 3.6s ease-out forwards; }
+@keyframes gd-flash-out { 0%, 55% { background: #FFEA00; box-shadow: 0 0 0 4px #FFEA00; } 100% { background: transparent; box-shadow: 0 0 0 4px transparent; } }

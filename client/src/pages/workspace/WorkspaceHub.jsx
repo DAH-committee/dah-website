@@ -2,15 +2,16 @@
 // 구글 문서·시트·폼 홈과 같은 구조: 상단 바(햄버거, 제품 아이콘과 이름, 검색, 3종 전환, 계정)
 // → 템플릿 띠 → 최근 항목(카드 격자 또는 목록, 정렬, 소유자 필터, 항목별 ⋮ 메뉴).
 // 문서와 시트는 /workspace/files, 폼은 기존 /admin/forms를 쓴다.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks } from 'lucide-react'
+import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import AccountMenu, { GoogleG, startGoogleLogin, useMe } from '../../components/common/AccountMenu'
 import NoAccess from '../../components/common/NoAccess'
 import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
-import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
+import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import { ICONS, KINDS } from './icons'
 import './workspace.css'
 
@@ -112,29 +113,59 @@ const SHEET_PREVIEW = {
   calendar: { head: ['월', '화', '수', '목', '금'], rows: [['', '', '', '', ''], ['', '', '', '', '']] },
 }
 
-function CardMenu({ items, onClose, anchorRef }) {
+function CardMenu({ items, onClose, anchorRef, align = 'right' }) {
   const ref = useRef(null)
+  const [pos, setPos] = useState(null)
+  // 메뉴는 body에 고정 위치로 띄운다: 목록 아래쪽 카드에서도 잘리지 않고, 공간이 모자라면 위로 열린다
+  useLayoutEffect(() => {
+    const a = anchorRef?.current?.getBoundingClientRect()
+    const m = ref.current
+    if (!a || !m) return
+    const w = m.offsetWidth
+    const h = m.offsetHeight
+    const left = align === 'right' ? Math.min(Math.max(8, a.right - w), window.innerWidth - w - 8) : Math.min(a.left, window.innerWidth - w - 8)
+    const below = a.bottom + 2
+    const top = below + h > window.innerHeight - 8 ? Math.max(8, a.top - h - 2) : below
+    setPos({ top, left })
+  }, [anchorRef, align, items.length])
   useEffect(() => {
     const down = (e) => {
       if (ref.current?.contains(e.target) || anchorRef?.current?.contains(e.target)) return
       onClose()
     }
     const key = (e) => e.key === 'Escape' && onClose()
+    const away = () => onClose()
     document.addEventListener('mousedown', down)
     document.addEventListener('keydown', key)
+    window.addEventListener('resize', away)
+    document.querySelector('.ws')?.addEventListener('scroll', away, { passive: true })
     return () => {
       document.removeEventListener('mousedown', down)
       document.removeEventListener('keydown', key)
+      window.removeEventListener('resize', away)
+      document.querySelector('.ws')?.removeEventListener('scroll', away)
     }
   }, [onClose, anchorRef])
-  return (
-    <div ref={ref} className="ws-menu" role="menu">
+  return createPortal(
+    <div ref={ref} className="ws-menu ws-menu--fixed" role="menu" style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, visibility: pos ? 'visible' : 'hidden' }}>
       {items.map((it) => (
         <button key={it.label} type="button" role="menuitem" className="ws-menu__item" disabled={it.disabled} onClick={() => { onClose(); it.onClick() }}>
           {it.icon}
           <span>{it.label}</span>
         </button>
       ))}
+    </div>,
+    document.body
+  )
+}
+
+function LockedThumb() {
+  return (
+    <div className="ws-locked" aria-hidden="true">
+      <div className="ws-locked__ghost">
+        <i /><i /><i /><i /><i /><i /><i />
+      </div>
+      <span className="ws-locked__badge"><Lock size={26} /></span>
     </div>
   )
 }
@@ -149,32 +180,33 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, extr
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
   ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '삭제')))
-  const thumb =
+  const hasMenu = !file.locked
+  const thumb = file.locked ? <LockedThumb /> :
     kind === 'docs' ? <DocThumb text={file.excerpt} /> : kind === 'sheets' ? <SheetThumb head={file.head} rows={file.preview} /> : <FormThumb title={file.title} fields={file.fields} />
 
   if (view === 'list') {
     return (
       <div className="ws-row" onClick={() => onOpen(file)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
-        <span className="ws-row__title"><Icon size={24} />{file.title}</span>
+        <span className="ws-row__title">{file.locked ? <Lock size={24} /> : <Icon size={24} />}{file.title}</span>
         <span className="ws-row__owner">{file.system ? '자동 연결' : file.created_by || '-'}</span>
         <span className="ws-row__date">{fmtDate(file.opened_at || file.updated_at)}</span>
         <span className="ws-row__more" onClick={(e) => e.stopPropagation()}>
-          <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>
+          {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
           {menu && <CardMenu items={items} onClose={() => setMenu(false)} anchorRef={btn} />}
         </span>
       </div>
     )
   }
   return (
-    <div className="ws-card" role="button" tabIndex={0} onClick={() => onOpen(file)} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
+    <div className={`ws-card${file.locked ? ' is-locked' : ''}`} role="button" tabIndex={0} onClick={() => onOpen(file)} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
       <div className={`ws-card__thumb ws-card__thumb--${kind}`}>{thumb}</div>
       <div className="ws-card__foot">
         <strong title={file.title}>{file.title}</strong>
         <div className="ws-card__meta">
-          <Icon size={22} />
-          <span>{file.system ? '자동 연결 시트' : fmtDate(file.opened_at || file.updated_at, true)}</span>
+          {file.locked ? <Lock size={20} /> : <Icon size={22} />}
+          <span>{file.locked ? '접근 권한 없음' : file.system ? '자동 연결 시트' : fmtDate(file.opened_at || file.updated_at, true)}</span>
           <span className="ws-card__more" onClick={(e) => e.stopPropagation()}>
-            <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>
+            {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
             {menu && <CardMenu items={items} onClose={() => setMenu(false)} anchorRef={btn} />}
           </span>
         </div>
@@ -229,7 +261,7 @@ export default function WorkspaceHub() {
           (r.items || []).map((x) => ({
             id: x.id, title: x.title_ko || '제목 없는 설문지', created_by: '', opened_at: x.updated_at, updated_at: x.updated_at,
             fields: Array.isArray(x.fields) ? x.fields : [], response_count: x.response_count, slug: x.slug,
-            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete,
+            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete, locked: x.locked,
           }))
         )
       } else {
@@ -261,7 +293,7 @@ export default function WorkspaceHub() {
 
   const shown = useMemo(() => {
     let list = files.filter((x) => !q.trim() || x.title.toLowerCase().includes(q.trim().toLowerCase()))
-    if (owner === 'mine') list = list.filter((x) => x.mine)
+    if (owner === 'mine') list = list.filter((x) => x.mine && !x.locked)
     const pinned = list.filter((x) => x.system)
     const rest = list.filter((x) => !x.system)
     rest.sort(sort === 'name' ? (a, b) => a.title.localeCompare(b.title, 'ko') : (a, b) => new Date(b.opened_at || b.updated_at) - new Date(a.opened_at || a.updated_at))
@@ -272,6 +304,7 @@ export default function WorkspaceHub() {
   if (authLoading) return null
 
   const open = (file) => {
+    if (file.locked) return alertDialog({ title: '접근 권한이 없습니다', message: `"${file.title}"은(는) 운영위원회 및 교수진만 열 수 있습니다. 소유자에게 이메일 공유를 요청하세요.` })
     if (file.to) return navigate(file.to)
     if (kind === 'docs') {
       api.post(`/workspace/files/${file.id}/open`).catch(() => {})
@@ -384,7 +417,7 @@ export default function WorkspaceHub() {
               <div className="ws-owner">
                 <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : '내가 만든 항목'}<ChevronDown size={16} /></button>
                 {ownerMenu && (
-                  <CardMenu anchorRef={ownerBtn} onClose={() => setOwnerMenu(false)} items={[
+                  <CardMenu anchorRef={ownerBtn} align="left" onClose={() => setOwnerMenu(false)} items={[
                     { label: '모든 항목', icon: null, onClick: () => setOwner('all') },
                     { label: '내가 만든 항목', icon: null, onClick: () => setOwner('mine') },
                   ]} />

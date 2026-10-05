@@ -184,6 +184,8 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
   'ALTER TABLE users ADD COLUMN IF NOT EXISTS picture TEXT',
   // 디인예 폼도 같은 공유 설정을 쓰도록 폼마다 ws_files(kind=form) 행을 하나 둔다
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS form_id INTEGER',
+  // 마지막으로 수정한 사람·시각·위치(문서 문단, 시트 칸, 폼 질문). "마지막으로 수정"을 누르면 그 위치로 이동한다
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS last_edit JSONB',
   'CREATE UNIQUE INDEX IF NOT EXISTS ws_files_form_idx ON ws_files (form_id) WHERE form_id IS NOT NULL',
   'ALTER TABLE custom_forms ALTER COLUMN created_by DROP NOT NULL',
   'ALTER TABLE public_users ADD COLUMN IF NOT EXISTS picture TEXT',

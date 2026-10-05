@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import SheetWorkspace from '../../components/admin/sheet/SheetWorkspace'
 import NoAccess from '../../components/common/NoAccess'
+import { useMe } from '../../components/common/AccountMenu'
 import { api } from '../../hooks/useApi'
 
 // content는 {sheets:[{id,label,columns,rows,nextId}]}. 예전 모양({columns,rows,nextId})은 시트 1개로 바꿔 읽는다.
@@ -20,6 +21,9 @@ export default function SheetEditor() {
   const { id } = useParams()
   const [denied, setDenied] = useState(null) // null | 'denied' | 'missing'
   const [canEdit, setCanEdit] = useState(false)
+  const [lastEdit, setLastEdit] = useState(null)
+  const { me } = useMe()
+  const editTimer = useRef(null)
   const [file, setFile] = useState(null)
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -35,6 +39,7 @@ export default function SheetEditor() {
       const content = normalize(r.item.content)
       setData(content)
       setCanEdit(r.canEdit === true)
+      setLastEdit(r.last_edit || null)
       latest.current = content
       setUpdatedAt(new Date(r.item.updated_at).toLocaleString('ko-KR'))
       setError('')
@@ -79,6 +84,19 @@ export default function SheetEditor() {
       h()
     }
   }, [flush])
+
+  // 마지막으로 수정한 칸을 기록한다(연속 입력은 마지막 칸만 서버에 보낸다)
+  const markEdit = useCallback(
+    (sheet, row, col) => {
+      const by = me?.user?.name || '내'
+      setLastEdit({ by, at: new Date().toISOString(), sheet, row, col })
+      clearTimeout(editTimer.current)
+      editTimer.current = setTimeout(() => {
+        api.put(`/workspace/files/${id}/last-edit`, { sheet, row: String(row), col }).then((r) => setLastEdit(r.last_edit)).catch(() => {})
+      }, 900)
+    },
+    [id, me]
+  )
 
   const patchSheet = useCallback(
     (sid, fn) => {
@@ -193,6 +211,8 @@ export default function SheetEditor() {
       onDuplicateSheet={canEdit ? onDuplicateSheet : undefined}
       onDeleteSheet={canEdit ? onDeleteSheet : undefined}
       readOnly={!canEdit}
+      lastEdit={lastEdit}
+      onCellEdited={canEdit ? markEdit : undefined}
       stateApi={`/workspace/sheets/${id}/ui`}
       exportName={file.title}
       homeHref="/workspace/sheets"

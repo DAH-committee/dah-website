@@ -25,7 +25,7 @@ import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
 import { confirmDialog } from '../../components/common/AppDialog'
 import AccountMenu from '../../components/common/AccountMenu'
-import ShareDialog from '../../components/common/ShareDialog'
+import ShareDialog, { useShareIcon } from '../../components/common/ShareDialog'
 import NoAccess from '../../components/common/NoAccess'
 import { FormsIcon } from '../workspace/icons'
 import {
@@ -1297,6 +1297,17 @@ function ResponsesTab({ formId, fields, resp }) {
   )
 }
 
+/** 저장 전·후 폼을 비교해 바뀐 질문(없으면 제목·설명, 그 밖이면 설정)을 돌려준다 */
+function changedTarget(prevJson, next) {
+  let prev = null
+  try { prev = JSON.parse(prevJson) } catch { return 'header' }
+  const before = new Map((prev?.fields || []).map((f) => [f.id, JSON.stringify(f)]))
+  for (const f of next.fields || []) if (before.get(f.id) !== JSON.stringify(f)) return f.id
+  if (prev?.title_ko !== next.title_ko || prev?.description_ko !== next.description_ko) return 'header'
+  if (JSON.stringify(prev?.settings) !== JSON.stringify(next.settings) || prev?.published !== next.published) return '__settings'
+  return 'header'
+}
+
 function FormEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -1340,8 +1351,29 @@ function FormEditor() {
 
   const canSaveForm = Boolean(form.title_ko?.trim() && form.slug?.trim())
   const [shareOpen, setShareOpen] = useState(false)
+  const [shareTick, setShareTick] = useState(0)
+  const [lastEdit, setLastEdit] = useState(null)
   const canEditForm = isNew || data?.canEdit !== false
   const wsId = data?.item?.ws_id
+  const ShareIcon = useShareIcon(wsId, shareTick)
+  useEffect(() => {
+    if (data?.last_edit !== undefined) setLastEdit(data.last_edit)
+  }, [data])
+  // 마지막으로 수정한 질문으로 이동해 잠깐 노랗게 표시
+  const jumpLast = () => {
+    const t = lastEdit?.field
+    if (!t) return
+    if (t === '__settings') { setTab('settings'); return }
+    setTab('questions')
+    setActiveId(t)
+    setTimeout(() => {
+      const el = document.querySelector(`[data-card-id="${t}"]`)
+      if (!el) return
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      el.classList.add('fm-flash')
+      setTimeout(() => el.classList.remove('fm-flash'), 3700)
+    }, 150)
+  }
   const dirty = hydrated && (isNew ? form.title_ko !== '' || form.fields.length > 0 : JSON.stringify(form) !== savedSnap.current)
 
   useEffect(() => {
@@ -1500,8 +1532,11 @@ function FormEditor() {
         return
       }
       await api.put(`/admin/forms/${id}`, payload)
+      // 마지막으로 수정한 위치(바뀐 질문)를 기록한다. "마지막으로 수정"을 누르면 그 질문으로 이동한다.
+      const target = changedTarget(savedSnap.current, form)
       savedSnap.current = JSON.stringify(form)
       setSavedAt(new Date())
+      if (wsId && target) api.put(`/workspace/files/${wsId}/last-edit`, { field: target }).then((r) => setLastEdit(r.last_edit)).catch(() => {})
     } catch (err) {
       setSaveError(err.hint ? `${err.message} (${err.hint})` : err.message)
       // 공개 사전검사 실패(422)는 해결법이 담긴 목록을 함께 돌려주므로 그대로 보여준다.
@@ -1572,6 +1607,11 @@ function FormEditor() {
             {!canEditForm ? '보기 전용' : busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
           </span>
           <div className="ml-auto flex shrink-0 items-center gap-8">
+            {lastEdit && (
+              <button type="button" className="ed-lastedit" onClick={jumpLast} title="수정한 위치로 이동">
+                {lastEdit.by} 님이 마지막으로 수정
+              </button>
+            )}
             <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full bg-bg-elev px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
               {status.label}
             </button>
@@ -1583,7 +1623,7 @@ function FormEditor() {
             </button>
             {wsId && (
               <button type="button" className="ed-share" onClick={() => setShareOpen(true)}>
-                <Lock size={16} aria-hidden="true" /> 공유
+                <ShareIcon size={16} aria-hidden="true" /> 공유
               </button>
             )}
             <button type="submit" form="form-editor" disabled={busy || !canEditForm || (!dirty && !isNew)} className="h-40 cursor-pointer rounded-full bg-button-primary px-24 text-small-m font-semibold text-button-primaryText transition hover:bg-button-primaryHover disabled:cursor-default disabled:!bg-bg-elev disabled:!text-text-meta">
@@ -1740,7 +1780,7 @@ function FormEditor() {
       )}
 
       </div>
-      {shareOpen && wsId && <ShareDialog fileId={wsId} title={form.title_ko || '제목 없는 설문지'} linkPath={`/form/${id}/edit`} onClose={() => setShareOpen(false)} />}
+      {shareOpen && wsId && <ShareDialog fileId={wsId} title={form.title_ko || '제목 없는 설문지'} linkPath={`/form/${id}/edit`} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}
       {preview && (
         <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/80 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
           <div className="mx-auto min-h-full w-full max-w-[704px] overflow-hidden rounded-md border border-border-subtle bg-bg-base" onMouseDown={(e) => e.stopPropagation()}>

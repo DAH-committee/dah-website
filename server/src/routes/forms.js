@@ -465,6 +465,10 @@ router.get(
       if (!mine && !shared && !general) continue
       items.push({ ...f, ws_id: ws.id, my_role: level, can_delete: Boolean(idn.staff) })
     }
+    // 열 수 없는 운영위원회 및 교수진 폼은 이름만 있는 잠긴 항목으로 보여 준다.
+    const have = new Set(items.map((i) => i.id))
+    const lockedRows = (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND form_id IS NOT NULL")).rows
+    for (const r of lockedRows) if (!have.has(r.form_id)) items.push({ id: r.form_id, ws_id: r.id, title_ko: r.title, locked: true, fields: [], my_role: null, can_delete: false, updated_at: null })
     res.json({ items, total: items.length, staff: Boolean(idn.staff) })
   })
 )
@@ -475,7 +479,7 @@ router.get(
   wrap(async (req, res) => {
     const { rows } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
-    res.json({ item: { ...rows[0], ws_id: req.formWs.id }, level: req.formLevel, canEdit: req.formLevel === 'editor' })
+    res.json({ item: { ...rows[0], ws_id: req.formWs.id }, level: req.formLevel, canEdit: req.formLevel === 'editor', last_edit: req.formWs.last_edit || null })
   })
 )
 

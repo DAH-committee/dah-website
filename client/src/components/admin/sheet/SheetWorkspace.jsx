@@ -20,7 +20,7 @@ import { useToast } from '../../common/Toast'
 import { api } from '../../../hooks/useApi'
 import { confirmDialog, promptDialog } from '../../common/AppDialog'
 import AccountMenu from '../../common/AccountMenu'
-import ShareDialog from '../../common/ShareDialog'
+import ShareDialog, { useShareIcon } from '../../common/ShareDialog'
 import { Link } from 'react-router-dom'
 import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
@@ -129,6 +129,8 @@ export default function SheetWorkspace({
   fileId,
   stateApi,
   readOnly = false,
+  lastEdit = null,
+  onCellEdited,
 }) {
   const showToast = useToast()
   const [sheetId, setSheetId] = useState(sheets[0]?.id)
@@ -138,6 +140,10 @@ export default function SheetWorkspace({
   // ── 화면 상태(서버에 저장) ─────────────────────────────────
   const statePath = stateApi || `/admin/sheets/${stateKey}/state`
   const [shareOpen, setShareOpen] = useState(false)
+  const [shareTick, setShareTick] = useState(0)
+  const ShareIcon = useShareIcon(fileId, shareTick)
+  const [jump, setJump] = useState(null) // 마지막으로 수정한 칸으로 이동 요청
+  const [flashCell, setFlashCell] = useState(null)
   const [allUi, setAllUi] = useState({})
   const [uiLoaded, setUiLoaded] = useState(false)
   const [saveState, setSaveState] = useState('saved') // saved | dirty | saving | error
@@ -342,8 +348,9 @@ export default function SheetWorkspace({
       } else {
         await onEditCell(row, col, value, sid)
       }
+      onCellEdited?.(sid, id, colKey)
     },
-    [onEditCell]
+    [onEditCell, onCellEdited]
   )
 
   /** 여러 칸을 한 번에 바꾸고 되돌리기 한 줄로 묶는다. changes: [{row, col, value}] */
@@ -772,6 +779,29 @@ export default function SheetWorkspace({
   }, [ui.zoom])
   const fillerCount = Math.max(0, fitRows - visibleRows.length)
 
+  useEffect(() => {
+    if (!jump) return undefined
+    if (jump.sheet && sheet.id !== jump.sheet && sheets.some((x) => x.id === jump.sheet)) {
+      setSheetId(jump.sheet)
+      setFilters({})
+      setSort(null)
+      return undefined
+    }
+    const r = visibleRows.findIndex((row) => String(row.id) === String(jump.row))
+    const c = columns.findIndex((col) => col.key === jump.col)
+    setJump(null)
+    if (r < 0 || c < 0) {
+      showToast('수정한 칸을 찾지 못했습니다. 그 뒤에 행이나 열이 바뀌었을 수 있습니다')
+      return undefined
+    }
+    setSel({ anchor: { r, c }, focus: { r, c } })
+    setFlashCell({ r, c })
+    const t1 = setTimeout(() => gridRef.current?.querySelector(`[data-cell="${r}-${c}"]`)?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }), 60)
+    const t2 = setTimeout(() => setFlashCell(null), 3600)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jump, sheet.id, visibleRows, columns])
+
   const changeSheet = (id) => {
     setSheetId(id)
     setFilters({})
@@ -950,11 +980,17 @@ export default function SheetWorkspace({
               {unit} 중 {visibleRows.length}
               {unit} 표시
             </p>
-            {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
+            {lastEdit ? (
+              <button type="button" className="sh-lastedit" onClick={() => setJump(lastEdit)} title="수정한 칸으로 이동">
+                {lastEdit.by} 님이 마지막으로 수정 · {new Date(lastEdit.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              </button>
+            ) : (
+              updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>
+            )}
           </div>
           {fileId && (
             <button type="button" className="ed-share" onClick={() => setShareOpen(true)}>
-              <Lock size={16} aria-hidden="true" /> 공유
+              <ShareIcon size={16} aria-hidden="true" /> 공유
             </button>
           )}
           <AccountMenu size={40} />
@@ -1223,7 +1259,7 @@ export default function SheetWorkspace({
                           data-cell={`${r}-${c}`}
                           role="gridcell"
                           aria-selected={on || undefined}
-                          className={`relative p-0 align-top ${ui.grid ? CELL_LINE : 'border-b border-r border-transparent'} ${frozen ? 'sticky z-10 bg-reading-surface' : ''} ${fill}`}
+                          className={`relative p-0 align-top ${flashCell && flashCell.r === r && flashCell.c === c ? 'sh-flash ' : ''}${ui.grid ? CELL_LINE : 'border-b border-r border-transparent'} ${frozen ? 'sticky z-10 bg-reading-surface' : ''} ${fill}`}
                           style={frozen ? { left: frozenLeft[c] } : undefined}
                         >
                           {isActive && (
@@ -1340,7 +1376,7 @@ export default function SheetWorkspace({
         </p>
       </div>
 
-      {shareOpen && fileId && <ShareDialog fileId={fileId} title={title} linkPath={window.location.pathname} onClose={() => setShareOpen(false)} />}
+      {shareOpen && fileId && <ShareDialog fileId={fileId} title={title} linkPath={window.location.pathname} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}
       {dialog?.type === 'text' && <TextDialog dialog={dialog} onClose={() => setDialog(null)} />}
       {dialog?.type === 'find' && (
         <Dialog

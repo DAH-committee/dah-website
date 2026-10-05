@@ -70,6 +70,29 @@ function Menu({ value, options, onChange, disabled = false, align = 'right', wid
   )
 }
 
+/**
+ * 공유 버튼 아이콘(구글과 같은 규칙): 나만 볼 수 있으면 자물쇠, 누군가와 공유 중이면 사람들 아이콘,
+ * 링크가 있는 누구나 열 수 있으면 지구본. 공유 대화상자를 닫을 때 tick을 올리면 다시 읽는다.
+ */
+export function useShareIcon(fileId, tick = 0) {
+  const [kind, setKind] = useState('lock')
+  useEffect(() => {
+    if (!fileId) return undefined
+    let alive = true
+    api
+      .get(`/workspace/files/${fileId}/share`)
+      .then((s) => {
+        if (!alive) return
+        if (s.general_access === 'public') setKind('globe')
+        else if (s.general_access === 'committee' || (s.people || []).length > 0) setKind('users')
+        else setKind('lock')
+      })
+      .catch(() => {})
+    return () => { alive = false }
+  }, [fileId, tick])
+  return kind === 'globe' ? Globe : kind === 'users' ? Users : Lock
+}
+
 export default function ShareDialog({ fileId, title, linkPath, onClose, onChanged }) {
   const [state, setState] = useState(null)
   const [error, setError] = useState('')

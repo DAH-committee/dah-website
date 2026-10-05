@@ -458,3 +458,16 @@ html[data-dah-easter-egg='on'] {
 @keyframes app-dialog-rise { from { opacity: 0; } to { opacity: 1; } }
 .app-dialog__backdrop { animation: app-dialog-fade 140ms ease-out both; }
 .app-dialog__panel { animation: app-dialog-rise 140ms ease-out both; }
+
+/* 마지막으로 수정한 칸·질문으로 이동했을 때 잠깐 노랗게 표시 */
+@keyframes flash-yellow { 0%, 55% { background-color: #FFEA00; box-shadow: inset 0 0 0 3px #FFB300; } 100% { background-color: transparent; box-shadow: inset 0 0 0 3px transparent; } }
+.sh-flash { animation: flash-yellow 3.6s ease-out forwards; }
+.sh-flash > div { background-color: transparent !important; }
+.sh-lastedit { background: none; border: 0; padding: 2px 6px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px; color: rgb(var(--dah-reading-text-meta)); }
+.sh-lastedit:hover { background: rgb(0 0 0 / 0.08); color: rgb(var(--dah-reading-text-strong)); text-decoration: underline; }
+
+.ed-lastedit { background: none; border: 0; padding: 6px 10px; border-radius: 16px; cursor: pointer; font: inherit; font-size: 13px; color: #5f6368; white-space: nowrap; }
+.ed-lastedit:hover { background: rgb(0 0 0 / 0.08); color: #111; text-decoration: underline; }
+@keyframes fm-card-out { 0%, 55% { background-color: #FFEA00; } 100% { background-color: transparent; } }
+.fm-flash { border-radius: 12px; box-shadow: 0 0 0 5px #FFEA00; transition: box-shadow 400ms ease; }
+.fm-flash > div:first-child { animation: fm-card-out 3.6s ease-out forwards; }

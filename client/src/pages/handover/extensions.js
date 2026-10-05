@@ -2,7 +2,32 @@
 // CommentMark: 여백 댓글이 붙는 문장 표시(data-comment). SecretNode: 비밀값 칩(값은 서버에서 따로 받음).
 import { Extension, Mark, Node, mergeAttributes } from '@tiptap/core'
 import { ReactNodeViewRenderer } from '@tiptap/react'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import SecretChip from './SecretChip'
+
+// "마지막으로 수정"을 눌렀을 때 그 문단을 잠깐 노랗게 표시한다(문서 내용은 바꾸지 않는 장식).
+export const flashKey = new PluginKey('flash')
+export const Flash = Extension.create({
+  name: 'flash',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: flashKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(tr, set) {
+            const m = tr.getMeta(flashKey)
+            if (m === undefined) return set.map(tr.mapping, tr.doc)
+            if (m === null) return DecorationSet.empty
+            return DecorationSet.create(tr.doc, [Decoration.node(m.from, m.to, { class: 'gd-flash' })])
+          },
+        },
+        props: { decorations: (state) => flashKey.getState(state) },
+      }),
+    ]
+  },
+})
 
 // 편집 권한 같은 화면 상태를 노드뷰(SecretChip)에 전달하는 저장소
 export const HandoverStorage = Extension.create({

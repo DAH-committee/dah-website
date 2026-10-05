@@ -49,7 +49,7 @@ export function authorOf(req) {
 export async function fileRow(wsId) {
   if (wsId === null || wsId === undefined) return null
   const { rows } = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated FROM ws_files WHERE id = $1',
+    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, last_edit FROM ws_files WHERE id = $1',
     [wsId]
   )
   return rows[0] || null
@@ -104,7 +104,7 @@ export async function formFile(formId, init = null) {
   const id = parseInt(formId, 10)
   if (!Number.isInteger(id)) return null
   const found = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id FROM ws_files WHERE form_id = $1',
+    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit FROM ws_files WHERE form_id = $1',
     [id]
   )
   if (found.rows[0]) return found.rows[0]
@@ -115,7 +115,7 @@ export async function formFile(formId, init = null) {
     `INSERT INTO ws_files (kind, title, form_id, general_access, general_role, owner_email, created_by, share_token)
      VALUES ('form', $1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (form_id) WHERE form_id IS NOT NULL DO UPDATE SET title = EXCLUDED.title
-     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id`,
+     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit`,
     [form.title_ko || '제목 없는 설문지', id, g.general_access, g.general_role, g.owner_email, g.created_by, newToken()]
   )
   return rows[0]

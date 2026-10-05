@@ -94,6 +94,10 @@ router.get(
       const preview = (first?.rows || []).slice(0, 8).map((row) => (first.columns || []).slice(0, 6).map((c) => String(row.cells?.[c.key] ?? '')))
       items.push({ ...base, head: (first?.columns || []).slice(0, 6).map((c) => c.label), preview })
     }
+    // 열 수 없는 운영위원회 및 교수진 파일은 이름만 있는 잠긴 항목으로 보여 준다(내용·미리보기·열기 정보는 보내지 않는다).
+    const have = new Set(items.map((i) => i.id))
+    const lockedRows = (await query("SELECT id, kind, title, updated_at, opened_at FROM ws_files WHERE kind = $1 AND general_access = 'committee' ORDER BY opened_at DESC, id DESC", [kind])).rows
+    for (const r of lockedRows) if (!have.has(r.id)) items.push({ id: r.id, kind: r.kind, title: r.title, locked: true, updated_at: r.updated_at, opened_at: r.opened_at, my_role: null, mine: false, can_delete: false })
     res.json({ items, staff: Boolean(idn.staff) })
   })
 )
@@ -185,6 +189,23 @@ router.delete(
   })
 )
 
+// 마지막으로 수정한 위치 기록(편집자). 문서: tab·text, 시트: sheet·row·col, 폼: field
+router.put(
+  '/workspace/files/:id/last-edit',
+  wrap(async (req, res) => {
+    const file = await loadFile(req, res, 'editor')
+    if (!file) return
+    const b = req.body || {}
+    const clip = (v, n) => (typeof v === 'string' ? v.slice(0, n) : typeof v === 'number' && Number.isFinite(v) ? v : undefined)
+    const target = Object.fromEntries(
+      Object.entries({ tab: clip(b.tab, 40), text: clip(b.text, 160), sheet: clip(b.sheet, 40), row: clip(b.row, 40), col: clip(b.col, 80), field: clip(b.field, 80) }).filter(([, v]) => v !== undefined)
+    )
+    const value = { ...target, by: authorOf(req), at: new Date().toISOString() }
+    await query('UPDATE ws_files SET last_edit = $1::jsonb WHERE id = $2', [JSON.stringify(value), file.id])
+    res.json({ last_edit: value })
+  })
+)
+
 // ── 시트 내용 ──────────────────────────────────────────────
 router.get(
   '/workspace/sheets/:id',
@@ -193,7 +214,7 @@ router.get(
     if (!file || file.kind !== 'sheet') return file ? res.status(404).json({ error: 'not found' }) : undefined
     const { rows } = await query('SELECT id, title, content, updated_at FROM ws_files WHERE id = $1', [file.id])
     if (req.fileLevel === 'editor') await query('UPDATE ws_files SET opened_at = now() WHERE id = $1', [file.id])
-    res.json({ item: rows[0], level: req.fileLevel, canEdit: req.fileLevel === 'editor' })
+    res.json({ item: rows[0], level: req.fileLevel, canEdit: req.fileLevel === 'editor', last_edit: file.last_edit || null })
   })
 )
 
