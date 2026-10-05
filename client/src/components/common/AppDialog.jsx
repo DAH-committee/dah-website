@@ -2,11 +2,11 @@
 // 모양은 LoginModal과 같은 디자인 시스템 토큰(글래스 패널, 토큰 버튼)이고,
 // 밝은 작업면(문서·시트·설문지·작업공간) 위에서는 읽기 표면(reading) 토큰으로 바뀐다.
 //
-//   const ok = await confirmDialog({ message: '삭제할까요?', tone: 'danger', confirmLabel: '삭제' })
+//   const ok = await confirmDialog({ message: '삭제할까요?', confirmLabel: '삭제' })
 //   const name = await promptDialog({ title: '이름 바꾸기', label: '새 이름', defaultValue: '...' })   // 취소하면 null
 //   await alertDialog({ message: '저장하지 못했습니다' })
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { AlertTriangle, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 let queue = []
 let listeners = new Set()
@@ -76,7 +76,6 @@ function Panel({ item }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
-  const danger = tone === 'danger'
   return (
     <div className={`${light ? 'reading-scope' : ''} app-dialog fixed inset-0 z-[300] flex items-center justify-center px-16`} role="presentation">
       <button type="button" aria-label="닫기" tabIndex={-1} onClick={() => done(type === 'alert' ? undefined : cancelValue)} className={`app-dialog__backdrop absolute inset-0 cursor-default ${light ? 'bg-black/45' : 'bg-bg-base/70'}`} />
@@ -90,13 +89,8 @@ function Panel({ item }) {
         <button type="button" aria-label="닫기" onClick={() => done(type === 'alert' ? undefined : cancelValue)} className="absolute right-12 top-12 flex h-40 w-40 cursor-pointer items-center justify-center rounded-full text-text-sec transition-colors duration-fast ease-out hover:bg-glass-strong hover:text-text-pri">
           <X size={18} aria-hidden="true" />
         </button>
-        {(title || danger) && (
-          <h2 className="flex items-center gap-8 pr-40 text-body-l-m font-bold text-text-pri">
-            {danger && <AlertTriangle size={20} className="shrink-0 text-[#FF1744]" aria-hidden="true" />}
-            {title || '확인'}
-          </h2>
-        )}
-        {message && <p className={`${title || danger ? 'mt-12' : 'pr-32'} whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec`}>{message}</p>}
+        {title && <h2 className="pr-40 text-body-l-m font-bold text-text-pri">{title}</h2>}
+        {message && <p className={`${title ? 'mt-12' : 'pr-32'} whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec`}>{message}</p>}
         {type === 'prompt' && (
           <label className="mt-16 flex flex-col gap-8">
             {label && <span className="text-small-m font-semibold text-text-sec">{label}</span>}
@@ -115,7 +109,7 @@ function Panel({ item }) {
             type="button"
             data-ok
             onClick={() => done(okValue)}
-            className={`${BTN} ${danger ? 'bg-[#FF1744] text-white hover:bg-[#D50000]' : 'bg-button-primary text-button-primaryText hover:bg-button-primaryHover'}`}
+            className={`${BTN} bg-button-primary text-button-primaryText hover:bg-button-primaryHover`}
           >
             {confirmLabel}
           </button>

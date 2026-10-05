@@ -941,6 +941,36 @@ export default function HandoverDoc() {
     window.open('https://docs.new', '_blank')
   }
 
+  // 눈금자: 페이지의 실제 위치와 폭에 맞춘다(댓글 칸, 개요 칸, 확대 비율, 창 크기가 바뀌어도 어긋나지 않게)
+  const rulerRef = useRef(null)
+  const [rulerBox, setRulerBox] = useState(null)
+  useLayoutEffect(() => {
+    const page = pageRef.current
+    const ruler = rulerRef.current
+    if (!page || !ruler) return undefined
+    const scroller = page.closest('.gd-scroll')
+    const measure = () => {
+      const p = page.getBoundingClientRect()
+      const r = ruler.getBoundingClientRect()
+      setRulerBox((prev) => {
+        const next = { left: Math.round(p.left - r.left), width: Math.round(p.width) }
+        return prev && prev.left === next.left && prev.width === next.width ? prev : next
+      })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(page)
+    ro.observe(ruler)
+    if (scroller) ro.observe(scroller)
+    window.addEventListener('resize', measure)
+    scroller?.addEventListener('scroll', measure, { passive: true })
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+      scroller?.removeEventListener('scroll', measure)
+    }
+  }, [zoom, showComments, historyOpen, showSidebar, doc, access.loading])
+
   const listHref = staffUser ? '/workspace/docs' : '/'
   if (access.loading) return <div className="gd-loading">문서 불러오는 중</div>
   if (access.denied) return <NoAccess kind="doc" notFound={access.notFound} />
@@ -1164,8 +1194,8 @@ export default function HandoverDoc() {
         </Dropdown>
       </div>
 
-      <div className="gd-ruler" aria-hidden="true">
-        <div className="gd-ruler__inner" style={{ width: 816 * (zoom / 100) }}>
+      <div className="gd-ruler" ref={rulerRef} aria-hidden="true">
+        <div className="gd-ruler__inner" style={{ marginLeft: rulerBox?.left ?? 0, width: rulerBox?.width ?? 816 * (zoom / 100), visibility: rulerBox ? 'visible' : 'hidden' }}>
           {Array.from({ length: 22 }, (_, i) => (
             <span key={i} style={{ left: `${(i / 21.59) * 100}%` }}>{i > 2 && i < 20 ? i - 2 : ''}</span>
           ))}

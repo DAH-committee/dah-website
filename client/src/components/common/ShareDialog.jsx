@@ -1,7 +1,7 @@
 // 공유 대화상자(구글 독스 방식): 사람 추가(이메일), 액세스 권한이 있는 사용자, 일반 액세스, 링크 복사.
 // 일반 액세스: 제한됨 / 운영위원회 및 교수진 / 전체 공개, 각각 뷰어 또는 편집자 권한.
 // 사이트 디자인 시스템 모달(AppDialog)과 같은 패널 토큰을 쓰고, 밝은 작업면에서는 reading 토큰으로 바뀐다.
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronDown, Globe, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
 import { api } from '../../hooks/useApi'
@@ -19,32 +19,53 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function Menu({ value, options, onChange, disabled = false, align = 'right', wide = false, label }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const [pos, setPos] = useState(null)
+  const btn = useRef(null)
+  const list = useRef(null)
+
+  // 목록은 body에 띄워서(고정 위치) 모달 안에서 잘리거나 스크롤을 만들지 않게 한다
+  useLayoutEffect(() => {
+    if (!open || !btn.current) return
+    const r = btn.current.getBoundingClientRect()
+    const w = wide ? 340 : 190
+    const h = list.current?.offsetHeight || 0
+    const left = align === 'right' ? Math.max(8, r.right - Math.max(w, list.current?.offsetWidth || w)) : Math.min(r.left, window.innerWidth - w - 8)
+    const below = r.bottom + 4
+    const top = h && below + h > window.innerHeight - 8 ? Math.max(8, r.top - h - 4) : below
+    setPos({ top, left })
+  }, [open, align, wide])
+
   useEffect(() => {
     if (!open) return undefined
-    const down = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    const down = (e) => {
+      if (btn.current?.contains(e.target) || list.current?.contains(e.target)) return
+      setOpen(false)
+    }
     const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false) } }
     document.addEventListener('mousedown', down)
     document.addEventListener('keydown', key, true)
     return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key, true) }
   }, [open])
+
   const cur = options.find((o) => o.id === value)
   return (
-    <div ref={ref} className={`sh-menu ${wide ? 'sh-menu--wide' : ''}`}>
-      <button type="button" className="sh-menu__btn" disabled={disabled} onClick={() => setOpen((v) => !v)} aria-haspopup="listbox" aria-expanded={open} aria-label={label}>
+    <div className={`sh-menu ${wide ? 'sh-menu--wide' : ''}`}>
+      <button ref={btn} type="button" className="sh-menu__btn" disabled={disabled} onClick={() => { setPos(null); setOpen((v) => !v) }} aria-haspopup="listbox" aria-expanded={open} aria-label={label}>
         <span>{cur?.label}</span>
         {!disabled && <ChevronDown size={16} aria-hidden="true" />}
       </button>
-      {open && (
-        <div className={`sh-menu__list sh-menu__list--${align}`} role="listbox">
-          {options.map((o) => (
-            <button key={o.id} type="button" role="option" aria-selected={o.id === value} className={`sh-menu__opt ${o.danger ? 'is-danger' : ''}`} onClick={() => { setOpen(false); onChange(o.id) }}>
-              <span className="sh-menu__check">{o.id === value ? <Check size={16} aria-hidden="true" /> : null}</span>
-              <span>{o.label}{o.desc && <small>{o.desc}</small>}</span>
-            </button>
-          ))}
-        </div>
-      )}
+      {open &&
+        createPortal(
+          <div ref={list} className="sh-menu__list" role="listbox" style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, visibility: pos ? 'visible' : 'hidden', minWidth: wide ? 340 : 190 }}>
+            {options.map((o) => (
+              <button key={o.id} type="button" role="option" aria-selected={o.id === value} className={`sh-menu__opt ${o.danger ? 'is-danger' : ''}`} onClick={() => { setOpen(false); onChange(o.id) }}>
+                <span className="sh-menu__check">{o.id === value ? <Check size={16} aria-hidden="true" /> : null}</span>
+                <span>{o.label}{o.desc && <small>{o.desc}</small>}</span>
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
@@ -146,7 +167,7 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
       <button type="button" aria-label="닫기" tabIndex={-1} onClick={onClose} className={`app-dialog__backdrop absolute inset-0 cursor-default ${light ? 'bg-black/45' : 'bg-bg-base/70'}`} />
       <div ref={panel} role="dialog" aria-modal="true" aria-label={`${title} 공유`} className="share__panel app-dialog__panel">
         <div className="share__head">
-          <h2>“{title}” 공유</h2>
+          <h2 title={title}>“{title}” 공유</h2>
           <button type="button" className="share__x" onClick={onClose} aria-label="닫기"><X size={20} aria-hidden="true" /></button>
         </div>
 
