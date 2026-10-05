@@ -335,7 +335,7 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
                       ]}
                       onChange={(v) => apply(() => api.put(`/workspace/files/${fileId}/hidden`, { hidden: v === 'hidden' }))}
                     />
-                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 다른 사람에게는 잠긴 카드로도 보이지 않습니다.' : '열 수 있는 사람의 목록에 나옵니다'}</small>
+                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 열 수 있는 다른 사람의 목록에서도 숨겨집니다.' : '열 수 있는 사람의 목록에 나옵니다'}</small>
                   </div>
                 </div>
               </>

@@ -479,10 +479,7 @@ router.get(
         ...(trash ? { trashed: true, days_left: daysLeft(ws.deleted_at) } : {}),
       })
     }
-    // 열 수 없는 운영위원회 및 교수진 폼은 이름만 있는 잠긴 항목으로 보여 준다.
-    const have = new Set(items.map((i) => i.id))
-    const lockedRows = onlyHidden || trash || !idn.hallym ? [] : (await query("SELECT form_id, title, id FROM ws_files WHERE kind = 'form' AND general_access = 'committee' AND NOT hidden AND deleted_at IS NULL AND form_id IS NOT NULL")).rows
-    for (const r of lockedRows) if (!have.has(r.form_id)) items.push({ id: r.form_id, ws_id: r.id, title_ko: r.title, locked: true, fields: [], my_role: null, can_delete: false, updated_at: null })
+    // 열 수 없는 폼은 이름도 보이지 않는다(잠긴 카드 없음).
     res.json({ items, total: items.length, staff: Boolean(idn.staff), committee: idn.committee })
   })
 )
