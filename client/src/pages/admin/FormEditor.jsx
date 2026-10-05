@@ -1302,7 +1302,7 @@ function FormEditor() {
   const navigate = useNavigate()
   const location = useLocation()
   const isNew = !id
-  useTitle(isNew ? '디인예 폼 만들기' : '디인예 폼')
+  useTitle(isNew ? 'DAH Form 만들기' : 'DAH Form')
 
   const { data, loading, error, refetch } = useApi(isNew ? null : `/admin/forms/${id}`)
   // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 질문 탭 맨 위에서 바로 편집한다.
