@@ -13,11 +13,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlignCenter, AlignLeft, AlignRight, Baseline, Bold, Filter, Maximize, PaintBucket, Plus, Printer,
-  MoreVertical, Redo2, RefreshCw, Search, Sheet as SheetIcon, Trash2, Undo2, WrapText, X,
+  Cloud, Lock, MoreVertical, Redo2, RefreshCw, Search, Sheet as SheetIcon, Trash2, Undo2, WrapText, X,
 } from 'lucide-react'
 import ColumnFilter from '../../common/ColumnFilter'
 import { useToast } from '../../common/Toast'
 import { api } from '../../../hooks/useApi'
+import { confirmDialog, promptDialog } from '../../common/AppDialog'
+import AccountMenu from '../../common/AccountMenu'
+import ShareDialog from '../../common/ShareDialog'
 import { Link } from 'react-router-dom'
 import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
@@ -123,6 +126,9 @@ export default function SheetWorkspace({
   onDuplicateSheet,
   onDeleteSheet,
   onRenameColumn,
+  fileId,
+  stateApi,
+  readOnly = false,
 }) {
   const showToast = useToast()
   const [sheetId, setSheetId] = useState(sheets[0]?.id)
@@ -130,6 +136,8 @@ export default function SheetWorkspace({
   const rowId = (row) => String(row.id)
 
   // ── 화면 상태(서버에 저장) ─────────────────────────────────
+  const statePath = stateApi || `/admin/sheets/${stateKey}/state`
+  const [shareOpen, setShareOpen] = useState(false)
   const [allUi, setAllUi] = useState({})
   const [uiLoaded, setUiLoaded] = useState(false)
   const [saveState, setSaveState] = useState('saved') // saved | dirty | saving | error
@@ -139,7 +147,7 @@ export default function SheetWorkspace({
   useEffect(() => {
     let alive = true
     api
-      .get(`/admin/sheets/${stateKey}/state`)
+      .get(statePath)
       .then((res) => {
         if (alive && res?.state && typeof res.state === 'object') setAllUi(res.state)
       })
@@ -148,7 +156,7 @@ export default function SheetWorkspace({
     return () => {
       alive = false
     }
-  }, [stateKey])
+  }, [statePath])
 
   const setUi = useCallback(
     (patch) => {
@@ -168,7 +176,7 @@ export default function SheetWorkspace({
     const t = setTimeout(async () => {
       setSaveState('saving')
       try {
-        await api.put(`/admin/sheets/${stateKey}/state`, { state: allUi })
+        await api.put(statePath, { state: allUi })
         dirtyRef.current = false
         setSaveState('saved')
       } catch {
@@ -176,7 +184,7 @@ export default function SheetWorkspace({
       }
     }, SAVE_DELAY_MS)
     return () => clearTimeout(t)
-  }, [allUi, saveState, uiLoaded, stateKey])
+  }, [allUi, saveState, uiLoaded, statePath])
 
   // ── 열과 행 ────────────────────────────────────────────────
   const rawCols = useMemo(() => {
@@ -548,7 +556,7 @@ export default function SheetWorkspace({
   const deleteSelectedRows = async () => {
     const rows = selectedRows()
     if (!rows.length) return showToast('지울 행을 선택해 주세요')
-    if (!window.confirm(`선택한 ${rows.length}개 행을 삭제할까요? 접수 내용이 지워지고 되돌릴 수 없습니다.`)) return
+    if (!(await confirmDialog({ title: '행 삭제', message: `선택한 ${rows.length}개 행을 삭제할까요? 내용이 지워지고 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' }))) return
     try {
       await onDeleteRows(rows, sheet.id)
       setSel(null)
@@ -566,11 +574,11 @@ export default function SheetWorkspace({
       showToast(err.message || '행을 추가하지 못했습니다')
     }
   }
-  const deleteCustomColumns = () => {
+  const deleteCustomColumns = async () => {
     if (!bounds) return showToast('먼저 열을 선택해 주세요')
     const keys = columns.slice(bounds.c0, bounds.c1 + 1).filter((c) => c.custom).map((c) => c.key)
     if (!keys.length) return showToast('선택한 열에 삭제할 메모 열이 없습니다')
-    if (!window.confirm(`메모 열 ${keys.length}개를 삭제할까요? 열에 적은 내용도 함께 지워집니다.`)) return
+    if (!(await confirmDialog({ title: '메모 열 삭제', message: `메모 열 ${keys.length}개를 삭제할까요? 열에 적은 내용도 함께 지워집니다.`, tone: 'danger', confirmLabel: '삭제' }))) return
     setUi((cur) => ({
       ...cur,
       customCols: cur.customCols.filter((c) => !keys.includes(c.key)),
@@ -589,7 +597,10 @@ export default function SheetWorkspace({
   }
 
   // ── 대화상자 ───────────────────────────────────────────────
-  const askText = (opts) => setDialog({ type: 'text', ...opts })
+  const askText = async (opts) => {
+    const v = await promptDialog({ title: opts.title, label: opts.label, defaultValue: opts.value || '', confirmLabel: opts.okLabel || '확인', multiline: Boolean(opts.multiline) })
+    if (v !== null) opts.onOk(v)
+  }
   const addCustomColumn = () =>
     askText({
       title: '메모 열 추가',
@@ -928,16 +939,25 @@ export default function SheetWorkspace({
         ) : (
           <h1 className="ed-title !cursor-default truncate">{title}</h1>
         )}
-        <span role="status" aria-live="polite" className={`ed-status print:hidden ${saveState === 'error' ? '!bg-state-error/10 !text-state-error' : ''}`}>
-          {saveLabel}
+        <span role="status" aria-live="polite" className={`ed-status print:hidden ${saveState === 'error' ? '!text-state-error' : ''}`}>
+          <Cloud size={16} aria-hidden="true" />
+          {readOnly ? '보기 전용' : saveLabel}
         </span>
-        <div className="ml-auto flex flex-col items-end gap-4 print:hidden">
-          <p className="text-small-m text-reading-text">
-            총 {sheet.rows.length}
-            {unit} 중 {visibleRows.length}
-            {unit} 표시
-          </p>
-          {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
+        <div className="ml-auto flex items-center gap-12 print:hidden">
+          <div className="flex flex-col items-end gap-4">
+            <p className="text-small-m text-reading-text">
+              총 {sheet.rows.length}
+              {unit} 중 {visibleRows.length}
+              {unit} 표시
+            </p>
+            {updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>}
+          </div>
+          {fileId && (
+            <button type="button" className="ed-share" onClick={() => setShareOpen(true)}>
+              <Lock size={16} aria-hidden="true" /> 공유
+            </button>
+          )}
+          <AccountMenu size={40} />
         </div>
       </div>
 
@@ -1320,6 +1340,7 @@ export default function SheetWorkspace({
         </p>
       </div>
 
+      {shareOpen && fileId && <ShareDialog fileId={fileId} title={title} linkPath={window.location.pathname} onClose={() => setShareOpen(false)} />}
       {dialog?.type === 'text' && <TextDialog dialog={dialog} onClose={() => setDialog(null)} />}
       {dialog?.type === 'find' && (
         <Dialog

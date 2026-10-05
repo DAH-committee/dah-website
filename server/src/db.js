@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 // src/db.js — pg Pool 래퍼 (12_BACKEND.md 완료 조건: DATABASE_URL 없이도 기동).
 // DATABASE_URL이 없으면 풀을 만들지 않고 isConfigured()가 false — app.js의 가드가
 // /health 외 요청에 명확한 JSON 에러를 반환한다.
@@ -165,6 +166,23 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
      updated_by TEXT,
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
+  // 공유 설정(구글 독스 방식): 일반 액세스(제한됨 / 운영위원회 및 교수진 / 전체 공개)와 사람별 권한
+  "ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS general_access TEXT NOT NULL DEFAULT 'restricted'",
+  "ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS general_role TEXT NOT NULL DEFAULT 'viewer'",
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS share_token TEXT',
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_email TEXT',
+  `CREATE TABLE IF NOT EXISTS ws_shares (
+     id         SERIAL PRIMARY KEY,
+     ws_id      INTEGER NOT NULL,
+     email      TEXT NOT NULL,
+     role       TEXT NOT NULL DEFAULT 'viewer',
+     added_by   TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     UNIQUE (ws_id, email)
+   )`,
+  'CREATE INDEX IF NOT EXISTS ws_shares_email_idx ON ws_shares (lower(email))',
+  'ALTER TABLE users ADD COLUMN IF NOT EXISTS picture TEXT',
+  'ALTER TABLE public_users ADD COLUMN IF NOT EXISTS picture TEXT',
 ]
 
 export async function ensureHandoverSchema() {
@@ -190,5 +208,16 @@ export async function ensureHandoverSchema() {
     }
   } catch (err) {
     console.error('[schema] 인수인계 문서 묶기 실패(계속 진행):', err.message)
+  }
+  // 공유 설정 첫 적용: 예전 '열람 비밀번호 문서'는 운영위원회 및 교수진이 편집하는 문서로 옮기고, 소유자 이메일을 채운다.
+  try {
+    await impl.query("UPDATE ws_files SET general_access = 'committee', general_role = 'editor' WHERE gated = true AND share_token IS NULL")
+    await impl.query('UPDATE ws_files f SET owner_email = lower(u.email) FROM users u WHERE f.owner_email IS NULL AND f.created_by IS NOT NULL AND u.name = f.created_by')
+    const missing = await impl.query('SELECT id FROM ws_files WHERE share_token IS NULL')
+    for (const r of missing.rows) {
+      await impl.query('UPDATE ws_files SET share_token = $1 WHERE id = $2', [crypto.randomBytes(18).toString('base64url'), r.id])
+    }
+  } catch (err) {
+    console.error('[schema] 공유 설정 초기화 실패(계속 진행):', err.message)
   }
 }

@@ -16,6 +16,7 @@ import {
   PrimaryButton,
   Select,
 } from '../../components/admin/FormControls'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 const ICON_BTN =
   'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
@@ -77,7 +78,7 @@ function UsersAdmin() {
 
   // 리셋 플래그 — 대상자가 다음 로그인에서 비밀번호를 다시 설정 (12_BACKEND 3절)
   const reset = async (item) => {
-    if (!window.confirm(`${item.email} 계정의 비밀번호를 리셋하시겠습니까?`)) return
+    if (!await confirmDialog({ message: `${item.email} 계정의 비밀번호를 리셋하시겠습니까?`, confirmLabel: '리셋' })) return
     setListError(null)
     try {
       await api.put(`/admin/users/${item.id}`, { reset: true })
@@ -88,7 +89,7 @@ function UsersAdmin() {
   }
 
   const remove = async (item) => {
-    if (!window.confirm(`${item.email} 계정을 삭제하시겠습니까? 되돌릴 수 없습니다.`)) return
+    if (!await confirmDialog({ message: `${item.email} 계정을 삭제하시겠습니까? 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' })) return
     setListError(null)
     try {
       await api.del(`/admin/users/${item.id}`)

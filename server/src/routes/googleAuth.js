@@ -1,7 +1,7 @@
 // src/routes/googleAuth.js: 공개 제출자 구글 로그인 (41_AUTH_CONTRACT)
 //
 // 스태프 인증(routes/auth.js)과 경로, 쿠키, 테이블이 모두 분리된 신원 클래스다.
-//   GET  /auth/google/login?next=  state 쿠키 발급 후 구글 동의 화면으로 302
+//   GET  /auth/google/login?next=&hint=  state 쿠키 발급 후 구글 동의 화면으로 302
 //   GET  /auth/google/callback     state 대조, code 교환, id_token 검증, 사전 등록 public_users 확인,
 //                                  공개 쿠키 발급 후 CLIENT_ORIGIN + next 로 복귀
 //   GET  /auth/public/me           로그인된 구글 계정 (비로그인 401)
@@ -13,7 +13,7 @@ import { Router } from 'express'
 import crypto from 'node:crypto'
 import jwt from 'jsonwebtoken'
 import { query } from '../db.js'
-import { jwtSecret, baseCookieOpts, cookieOpts } from '../middleware/auth.js'
+import { jwtSecret, baseCookieOpts, cookieOpts, setAuthCookies } from '../middleware/auth.js'
 import {
   requirePublicAuth,
   setPublicAuthCookies,
@@ -95,6 +95,8 @@ router.get('/google/login', (req, res) => {
     access_type: 'online',
     prompt: 'select_account',
   })
+  const hint = String(req.query.hint || '').trim()
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(hint)) params.set('login_hint', hint)
   res.redirect(`${AUTH_ENDPOINT}?${params.toString()}`)
 })
 
@@ -176,35 +178,60 @@ router.get(
 
     const googleSub = String(claims.sub)
     const email = String(claims.email).trim().toLowerCase()
-    // 콜백에서 INSERT/upsert를 하지 않는다. 미등록 이메일이 public_users나 사용자 화면에
-    // 새 계정으로 나타나는 것을 서버에서 원천 차단한다.
-    const registered = await query(
-      `SELECT id, google_sub, email, name FROM public_users
-       WHERE lower(email) = $1`,
-      [email]
-    )
-    const user = registered.rows[0]
-    if (!user || user.google_sub !== googleSub) {
+    const picture = typeof claims.picture === 'string' && /^https:\/\//.test(claims.picture) ? claims.picture : null
+
+    // 1) 운영위원회·교수진(스태프) 계정과 같은 이메일이면 스태프로 로그인한다(프로필 사진을 함께 저장).
+    const staff = (await query('SELECT id, email, name, role, must_set_pw FROM users WHERE lower(email) = $1', [email])).rows[0]
+    let staffIn = false
+    if (staff && !staff.must_set_pw) {
+      await query('UPDATE users SET picture = $1 WHERE id = $2', [picture, staff.id])
+      setAuthCookies(res, staff)
+      staffIn = true
+    }
+
+    // 2) 게스트: 관리자가 미리 등록한 이메일이거나, 문서·시트에 이메일로 초대된 이메일만 로그인할 수 있다.
+    //    그 밖의 이메일은 새 계정으로 나타나지 않는다.
+    let user = (await query('SELECT id, google_sub, email, name FROM public_users WHERE lower(email) = $1', [email])).rows[0]
+    if (!user) {
+      const invited = (await query('SELECT 1 FROM ws_shares WHERE lower(email) = $1 LIMIT 1', [email])).rows[0]
+      if (invited) {
+        user = (
+          await query(
+            `INSERT INTO public_users (google_sub, email, name) VALUES ($1, $2, $3)
+             ON CONFLICT (google_sub) DO UPDATE SET email = EXCLUDED.email
+             RETURNING id, google_sub, email, name`,
+            [googleSub, email, claims.name || null]
+          )
+        ).rows[0]
+      }
+    }
+    if (!user) {
+      if (staffIn) return res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
       return res.status(403).json({
         error: 'email is not registered',
-        hint: '관리자가 DB에 미리 등록한 이메일만 로그인할 수 있습니다.',
+        hint: '관리자가 미리 등록했거나 문서·시트에 초대된 이메일만 로그인할 수 있습니다.',
       })
+    }
+    if (user.google_sub !== googleSub) {
+      if (staffIn) return res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
+      return res.status(403).json({ error: 'email is not registered', hint: '이 이메일은 다른 구글 계정으로 이미 등록되어 있습니다.' })
     }
 
     const { rows } = await query(
-      `UPDATE public_users SET name = $1, last_login_at = now()
-       WHERE id = $2
+      `UPDATE public_users SET name = $1, picture = $2, last_login_at = now()
+       WHERE id = $3
        RETURNING id, email, name`,
-      [claims.name || user.name || null, user.id]
+      [claims.name || user.name || null, picture, user.id]
     )
     setPublicAuthCookies(res, rows[0])
     res.redirect(`${clientOrigin()}${safeNext(statePayload.next)}`)
   })
 )
 
-router.get('/public/me', requirePublicAuth, (req, res) => {
-  res.json({ user: req.publicUser })
-})
+router.get('/public/me', requirePublicAuth, wrap(async (req, res) => {
+  const row = (await query('SELECT picture FROM public_users WHERE id = $1', [req.publicUser.id])).rows[0]
+  res.json({ user: { ...req.publicUser, picture: row?.picture || null } })
+}))
 
 router.post('/public/logout', (req, res) => {
   clearPublicAuthCookies(res)

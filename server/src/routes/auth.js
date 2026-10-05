@@ -89,7 +89,7 @@ router.get(
   requireAuth,
   wrap(async (req, res) => {
     const { rows } = await query(
-      'SELECT id, email, name, role, must_set_pw FROM users WHERE id = $1',
+      'SELECT id, email, name, role, must_set_pw, picture FROM users WHERE id = $1',
       [req.user.id]
     )
     if (!rows[0]) return res.status(401).json({ error: 'user not found' })

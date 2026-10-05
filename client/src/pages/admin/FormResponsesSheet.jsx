@@ -23,6 +23,7 @@ import ColumnFilter from '../../components/common/ColumnFilter'
 import { useToast } from '../../components/common/Toast'
 import { API_BASE, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 const POLL_MS = 20000
 const DEFAULT_WIDTH = 180
@@ -117,7 +118,7 @@ function FormResponsesSheet() {
 
   const resetResponses = async () => {
     const name = form?.title_ko || '이 폼'
-    if (!window.confirm(`"${name}"의 응답 ${rows.length}건을 모두 지울까요?\n다른 행사·폼의 응답은 바뀌지 않으며, 이 작업은 되돌릴 수 없습니다.`)) return
+    if (!await confirmDialog({ message: `"${name}"의 응답 ${rows.length}건을 모두 지울까요?\n다른 행사·폼의 응답은 바뀌지 않으며, 이 작업은 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '계속' })) return
     try {
       const result = await api.del(`/admin/forms/${id}/responses`)
       showToast(`${result.deleted ?? rows.length}건을 초기화했습니다`)

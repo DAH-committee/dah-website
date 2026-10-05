@@ -35,7 +35,6 @@ const NAV_GROUPS = [
       { to: '/workspace/docs', label: '문서', role: 'manager' },
       { to: '/workspace/sheets', label: '스프레드시트', role: 'manager' },
       { to: '/workspace/forms', label: '설문지', role: 'manager' },
-      { to: '/resources/handover', label: '인수인계 문서', role: 'manager' },
     ],
   },
   {

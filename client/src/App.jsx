@@ -11,6 +11,7 @@ import ScrollToTop from './components/layout/ScrollToTop'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import LoginModal from './components/auth/LoginModal'
+import DialogHost from './components/common/AppDialog'
 
 import Home from './pages/Home'
 import About from './pages/About'
@@ -51,7 +52,6 @@ const MajorCompassExperience = lazy(() => import('./pages/MajorCompassExperience
 const AnnualReport = lazy(() => import('./pages/annual/AnnualReport'))
 const AnnualRender = lazy(() => import('./pages/annual/AnnualRender'))
 const HandoverDoc = lazy(() => import('./pages/handover/HandoverDoc'))
-const HandoverHome = lazy(() => import('./pages/handover/HandoverHome'))
 const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
 const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
 
@@ -156,11 +156,7 @@ const PUBLIC_ROUTES = [
   },
   {
     path: '/resources/handover',
-    element: (
-      <Suspense fallback={null}>
-        <HandoverHome />
-      </Suspense>
-    ),
+    element: <Navigate to="/workspace/docs" replace />,
   },
   {
     path: '/handover/:id',
@@ -264,6 +260,7 @@ function App() {
             </Routes>
           </AppChrome>
           <LoginModal />
+          <DialogHost />
           </ToastProvider>
           </LoginModalProvider>
         </AuthProvider>

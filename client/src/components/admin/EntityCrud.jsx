@@ -19,6 +19,7 @@ import {
   TextArea,
   Toggle,
 } from './FormControls'
+import { alertDialog, confirmDialog } from '../common/AppDialog'
 
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
@@ -227,13 +228,13 @@ function EntityCrud({
   }
 
   const remove = async (item) => {
-    if (!window.confirm('삭제하시겠습니까? 되돌릴 수 없습니다.')) return
+    if (!await confirmDialog({ message: '삭제하시겠습니까? 되돌릴 수 없습니다.', tone: 'danger', confirmLabel: '삭제' })) return
     try {
       await api.del(`/admin/content/${type}/${item.id}`)
       if (editing === item.id) close()
       refetch()
     } catch (err) {
-      window.alert(err.message)
+      await alertDialog({ title: '오류', message: err.message })
     }
   }
 
@@ -248,7 +249,7 @@ function EntityCrud({
         if (it.sort !== i) await api.put(`/admin/content/${type}/${it.id}`, { sort: i })
       }
     } catch (err) {
-      window.alert(err.message)
+      await alertDialog({ title: '오류', message: err.message })
     }
     refetch()
   }

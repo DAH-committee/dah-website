@@ -1,9 +1,9 @@
 // /sheets/:id: 범용 스프레드시트. 내용은 ws_files.content({columns, rows, nextId})에 저장하고,
 // 화면은 기존 SheetWorkspace(구글 시트 방식 작업면)를 그대로 쓴다. 칸 수정은 0.9초 모아서 저장한다.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import SheetWorkspace from '../../components/admin/sheet/SheetWorkspace'
-import { useAuth } from '../../context/AuthContext'
+import NoAccess from '../../components/common/NoAccess'
 import { api } from '../../hooks/useApi'
 
 // content는 {sheets:[{id,label,columns,rows,nextId}]}. 예전 모양({columns,rows,nextId})은 시트 1개로 바꿔 읽는다.
@@ -18,8 +18,8 @@ const blankSheet = (id, label) => {
 
 export default function SheetEditor() {
   const { id } = useParams()
-  const navigate = useNavigate()
-  const { hasRole, loading: authLoading } = useAuth()
+  const [denied, setDenied] = useState(null) // null | 'denied' | 'missing'
+  const [canEdit, setCanEdit] = useState(false)
   const [file, setFile] = useState(null)
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
@@ -34,21 +34,23 @@ export default function SheetEditor() {
       setFile(r.item)
       const content = normalize(r.item.content)
       setData(content)
+      setCanEdit(r.canEdit === true)
       latest.current = content
       setUpdatedAt(new Date(r.item.updated_at).toLocaleString('ko-KR'))
       setError('')
       document.title = `${r.item.title} | 디지털인문예술전공`
     } catch (e) {
-      if (e.status === 404) navigate('/workspace/sheets', { replace: true })
+      if (e.status === 401 || e.status === 403) setDenied('denied')
+      else if (e.status === 404) setDenied('missing')
       else setError(e.message)
     } finally {
       setLoading(false)
     }
-  }, [id, navigate])
+  }, [id])
 
   useEffect(() => {
-    if (!authLoading && hasRole('manager')) load()
-  }, [load, authLoading, hasRole])
+    load()
+  }, [load])
 
   const flush = useCallback(async () => {
     clearTimeout(timer.current)
@@ -100,13 +102,13 @@ export default function SheetEditor() {
               patch: (value) => ({ [c.key]: value }),
             })),
             rows: sh.rows,
-            editable: true,
-            allowCustom: true,
+            editable: canEdit,
+            allowCustom: canEdit,
             formulas: true,
             unit: '행',
           }))
         : [],
-    [data]
+    [data, canEdit]
   )
 
   const onEditCell = useCallback(
@@ -170,8 +172,7 @@ export default function SheetEditor() {
     [commit]
   )
 
-  if (authLoading) return null
-  if (!hasRole('manager')) return <Navigate to="/resources/handover" replace />
+  if (denied) return <NoAccess kind="sheet" notFound={denied === 'missing'} />
   if (loading || !data) return <div className="p-24 text-small-m text-reading-text">{error || '불러오는 중'}</div>
 
   return (
@@ -183,18 +184,20 @@ export default function SheetEditor() {
       error={error || null}
       updatedAt={updatedAt}
       onRefresh={load}
-      onEditCell={onEditCell}
-      onInsertRow={onInsertRow}
-      onDeleteRows={onDeleteRows}
-      onRenameColumn={onRenameColumn}
-      onAddSheet={onAddSheet}
-      onRenameSheet={onRenameSheet}
-      onDuplicateSheet={onDuplicateSheet}
-      onDeleteSheet={onDeleteSheet}
+      onEditCell={canEdit ? onEditCell : undefined}
+      onInsertRow={canEdit ? onInsertRow : undefined}
+      onDeleteRows={canEdit ? onDeleteRows : undefined}
+      onRenameColumn={canEdit ? onRenameColumn : undefined}
+      onAddSheet={canEdit ? onAddSheet : undefined}
+      onRenameSheet={canEdit ? onRenameSheet : undefined}
+      onDuplicateSheet={canEdit ? onDuplicateSheet : undefined}
+      onDeleteSheet={canEdit ? onDeleteSheet : undefined}
+      readOnly={!canEdit}
+      stateApi={`/workspace/sheets/${id}/ui`}
       exportName={file.title}
       homeHref="/workspace/sheets"
       fileId={Number(id)}
-      onRenameFile={async (title) => {
+      onRenameFile={!canEdit ? undefined : async (title) => {
         await api.put(`/workspace/files/${id}`, { title })
         setFile((f) => ({ ...f, title }))
         document.title = `${title} | 디지털인문예술전공`

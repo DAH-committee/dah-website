@@ -14,7 +14,7 @@ import {
   AlignLeft, ArrowDown, ArrowLeft, ArrowUp, Calendar, Check, ChevronDown, ChevronDownCircle, ChevronUp,
   CircleDot, Clock, Copy, Download, EllipsisVertical, Eye, FileText, GraduationCap, Link as LinkIcon, Mail,
   Phone, Plus, PlusCircle, Rows3, Save, SlidersHorizontal, SquareCheck, Table2, Text, TextCursorInput,
-  Trash2, Upload, UploadCloud, X,
+  Trash2, Upload, UploadCloud, X, Cloud,
 } from 'lucide-react'
 import { API_BASE, useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
@@ -23,6 +23,8 @@ import { HeaderCard } from '../../components/forms/respondent'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
+import { confirmDialog } from '../../components/common/AppDialog'
+import AccountMenu from '../../components/common/AccountMenu'
 import { FormsIcon } from '../workspace/icons'
 import {
   DateInput,
@@ -1468,8 +1470,8 @@ function FormEditor() {
   })
 
   const backTo = '/workspace/forms'
-  const leave = () => {
-    if (dirty && !window.confirm('저장하지 않은 변경이 있습니다. 나갈까요?')) return
+  const leave = async () => {
+    if (dirty && !(await confirmDialog({ title: '나가기', message: '저장하지 않은 변경이 있습니다. 나갈까요?', confirmLabel: '나가기', tone: 'danger' }))) return
     navigate(backTo)
   }
 
@@ -1545,8 +1547,8 @@ function FormEditor() {
   }
 
   return (
-    <section className="isolate min-h-[100dvh] bg-bg-base pb-80 text-text-pri">
-      <header className="sticky top-0 z-30 bg-bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
+    <section className="isolate flex h-[100dvh] flex-col bg-bg-base text-text-pri">
+      <header className="relative z-30 shrink-0 bg-bg-panel shadow-[0_1px_3px_rgb(0_0_0/0.12)]">
         <div className="ed-row">
           <button type="button" onClick={leave} className="ed-icon" aria-label="설문지 홈으로 돌아가기" title="설문지 홈">
             <FormsIcon size={40} />
@@ -1558,7 +1560,8 @@ function FormEditor() {
             placeholder="제목 없는 설문지"
             className="ed-title"
           />
-          <span aria-live="polite" className={`ed-status ${dirty ? '!text-purple-light !font-semibold' : ''}`}>
+          <span aria-live="polite" className={`ed-status ${dirty ? '!font-semibold !text-purple-light' : ''}`}>
+            <Cloud size={16} aria-hidden="true" />
             {busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
           </span>
           <div className="ml-auto flex shrink-0 items-center gap-8">
@@ -1574,6 +1577,7 @@ function FormEditor() {
             <button type="submit" form="form-editor" disabled={busy || (!dirty && !isNew)} className="h-40 cursor-pointer rounded-full bg-button-primary px-24 text-small-m font-semibold text-button-primaryText transition hover:bg-button-primaryHover disabled:cursor-default disabled:!bg-bg-elev disabled:!text-text-meta">
               {busy ? '저장 중' : '저장'}
             </button>
+            <AccountMenu size={40} />
           </div>
         </div>
         <div role="tablist" aria-label="폼 편집 구역" className="ed-menurow justify-center">
@@ -1594,6 +1598,7 @@ function FormEditor() {
           ))}
         </div>
       </header>
+      <div className="min-h-0 flex-1 overflow-y-auto pb-80">
 
       {!isNew && !hydrated ? (
         <div className="flex flex-col items-start gap-16 p-24">
@@ -1722,6 +1727,7 @@ function FormEditor() {
         </form>
       )}
 
+      </div>
       {preview && (
         <div role="dialog" aria-modal="true" aria-label="미리보기" className="fixed inset-0 z-[60] overflow-y-auto bg-bg-base/80 p-16 md:p-32" onMouseDown={() => setPreview(false)}>
           <div className="mx-auto min-h-full w-full max-w-[704px] overflow-hidden rounded-md border border-border-subtle bg-bg-base" onMouseDown={(e) => e.stopPropagation()}>

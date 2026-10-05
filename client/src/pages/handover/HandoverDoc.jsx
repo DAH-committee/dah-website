@@ -3,6 +3,10 @@
 // 열람: 관리자 로그인(manager 이상) 또는 열람 비밀번호. 편집·댓글·탭 관리: 관리자 로그인.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
+import AccountMenu, { AVATAR_PURPLE, useMe } from '../../components/common/AccountMenu'
+import ShareDialog from '../../components/common/ShareDialog'
+import NoAccess from '../../components/common/NoAccess'
 import { DocsIcon } from '../workspace/icons'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { generateJSON } from '@tiptap/core'
@@ -79,7 +83,7 @@ const STYLE_OPTIONS = [
 ]
 
 const AVATAR_COLORS = ['#7A3CFF', '#0066FF', '#00C853', '#FF3D00', '#FF1744', '#D500F9', '#00B8D4']
-const colorOf = (name = '') => AVATAR_COLORS[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_COLORS.length]
+const colorOf = () => AVATAR_PURPLE
 
 function fmtTime(iso) {
   if (!iso) return ''
@@ -241,7 +245,7 @@ function CommentCard({ c, active, canEdit, onActivate, onUpdate, onDelete, onOpe
                   { label: '수정', onClick: () => setEditing(true) },
                   { label: '사진 추가', onClick: () => fileRef.current?.click() },
                   '-',
-                  { label: '삭제', onClick: () => window.confirm('이 댓글을 삭제할까요?') && onDelete(c) },
+                  { label: '삭제', onClick: async () => { if (await confirmDialog({ message: '이 댓글을 삭제할까요?', tone: 'danger', confirmLabel: '삭제' })) onDelete(c) } },
                 ]} />
               )}
             </Dropdown>
@@ -277,7 +281,9 @@ function CommentCard({ c, active, canEdit, onActivate, onUpdate, onDelete, onOpe
 
 function Composer({ draft, setDraft, onCancel, onSubmit, style, cardRef }) {
   const [busy, setBusy] = useState(false)
-  const { user } = useAuth()
+  const { user: staffUser } = useAuth()
+  const { me } = useMe()
+  const user = staffUser || me?.user || null
   const { body = '', images = [] } = draft
 
   async function pick(files) {
@@ -465,7 +471,11 @@ export default function HandoverDoc() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const base = pathname.startsWith('/docs') ? '/docs' : '/handover'
-  const { user } = useAuth()
+  const { user: staffUser } = useAuth()
+  const { me } = useMe()
+  const user = staffUser || me?.user || null
+  const [shareOpen, setShareOpen] = useState(false)
+  const nav = (to) => navigate(`${to}${window.location.search}`)
   const [doc, setDoc] = useState(null)
   const [tabs, setTabs] = useState([])
   const [docTitle, setDocTitle] = useState('')
@@ -540,7 +550,8 @@ export default function HandoverDoc() {
         document.title = `${meta.title} | 디지털인문예술전공`
       } catch (e) {
         if (off) return
-        if (e?.status === 401 || e?.status === 404) navigate('/resources/handover', { replace: true })
+        if (e?.status === 401 || e?.status === 403) setAccess({ loading: false, denied: true })
+        else if (e?.status === 404) setAccess({ loading: false, denied: true, notFound: true })
         else setAccess({ loading: false, error: true })
       }
     })()
@@ -780,7 +791,7 @@ export default function HandoverDoc() {
   async function addTab(content) {
     const r = await api.post('/handover/docs', content ? { ws: doc.ws_id, title: content.title, content: content.json } : { ws: doc.ws_id })
     setTabs((t) => [...t, r.item])
-    navigate(`${base}/${r.item.id}`)
+    nav(`${base}/${r.item.id}`)
   }
   async function renameTab(tab, title) {
     await api.put(`/handover/docs/${tab.id}`, { title })
@@ -791,11 +802,11 @@ export default function HandoverDoc() {
     await addTab({ title: `${tab.title} 사본`, json })
   }
   async function deleteTab(tab) {
-    if (!window.confirm(`'${tab.title}' 탭을 삭제할까요? 탭 안의 내용과 댓글이 함께 삭제됩니다.`)) return
+    if (!(await confirmDialog({ title: '탭 삭제', message: `'${tab.title}' 탭을 삭제할까요? 탭 안의 내용과 댓글이 함께 삭제됩니다.`, tone: 'danger', confirmLabel: '삭제' }))) return
     await api.del(`/handover/docs/${tab.id}`)
     const rest = tabs.filter((x) => x.id !== tab.id)
     setTabs(rest)
-    if (String(tab.id) === String(id)) navigate(`${base}/${rest[0].id}`)
+    if (String(tab.id) === String(id)) nav(`${base}/${rest[0].id}`)
   }
 
   async function saveDocTitle() {
@@ -838,7 +849,7 @@ export default function HandoverDoc() {
     setOlderTexts(null)
   }
   async function restoreVersion(v) {
-    if (!window.confirm('이 버전으로 복원할까요? 지금 상태도 버전 기록에 남습니다.')) return
+    if (!(await confirmDialog({ title: '버전 복원', message: '이 버전으로 복원할까요? 지금 상태도 버전 기록에 남습니다.', confirmLabel: '복원' }))) return
     const r = await api.post(`/handover/versions/${v.id}/restore`)
     liveRef.current = r.content
     setHistoryOpen(false)
@@ -851,7 +862,7 @@ export default function HandoverDoc() {
     flash('버전을 복원했습니다')
   }
   async function renameVersion(v, forced) {
-    const name = forced !== undefined ? forced : window.prompt('버전 이름', v.name || '')
+    const name = forced !== undefined ? forced : await promptDialog({ title: '버전 이름', label: '이름', defaultValue: v.name || '', confirmLabel: '저장' })
     if (name === null) return
     const r = await api.put(`/handover/versions/${v.id}`, { name })
     setVersions((list) => list.map((x) => (x.id === v.id ? { ...x, name: r.item.name } : x)))
@@ -871,9 +882,9 @@ export default function HandoverDoc() {
     return () => clearTimeout(t)
   }, [editor, historyOpen, showChanges, olderTexts, selVer])
 
-  function setLink() {
+  async function setLink() {
     const prev = editor.getAttributes('link').href || ''
-    const url = window.prompt('링크 주소', prev)
+    const url = await promptDialog({ title: '링크', label: '링크 주소', defaultValue: prev, confirmLabel: '적용' })
     if (url === null) return
     if (!url) editor.chain().focus().extendMarkRange('link').unsetLink().run()
     else editor.chain().focus().extendMarkRange('link').setLink({ href: /^https?:|^mailto:|^\//.test(url) ? url : `https://${url}` }).run()
@@ -885,9 +896,9 @@ export default function HandoverDoc() {
   }
 
   async function insertSecret() {
-    const label = window.prompt('비밀값 이름 (예: 공식 Gmail 비밀번호)')
+    const label = await promptDialog({ title: '비밀값 추가', label: '이름 (예: 공식 Gmail 비밀번호)', confirmLabel: '다음' })
     if (!label) return
-    const value = window.prompt(`${label} 값`)
+    const value = await promptDialog({ title: label, label: '값', confirmLabel: '저장' })
     if (!value) return
     const r = await api.post('/handover/secrets', { label, value })
     editor.chain().focus().insertContent({ type: 'secret', attrs: { id: r.item.id, label } }).run()
@@ -930,14 +941,10 @@ export default function HandoverDoc() {
     window.open('https://docs.new', '_blank')
   }
 
-  async function lock() {
-    await api.post('/handover/lock')
-    navigate('/resources/handover')
-  }
-
-  const listHref = access.canEdit ? '/workspace/docs' : '/resources/handover'
+  const listHref = staffUser ? '/workspace/docs' : '/'
   if (access.loading) return <div className="gd-loading">문서 불러오는 중</div>
-  if (access.error) return <div className="gd-loading">문서를 불러오지 못했습니다. <Link to="/resources/handover">목록으로</Link></div>
+  if (access.denied) return <NoAccess kind="doc" notFound={access.notFound} />
+  if (access.error) return <div className="gd-loading">문서를 불러오지 못했습니다. <Link to="/">처음으로</Link></div>
 
   const ed = editor
   const editing = canEdit && mode === 'edit'
@@ -964,6 +971,7 @@ export default function HandoverDoc() {
     파일: [
       { label: '새 탭', icon: <Plus size={16} />, onClick: () => addTab(), disabled: !canEdit },
       { label: '새 문서', icon: <Plus size={16} />, onClick: async () => { const r = await api.post('/workspace/files', { kind: 'doc', template: 'blank' }); navigate(`/docs/${r.item.first_tab}`) }, disabled: !canEdit },
+      { label: '공유', icon: <Lock size={16} />, onClick: () => setShareOpen(true) },
       { label: '문서 목록', onClick: () => navigate(listHref) },
       '-',
       { label: '버전 기록', icon: <History size={16} />, children: [{ label: '버전 기록 보기', hint: '⌘⌥⇧H', onClick: openHistory }] },
@@ -971,8 +979,7 @@ export default function HandoverDoc() {
       { label: 'Google Docs로 열기', icon: <ExternalLink size={16} />, onClick: openInGoogleDocs },
       '-',
       { label: '인쇄', hint: '⌘P', icon: <Printer size={16} />, onClick: () => window.print() },
-      '-',
-      access.access === 'gate' ? { label: '열람 잠그기', icon: <Lock size={16} />, onClick: lock } : { label: '관리자 대시보드', onClick: () => navigate('/admin') },
+      ...(staffUser ? ['-', { label: '관리자 대시보드', onClick: () => navigate('/admin') }] : []),
     ],
     수정: [
       { label: '실행취소', hint: '⌘Z', icon: <Undo2 size={16} />, onClick: () => ed.chain().focus().undo().run(), disabled: !editing },
@@ -1035,9 +1042,7 @@ export default function HandoverDoc() {
           aria-label="문서 제목"
           title={docTitle}
         />
-        <span className="ed-status" title="저장 상태">
-          {saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중' : saveState === 'error' ? '저장 실패' : ''}
-        </span>
+        <span className="ed-status"><Cloud size={16} aria-hidden="true" />{saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중' : saveState === 'error' ? '저장 실패' : ''}</span>
         <div className="gd-actions">
           <span className="gd-meta">{doc.updated_by ? `${doc.updated_by} 님이 마지막으로 수정` : ''}</span>
           <button type="button" className={`gd-round${historyOpen ? ' is-on' : ''}`} aria-label="버전 기록" title="버전 기록 (⌘⌥⇧H)" onClick={() => (historyOpen ? closeHistory() : openHistory())}>
@@ -1046,12 +1051,10 @@ export default function HandoverDoc() {
           <button type="button" className={`gd-round${showComments ? ' is-on' : ''}`} aria-label="댓글 표시" title="댓글 표시" onClick={() => setShowComments((v) => !v)}>
             <MessageSquareText size={20} />
           </button>
-          <button type="button" className="gd-share" onClick={async () => { await navigator.clipboard.writeText(window.location.href).catch(() => {}); flash('링크 복사됨. 비로그인 열람은 비밀번호 필요') }}>
+          <button type="button" className="gd-share" onClick={() => setShareOpen(true)}>
             <Lock size={16} /> <span>공유</span>
           </button>
-          <span className="gd-avatar gd-avatar--lg" style={{ background: colorOf(user?.name || '열람') }} title={user ? `${user.name} (${user.role})` : '비밀번호 열람'}>
-            {(user?.name || '열').slice(0, 1)}
-          </span>
+          <AccountMenu size={40} />
         </div>
       </header>
       <nav className="gd-menubar ed-menurow">
@@ -1191,7 +1194,7 @@ export default function HandoverDoc() {
                       if (sel) setOutlineCollapsed((v) => !v)
                       else {
                         setOutlineCollapsed(false)
-                        navigate(`${base}/${t.id}`)
+                        nav(`${base}/${t.id}`)
                       }
                     }}
                     onRename={renameTab}
@@ -1286,7 +1289,8 @@ export default function HandoverDoc() {
         </div>
       )}
 
-      {access.access === 'gate' && <div className="gd-banner">비밀번호 열람 중: 읽기 전용</div>}
+      {!canEdit && <div className="gd-banner">보기 전용: 이 문서를 고칠 권한이 없습니다</div>}
+      {shareOpen && <ShareDialog fileId={doc.ws_id} title={docTitle} linkPath={window.location.pathname} onClose={() => setShareOpen(false)} />}
       {toast && <div className="gd-toast">{toast}</div>}
       {lightbox && <Lightbox images={lightbox.images} index={lightbox.index} onClose={() => setLightbox(null)} />}
     </div>

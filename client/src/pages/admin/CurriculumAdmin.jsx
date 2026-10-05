@@ -23,6 +23,7 @@ import {
   PrimaryButton,
   Select,
 } from '../../components/admin/FormControls'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 // B1 서버 계약 track 값: common | design | ai | culture (content-config 검증)
 const TRACKS = [
@@ -168,7 +169,7 @@ function CurriculumAdmin() {
   }
 
   const removeCourse = async (item) => {
-    if (!window.confirm(`${item.name_ko} 과목을 삭제하시겠습니까? 되돌릴 수 없습니다.`)) return
+    if (!await confirmDialog({ message: `${item.name_ko} 과목을 삭제하시겠습니까? 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' })) return
     try {
       await api.del(`/admin/content/curriculum/${item.id}`)
       if (editing === item.id) close()

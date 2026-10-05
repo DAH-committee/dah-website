@@ -11,6 +11,7 @@ import {
   PageHead,
   Pagination,
 } from '../../components/admin/FormControls'
+import { alertDialog } from '../../components/common/AppDialog'
 
 const PAGE_SIZE = 20
 
@@ -29,7 +30,7 @@ function ConsultationsAdmin() {
       await api.put(`/admin/consultations/${item.id}/read`)
       refetch()
     } catch (err) {
-      window.alert(err.message)
+      await alertDialog({ title: '오류', message: err.message })
     } finally {
       setBusyId(null)
     }

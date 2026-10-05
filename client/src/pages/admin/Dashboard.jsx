@@ -16,6 +16,7 @@ import {
   PrimaryButton,
   Toggle,
 } from '../../components/admin/FormControls'
+import { alertDialog } from '../../components/common/AppDialog'
 
 // 유형별 카운트 대상 — 롤 미충족 유형은 조회 자체를 생략(403 방지)
 const COUNT_TARGETS = [
@@ -169,7 +170,7 @@ function Dashboard() {
       await api.put(`/admin/content/showcase/${item.id}`, { status: 'published' })
       pending.refetch()
     } catch (err) {
-      window.alert(err.message)
+      await alertDialog({ title: '오류', message: err.message })
     }
   }
 
@@ -177,7 +178,7 @@ function Dashboard() {
     <section className="flex flex-col gap-32">
       <PageHead title="대시보드" desc="콘텐츠 현황 요약" actions={<ExportButton />} />
 
-      {/* 운영위원회 인수인계 문서: 관리자는 비밀번호 없이 바로 연다 */}
+      {/* 운영위원회 인수인계 문서 */}
       <div>
         <p className="font-mono text-label-m uppercase tracking-label text-text-meta">HANDOVER</p>
         <Link
@@ -189,7 +190,7 @@ function Dashboard() {
           </span>
           <span className="flex flex-col gap-4">
             <span className="text-body-m font-semibold text-text-pri">운영위원회 인수인계 문서</span>
-            <span className="text-caption-m text-text-meta">연간 일정, 행사별 절차, 계정, 여백 댓글 · 자료실에서는 비밀번호 열람</span>
+            <span className="text-caption-m text-text-meta">연간 일정, 행사별 절차, 계정, 여백 댓글</span>
           </span>
         </Link>
       </div>

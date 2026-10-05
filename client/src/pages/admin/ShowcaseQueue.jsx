@@ -12,6 +12,7 @@ import {
   PageHead,
   Pagination,
 } from '../../components/admin/FormControls'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 const PILL_BTN =
   'inline-flex cursor-pointer items-center gap-8 rounded-sm border border-glass-line bg-glass-bg px-12 py-4 font-mono text-caption-m text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
@@ -46,7 +47,7 @@ function ShowcaseQueue() {
 
   // 반려 = 삭제. B1 권한: showcase 삭제는 admin+ (manager는 서버가 403 반환)
   const reject = async (item) => {
-    if (!window.confirm('반려하시겠습니까? 제출물이 삭제되며 되돌릴 수 없습니다.')) return
+    if (!await confirmDialog({ message: '반려하시겠습니까? 제출물이 삭제되며 되돌릴 수 없습니다.', tone: 'danger', confirmLabel: '삭제' })) return
     setActionError(null)
     try {
       await api.del(`/admin/content/showcase/${item.id}`)

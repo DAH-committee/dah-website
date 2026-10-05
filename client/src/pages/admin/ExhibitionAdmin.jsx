@@ -25,6 +25,7 @@ import {
   DateInput,
 } from '../../components/admin/FormControls'
 import { useAuth } from '../../context/AuthContext'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 // ISO ↔ datetime-local 변환 (로컬 시간대 기준 편집, 저장 시 ISO)
 function toLocalInput(iso) {
@@ -121,7 +122,7 @@ function ExhibitionAdmin() {
 
   // 테스트 접수 초기화 — owner 전용. Drive 안의 파일은 지우지 않는다(업로드 기록도 남는다).
   const clearEntries = async () => {
-    if (!window.confirm('접수 내역을 전부 삭제합니다. Drive에 올라간 파일은 지워지지 않습니다. 계속할까요?')) return
+    if (!await confirmDialog({ message: '접수 내역을 전부 삭제합니다. Drive에 올라간 파일은 지워지지 않습니다. 계속할까요?', tone: 'danger', confirmLabel: '삭제' })) return
     setClearBusy(true)
     setClearMessage(null)
     try {

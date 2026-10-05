@@ -1,0 +1,24 @@
+/* 계정 아바타와 메뉴: 무채색 회색 바탕, 보라 아바타, 테두리 없음 */
+.acct { position: relative; flex: none; }
+.acct .acct-btn { display: inline-flex; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.acct .acct-btn:hover .acct-avatar { box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1); }
+.acct .acct-btn:focus-visible { outline: 2px solid #7a3cff; outline-offset: 2px; }
+.acct-avatar { display: inline-grid; place-items: center; flex: none; border-radius: 50%; color: #fff; font-weight: 600; font-family: inherit; line-height: 1; transition: box-shadow 120ms ease; }
+
+.acct-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 400; width: 340px; max-width: calc(100vw - 24px); padding: 12px 12px 12px; border-radius: 28px; background: #ececec; color: #1f1f1f; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3); font-family: 'Pretendard Variable', Pretendard, sans-serif; text-align: left; animation: acct-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: top right; }
+@keyframes acct-in { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+.acct-pop__email { margin: 4px 0 8px; text-align: center; font-size: 14px; color: #444; }
+.acct-pop__me { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px 16px; border-radius: 24px; background: #fff; text-align: center; }
+.acct-pop__me h3 { margin: 8px 0 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.acct-pop__me p { margin: 0 0 10px; font-size: 14px; color: #5f6368; }
+.acct .acct-pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 20px; border: 0; border-radius: 20px; background: #e2e2e2; color: #1f1f1f; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transition: background 120ms ease; }
+.acct .acct-pill:hover { background: #d4d4d4; }
+.acct .acct-pill--on { background: #7a3cff; color: #fff; }
+.acct .acct-pill--on:hover { background: #6200ea; }
+.acct-pop__me .acct-pill + .acct-pill { margin-top: 6px; }
+.acct-pop__list { display: flex; flex-direction: column; margin-top: 4px; padding: 4px 0 0; border-radius: 24px; overflow: hidden; background: #fff; }
+.acct .acct-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 8px 20px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.acct .acct-row:hover { background: rgba(0, 0, 0, 0.07); }
+.acct .acct-row b { display: block; font-size: 14px; font-weight: 500; }
+.acct .acct-row small { display: block; font-size: 12px; color: #5f6368; }
+.acct .acct-row__ico { display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none; color: #444; }

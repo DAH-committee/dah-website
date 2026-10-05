@@ -1,5 +1,6 @@
 // 비밀값 칩: 기본 가림, 눈 아이콘으로 표시, 복사 아이콘으로 클립보드 복사. 값은 누를 때만 서버에서 받는다.
 import { useState } from 'react'
+import { promptDialog } from '../../components/common/AppDialog'
 import { NodeViewWrapper } from '@tiptap/react'
 import { Eye, EyeOff, Copy, Check, Pencil, KeyRound } from 'lucide-react'
 import { api } from '../../hooks/useApi'
@@ -41,7 +42,7 @@ export default function SecretChip({ node, editor }) {
   }
 
   async function edit() {
-    const next = window.prompt(`${label} 새 값`)
+    const next = await promptDialog({ title: label, label: '새 값', confirmLabel: '저장' })
     if (!next) return
     try {
       await api.put(`/handover/secrets/${id}`, { value: next })

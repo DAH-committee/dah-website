@@ -33,6 +33,7 @@ import {
   PrimaryButton,
 } from '../../components/admin/FormControls'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 const CARD = 'flex min-w-0 flex-col gap-24 rounded-md border border-border-subtle bg-bg-panel p-24 md:p-32'
 const H3 = 'text-body-l-m font-bold text-text-pri md:text-body-l-d'
@@ -209,7 +210,7 @@ function ConnectionCard({ connection, isOwner, onChanged, onMessage }) {
 
   const disconnect = () =>
     run('disconnect', async () => {
-      if (!window.confirm('연결을 끊으면 이 사이트가 이 계정으로 파일을 보낼 수 없게 됩니다. 드라이브에 이미 있는 파일은 지워지지 않습니다. 계속할까요?')) return
+      if (!await confirmDialog({ message: '연결을 끊으면 이 사이트가 이 계정으로 파일을 보낼 수 없게 됩니다. 드라이브에 이미 있는 파일은 지워지지 않습니다. 계속할까요?', tone: 'danger', confirmLabel: '연결 끊기' })) return
       await api.del(`/admin/drive/connections/${connection.id}`)
       onMessage('연결 끊기 완료. 드라이브의 파일은 그대로 유지')
       onChanged()
@@ -460,7 +461,7 @@ function PendingUploads({ isOwner }) {
     const label = purge
       ? '목록에서 지우고 드라이브의 파일도 휴지통으로 옮깁니다. 계속할까요?'
       : '목록에서만 지웁니다. 드라이브의 파일은 그대로 남습니다. 계속할까요?'
-    if (!window.confirm(label)) return
+    if (!(await confirmDialog({ message: label, tone: 'danger', confirmLabel: purge ? '지우기' : '목록에서 지우기' }))) return
     setBusy(row.id)
     try {
       await api.del(`/admin/drive/uploads/${row.id}${purge ? '?purge=true' : ''}`)

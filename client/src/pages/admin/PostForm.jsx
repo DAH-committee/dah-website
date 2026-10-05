@@ -29,6 +29,7 @@ import {
   CONTEST_CATEGORY,
   CONTEST_CATEGORY_OPTIONS,
 } from '../../data/contestCategory'
+import { confirmDialog } from '../../components/common/AppDialog'
 
 const ICON_BTN =
   'flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus md:h-32 md:w-32'
@@ -67,9 +68,7 @@ function TagField({ value, onChange }) {
 
   const removeTag = async (tag) => {
     if (
-      !window.confirm(
-        `"${tag}" 태그를 삭제하시겠습니까? 이 태그가 지정된 게시물의 태그가 해제됩니다.`
-      )
+      !await confirmDialog({ message: `"${tag}" 태그를 삭제하시겠습니까? 이 태그가 지정된 게시물의 태그가 해제됩니다.`, tone: 'danger', confirmLabel: '삭제' })
     )
       return
     setBusy(true)

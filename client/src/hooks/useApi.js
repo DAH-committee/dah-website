@@ -172,29 +172,40 @@ export function useApi(path, { params, timeoutMs } = {}) {
 /**
  * api — 뮤테이션 헬퍼. JSON 본문 + credentials 'include', 실패 시 Error({message, status, hint}) throw.
  */
+// 링크로 공유된 문서·시트는 주소의 ?k=키 를 요청 헤더로 함께 보낸다(전체 공개 링크 확인용).
+function shareHeaders(base = {}) {
+  try {
+    const k = new URLSearchParams(window.location.search).get('k')
+    return k ? { ...base, 'X-Share-Key': k } : base
+  } catch {
+    return base
+  }
+}
+
 export const api = {
   get: (path, params) =>
-    fetch(`${API_BASE}${path}${buildQuery(params)}`, { credentials: 'include' }).then(
+    fetch(`${API_BASE}${path}${buildQuery(params)}`, { credentials: 'include', headers: shareHeaders() }).then(
       parseResponse
     ),
   post: (path, body) =>
     fetch(`${API_BASE}${path}`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: shareHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body ?? {}),
     }).then(parseResponse),
   put: (path, body) =>
     fetch(`${API_BASE}${path}`, {
       method: 'PUT',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: shareHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(body ?? {}),
     }).then(parseResponse),
   del: (path) =>
     fetch(`${API_BASE}${path}`, {
       method: 'DELETE',
       credentials: 'include',
+      headers: shareHeaders(),
     }).then(parseResponse),
   /**
    * 파일 업로드 — POST /upload (multipart, 필드명 file). 응답 { url } 기대.

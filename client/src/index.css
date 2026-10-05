@@ -442,10 +442,19 @@ html[data-dah-easter-egg='on'] {
    제목 입력칸 폭은 제목 길이와 무관하게 고정이라 저장 상태와 오른쪽 도구 위치가 파일마다 같다. */
 .ed-row { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 24px; flex-shrink: 0; }
 .ed-icon { display: inline-flex; width: 40px; height: 40px; flex: none; align-items: center; justify-content: center; cursor: pointer; }
-.ed-title { flex: none; width: clamp(240px, 36vw, 520px); border: 0; border-radius: 6px; padding: 4px 8px; background: transparent; color: #111; font-family: inherit; font-size: 22px; font-weight: 700; line-height: 30px; letter-spacing: -0.01em; text-overflow: ellipsis; outline: none; }
+.ed-title { flex: none; width: clamp(200px, 30vw, 440px); border: 0; border-radius: 6px; padding: 4px 8px; background: transparent; color: #111; font-family: inherit; font-size: 22px; font-weight: 700; line-height: 30px; letter-spacing: -0.01em; text-overflow: ellipsis; outline: none; }
 .ed-title:hover:not([readonly]) { background: rgb(0 0 0 / 0.07); }
 .ed-title:focus { background: #fff; outline: 2px solid rgb(var(--dah-reading-accent)); outline-offset: 0; }
-.ed-status { display: inline-flex; flex: none; align-items: center; gap: 6px; min-width: 76px; height: 28px; padding: 0 10px; border-radius: 14px; background: rgb(0 0 0 / 0.07); color: #333; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.ed-status { display: inline-flex; flex: none; align-items: center; gap: 6px; min-width: 84px; height: 28px; color: #5f6368; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.ed-share { display: inline-flex; flex: none; align-items: center; gap: 8px; height: 40px; padding: 0 20px; border: 0; border-radius: 20px; background: #e2e2e2; color: #1f1f1f; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 120ms ease; }
+.ed-share:hover { background: #d4d4d4; }
+.ed-share svg { color: #7a3cff; }
 .ed-status:empty { visibility: hidden; }
 .ed-menurow { display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 24px; flex-shrink: 0; }
 @media (max-width: 640px) { .ed-row { padding: 0 12px; gap: 8px; } .ed-menurow { padding: 0 12px; } .ed-title { width: auto; flex: 1; min-width: 0; font-size: 18px; } }
+
+/* 공용 대화상자: 배경은 서서히, 패널은 살짝 올라오며 나타난다 */
+@keyframes app-dialog-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes app-dialog-rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+.app-dialog__backdrop { animation: app-dialog-fade 160ms ease-out both; }
+.app-dialog__panel { animation: app-dialog-rise 200ms cubic-bezier(0.22, 1, 0.36, 1) both; }

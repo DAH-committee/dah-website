@@ -14,6 +14,7 @@ import { formatKst } from '../submit/exhibitFormShared'
 import { EmptyNote, ErrorText, PageHead } from '../../components/admin/FormControls'
 import { CATEGORY_LABEL } from './FormEditor'
 import { formStatus } from './formStatus'
+import { alertDialog, confirmDialog } from '../../components/common/AppDialog'
 
 const NEW_LINK =
   'inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm bg-button-primary px-24 text-body-m font-semibold text-button-primaryText transition duration-fast ease-out hover:bg-button-primaryHover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus'
@@ -93,13 +94,13 @@ function FormsAdmin() {
     const warn = n
       ? `"${item.title_ko}" 폼을 삭제할까요?\n받은 응답 ${n}건도 함께 지워지고 되돌릴 수 없습니다.`
       : `"${item.title_ko}" 폼을 삭제할까요? 되돌릴 수 없습니다.`
-    if (!window.confirm(warn)) return
+    if (!(await confirmDialog({ message: warn, tone: 'danger', confirmLabel: '삭제' }))) return
     try {
       await api.del(`/admin/forms/${item.id}`)
       setMessage(`"${item.title_ko}" 폼을 삭제했습니다`)
       refetch()
     } catch (err) {
-      window.alert(err.message)
+      await alertDialog({ title: '오류', message: err.message })
     }
   }
 
@@ -122,7 +123,7 @@ function FormsAdmin() {
       })
       navigate(`/admin/forms/${res.item.id}/edit`, { state: { justSaved: true } })
     } catch (err) {
-      window.alert(err.hint ? `${err.message} (${err.hint})` : err.message)
+      await alertDialog({ title: '오류', message: err.hint ? `${err.message} (${err.hint})` : err.message })
     } finally {
       setBusy(false)
     }
@@ -133,7 +134,7 @@ function FormsAdmin() {
       await navigator.clipboard.writeText(`${window.location.origin}/forms/${item.slug}`)
       setMessage('신청 주소를 복사했습니다')
     } catch {
-      window.alert(`복사하지 못했습니다. 주소: ${window.location.origin}/forms/${item.slug}`)
+      await alertDialog({ message: `복사하지 못했습니다. 주소: ${window.location.origin}/forms/${item.slug}` })
     }
   }
 

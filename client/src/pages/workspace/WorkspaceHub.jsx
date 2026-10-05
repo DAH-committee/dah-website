@@ -7,7 +7,10 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
+import AccountMenu from '../../components/common/AccountMenu'
+import NoAccess from '../../components/common/NoAccess'
 import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
+import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import { ICONS, KINDS } from './icons'
 import './workspace.css'
 
@@ -199,7 +202,11 @@ export default function WorkspaceHub() {
   const [sort, setSort] = useState('opened')
   const [owner, setOwner] = useState('all')
   const [ownerMenu, setOwnerMenu] = useState(false)
-  const [drawer, setDrawer] = useState(false)
+  const [drawer, setDrawer] = useState('closed') // closed | open | closing
+  const closeDrawer = () => {
+    setDrawer('closing')
+    setTimeout(() => setDrawer('closed'), 220)
+  }
   const [busy, setBusy] = useState(false)
   const ownerBtn = useRef(null)
   const K = KINDS[kind]
@@ -259,7 +266,7 @@ export default function WorkspaceHub() {
 
   if (!K) return <Navigate to="/workspace/docs" replace />
   if (authLoading) return null
-  if (!hasRole('manager')) return <Navigate to="/resources/handover" replace />
+  if (!hasRole('manager')) return <NoAccess kind="doc" hub />
 
   const open = (file) => {
     if (file.to) return navigate(file.to)
@@ -297,7 +304,7 @@ export default function WorkspaceHub() {
   }
 
   async function rename(file) {
-    const title = window.prompt('새 이름', file.title)
+    const title = await promptDialog({ title: '이름 바꾸기', label: '새 이름', defaultValue: file.title, confirmLabel: '바꾸기' })
     if (!title || !title.trim() || title === file.title) return
     try {
       if (kind === 'forms') await api.put(`/admin/forms/${file.id}`, { title_ko: title.trim() })
@@ -308,7 +315,7 @@ export default function WorkspaceHub() {
     }
   }
   async function remove(file) {
-    if (!window.confirm(`'${file.title}'을(를) 삭제할까요? 되돌릴 수 없습니다.`)) return
+    if (!(await confirmDialog({ title: '삭제', message: `'${file.title}'을(를) 삭제할까요? 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' }))) return
     try {
       if (kind === 'forms') await api.del(`/admin/forms/${file.id}`)
       else await api.del(`/workspace/files/${file.id}`)
@@ -321,7 +328,7 @@ export default function WorkspaceHub() {
   return (
     <div className="ws">
       <header className="ws-top">
-        <button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="기본 메뉴" onClick={() => setDrawer(true)}><Menu size={24} /></button>
+        <button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="기본 메뉴" onClick={() => setDrawer('open')}><Menu size={24} /></button>
         <Link to={K.path} className="ws-brand"><Icon size={40} /><span>{K.name}</span></Link>
         <label className="ws-search">
           <Search size={22} aria-hidden="true" />
@@ -330,21 +337,20 @@ export default function WorkspaceHub() {
         </label>
         <span className="ws-top__right">
           <WorkspaceToggle light />
-          <span className="ws-avatar" title={`${user?.name} (${user?.role})`}>{(user?.name || '?').slice(0, 1)}</span>
+          <AccountMenu size={40} />
         </span>
       </header>
 
-      {drawer && (
-        <div className="ws-drawer-wrap" onClick={() => setDrawer(false)}>
+      {drawer !== 'closed' && (
+        <div className={`ws-drawer-wrap is-${drawer}`} onClick={() => closeDrawer()}>
           <nav className="ws-drawer" onClick={(e) => e.stopPropagation()} aria-label="작업공간 메뉴">
-            <div className="ws-drawer__head"><button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="닫기" onClick={() => setDrawer(false)}><X size={24} /></button><strong>작업공간</strong></div>
+            <div className="ws-drawer__head"><button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="닫기" onClick={() => closeDrawer()}><X size={24} /></button><strong>작업공간</strong></div>
             {Object.values(KINDS).map((k) => {
               const I = ICONS[k.id]
-              return <Link key={k.id} to={k.path} onClick={() => setDrawer(false)} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
+              return <Link key={k.id} to={k.path} onClick={() => closeDrawer()} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
             })}
             <hr />
             <Link to="/admin" className="ws-drawer__item">관리 대시보드</Link>
-            <Link to="/resources/handover" className="ws-drawer__item">인수인계 문서 (자료실)</Link>
             <Link to="/" className="ws-drawer__item">사이트로 돌아가기</Link>
           </nav>
         </div>
