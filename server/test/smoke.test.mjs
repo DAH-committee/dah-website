@@ -170,7 +170,7 @@ test('(d) /auth/login 성공 → 쿠키 2개 세트 + /auth/me 200', async () =>
   assert.equal(me.body.user.email, 'owner@test.dev')
 })
 
-test('(e) must_set_pw 계정 최초 로그인 → 그 자리에서 비번 등록 + 즉시 로그인 (병합 플로우)', async () => {
+test('(e) 비밀번호 미설정 계정은 이메일만으로 가져갈 수 없다(로그인·설정 모두 거절, 저장 없음)', async () => {
   const userRow = { id: 3, email: 'newowner@test.dev', name: 'New Owner', role: 'owner', password_hash: null, must_set_pw: true }
   let updateCall = null
   const app = createApp({
@@ -183,24 +183,16 @@ test('(e) must_set_pw 계정 최초 로그인 → 그 자리에서 비번 등록
       return { rows: [] }
     }),
   })
-
-  const login = await request(app)
-    .post('/auth/login')
-    .send({ email: 'newowner@test.dev', password: 'whateverPw1' })
-  assert.equal(login.status, 200)
-  assert.equal(login.body.user.email, 'newowner@test.dev')
-
-  // 입력한 비밀번호가 그대로(별도 검증 없이) bcrypt 해시되어 저장 요청됐는지 확인
-  assert.ok(updateCall)
-  const storedHash = updateCall[0]
-  assert.ok(await bcrypt.compare('whateverPw1', storedHash))
-
-  const cookies = login.headers['set-cookie']
-  assert.ok(cookies.some((c) => c.startsWith('dah_access=') && c.includes('HttpOnly')))
-  assert.ok(cookies.some((c) => c.startsWith('dah_refresh=') && c.includes('HttpOnly')))
+  const login = await request(app).post('/auth/login').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
+  assert.equal(login.status, 403)
+  assert.equal(login.body.code, 'google_first')
+  const setup = await request(app).post('/auth/setup-password').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
+  assert.equal(setup.status, 401)
+  assert.equal(updateCall, null)
+  assert.ok(!(login.headers['set-cookie'] || []).some((c) => c.startsWith('dah_access=') && !c.includes('dah_access=;')))
 })
 
-test('(e-보강) 공개 Google 로그인은 DB에 없는 이메일을 새 public_users로 등록하지 않고 거부한다', async () => {
+test('(e-보강) 공개 Google 로그인: 한림대·초대 이메일이 아닌 계정은 제출 제한(ws_only)으로 등록되고 마무리 화면으로 간다', async () => {
   const originalFetch = globalThis.fetch
   const originalClientId = process.env.GOOGLE_CLIENT_ID
   const originalClientSecret = process.env.GOOGLE_CLIENT_SECRET
@@ -226,6 +218,8 @@ test('(e-보강) 공개 Google 로그인은 DB에 없는 이메일을 새 public
     db: mockDb((text, params) => {
       calls.push({ text, params })
       if (text.includes('FROM public_users')) return { rows: [] }
+      if (text.includes('INSERT INTO public_users')) return { rows: [{ id: 7, google_sub: params[0], email: params[1], name: params[2], ws_only: params[3] }] }
+      if (text.startsWith('UPDATE public_users')) return { rows: [{ id: 7, email: 'not-registered@example.com', name: '미등록 사용자', ws_only: true }] }
       return { rows: [] }
     }),
   })
@@ -233,10 +227,11 @@ test('(e-보강) 공개 Google 로그인은 DB에 없는 이메일을 새 public
 
   try {
     const response = await request(app).get(`/auth/google/callback?code=test-code&state=${state}`)
-    assert.equal(response.status, 403)
-    assert.equal(response.body.error, 'email is not registered')
-    assert.ok(calls.some((call) => call.text.includes('FROM public_users')))
-    assert.equal(calls.some((call) => call.text.includes('INSERT INTO public_users')), false)
+    assert.equal(response.status, 302)
+    assert.match(response.headers.location, /\/auth\/finish\?h=/)
+    const ins = calls.find((call) => call.text.includes('INSERT INTO public_users'))
+    assert.ok(ins)
+    assert.equal(ins.params[3], true) // ws_only: 전시회·쇼케이스 제출 불가
   } finally {
     globalThis.fetch = originalFetch
     if (originalClientId === undefined) delete process.env.GOOGLE_CLIENT_ID

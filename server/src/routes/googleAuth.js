@@ -108,7 +108,7 @@ router.post(
     usedHandoffs.set(p.jti, now + HANDOFF_TTL_SEC * 1000 + 5000)
     if (p.staffId) {
       const staff = (await query('SELECT id, email, name, role, must_set_pw FROM users WHERE id = $1', [p.staffId])).rows[0]
-      if (staff && !staff.must_set_pw) setAuthCookies(res, staff)
+      if (staff) setAuthCookies(res, staff)
     }
     if (p.pub) setPublicAuthCookies(res, p.pub)
     res.json({ ok: true })
@@ -219,7 +219,8 @@ router.get(
     // 1) 운영위원회·교수진(스태프) 계정과 같은 이메일이면 스태프로 로그인한다(프로필 사진을 함께 저장).
     const staff = (await query('SELECT id, email, name, role, must_set_pw FROM users WHERE lower(email) = $1', [email])).rows[0]
     let staffIn = false
-    if (staff && !staff.must_set_pw) {
+    // 구글이 이메일 주인임을 확인했으므로 비밀번호를 아직 안 정한 스태프도 로그인시킨다(비밀번호는 로그인 후 선택)
+    if (staff) {
       await query('UPDATE users SET picture = $1 WHERE id = $2', [picture, staff.id])
       setAuthCookies(res, staff)
       staffIn = true

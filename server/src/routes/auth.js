@@ -32,15 +32,15 @@ router.post(
     const user = rows[0]
     if (!user) return res.status(401).json({ error: 'invalid credentials' })
 
-    // 온보딩: 비밀번호 미설정 상태 → 입력값을 그대로 최초 비번으로 등록 후 즉시 로그인
+    // 비밀번호를 아직 정하지 않은 계정은 비밀번호로 로그인할 수 없다.
+    // (예전에는 처음 입력한 값을 비밀번호로 등록했는데, 그러면 이메일만 아는 사람이 계정을 가져갈 수 있었다.)
+    // 처음 로그인은 같은 이메일의 구글 계정으로 해서 이메일 주인임을 확인한다. 그 뒤 비밀번호를 정할 수 있다.
     if (user.must_set_pw || !user.password_hash) {
-      const hash = await bcrypt.hash(String(password), 10)
-      const updated = await query(
-        'UPDATE users SET password_hash = $1, must_set_pw = FALSE WHERE id = $2 RETURNING id, email, name, role',
-        [hash, user.id]
-      )
-      setAuthCookies(res, updated.rows[0])
-      return res.json({ user: publicUser(updated.rows[0]) })
+      return res.status(403).json({
+        error: 'password not set',
+        code: 'google_first',
+        hint: '처음 로그인은 이 이메일의 구글 계정으로 해 주세요. 로그인한 뒤 비밀번호를 정할 수 있습니다.',
+      })
     }
 
     const ok = await bcrypt.compare(password, user.password_hash)
@@ -51,12 +51,15 @@ router.post(
   })
 )
 
+// 비밀번호 설정: 이미 로그인한 본인(구글 로그인으로 이메일 확인됨)만 자기 계정에 정할 수 있다.
 router.post(
   '/setup-password',
+  requireAuth,
   wrap(async (req, res) => {
-    const email = normEmail(req.body?.email)
+    const email = normEmail(req.body?.email || req.user.email)
     const password = req.body?.password
-    if (!email || !password) return res.status(400).json({ error: 'email and password required' })
+    if (!password) return res.status(400).json({ error: 'password required' })
+    if (email !== normEmail(req.user.email)) return res.status(403).json({ error: '본인 계정의 비밀번호만 정할 수 있습니다' })
     if (String(password).length < MIN_PW_LENGTH) {
       return res.status(400).json({ error: `password must be at least ${MIN_PW_LENGTH} characters` })
     }

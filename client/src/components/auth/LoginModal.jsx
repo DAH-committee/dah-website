@@ -8,6 +8,7 @@ import { X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLoginModal } from '../../context/LoginModalContext'
 import { ErrorText, Field, Input, PrimaryButton } from '../admin/FormControls'
+import { startGoogleLogin } from '../common/AccountMenu'
 
 function LoginModal() {
   const { isOpen, closeLogin } = useLoginModal()
@@ -15,6 +16,7 @@ function LoginModal() {
   const panelRef = useRef(null)
 
   const [mode, setMode] = useState('login') // 'login' | 'setup'
+  const [googleFirst, setGoogleFirst] = useState(false) // 비밀번호를 아직 안 정한 계정: 구글 로그인으로 처음 들어와야 한다
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -87,7 +89,13 @@ function LoginModal() {
         closeLogin()
       }
     } catch (err) {
-      setError(err.hint ? `${err.message} (${err.hint})` : err.message)
+      if (err.body?.code === 'google_first') {
+        setGoogleFirst(true)
+        setError(err.hint)
+      } else {
+        setGoogleFirst(false)
+        setError(err.hint ? `${err.message} (${err.hint})` : err.message)
+      }
     } finally {
       setBusy(false)
     }
@@ -162,7 +170,7 @@ function LoginModal() {
               <Input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setGoogleFirst(false) }}
                 autoComplete="email"
                 required
               />
@@ -177,9 +185,15 @@ function LoginModal() {
               />
             </Field>
             <ErrorText>{error}</ErrorText>
-            <PrimaryButton type="submit" disabled={busy || !canLogin} className="w-full">
-              {busy ? '확인 중' : '로그인'}
-            </PrimaryButton>
+            {googleFirst ? (
+              <PrimaryButton type="button" className="w-full" onClick={() => startGoogleLogin(email)}>
+                구글 계정으로 로그인
+              </PrimaryButton>
+            ) : (
+              <PrimaryButton type="submit" disabled={busy || !canLogin} className="w-full">
+                {busy ? '확인 중' : '로그인'}
+              </PrimaryButton>
+            )}
           </form>
         ) : (
           <form onSubmit={handleSetup} className="mt-24 flex flex-col gap-16">
