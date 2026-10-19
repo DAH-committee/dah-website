@@ -4,6 +4,7 @@
 // manager: manager만 등록·초기화, 삭제 불가 / admin: manager·admin 등록·초기화·삭제 / owner: 전체.
 // 접수 현황(admin+): GET /admin/exhibition/entries — exhibition_entries 목록 (pw_hash 제외).
 import { Router } from 'express'
+import bcrypt from 'bcrypt'
 import { query } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { wrap } from './content.js'
@@ -12,6 +13,19 @@ const router = Router()
 
 const ROLES = ['manager', 'admin', 'owner']
 const USER_COLS = 'id, email, name, role, must_set_pw, created_at'
+
+// 첫 비밀번호(선택): 등록·리셋하는 관리자가 직접 정해 주면 구글 계정 없이 이메일+비밀번호로 바로 로그인한다.
+// 비워 두면 예전처럼 대상자가 같은 이메일의 구글 계정으로 처음 로그인해 본인 확인 뒤 비밀번호를 정한다.
+// 이메일만 아는 사람이 먼저 비밀번호를 정해 계정을 가져가는 구멍(a98d5ae)은 다시 열지 않는다.
+const MIN_PW_LENGTH = 8
+
+function readInitialPassword(body) {
+  const raw = body?.password
+  if (raw === undefined || raw === null || raw === '') return { password: null }
+  const password = String(raw)
+  if (password.length < MIN_PW_LENGTH) return { error: `password must be at least ${MIN_PW_LENGTH} characters` }
+  return { password }
+}
 
 function manageableRoles(user) {
   if (user.role === 'owner') return ROLES
@@ -52,11 +66,14 @@ router.post(
     if (!canManageRole(req.user, role)) {
       return res.status(403).json({ error: 'cannot create this role', allowed: manageableRoles(req.user) })
     }
+    const initial = readInitialPassword(req.body)
+    if (initial.error) return res.status(400).json({ error: initial.error })
     try {
+      const hash = initial.password ? await bcrypt.hash(initial.password, 10) : null
       const { rows } = await query(
-        `INSERT INTO users (email, name, role, must_set_pw) VALUES ($1, $2, $3, TRUE)
+        `INSERT INTO users (email, name, role, password_hash, must_set_pw) VALUES ($1, $2, $3, $4, $5)
          RETURNING ${USER_COLS}`,
-        [email, name, role]
+        [email, name, role, hash, !hash]
       )
       res.status(201).json({ item: rows[0] })
     } catch (err) {
@@ -67,6 +84,7 @@ router.post(
 )
 
 // 이름·롤 변경 + 리셋 플래그(reset: true → must_set_pw=TRUE, password_hash=NULL)
+// password를 함께 보내면 리셋 대신 그 값으로 비밀번호를 바로 지정한다(구글 계정 없이 로그인).
 router.put(
   '/admin/users/:id',
   requireAuth,
@@ -75,11 +93,13 @@ router.put(
     const id = parseInt(req.params.id, 10)
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid id' })
     const { name, role, reset } = req.body || {}
+    const initial = readInitialPassword(req.body)
+    if (initial.error) return res.status(400).json({ error: initial.error })
     if (role !== undefined && !ROLES.includes(role)) {
       return res.status(400).json({ error: 'invalid role', allowed: ROLES })
     }
     // 자기 계정 롤 강등·리셋 방지 — owner 부재 상태 차단
-    if (id === req.user.id && (role !== undefined || reset)) {
+    if (id === req.user.id && (role !== undefined || reset || initial.password)) {
       return res.status(400).json({ error: 'cannot change own role or reset own password' })
     }
 
@@ -103,7 +123,10 @@ router.put(
       params.push(role)
       sets.push(`role = $${params.length}`)
     }
-    if (reset) sets.push('must_set_pw = TRUE', 'password_hash = NULL')
+    if (initial.password) {
+      params.push(await bcrypt.hash(initial.password, 10))
+      sets.push(`password_hash = $${params.length}`, 'must_set_pw = FALSE')
+    } else if (reset) sets.push('must_set_pw = TRUE', 'password_hash = NULL')
     if (sets.length === 0) return res.status(400).json({ error: 'empty body' })
 
     params.push(id)

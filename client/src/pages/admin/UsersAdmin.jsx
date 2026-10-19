@@ -3,7 +3,7 @@
 // API: /admin/users (server/src/routes/adminExtra.js — 8절 계약 외 확장)
 
 import { useState } from 'react'
-import { KeyRound, Plus, Trash2 } from 'lucide-react'
+import { KeyRound, LockKeyhole, Plus, Trash2 } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { useAuth } from '../../context/AuthContext'
@@ -16,7 +16,7 @@ import {
   PrimaryButton,
   Select,
 } from '../../components/admin/FormControls'
-import { confirmDialog } from '../../components/common/AppDialog'
+import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
 
 const ICON_BTN =
   'flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-sec transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-default disabled:opacity-40 md:h-32 md:w-32'
@@ -38,11 +38,12 @@ function UsersAdmin() {
   const { user: me } = useAuth()
   const { data, loading, error, refetch } = useApi('/admin/users')
 
-  const [form, setForm] = useState({ email: '', name: '', role: 'manager' })
+  const [form, setForm] = useState({ email: '', name: '', role: 'manager', password: '' })
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState(null)
   const [listError, setListError] = useState(null)
-  const canCreate = Boolean(form.email.trim() && form.name.trim())
+  const pwTooShort = form.password.length > 0 && form.password.length < 8
+  const canCreate = Boolean(form.email.trim() && form.name.trim()) && !pwTooShort
 
   // 서버가 owner 이외 역할에 owner 행을 보내지 않는다. 구 배포 서버나 캐시 응답이 남아도
   // 화면에서는 한 번 더 방어해 교수님용 admin/manager 화면에 owner가 보이지 않게 한다.
@@ -56,8 +57,9 @@ function UsersAdmin() {
     setBusy(true)
     setFormError(null)
     try {
-      await api.post('/admin/users', form)
-      setForm({ email: '', name: '', role: 'manager' })
+      const { password, ...rest } = form
+      await api.post('/admin/users', password ? { ...rest, password } : rest)
+      setForm({ email: '', name: '', role: 'manager', password: '' })
       refetch()
     } catch (err) {
       setFormError(err.hint ? `${err.message} (${err.hint})` : err.message)
@@ -88,6 +90,29 @@ function UsersAdmin() {
     }
   }
 
+  // 비밀번호 직접 지정 — 구글 계정 없이 이메일+비밀번호로 바로 로그인하게 한다. 지정한 값은 본인에게 따로 전달.
+  const setPassword = async (item) => {
+    const pw = await promptDialog({
+      title: '비밀번호 지정',
+      message: `${item.email} 계정의 비밀번호를 정합니다. 구글 계정 없이 이 비밀번호로 바로 로그인할 수 있습니다. 정한 비밀번호는 본인에게 따로 전달하세요.`,
+      label: '비밀번호 (8자 이상)',
+      confirmLabel: '지정',
+    })
+    if (pw === null) return
+    if (String(pw).length < 8) {
+      await alertDialog({ message: '비밀번호는 8자 이상이어야 합니다.' })
+      return
+    }
+    setListError(null)
+    try {
+      await api.put(`/admin/users/${item.id}`, { password: pw })
+      refetch()
+      await alertDialog({ message: `${item.email} 계정의 비밀번호를 지정했습니다.` })
+    } catch (err) {
+      setListError(err.message)
+    }
+  }
+
   const remove = async (item) => {
     if (!await confirmDialog({ message: `${item.email} 계정을 삭제하시겠습니까? 되돌릴 수 없습니다.`, tone: 'danger', confirmLabel: '삭제' })) return
     setListError(null)
@@ -103,7 +128,7 @@ function UsersAdmin() {
     <section className="flex flex-col gap-24">
       <PageHead
         title="사용자"
-        desc="이메일·롤을 등록하면 대상자는 첫 로그인에서 비밀번호를 설정합니다."
+        desc="첫 비밀번호를 함께 정해 등록하면 대상자는 구글 계정 없이 이메일과 그 비밀번호로 바로 로그인합니다. 비워 두면 같은 이메일의 구글 계정으로 처음 로그인한 뒤 비밀번호를 정합니다."
       />
 
       {/* 등록 폼 */}
@@ -112,7 +137,7 @@ function UsersAdmin() {
         className="flex flex-col gap-16 rounded-glass border border-glass-line bg-glass-bg p-24 backdrop-blur-glass-mobile"
       >
         <h3 className="text-h3-m font-bold text-text-pri md:text-h3-d">계정 등록</h3>
-        <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-4">
           <Field label="이메일">
             <Input
               type="email"
@@ -135,7 +160,17 @@ function UsersAdmin() {
               options={roleOptions}
             />
           </Field>
+          <Field label="첫 비밀번호 (선택, 8자 이상)">
+            <Input
+              type="text"
+              autoComplete="new-password"
+              value={form.password}
+              onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+              placeholder="비우면 구글 로그인으로 시작"
+            />
+          </Field>
         </div>
+        {pwTooShort && <ErrorText>비밀번호는 8자 이상이어야 합니다.</ErrorText>}
         <ErrorText>{formError}</ErrorText>
         <div>
           <PrimaryButton type="submit" disabled={busy || !canCreate}>
@@ -199,6 +234,16 @@ function UsersAdmin() {
                     className={ICON_BTN}
                   >
                     <KeyRound size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPassword(item)}
+                    disabled={!canManage}
+                    aria-label={`${item.email} 비밀번호 지정`}
+                    title="비밀번호 지정 (구글 없이 로그인)"
+                    className={ICON_BTN}
+                  >
+                    <LockKeyhole size={16} />
                   </button>
                   <button
                     type="button"

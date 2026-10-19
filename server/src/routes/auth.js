@@ -39,7 +39,7 @@ router.post(
       return res.status(403).json({
         error: 'password not set',
         code: 'google_first',
-        hint: '처음 로그인은 이 이메일의 구글 계정으로 해 주세요. 로그인한 뒤 비밀번호를 정할 수 있습니다.',
+        hint: '아직 비밀번호가 없는 계정입니다. 이 이메일의 구글 계정으로 처음 로그인하거나, 사용자 관리 화면에서 관리자에게 비밀번호 지정을 요청하세요.',
       })
     }
 

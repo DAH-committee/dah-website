@@ -386,3 +386,43 @@ test('(i) manager는 manager만 등록·초기화하고 사용자 삭제는 할 
     .set('Cookie', accessCookie(manager))
   assert.equal(removeManager.status, 403)
 })
+
+test('(i-2) manager가 첫 비밀번호를 정해 등록하면 구글 없이 바로 로그인할 수 있는 상태로 저장된다', async () => {
+  const manager = { id: 9, email: 'm@x.com', name: '매니저', role: 'manager' }
+  const calls = []
+  const app = createApp({
+    db: mockDb((text, params) => {
+      calls.push({ text, params })
+      if (text.startsWith('INSERT INTO users')) {
+        return { rows: [{ id: 11, email: params[0], name: params[1], role: params[2], must_set_pw: params[4] }] }
+      }
+      if (text.startsWith('SELECT id, email, name, role, must_set_pw, created_at FROM users WHERE id')) {
+        return { rows: [{ id: 11, email: 'pw@x.com', name: '비번 매니저', role: 'manager', must_set_pw: true }] }
+      }
+      if (text.startsWith('UPDATE users SET')) {
+        return { rows: [{ id: 11, email: 'pw@x.com', name: '비번 매니저', role: 'manager', must_set_pw: false }] }
+      }
+      return { rows: [] }
+    }),
+  })
+  const short = await request(app).post('/admin/users').set('Cookie', accessCookie(manager))
+    .send({ email: 'pw@x.com', name: '비번 매니저', role: 'manager', password: 'short' })
+  assert.equal(short.status, 400)
+
+  const created = await request(app).post('/admin/users').set('Cookie', accessCookie(manager))
+    .send({ email: 'pw@x.com', name: '비번 매니저', role: 'manager', password: 'longenough1' })
+  assert.equal(created.status, 201)
+  const ins = calls.find((c) => c.text.startsWith('INSERT INTO users'))
+  assert.ok(ins.params[3] && ins.params[3] !== 'longenough1', '비밀번호는 해시로 저장')
+  assert.equal(ins.params[4], false)
+
+  const setPw = await request(app).put('/admin/users/11').set('Cookie', accessCookie(manager))
+    .send({ password: 'anotherpass1' })
+  assert.equal(setPw.status, 200)
+  const upd = calls.find((c) => c.text.startsWith('UPDATE users SET'))
+  assert.match(upd.text, /must_set_pw = FALSE/)
+
+  const self = await request(app).put('/admin/users/9').set('Cookie', accessCookie(manager))
+    .send({ password: 'anotherpass1' })
+  assert.equal(self.status, 400)
+})
