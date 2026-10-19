@@ -171,7 +171,7 @@ test('(d) /auth/login 성공 → 쿠키 2개 세트 + /auth/me 200', async () =>
 })
 
 test('(e) 비밀번호 미설정 계정은 처음 로그인에서 입력한 비밀번호(8자 이상)가 그대로 등록되고 바로 로그인된다', async () => {
-  const userRow = { id: 3, email: 'newowner@test.dev', name: 'New Owner', role: 'owner', password_hash: null, must_set_pw: true }
+  const userRow = { id: 3, email: 'newowner@test.dev', name: 'New Owner', role: 'admin', password_hash: null, must_set_pw: true }
   let updateCall = null
   const app = createApp({
     db: mockDb((text, params) => {
@@ -193,6 +193,14 @@ test('(e) 비밀번호 미설정 계정은 처음 로그인에서 입력한 비�
   assert.equal(login.body.first_login, true)
   assert.ok(updateCall && updateCall[0] !== 'whateverPw1', '해시로 저장')
   assert.ok((login.headers['set-cookie'] || []).some((c) => c.startsWith('dah_access=')))
+
+  // 오너 계정은 이메일만으로 가져갈 수 없다
+  userRow.role = 'owner'
+  updateCall = null
+  const owner = await request(app).post('/auth/login').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
+  assert.equal(owner.status, 403)
+  assert.equal(owner.body.code, 'google_first')
+  assert.equal(updateCall, null)
 })
 
 test('(e-보강) 공개 Google 로그인: 한림대·초대 이메일이 아닌 계정은 제출 제한(ws_only)으로 등록되고 마무리 화면으로 간다', async () => {

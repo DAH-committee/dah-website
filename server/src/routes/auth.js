@@ -36,6 +36,14 @@ router.post(
     // 그대로 이 계정의 비밀번호로 정하고 바로 로그인시킨다. 구글 로그인은 필요 없다.
     // 등록만 해 두고 오래 방치하면 이메일을 아는 다른 사람이 먼저 정할 수 있으므로, 등록 뒤 바로 본인에게 알린다.
     if (user.must_set_pw || !user.password_hash) {
+      // 오너 계정은 이 방식에서 제외한다. 이메일만 아는 사람이 오너 권한을 가져가지 못하게 구글 로그인으로만 처음 들어온다.
+      if (user.role === 'owner') {
+        return res.status(403).json({
+          error: 'password not set',
+          code: 'google_first',
+          hint: '오너 계정은 처음 로그인을 이 이메일의 구글 계정으로 해 주세요.',
+        })
+      }
       if (String(password).length < MIN_PW_LENGTH) {
         return res.status(400).json({
           error: 'first password too short',
