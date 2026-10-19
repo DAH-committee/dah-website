@@ -32,15 +32,24 @@ router.post(
     const user = rows[0]
     if (!user) return res.status(401).json({ error: 'invalid credentials' })
 
-    // 비밀번호를 아직 정하지 않은 계정은 비밀번호로 로그인할 수 없다.
-    // (예전에는 처음 입력한 값을 비밀번호로 등록했는데, 그러면 이메일만 아는 사람이 계정을 가져갈 수 있었다.)
-    // 처음 로그인은 같은 이메일의 구글 계정으로 해서 이메일 주인임을 확인한다. 그 뒤 비밀번호를 정할 수 있다.
+    // 비밀번호를 아직 정하지 않은 계정(관리자가 이메일만 등록한 계정): 처음 로그인할 때 입력한 값을
+    // 그대로 이 계정의 비밀번호로 정하고 바로 로그인시킨다. 구글 로그인은 필요 없다.
+    // 등록만 해 두고 오래 방치하면 이메일을 아는 다른 사람이 먼저 정할 수 있으므로, 등록 뒤 바로 본인에게 알린다.
     if (user.must_set_pw || !user.password_hash) {
-      return res.status(403).json({
-        error: 'password not set',
-        code: 'google_first',
-        hint: '아직 비밀번호가 없는 계정입니다. 이 이메일의 구글 계정으로 처음 로그인하거나, 사용자 관리 화면에서 관리자에게 비밀번호 지정을 요청하세요.',
-      })
+      if (String(password).length < MIN_PW_LENGTH) {
+        return res.status(400).json({
+          error: 'first password too short',
+          code: 'first_password',
+          hint: `처음 로그인입니다. 앞으로 쓸 비밀번호를 ${MIN_PW_LENGTH}자 이상으로 입력하세요. 지금 입력한 값이 이 계정의 비밀번호가 됩니다.`,
+        })
+      }
+      const hash = await bcrypt.hash(String(password), 10)
+      const updated = await query(
+        'UPDATE users SET password_hash = $1, must_set_pw = FALSE WHERE id = $2 RETURNING id, email, name, role',
+        [hash, user.id]
+      )
+      setAuthCookies(res, updated.rows[0])
+      return res.json({ user: publicUser(updated.rows[0]), first_login: true })
     }
 
     const ok = await bcrypt.compare(password, user.password_hash)

@@ -128,7 +128,7 @@ function UsersAdmin() {
     <section className="flex flex-col gap-24">
       <PageHead
         title="사용자"
-        desc="첫 비밀번호를 함께 정해 등록하면 대상자는 구글 계정 없이 이메일과 그 비밀번호로 바로 로그인합니다. 비워 두면 같은 이메일의 구글 계정으로 처음 로그인한 뒤 비밀번호를 정합니다."
+        desc="이메일만 등록하면 대상자가 처음 로그인할 때 입력한 비밀번호(8자 이상)가 그대로 그 계정의 비밀번호가 됩니다. 구글 로그인은 필요 없습니다. 첫 비밀번호를 여기서 미리 정해 줄 수도 있습니다."
       />
 
       {/* 등록 폼 */}
@@ -166,7 +166,7 @@ function UsersAdmin() {
               autoComplete="new-password"
               value={form.password}
               onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-              placeholder="비우면 구글 로그인으로 시작"
+              placeholder="비우면 본인이 첫 로그인 때 정함"
             />
           </Field>
         </div>

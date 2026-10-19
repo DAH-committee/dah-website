@@ -170,7 +170,7 @@ test('(d) /auth/login 성공 → 쿠키 2개 세트 + /auth/me 200', async () =>
   assert.equal(me.body.user.email, 'owner@test.dev')
 })
 
-test('(e) 비밀번호 미설정 계정은 이메일만으로 가져갈 수 없다(로그인·설정 모두 거절, 저장 없음)', async () => {
+test('(e) 비밀번호 미설정 계정은 처음 로그인에서 입력한 비밀번호(8자 이상)가 그대로 등록되고 바로 로그인된다', async () => {
   const userRow = { id: 3, email: 'newowner@test.dev', name: 'New Owner', role: 'owner', password_hash: null, must_set_pw: true }
   let updateCall = null
   const app = createApp({
@@ -183,13 +183,16 @@ test('(e) 비밀번호 미설정 계정은 이메일만으로 가져갈 수 없�
       return { rows: [] }
     }),
   })
-  const login = await request(app).post('/auth/login').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
-  assert.equal(login.status, 403)
-  assert.equal(login.body.code, 'google_first')
-  const setup = await request(app).post('/auth/setup-password').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
-  assert.equal(setup.status, 401)
+  const short = await request(app).post('/auth/login').send({ email: 'newowner@test.dev', password: 'short' })
+  assert.equal(short.status, 400)
+  assert.equal(short.body.code, 'first_password')
   assert.equal(updateCall, null)
-  assert.ok(!(login.headers['set-cookie'] || []).some((c) => c.startsWith('dah_access=') && !c.includes('dah_access=;')))
+
+  const login = await request(app).post('/auth/login').send({ email: 'newowner@test.dev', password: 'whateverPw1' })
+  assert.equal(login.status, 200)
+  assert.equal(login.body.first_login, true)
+  assert.ok(updateCall && updateCall[0] !== 'whateverPw1', '해시로 저장')
+  assert.ok((login.headers['set-cookie'] || []).some((c) => c.startsWith('dah_access=')))
 })
 
 test('(e-보강) 공개 Google 로그인: 한림대·초대 이메일이 아닌 계정은 제출 제한(ws_only)으로 등록되고 마무리 화면으로 간다', async () => {

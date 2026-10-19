@@ -89,7 +89,10 @@ function LoginModal() {
         closeLogin()
       }
     } catch (err) {
-      if (err.body?.code === 'google_first') {
+      if (err.body?.code === 'first_password') {
+        setGoogleFirst(false)
+        setError(err.hint)
+      } else if (err.body?.code === 'google_first') {
         setGoogleFirst(true)
         setError(err.hint)
       } else {
