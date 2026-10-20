@@ -6,6 +6,7 @@
 //   POST   /admin/sheets/export-google          표를 연결된 드라이브에 구글 시트로 만들기
 // 접수 전체 초기화(DELETE /admin/exhibition/entries, owner)는 adminExtra.js에 그대로 있다.
 import { Router } from 'express'
+import { syncEntryToDrive } from '../lib/exhibitionPipeline.js'
 import { query } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { wrap } from './content.js'
@@ -98,7 +99,15 @@ router.post(
     const ids = Array.isArray(req.body?.ids) ? [...new Set(req.body.ids.map((v) => parseInt(v, 10)))] : []
     if (!ids.length || ids.some((v) => !Number.isInteger(v))) return res.status(400).json({ error: 'ids required' })
     if (ids.length > MAX_DELETE) return res.status(400).json({ error: `at most ${MAX_DELETE} rows at once` })
+    // 지운 접수의 원본은 드라이브에서도 빼야 인쇄용 폴더에 섞이지 않는다. 시상 기록도 같이 지운다
+    await query(
+      `UPDATE form_file_uploads SET status = 'detached', updated_at = now()
+        WHERE form_id IS NULL AND field_id = 'exhibition_original' AND status = 'attached' AND response_id = ANY($1::int[])`,
+      [ids]
+    )
+    await query('DELETE FROM exhibition_awards WHERE entry_id = ANY($1::int[])', [ids])
     const result = await query('DELETE FROM exhibition_entries WHERE id = ANY($1::int[])', [ids])
+    for (const id of ids) syncEntryToDrive(id).catch((err) => console.error('[entries/delete] 드라이브 정리 대기:', err.message))
     res.json({ ok: true, deleted: result.rowCount ?? 0 })
   })
 )
