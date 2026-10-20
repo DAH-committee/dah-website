@@ -82,6 +82,50 @@ export function randomPart() {
   return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
 }
 
+// ── 스키마 (서버 부팅 시 멱등 적용, scripts/migrate-exhibit-auto.mjs와 공유) ──
+
+export const EXHIBIT_AUTO_SCHEMA = [
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS blob_url TEXT',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_url TEXT',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_meta JSONB',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_status TEXT',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_error TEXT',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_url TEXT',
+  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_kind TEXT',
+  'CREATE INDEX IF NOT EXISTS idx_form_file_uploads_drive ON form_file_uploads (drive_status) WHERE drive_status IS NOT NULL',
+  `CREATE TABLE IF NOT EXISTS exhibition_awards (
+     id             SERIAL PRIMARY KEY,
+     semester_label TEXT NOT NULL,
+     rank           TEXT NOT NULL CHECK (rank IN ('grand','excellence')),
+     slot           INTEGER NOT NULL DEFAULT 0,
+     entry_id       INTEGER NOT NULL,
+     course         TEXT NOT NULL,
+     created_by     TEXT,
+     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_course ON exhibition_awards (semester_label, course)',
+  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_slot ON exhibition_awards (semester_label, rank, slot)',
+  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_entry ON exhibition_awards (semester_label, entry_id)',
+  `CREATE TABLE IF NOT EXISTS exhibition_rubrics (
+     id             SERIAL PRIMARY KEY,
+     semester_label TEXT NOT NULL,
+     course         TEXT NOT NULL,
+     sheet_id       TEXT,
+     sheet_url      TEXT,
+     folder_id      TEXT,
+     folder_url     TEXT,
+     entry_ids      JSONB NOT NULL DEFAULT '[]',
+     shared_with    JSONB NOT NULL DEFAULT '[]',
+     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE INDEX IF NOT EXISTS idx_exhibition_rubrics_sem ON exhibition_rubrics (semester_label, course)',
+]
+
+export async function ensureExhibitAutoSchema() {
+  for (const s of EXHIBIT_AUTO_SCHEMA) await query(s)
+}
+
 // ── 접수 정보 ───────────────────────────────────────────────
 
 /** 참가자 목록. 개인은 1명, 팀은 members */

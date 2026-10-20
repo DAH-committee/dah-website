@@ -18,43 +18,7 @@ const pool = new pg.Pool({
   ssl: /localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL) ? false : { rejectUnauthorized: false },
 })
 
-export const STATEMENTS = [
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS blob_url TEXT',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_url TEXT',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_meta JSONB',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_status TEXT',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_error TEXT',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_url TEXT',
-  'ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_kind TEXT',
-  'CREATE INDEX IF NOT EXISTS idx_form_file_uploads_drive ON form_file_uploads (drive_status) WHERE drive_status IS NOT NULL',
-  `CREATE TABLE IF NOT EXISTS exhibition_awards (
-     id             SERIAL PRIMARY KEY,
-     semester_label TEXT NOT NULL,
-     rank           TEXT NOT NULL CHECK (rank IN ('grand','excellence')),
-     slot           INTEGER NOT NULL DEFAULT 0,
-     entry_id       INTEGER NOT NULL,
-     course         TEXT NOT NULL,
-     created_by     TEXT,
-     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
-   )`,
-  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_course ON exhibition_awards (semester_label, course)',
-  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_slot ON exhibition_awards (semester_label, rank, slot)',
-  'CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_entry ON exhibition_awards (semester_label, entry_id)',
-  `CREATE TABLE IF NOT EXISTS exhibition_rubrics (
-     id             SERIAL PRIMARY KEY,
-     semester_label TEXT NOT NULL,
-     course         TEXT NOT NULL,
-     sheet_id       TEXT,
-     sheet_url      TEXT,
-     folder_id      TEXT,
-     folder_url     TEXT,
-     entry_ids      JSONB NOT NULL DEFAULT '[]',
-     shared_with    JSONB NOT NULL DEFAULT '[]',
-     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-     updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
-   )`,
-  'CREATE INDEX IF NOT EXISTS idx_exhibition_rubrics_sem ON exhibition_rubrics (semester_label, course)',
-]
+import { EXHIBIT_AUTO_SCHEMA as STATEMENTS } from '../src/lib/exhibitionPipeline.js'
 
 async function main() {
   const client = await pool.connect()
