@@ -117,9 +117,12 @@ router.post(
 
 // 큰 파일 업로드용 임시 토큰(10분). 로그인한 사람만 받는다. 설명은 middleware/uploadToken.js
 router.post('/upload-token', optionalAuth, optionalPublicAuth, (req, res) => {
-  if (req.user) return res.json({ token: signUploadToken({ staff: { id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role } }), expiresIn: 600 })
-  if (req.publicUser) return res.json({ token: signUploadToken({ pub: { id: req.publicUser.id, email: req.publicUser.email, name: req.publicUser.name, wsOnly: req.publicUser.wsOnly } }), expiresIn: 600 })
-  res.status(401).json({ error: 'login required' })
+  // 관리자이면서 학생으로 출품하는 사람도 있으므로 두 세션이 모두 있으면 둘 다 담는다
+  const payload = {}
+  if (req.user) payload.staff = { id: req.user.id, email: req.user.email, name: req.user.name, role: req.user.role }
+  if (req.publicUser) payload.pub = { id: req.publicUser.id, email: req.publicUser.email, name: req.publicUser.name, wsOnly: req.publicUser.wsOnly }
+  if (!payload.staff && !payload.pub) return res.status(401).json({ error: 'login required' })
+  res.json({ token: signUploadToken(payload), expiresIn: 600 })
 })
 
 router.get('/google/login', (req, res) => {

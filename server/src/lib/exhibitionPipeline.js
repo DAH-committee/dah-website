@@ -4,8 +4,8 @@
 //   1) 업로드: 원본은 사이트 저장소(Vercel Blob)에 그대로 보관하고, 이미지는 전시 사이트용 WebP와 대표색을 만든다.
 //      드라이브 연결이 없거나 느려도 학생 접수는 막히지 않는다.
 //   2) 제출·수정 후: 원본을 구글 드라이브로 복사한다.
-//        학기 / 인쇄용 PDF / [과목] 작품명 - 대표(학번).pdf      ← PDF는 인쇄용이라 한 폴더에 모은다
-//        학기 / 채점용 PNG / 과목 / 작품명 - 대표(학번).png    ← 이미지는 채점을 위해 과목별로 나눈다
+//        저장소 루트 / 인쇄용 PDF / [과목] 작품명 - 대표(학번).pdf      ← PDF는 인쇄용이라 한 폴더에 모은다
+//        저장소 루트 / 채점용 PNG / 과목 / 작품명 - 대표(학번).png    ← 이미지는 채점을 위해 과목별로 나눈다
 //      실패하거나 연결이 없으면 queued·error로 남고, 자동 작업이 다시 보낸다.
 //   3) 수정 마감 뒤: 과목별 채점기준표 구글 시트를 각 과목 PNG 폴더에 만들고, 교수님께 폴더(보기)와 시트(편집)를 공유한다.
 import crypto from 'node:crypto'
@@ -165,12 +165,12 @@ export function driveFileName(entry, upload, kind, index, total) {
   return `${cleanFileBase(base)}${total > 1 ? `_${index + 1}` : ''}.${ext}`
 }
 
+// 전시회 저장소의 루트 폴더가 이미 학기별(예: '26-2 전공 프로젝트 전시회')이라 학기 폴더를 따로 만들지 않는다
 export function driveSegments(entry, kind) {
-  const sem = entry?.semester_label || '학기미정'
   const course = String(entry?.fields?.course || '과목없음').trim()
-  if (kind === 'pdf') return [sem, PRINT_FOLDER]
-  if (kind === 'image') return [sem, GRADE_FOLDER, course]
-  return [sem, OTHER_FOLDER, course]
+  if (kind === 'pdf') return [PRINT_FOLDER]
+  if (kind === 'image') return [GRADE_FOLDER, course]
+  return [OTHER_FOLDER, course]
 }
 
 // ── 설정 ────────────────────────────────────────────────────
@@ -422,7 +422,7 @@ export async function buildRubrics({ semester, force = false, target: injected, 
       skipped.push(course)
       continue
     }
-    const { folderId } = await ensurePath({ connection: target.connection, rootFolderId: target.rootFolderId, segments: [semester, GRADE_FOLDER, course], drive })
+    const { folderId } = await ensurePath({ connection: target.connection, rootFolderId: target.rootFolderId, segments: [GRADE_FOLDER, course], drive })
     const folderUrl = folderUrlOf(folderId)
     const sheet = await createGoogleSheet({ drive, name: `${semester} ${course} 채점기준표`, values: rubricValues({ course, entries: list, folderUrl }), parentId: folderId })
     await query(
@@ -434,7 +434,7 @@ export async function buildRubrics({ semester, force = false, target: injected, 
   }
   let master = null
   if (groups.length && (created.length || force || !existing.has(MASTER_COURSE))) {
-    const { folderId } = await ensurePath({ connection: target.connection, rootFolderId: target.rootFolderId, segments: [semester], drive })
+    const folderId = target.rootFolderId
     const sheet = await createGoogleSheet({ drive, name: `${semester} 전체 채점기준표`, values: masterRubricValues(groups), parentId: folderId })
     await query(
       `INSERT INTO exhibition_rubrics (semester_label, course, sheet_id, sheet_url, folder_id, folder_url, entry_ids)

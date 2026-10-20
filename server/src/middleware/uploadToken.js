@@ -15,14 +15,14 @@ export function signUploadToken({ staff, pub }) {
 
 /** 쿠키로 신원이 안 잡힌 요청에서만 Bearer 업로드 토큰을 신원으로 쓴다 */
 export function uploadTokenAuth(req, res, next) {
-  if (req.user || req.publicUser) return next()
+  if (req.user && req.publicUser) return next()
   const m = /^Bearer (.+)$/.exec(req.get('authorization') || '')
   if (!m) return next()
   try {
     const p = jwt.verify(m[1], jwtSecret())
     if (p.typ === 'upload') {
-      if (p.staff) req.user = { id: p.staff.id, email: p.staff.email, name: p.staff.name, role: p.staff.role }
-      else if (p.pub) req.publicUser = { id: p.pub.id, email: p.pub.email, name: p.pub.name, wsOnly: Boolean(p.pub.wsOnly) }
+      if (p.staff && !req.user) req.user = { id: p.staff.id, email: p.staff.email, name: p.staff.name, role: p.staff.role }
+      if (p.pub && !req.publicUser) req.publicUser = { id: p.pub.id, email: p.pub.email, name: p.pub.name, wsOnly: Boolean(p.pub.wsOnly) }
     }
   } catch {
     /* 만료·위조 → 비로그인으로 취급 */

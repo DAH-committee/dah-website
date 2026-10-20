@@ -11,9 +11,9 @@ import { sanitizeLinks } from '../src/routes/submit.js'
 const solo = { id: 1, semester_label: '2026-2', entry_type: 'solo', fields: { name: '주현호', student_no: '20222583', major: '디지털인문예술전공', course: 'UI 디자인', work_title: '별자리/지도' } }
 const team = { id: 2, semester_label: '2026-2', entry_type: 'team', fields: { team_name: '올리브영은영', members: [{ name: '김서영', student_no: '20256603', major: 'X' }, { name: '최은영', student_no: '1', major: 'Y' }], course: '서비스 디자인', work_title: '맨즈에딧' } }
 
-test('PDF는 학기/인쇄용 PDF 한 폴더, 이미지는 학기/채점용 PNG/과목', () => {
-  assert.deepEqual(driveSegments(solo, 'pdf'), ['2026-2', PRINT_FOLDER])
-  assert.deepEqual(driveSegments(solo, 'image'), ['2026-2', GRADE_FOLDER, 'UI 디자인'])
+test('PDF는 인쇄용 PDF 한 폴더, 이미지는 채점용 PNG/과목', () => {
+  assert.deepEqual(driveSegments(solo, 'pdf'), [PRINT_FOLDER])
+  assert.deepEqual(driveSegments(solo, 'image'), [GRADE_FOLDER, 'UI 디자인'])
   assert.equal(fileKind('a.PDF'), 'pdf')
   assert.equal(fileKind('a.png'), 'image')
   assert.equal(fileKind('scan', 'image/jpeg'), 'image')
