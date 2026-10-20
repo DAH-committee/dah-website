@@ -1,25 +1,68 @@
-/* 운영위원회 구성원 관리: 작업공간과 같은 밝은 작업면. 테두리 없음, 입력칸은 흰 바탕 */
+/* 팀 관리: 워크스페이스와 같은 밝은 작업면. 테두리 없음, 입력칸은 흰 바탕, 선택은 회색 + 보라 아이콘 */
 .mb-add__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .mb-add__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
-.mb-field { display: flex; flex-direction: column; gap: 6px; width: 200px; font-size: 13px; color: var(--ws-sub); }
+.mb-field { display: flex; flex-direction: column; gap: 6px; width: 220px; font-size: 13px; color: var(--ws-sub); }
 .mb-field--wide { flex: 1; min-width: 280px; }
 .mb-field input, .mb-field textarea { height: 44px; padding: 11px 14px; border: 0; border-radius: 8px; background: #fff; color: var(--ws-ink); font: inherit; font-size: 15px; outline: none; resize: vertical; }
 .mb-field textarea { min-height: 44px; line-height: 22px; }
 .mb-field input:focus, .mb-field textarea:focus { box-shadow: 0 0 0 2px #7a3cff; }
 .ws .mb-add__btn { height: 44px; }
-.ws .mb-link { padding: 0; color: #7a3cff; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .mb-list { display: flex; flex-direction: column; }
-.mb-row { display: grid; grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 1fr) 220px 96px; align-items: center; gap: 16px; min-height: 64px; padding: 0 8px 0 12px; border-radius: 32px; font-size: 14px; }
+.mb-row { display: grid; grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 0.8fr) 110px auto; align-items: center; gap: 16px; min-height: 64px; padding: 0 8px 0 12px; border-radius: 32px; font-size: 14px; }
 .mb-row:hover { background: rgba(0, 0, 0, 0.05); }
-.mb-who { display: flex; flex-direction: column; min-width: 0; }
+.mb-who { display: flex; flex-direction: column; min-width: 0; text-align: left; }
 .mb-who b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mb-who small, .mb-meta { color: var(--ws-sub); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mb-note { color: var(--ws-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mb-acts { display: flex; justify-content: flex-end; gap: 4px; }
-.ws .mb-pill { height: 36px; padding: 0 16px; border-radius: 18px; background: #7a3cff; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.mb-acts { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.ws .mb-pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: 18px; background: #7a3cff; color: #fff; font-size: 13px; font-weight: 600; white-space: nowrap; text-decoration: none; }
 .ws .mb-pill:hover:not(:disabled) { background: #6200ea; }
+.ws .mb-ghost { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 18px; color: var(--ws-ink); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.ws .mb-ghost:hover:not(:disabled) { background: rgba(0, 0, 0, 0.08); }
+
+/* 두 칸: 왼쪽 내 팀 목록, 오른쪽 팀 상세 */
+.tm { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 32px; align-items: start; }
+.tm-list { display: flex; flex-direction: column; gap: 2px; }
+.ws .tm-item { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 0 16px; border-radius: 28px; font-size: 14px; }
+.ws .tm-item svg { flex-shrink: 0; color: #5f6368; }
+.ws .tm-item:hover { background: rgba(0, 0, 0, 0.06); }
+.ws .tm-item.is-on { background: #e2e2e2; }
+.ws .tm-item.is-on svg { color: #7a3cff; }
+.tm-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px; padding-top: 18px; }
+.tm-title { min-width: 0; }
+.tm-title h2 { font-size: 22px !important; font-weight: 600 !important; word-break: keep-all; }
+.tm-title p { margin: 6px 0 0; color: var(--ws-sub); font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+.tm-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tm-files { margin: 12px 0 0; color: var(--ws-sub); font-size: 13px; }
+.tm-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 20px; padding: 16px; border-radius: 12px; background: var(--ws-band); }
+.tm-seg { display: inline-flex; gap: 2px; height: 44px; padding: 4px; border-radius: 22px; background: #fff; }
+.ws .tm-seg button { height: 36px; padding: 0 14px; border-radius: 18px; font-size: 13px; font-weight: 600; color: #5f6368; }
+.ws .tm-seg button.is-on { background: #e2e2e2; color: #7a3cff; }
+.tm-role { display: inline-flex; align-items: center; gap: 4px; color: var(--ws-sub); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.tm-role.is-owner { color: #7a3cff; }
 @media (max-width: 900px) {
+  .tm { grid-template-columns: 1fr; gap: 8px; }
   .mb-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
-  .mb-note, .mb-meta { display: none; }
+  .mb-meta, .tm-role { display: none; }
   .mb-field { width: 100%; }
 }
+
+/* 연동 페이지: 흰 카드(테두리 없음) 두 장 */
+.ig { padding-top: 12px; padding-bottom: 48px; }
+.ig-intro { margin: 0 0 20px; color: var(--ws-sub); font-size: 14px; line-height: 1.6; }
+.ig-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; align-items: start; }
+.ig-card { padding: 24px; border-radius: 16px; background: #fff; }
+.ig-card__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.ig-card__head h2 { margin: 0; font-size: 22px; font-weight: 600; }
+.ig-status { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 14px; background: #e2e2e2; color: var(--ws-ink); font-size: 13px; font-weight: 600; max-width: 100%; }
+.ig-status i { width: 8px; height: 8px; flex: none; border-radius: 50%; background: #8a8a8a; }
+.ig-status.is-on i { background: #00e676; }
+.ig-lead { margin: 12px 0 0; color: var(--ws-sub); font-size: 14px; line-height: 1.6; }
+.ws .ig-steps { list-style: decimal outside; margin: 16px 0 0; padding-left: 22px; color: var(--ws-ink); font-size: 14px; line-height: 1.65; }
+.ig-steps li { margin-bottom: 6px; padding-left: 4px; }
+.ig-card .ws-error { margin-top: 16px; }
+.ig-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 20px; }
+.ig-form .mb-field--wide { width: 100%; flex: 1 1 100%; background: transparent; }
+.ig-form input { background: #ececec !important; }
+.ws .ig-btn:disabled { cursor: default; }
+.ws .mb-pill.ig-btn:disabled { background: #9e9e9e; color: #fff; }
+.ws .mb-ghost.ig-btn:disabled { color: #8a8a8a; }

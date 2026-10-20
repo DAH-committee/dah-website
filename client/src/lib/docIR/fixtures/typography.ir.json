@@ -1,0 +1,665 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "글꼴과 문단 시험"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "portrait",
+  "marginMm": {
+   "top": 20,
+   "right": 20,
+   "bottom": 18,
+   "left": 20
+  },
+  "headerMm": 10,
+  "footerMm": 10
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 10.5,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 160
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "header": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "글꼴과 문단 시험 머리말",
+     "sizePt": 9,
+     "color": "#555555"
+    }
+   ],
+   "align": "right",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "footer": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "- "
+    },
+    {
+     "field": "page"
+    },
+    {
+     "text": " -"
+    }
+   ],
+   "align": "center",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "body": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "글꼴과 문단 시험 문서",
+     "sizePt": 20,
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     }
+    }
+   ],
+   "align": "center",
+   "spaceAfterPt": 8
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "1. 글꼴",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "HY헤드라인M: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     },
+     "sizePt": 12
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "함초롬바탕: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "font": {
+      "ko": "함초롬바탕",
+      "latin": "Times New Roman"
+     },
+     "sizePt": 12
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맑은 고딕: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "font": {
+      "ko": "맑은 고딕",
+      "latin": "맑은 고딕"
+     },
+     "sizePt": 12
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "굴림: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "font": {
+      "ko": "굴림",
+      "latin": "Arial"
+     },
+     "sizePt": 12
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "Times New Roman: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "font": {
+      "ko": "Times New Roman",
+      "latin": "Times New Roman"
+     },
+     "sizePt": 12
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "2. 장평(90, 100, 110)과 자간(-5, 0, +5)",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "장평 90%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "scalePct": 90
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "장평 100%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "scalePct": 100
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "장평 110%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "scalePct": 110
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "자간 -5%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "spacingPct": -5
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "자간 0%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "spacingPct": 0
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "자간 5%: ",
+     "bold": true,
+     "sizePt": 9
+    },
+    {
+     "text": "가나다라마바사 ABC abc 123 한글과 English",
+     "spacingPct": 5
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "3. 줄 간격(130, 160, 200%, 고정 18pt)과 맞춤",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "[130%] 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 130
+   },
+   "spaceAfterPt": 4,
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "[160%] 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   },
+   "spaceAfterPt": 4,
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "[200%] 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 200
+   },
+   "spaceAfterPt": 4,
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "[고정 18pt] 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "lineSpacing": {
+    "mode": "exactPt",
+    "value": 18
+   },
+   "spaceAfterPt": 4,
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맞춤 left: 가나다라마바사 아자차카타파하"
+    }
+   ],
+   "align": "left"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맞춤 center: 가나다라마바사 아자차카타파하"
+    }
+   ],
+   "align": "center"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맞춤 right: 가나다라마바사 아자차카타파하"
+    }
+   ],
+   "align": "right"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맞춤 justify: 가나다라마바사 아자차카타파하"
+    }
+   ],
+   "align": "justify"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "맞춤 distribute: 가나다라마바사 아자차카타파하"
+    }
+   ],
+   "align": "distribute"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "4. 첨자, 강조, 밑줄, 형광펜, 취소선",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "E=mc"
+    },
+    {
+     "text": "2",
+     "sup": true
+    },
+    {
+     "text": " 그리고 H"
+    },
+    {
+     "text": "2",
+     "sub": true
+    },
+    {
+     "text": "O. "
+    },
+    {
+     "text": "굵게 ",
+     "bold": true
+    },
+    {
+     "text": "기울임 ",
+     "italic": true
+    },
+    {
+     "text": "굵은 기울임 ",
+     "bold": true,
+     "italic": true
+    },
+    {
+     "text": "취소선 ",
+     "strike": true
+    },
+    {
+     "text": "색 글자 ",
+     "color": "#C92A2A"
+    },
+    {
+     "text": "노란 형광펜 ",
+     "highlight": "#FFFF00"
+    },
+    {
+     "text": "하늘 형광펜",
+     "highlight": "#A5D8FF"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "한 줄 ",
+     "underline": "single"
+    },
+    {
+     "text": "두 줄 ",
+     "underline": "double"
+    },
+    {
+     "text": "점선 ",
+     "underline": "dotted"
+    },
+    {
+     "text": "파선 ",
+     "underline": "dash"
+    },
+    {
+     "text": "밑줄 모양 네 가지"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "5. 탭, 하이퍼링크, 체크박스",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "항목"
+    },
+    {
+     "tab": true
+    },
+    {
+     "text": "값"
+    },
+    {
+     "tab": true
+    },
+    {
+     "text": "비고"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "이름"
+    },
+    {
+     "tab": true
+    },
+    {
+     "text": "디지털인문예술"
+    },
+    {
+     "tab": true
+    },
+    {
+     "text": "탭 간격 확인"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "링크: "
+    },
+    {
+     "text": "한림대학교 누리집",
+     "link": "https://www.hallym.ac.kr",
+     "underline": "single",
+     "color": "#1864AB"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "",
+     "check": {
+      "checked": true
+     }
+    },
+    {
+     "text": " 확인함   "
+    },
+    {
+     "text": "",
+     "check": {
+      "checked": false
+     }
+    },
+    {
+     "text": " 확인 전   "
+    },
+    {
+     "text": "",
+     "check": {
+      "checked": true
+     }
+    },
+    {
+     "text": " 온라인(ZOOM)   "
+    },
+    {
+     "text": "",
+     "check": {
+      "checked": false
+     }
+    },
+    {
+     "text": " 오프라인"
+    }
+   ]
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "6. 긴 한국어 문단(줄 바꿈 위치)",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다. 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "낱말 중간에서 끊기지 않는지 보기 위한 긴 영문 URL: https://example.com/a/very/long/path/that/keeps/going/and/going/and/going/index.html?query=1&another=two"
+    }
+   ],
+   "align": "justify"
+  }
+ ],
+ "assets": {}
+}

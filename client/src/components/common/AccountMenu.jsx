@@ -1,8 +1,9 @@
-// 계정 아바타와 계정 메뉴(구글 방식): 문서·시트·설문지·작업공간 어디서나 오른쪽 위에 같은 모양으로 둔다.
+// 계정 아바타와 계정 메뉴(구글 방식): 문서·시트·설문지·보드·워크스페이스 어디서나 오른쪽 위에 같은 모양으로 둔다.
 // 아바타는 기본이 보라 원에 이름 첫 글자이고, 구글로 로그인한 계정은 구글 프로필 사진을 쓴다.
 // 메뉴에서 로그아웃하거나 다른 구글 계정으로 바꿀 수 있다.
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { LogOut, Plus, UserRound, LayoutDashboard } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Link2, LogOut, Plus, UserRound } from 'lucide-react'
 import { API_BASE, api } from '../../hooks/useApi'
 import { useLoginModal } from '../../context/LoginModalContext'
 import { confirmDialog } from './AppDialog'
@@ -35,13 +36,13 @@ const STORE = 'dah.accounts'
 let cache = { at: 0, me: undefined, pending: null }
 const listeners = new Set()
 
-/** 현재 계정: { user: {name,email,role,kind,member,picture}|null, staff, committee, admin }. 다시 불러오면 화면의 모든 사용처가 함께 바뀐다 */
+/** 현재 계정: { user: {name,email,kind,picture}|null }. 다시 불러오면 화면의 모든 사용처가 함께 바뀐다 */
 export function useMe() {
   const [me, setMe] = useState(cache.me)
   const load = useCallback(async (force = false) => {
     if (!force && cache.me !== undefined && Date.now() - cache.at < 20000) return setMe(cache.me)
     if (!cache.pending || force) {
-      cache.pending = api.get('/workspace/me').catch(() => ({ user: null, staff: false })).then((r) => {
+      cache.pending = api.get('/workspace/me').catch(() => ({ user: null })).then((r) => {
         cache = { at: Date.now(), me: r, pending: null }
         listeners.forEach((fn) => fn(r))
         return r
@@ -125,10 +126,7 @@ export default function AccountMenu({ size = 40, className = '' }) {
               <div className="acct-pop__me">
                 <Avatar name={user.name} picture={user.picture} size={72} />
                 <h3>안녕하세요, {user.name}님!</h3>
-                <p>{user.kind === 'staff' ? (user.role === 'owner' ? '오너' : user.role === 'admin' ? '관리자' : '운영위원회 및 교수진') : user.member ? '운영위원회 구성원' : '구글 계정'}</p>
-                {user.kind === 'staff' && (
-                  <a className="acct-pill" href="/admin"><LayoutDashboard size={16} aria-hidden="true" /> 관리 대시보드</a>
-                )}
+                <p>{user.kind === 'staff' ? '사이트 계정' : '구글 계정'}</p>
               </div>
               <div className="acct-pop__list">
                 {others.map((a) => (
@@ -141,6 +139,10 @@ export default function AccountMenu({ size = 40, className = '' }) {
                   <span className="acct-row__ico"><Plus size={18} aria-hidden="true" /></span>
                   <span><b>다른 계정 추가</b></span>
                 </button>
+                <Link to="/workspace/integrations" className="acct-row" onClick={() => setOpen(false)}>
+                  <span className="acct-row__ico"><Link2 size={18} aria-hidden="true" /></span>
+                  <span><b>연동</b></span>
+                </Link>
                 <button type="button" className="acct-row" onClick={logout}>
                   <span className="acct-row__ico"><LogOut size={18} aria-hidden="true" /></span>
                   <span><b>로그아웃</b></span>
@@ -151,9 +153,8 @@ export default function AccountMenu({ size = 40, className = '' }) {
             <div className="acct-pop__me">
               <Avatar size={72} />
               <h3>로그인하지 않았습니다</h3>
-              <p>구글 계정이나 운영위원회 계정으로 로그인하세요.</p>
+              <p>구글 계정으로 로그인하세요.</p>
               <button type="button" className="acct-pill acct-pill--on" onClick={() => googleLogin()}><GoogleG /> 구글 계정으로 로그인</button>
-              <button type="button" className="acct-pill" onClick={() => { setOpen(false); openLogin() }}>운영위원회 계정으로 로그인</button>
             </div>
           )}
         </div>

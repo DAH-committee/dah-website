@@ -1,0 +1,829 @@
+[
+ {
+  "formula": "=LEN(\"hello\")",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(\"안녕하세요\")",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(\"\")",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(12345)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(1.5)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(A1)",
+  "expected": 0,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEN(TRUE)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"hello\",2)",
+  "expected": "he",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"hello\")",
+  "expected": "h",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"한글입력\",2)",
+  "expected": "한글",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"abc\",10)",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"abc\",0)",
+  "expected": "",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LEFT(\"abc\",-1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RIGHT(\"hello\",2)",
+  "expected": "lo",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RIGHT(\"hello\")",
+  "expected": "o",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RIGHT(\"한글입력\",2)",
+  "expected": "입력",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RIGHT(\"abc\",0)",
+  "expected": "",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RIGHT(\"abc\",10)",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MID(\"abcdef\",2,3)",
+  "expected": "bcd",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MID(\"hello\",10,2)",
+  "expected": "",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MID(\"가나다라\",2,2)",
+  "expected": "나다",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MID(\"abc\",0,1)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-172 (관찰값, 의심 항목)"
+ },
+ {
+  "formula": "=MID(\"abc\",1,-1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIND(\"l\",\"hello\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIND(\"l\",\"hello\",4)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIND(\"L\",\"hello\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIND(\"다\",\"가나다\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEARCH(\"L\",\"hello\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEARCH(\"h?l\",\"hello\")",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEARCH(\"z\",\"hello\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEARCH(\"l*o\",\"hello\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBSTITUTE(\"a-b-c\",\"-\",\"+\")",
+  "expected": "a+b+c",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBSTITUTE(\"a-b-c\",\"-\",\"+\",2)",
+  "expected": "a-b+c",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBSTITUTE(\"abc\",\"x\",\"y\")",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBSTITUTE(\"Abc\",\"a\",\"x\")",
+  "expected": "Abc",
+  "note": "대소문자 구분",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBSTITUTE(\"a b\",\" \",\"\")",
+  "expected": "ab",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REPLACE(\"abcdef\",2,3,\"X\")",
+  "expected": "aXef",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REPLACE(\"abc\",4,1,\"Z\")",
+  "expected": "abcZ",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRIM(\"  a   b  \")",
+  "expected": "a b",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRIM(\"abc\")",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CLEAN(\"a\"&CHAR(10)&\"b\")",
+  "expected": "ab",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UPPER(\"abc\")",
+  "expected": "ABC",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOWER(\"ABC\")",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PROPER(\"hello world\")",
+  "expected": "Hello World",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PROPER(\"o'neil\")",
+  "expected": "O'Neil",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PROPER(\"HELLO\")",
+  "expected": "Hello",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UPPER(\"가a\")",
+  "expected": "가A",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REPT(\"ab\",3)",
+  "expected": "ababab",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REPT(\"x\",0)",
+  "expected": "",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHAR(65)",
+  "expected": "A",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CODE(\"A\")",
+  "expected": 65,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNICHAR(44032)",
+  "expected": "가",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNICODE(\"가\")",
+  "expected": 44032,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EXACT(\"a\",\"a\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EXACT(\"a\",\"A\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CONCATENATE(\"a\",\"b\",1)",
+  "expected": "ab1",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CONCAT(\"a\",\"b\")",
+  "expected": "ab",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CONCAT(1,2)",
+  "expected": "12",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"a\"&A1",
+  "expected": "a",
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXTJOIN(\",\",TRUE,\"a\",\"\",\"b\")",
+  "expected": "a,b",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXTJOIN(\",\",FALSE,\"a\",\"\",\"b\")",
+  "expected": "a,,b",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXTJOIN(\"-\",TRUE,A1:A3)",
+  "expected": "x-y",
+  "cells": {
+   "A1": "x",
+   "A2": "",
+   "A3": "y"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXTJOIN(\", \",TRUE,{\"a\",\"b\";\"c\",\"d\"})",
+  "expected": "a, b, c, d",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=JOIN(\"-\",A1:A3)",
+  "expected": "x-y-z",
+  "cells": {
+   "A1": "x",
+   "A2": "y",
+   "A3": "z"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=JOIN(\",\",1,2,3)",
+  "expected": "1,2,3",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"a,b,c\",\",\")",
+  "expected": [
+   [
+    "a",
+    "b",
+    "c"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"a,b;c\",\",;\")",
+  "expected": [
+   [
+    "a",
+    "b",
+    "c"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"a,,b\",\",\")",
+  "expected": [
+   [
+    "a",
+    "b"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"a,,b\",\",\",TRUE,FALSE)",
+  "expected": [
+   [
+    "a",
+    "",
+    "b"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"a--b\",\"--\",FALSE)",
+  "expected": [
+   [
+    "a",
+    "b"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SPLIT(\"한 글 입력\",\" \")",
+  "expected": [
+   [
+    "한",
+    "글",
+    "입력"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXMATCH(\"abc123\",\"\\d+\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXMATCH(\"abc\",\"^\\d+$\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXMATCH(\"Hello\",\"(?i)hello\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXMATCH(\"가나다\",\"[가-힣]+\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXEXTRACT(\"abc123\",\"\\d+\")",
+  "expected": "123",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXEXTRACT(\"ab12\",\"([a-z]+)([0-9]+)\")",
+  "expected": [
+   [
+    "ab",
+    "12"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXEXTRACT(\"abc\",\"(b)\")",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXEXTRACT(\"abc\",\"\\d\")",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXREPLACE(\"a1b2\",\"\\d\",\"#\")",
+  "expected": "a#b#",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXREPLACE(\"john smith\",\"(\\w+) (\\w+)\",\"$2 $1\")",
+  "expected": "smith john",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REGEXREPLACE(\"aaa\",\"a\",\"b\")",
+  "expected": "bbb",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(\"1,234.5\")",
+  "expected": 1234.5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(\"50%\")",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(\"abc\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(\"\")",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(\"2026-01-05\")",
+  "expected": 46027,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VALUE(12)",
+  "expected": 12,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NUMBERVALUE(\"1.234,5\",\",\",\".\")",
+  "expected": 1234.5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NUMBERVALUE(\"12%\")",
+  "expected": 0.12,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NUMBERVALUE(\"2 500.5\")",
+  "expected": 2500.5,
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TO_TEXT(5)",
+  "expected": "5",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TO_TEXT(TRUE)",
+  "expected": "TRUE",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TO_TEXT(1.5)",
+  "expected": "1.5",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYTOTEXT({1,2;3,4})",
+  "expected": "1, 2, 3, 4",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYTOTEXT({1,\"a\"},1)",
+  "expected": "{1,\"a\"}",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIXED(1234.567,1)",
+  "expected": "1,234.6",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIXED(1234.567,1,TRUE)",
+  "expected": "1234.6",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FIXED(5)",
+  "expected": "5.00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234.5,\"#,##0.00\")",
+  "expected": "1,234.50",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234567,\"#,##0\")",
+  "expected": "1,234,567",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0.256,\"0.0%\")",
+  "expected": "25.6%",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0.5,\"0%\")",
+  "expected": "50%",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(5,\"000\")",
+  "expected": "005",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(-5,\"0;(0)\")",
+  "expected": "(5)",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(3.14159,\"0.00\")",
+  "expected": "3.14",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(12,\"0.0\")",
+  "expected": "12.0",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234,\"#,##0원\")",
+  "expected": "1,234원",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234,\"₩#,##0\")",
+  "expected": "₩1,234",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234.5,\"$#,##0.00\")",
+  "expected": "$1,234.50",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234,\"#,##0\"\"원\"\"\")",
+  "expected": "1,234원",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0,\"0.00\")",
+  "expected": "0.00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1E6,\"0.00E+00\")",
+  "expected": "1.00E+06",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5),\"yyyy-mm-dd\")",
+  "expected": "2026-01-05",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5),\"dddd\")",
+  "expected": "월요일",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-256 ko-KR 요일"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5),\"ddd, mmm d\")",
+  "expected": "월, 1월 5",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-257/259 ko-KR"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5),\"yy/m/d\")",
+  "expected": "26/1/5",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5),\"mmmm d, yyyy\")",
+  "expected": "1월 5, 2026",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-258 ko-KR"
+ },
+ {
+  "formula": "=TEXT(0.5,\"hh:mm\")",
+  "expected": "12:00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0.75,\"h:mm AM/PM\")",
+  "expected": "6:00 오후",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-268 ko-KR"
+ },
+ {
+  "formula": "=TEXT(1.5,\"[h]:mm\")",
+  "expected": "36:00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0.0625,\"mm:ss\")",
+  "expected": "30:00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(TIME(13,5,9),\"hh:mm:ss\")",
+  "expected": "13:05:09",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(TODAY(),\"yyyy-mm-dd\")",
+  "expected": "2026-09-21",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(NOW(),\"hh:mm\")",
+  "expected": "12:00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(DATE(2026,1,5)+0.5,\"yyyy-mm-dd hh:mm\")",
+  "expected": "2026-01-05 12:00",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(\"abc\",\"0\")",
+  "expected": "abc",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(\"12\",\"0.0\")",
+  "expected": "12.0",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1234.5678,\"0.00\")",
+  "expected": "1234.57",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(0.5,\"#.##\")",
+  "expected": ".5",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXT(1000000,\"#,##0,\")",
+  "expected": "1,000",
+  "note": "끝 쉼표는 1000 단위 축소",
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(LEN(A1:A3))",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "A2": "bb",
+   "A3": "ccc"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(UPPER(A1:A2))",
+  "expected": [
+   [
+    "A"
+   ],
+   [
+    "B"
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "A2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(A1:A2&\"!\")",
+  "expected": [
+   [
+    "a!"
+   ],
+   [
+    "b!"
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "A2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(LEFT(A1:A2,1))",
+  "expected": [
+   [
+    "한"
+   ],
+   [
+    "영"
+   ]
+  ],
+  "cells": {
+   "A1": "한글",
+   "A2": "영어"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(REGEXEXTRACT(A1:A2,\"\\d+\"))",
+  "expected": [
+   [
+    "1"
+   ],
+   [
+    "22"
+   ]
+  ],
+  "cells": {
+   "A1": "a1",
+   "A2": "b22"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(TEXT(A1:A2,\"0.0\"))",
+  "expected": [
+   [
+    "1.0"
+   ],
+   [
+    "2.5"
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2.5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (텍스트, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

@@ -1,0 +1,12 @@
+/* 시트 AI 단추와 오른쪽 AI 창. 위 줄(.ed-row)과 메뉴 줄은 그대로 두고 본문 칸만 줄어든다 */
+.sh-ai-btn { display: inline-flex; flex: none; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: #7A3CFF; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 120ms ease; }
+.sh-ai-btn:hover { background: #6200ea; }
+.sh-ai-btn.is-on { background: #e2e2e2; color: #1f1f1f; }
+.sh-ai-btn.is-on:hover { background: #d4d4d4; }
+.sh-ai-btn.is-on svg { color: #7A3CFF; }
+.sh-ai { width: 372px; flex: none; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; padding: 0 12px 12px 0; }
+.sh-ai > * { flex: 1; min-height: 0; }
+.sh-ai__note { padding: 16px; font-size: 13px; color: #5f6368; }
+@media (max-width: 900px) { .sh-ai { position: absolute; right: 0; top: 0; bottom: 0; width: min(372px, 100%); padding: 0; z-index: 20; background: #fff; } }
+/* 다른 칸에서 펼쳐진 수식 결과: 읽기 전용 느낌의 옅은 보라 회색 글자 */
+.sh-spill { color: #6b5f8a; }

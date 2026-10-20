@@ -1,0 +1,273 @@
+{
+ "version": 1,
+ "meta": {
+  "title": "글꼴과 문단 시험(가로 쪽)"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "landscape",
+  "marginMm": {
+   "top": 20,
+   "right": 20,
+   "bottom": 18,
+   "left": 20
+  },
+  "headerMm": 10,
+  "footerMm": 10
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 10.5,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 160
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "header": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "글꼴과 문단 시험 머리말",
+     "sizePt": 9,
+     "color": "#555555"
+    }
+   ],
+   "align": "right",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "footer": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "- "
+    },
+    {
+     "field": "page"
+    },
+    {
+     "text": " -"
+    }
+   ],
+   "align": "center",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "body": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "글꼴과 문단 시험 문서",
+     "sizePt": 20,
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     }
+    }
+   ],
+   "align": "center",
+   "spaceAfterPt": 8
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "가로 쪽: 줄 간격과 맞춤",
+     "bold": true,
+     "sizePt": 12
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 12,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#EEF1FA"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다. 디지털인문예술전공은 인문학의 질문을 디지털 도구와 예술적 표현으로 풀어내는 학과이다. 학생들은 글과 이미지, 소리, 코드를 함께 다루며 문화 자료를 새로운 방식으로 읽고 만든다. 이 문단은 줄 바꿈과 양쪽 맞춤, 줄 간격이 한글과 워드에서 같은 위치에서 끊기는지 확인하려고 일부러 길게 적었다."
+    }
+   ],
+   "align": "justify",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   },
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 10
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "쪽 번호 오른쪽 맞춤 확인"
+    },
+    {
+     "tab": true
+    },
+    {
+     "text": "표는 아래"
+    }
+   ]
+  },
+  {
+   "t": "table",
+   "widthPt": 726,
+   "colPt": [
+    121,
+    121,
+    121,
+    121,
+    121,
+    121
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "가로 쪽 표",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "colspan": 6,
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast",
+     "header": true
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "A"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "B"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "C"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "D"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "E"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "F"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  }
+ ],
+ "assets": {}
+}

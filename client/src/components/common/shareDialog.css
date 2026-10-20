@@ -1,7 +1,7 @@
 /* 공유 대화상자: 무채색 + 쨍한 보라, 테두리 없음 */
 .share__panel { position: relative; width: 100%; max-width: 560px; padding: 24px 24px 20px; border-radius: 28px; background: #fff; color: #1f1f1f; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35); font-family: 'Pretendard Variable', Pretendard, sans-serif; letter-spacing: -0.01em; }
 .share__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.share__head h2 { min-width: 0; margin: 0; font-size: 22px; font-weight: 500; line-height: 32px; word-break: keep-all; overflow-wrap: anywhere; }
+.share__head h2 { display: flex; align-items: center; gap: 10px; min-width: 0; margin: 0; font-size: 22px; font-weight: 500; line-height: 32px; word-break: keep-all; overflow-wrap: anywhere; }
 .share__x { flex: none; display: inline-grid; place-items: center; width: 40px; height: 40px; margin: -4px -8px 0 0; border: 0; border-radius: 50%; background: none; color: #444; cursor: pointer; }
 .share__x:hover { background: rgba(0, 0, 0, 0.08); }
 .share__muted { margin: 0; padding: 24px 0; color: #5f6368; font-size: 14px; }
@@ -28,7 +28,7 @@
 
 .share__general { display: flex; align-items: center; gap: 12px; min-height: 60px; }
 .share__gico { display: inline-grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #e2e2e2; color: #444; }
-.share__gico--committee, .share__gico--major, .share__gico--public { background: #7a3cff; color: #fff; }
+.share__gico--on, .share__gico--team, .share__gico--major, .share__gico--public { background: #7a3cff; color: #fff; }
 .share__gtext { display: flex; flex: 1; flex-direction: column; min-width: 0; }
 .share__gtext small { color: #5f6368; font-size: 12px; line-height: 1.4; }
 .share__gname { display: inline-block; padding: 0 12px; font-size: 14px; font-weight: 600; }
@@ -59,3 +59,6 @@
 .share__panel--wait { opacity: 0; pointer-events: none; }
 
 .share__gname--flat { padding: 0; margin-bottom: 2px; }
+
+.share__prod { display: inline-flex; flex: none; }
+.share__ttl { min-width: 0; overflow-wrap: anywhere; }

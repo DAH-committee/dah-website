@@ -1,22 +1,23 @@
-// 공유 대화상자(구글 독스 방식): 사람 추가(이메일), 액세스 권한이 있는 사용자, 일반 액세스, 링크 복사.
-// 일반 액세스: 제한됨 / 운영위원회 및 교수진 / 전체 공개, 각각 뷰어 또는 편집자 권한.
-// 목록 표시: 운영위원회 및 교수진은 "비공개"로 바꿔 공유받지 않은 사람의 목록에서 숨길 수 있다.
+// 공유 대화상자(구글 독스 방식): 사람 추가(이메일), 액세스 권한이 있는 사용자, 팀, 일반 액세스, 링크 복사.
+// 팀: 편집자는 파일을 내가 속한 팀으로 옮기거나 팀에서 뺄 수 있다.
+// 일반 액세스: 제한됨 / 팀(파일이 팀에 속할 때만) / 한림대 계정 / 링크가 있는 모든 사용자, 각각 뷰어 또는 편집자 권한.
 // 나만 보기 파일(심사채점표 등)은 만든 사람만 열 수 있어 공유 설정이 모두 막힌다.
 // 사이트 디자인 시스템 모달(AppDialog)과 같은 패널 토큰을 쓰고, 밝은 작업면에서는 reading 토큰으로 바뀐다.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, ChevronDown, Eye, EyeOff, Globe, GraduationCap, Link as LinkIcon, Lock, Users, X } from 'lucide-react'
+import { Check, ChevronDown, Globe, GraduationCap, Link as LinkIcon, Lock, Users, UsersRound, X } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { Avatar } from './AccountMenu'
+import { ICON_BY_FILE_KIND } from '../../pages/workspace/icons'
 import { alertDialog } from './AppDialog'
 import './shareDialog.css'
 
 const ROLE_LABEL = { viewer: '뷰어', editor: '편집자' }
 const GENERAL = [
   { id: 'restricted', label: '제한됨', desc: '추가된 사용자만 열 수 있습니다', Icon: Lock },
-  { id: 'committee', label: '운영위원회 및 교수진', desc: '운영위원회·교수진 계정과 등록된 구성원은 링크로 열 수 있습니다(목록에는 자동으로 나오지 않음)', Icon: Users },
-  { id: 'major', label: '디지털인문예술전공', desc: '한림대 구글 계정(@hallym.ac.kr)으로 로그인한 사람은 링크로 열 수 있습니다(목록에는 자동으로 나오지 않음)', Icon: GraduationCap },
-  { id: 'public', label: '전체 공개', desc: '링크가 있는 인터넷 사용자는 누구나 열 수 있습니다', Icon: Globe },
+  { id: 'team', label: '팀', desc: '팀원은 누구나 열 수 있고 팀 목록에 표시됩니다', Icon: UsersRound },
+  { id: 'major', label: '한림대 계정', desc: '한림대 구글 계정(@hallym.ac.kr)으로 로그인한 사람은 링크로 열 수 있습니다', Icon: GraduationCap },
+  { id: 'public', label: '링크가 있는 모든 사용자', desc: '링크가 있는 인터넷 사용자는 누구나 열 수 있습니다', Icon: Globe },
 ]
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -88,7 +89,7 @@ export function useShareIcon(fileId, tick = 0) {
         if (!alive) return
         if (s.general_access === 'public') setKind('globe')
         else if (s.general_access === 'major') setKind('major')
-        else if (s.general_access === 'committee' || (s.people || []).length > 0) setKind('users')
+        else if (s.general_access === 'team' || (s.people || []).length > 0) setKind('users')
         else setKind('lock')
       })
       .catch(() => {})
@@ -131,7 +132,7 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
     setError('')
     try {
       const next = await fn()
-      if (next?.general_access) setState((s) => ({ ...s, ...next, can_hide: s?.can_hide }))
+      if (next?.general_access) setState((s) => ({ ...s, ...next }))
       else await load()
       onChanged?.()
     } catch (e) {
@@ -172,7 +173,20 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
     })
   }
 
+  // 링크가 있는 모든 사용자 공유이면 짧은 주소(/s/코드)를 한 번 만들어 둔다
+  const sharePath = linkPath || window.location.pathname
+  useEffect(() => {
+    if (!state || state.level !== 'editor' || state.owner_only) return
+    if (state.general_access !== 'public' || state.short_code) return
+    let live = true
+    api.post(`/workspace/files/${fileId}/short`, { path: sharePath })
+      .then((r) => { if (live && r?.code) setState((s) => (s ? { ...s, short_code: r.code } : s)) })
+      .catch(() => { /* 실패하면 긴 주소를 그대로 쓴다 */ })
+    return () => { live = false }
+  }, [state?.general_access, state?.short_code, state?.level, state?.owner_only, fileId, sharePath])
+
   const link = () => {
+    if (state?.general_access === 'public' && state.short_code) return new URL(`/s/${state.short_code}`, window.location.origin).toString()
     const url = new URL(linkPath || window.location.pathname, window.location.origin)
     if (state?.general_access === 'public' && state.share_token) url.searchParams.set('k', state.share_token)
     return url.toString()
@@ -187,7 +201,23 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
     }
   }
 
-  const g = GENERAL.find((x) => x.id === state?.general_access) || GENERAL[0]
+  const team = state?.team || null
+  const generalOptions = GENERAL.filter((o) => o.id !== 'team' || team).map((o) => (o.id === 'team' ? { ...o, label: `팀(${team.name})`, desc: `${team.name} 팀원은 누구나 열 수 있고 팀 목록에 표시됩니다` } : o))
+  const g = generalOptions.find((x) => x.id === state?.general_access) || generalOptions[0]
+  const teamChoices = [
+    { id: 'none', label: '팀 없음', desc: '내 파일과 공유받은 사람의 목록에만 표시됩니다' },
+    ...(team && !(state?.my_teams || []).some((t) => t.id === team.id) ? [{ id: String(team.id), label: team.name }] : []),
+    ...(state?.my_teams || []).map((t) => ({ id: String(t.id), label: t.name })),
+  ]
+  // 팀으로 옮기기: 제한됨이던 파일은 팀원 모두 편집자로, 팀에서 빼면 팀 액세스는 제한됨이 된다
+  const moveTeam = (v) => {
+    const id = v === 'none' ? null : Number(v)
+    if ((team?.id ?? null) === id) return
+    const body = { team_id: id }
+    if (id && state.general_access === 'restricted') Object.assign(body, { general_access: 'team', general_role: 'editor' })
+    apply(() => api.put(`/workspace/files/${fileId}/share`, body))
+  }
+  const showTeam = canEdit ? teamChoices.length > 1 : Boolean(team)
   const adding = chips.length > 0 || text.trim().length > 0
 
   return createPortal(
@@ -195,7 +225,10 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
       <button type="button" aria-label="닫기" tabIndex={-1} onClick={onClose} className={`app-dialog__backdrop absolute inset-0 cursor-default ${light ? 'bg-black/45' : 'bg-bg-base/70'}`} />
       <div ref={panel} role="dialog" aria-modal="true" aria-label={`${title} 공유`} className={`share__panel ${state !== null || error ? 'app-dialog__panel' : 'share__panel--wait'}`}>
         <div className="share__head">
-          <h2 title={title}>“{title}” 공유</h2>
+          <h2 title={title}>
+            {state && ICON_BY_FILE_KIND[state.kind] && (() => { const P = ICON_BY_FILE_KIND[state.kind]; return <span className="share__prod"><P size={28} /></span> })()}
+            <span className="share__ttl">“{title}” 공유</span>
+          </h2>
           <button type="button" className="share__x" onClick={onClose} aria-label="닫기"><X size={20} aria-hidden="true" /></button>
         </div>
 
@@ -204,7 +237,7 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
         {state && ownerOnly && (
           <>
             <div className="share__general">
-              <span className="share__gico share__gico--committee"><Lock size={20} aria-hidden="true" /></span>
+              <span className="share__gico share__gico--on"><Lock size={20} aria-hidden="true" /></span>
               <div className="share__gtext">
                 <b className="share__gname share__gname--flat">나만 보기</b>
                 <small>만든 사람만 열 수 있는 파일입니다. 다른 사람에게 공유하거나 공개할 수 없고, 다른 사람의 목록에도 나오지 않습니다.</small>
@@ -280,6 +313,23 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
               ))}
             </ul>
 
+            {showTeam && (
+              <>
+                <h3 className="share__sub">팀</h3>
+                <div className="share__general">
+                  <span className={`share__gico${team ? ' share__gico--team' : ''}`}><UsersRound size={20} aria-hidden="true" /></span>
+                  <div className="share__gtext">
+                    {canEdit ? (
+                      <Menu wide value={team ? String(team.id) : 'none'} align="left" label="팀" options={teamChoices} onChange={moveTeam} />
+                    ) : (
+                      <b className="share__gname">{team.name}</b>
+                    )}
+                    <small>{team ? `${team.name} 팀 파일입니다. 팀 공간 목록에 표시되고, 팀 오너도 삭제할 수 있습니다.` : '팀에 넣으면 팀 공간 목록에 표시됩니다.'}</small>
+                  </div>
+                </div>
+              </>
+            )}
+
             <h3 className="share__sub">일반 액세스</h3>
             <div className="share__general">
               <span className={`share__gico share__gico--${g.id}`}><g.Icon size={20} aria-hidden="true" /></span>
@@ -290,7 +340,7 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
                     value={g.id}
                     align="left"
                     label="일반 액세스"
-                    options={GENERAL.map((o) => ({ id: o.id, label: o.label, desc: o.desc }))}
+                    options={generalOptions.map((o) => ({ id: o.id, label: o.label, desc: o.desc }))}
                     onChange={(v) => apply(() => api.put(`/workspace/files/${fileId}/share`, { general_access: v }))}
                   />
                 ) : (
@@ -312,33 +362,10 @@ export default function ShareDialog({ fileId, title, linkPath, onClose, onChange
               )}
             </div>
             {state.kind === 'form' && ['major', 'public'].includes(g.id) && (
-              <p className="share__warn">이 설문지를 열 수 있는 사람은 응답(이름·학번 등 개인정보 포함)도 볼 수 있습니다. 응답을 모으는 설문지는 제한됨이나 운영위원회 및 교수진을 권장합니다.</p>
+              <p className="share__warn">이 설문지를 열 수 있는 사람은 응답(이름·학번 등 개인정보 포함)도 볼 수 있습니다. 응답을 모으는 설문지는 제한됨이나 팀을 권장합니다.</p>
             )}
             {g.id === 'public' && state.general_role === 'editor' && (
-              <p className="share__warn">링크가 있는 사람은 로그인 없이 문서를 고칠 수 있습니다. 링크를 아는 사람에게만 전달하세요.</p>
-            )}
-
-            {state.can_hide && (
-              <>
-                <h3 className="share__sub">목록 표시</h3>
-                <div className="share__general">
-                  <span className={`share__gico${state.hidden ? ' share__gico--committee' : ''}`}>{state.hidden ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}</span>
-                  <div className="share__gtext">
-                    <Menu
-                      wide
-                      value={state.hidden ? 'hidden' : 'shown'}
-                      align="left"
-                      label="목록 표시"
-                      options={[
-                        { id: 'shown', label: '목록에 표시', desc: '링크로 연 사람의 최근 목록에 남습니다' },
-                        { id: 'hidden', label: '비공개', desc: '소유자와 이메일로 추가된 사람의 목록에만 나옵니다' },
-                      ]}
-                      onChange={(v) => apply(() => api.put(`/workspace/files/${fileId}/hidden`, { hidden: v === 'hidden' }))}
-                    />
-                    <small>{state.hidden ? '소유자와 이메일로 추가된 사람의 목록에만 나옵니다. 링크로 연 다른 사람의 목록에는 남지 않습니다.' : '링크로 연 사람의 최근 목록에 남습니다'}</small>
-                  </div>
-                </div>
-              </>
+              <p className="share__warn">링크가 있는 사람은 로그인 없이 이 파일을 고칠 수 있습니다. 링크를 아는 사람에게만 전달하세요.</p>
             )}
 
             {error && <p className="share__err" role="alert">{error}</p>}

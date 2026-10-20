@@ -95,6 +95,29 @@ const upload = multer({
   },
 })
 
+// ── Vercel Blob 인증 ──
+// 저장소를 프로젝트에 연결하면 Vercel은 BLOB_READ_WRITE_TOKEN 대신 BLOB_STORE_ID를 넣고, 함수 요청마다
+// 짧게 쓰는 OIDC 토큰(x-vercel-oidc-token 헤더, VERCEL_OIDC_TOKEN)으로 인증한다(@vercel/blob 2.4.0 이상).
+// 둘 중 하나라도 있으면 Blob에 올리고, 둘 다 없을 때(로컬 개발)만 디스크에 쓴다.
+export function blobEnabled() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)
+}
+
+/** SDK 호출에 넘길 인증 옵션. 읽기·쓰기 토큰이 있을 때만 token을 넘긴다. */
+export function blobAuth(req) {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return { token: process.env.BLOB_READ_WRITE_TOKEN }
+  const storeId = process.env.BLOB_STORE_ID
+  const reqToken = typeof req?.get === 'function' ? req.get('x-vercel-oidc-token') : ''
+  // 이번 요청에 실려 온 OIDC 토큰을 그대로 쓴다(요청마다 새것이라 만료 걱정이 없다). 없으면 SDK가 환경에서 찾는다.
+  if (storeId && reqToken) return { oidcToken: reqToken, storeId }
+  return {}
+}
+
+async function putPublicBlob(req, pathname, body, contentType) {
+  const { put } = await import('@vercel/blob')
+  return put(pathname, body, { access: 'public', contentType, ...blobAuth(req) })
+}
+
 // 비로그인 요청에만 업로드 rate limit 적용
 function anonLimit(req, res, next) {
   if (req.user || req.publicUser) return next()
@@ -436,13 +459,8 @@ async function handleFormUpload(req, res, ctx) {
   const blobPath = `dah/forms/${form.slug}/${field.id}/${Date.now()}-${shortId}.${outExt}`
   let fileUrl = ''
   let storageKind = 'blob'
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const { put } = await import('@vercel/blob')
-    const blob = await put(blobPath, buffer, {
-      access: 'public',
-      contentType,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    })
+  if (blobEnabled()) {
+    const blob = await putPublicBlob(req, blobPath, buffer, contentType)
     fileUrl = blob.url
   } else {
     // 로컬 폴백(개발용). Render의 임시 파일시스템에서는 재배포 시 사라진다.
@@ -503,13 +521,8 @@ async function handleGeneralUpload(req, res) {
     const name = `document/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${srcExt}`
     const originalName = req.file.originalname || `document.${srcExt}`
 
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const { put } = await import('@vercel/blob')
-      const blob = await put(`dah/${name}`, buf, {
-        access: 'public',
-        contentType,
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-      })
+    if (blobEnabled()) {
+      const blob = await putPublicBlob(req, `dah/${name}`, buf, contentType)
       return res.status(201).json({
         url: blob.url, name: originalName, type: contentType, bytes: buf.length, format: srcExt, storage: 'blob',
       })
@@ -534,13 +547,8 @@ async function handleGeneralUpload(req, res) {
   const buf = await pipeline.webp({ quality: WEBP_QUALITY }).toBuffer()
   const name = `${usage}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.webp`
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const { put } = await import('@vercel/blob')
-    const blob = await put(`dah/${name}`, buf, {
-      access: 'public',
-      contentType: 'image/webp',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    })
+  if (blobEnabled()) {
+    const blob = await putPublicBlob(req, `dah/${name}`, buf, 'image/webp')
     return res.status(201).json({ url: blob.url, bytes: buf.length, format: 'webp', storage: 'blob' })
   }
 

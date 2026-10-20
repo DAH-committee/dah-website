@@ -57,6 +57,11 @@ const FormResponsesPage = lazy(() => import('./pages/admin/FormResponsesSheet'))
 const WorkspaceHub = lazy(() => import('./pages/workspace/WorkspaceHub'))
 const SheetEditor = lazy(() => import('./pages/workspace/SheetEditor'))
 const WorkspaceMembers = lazy(() => import('./pages/workspace/WorkspaceMembers'))
+const ShortLink = lazy(() => import('./pages/workspace/ShortLink'))
+const Integrations = lazy(() => import('./pages/workspace/Integrations'))
+const BoardEditor = lazy(() => import('./pages/board/BoardEditor'))
+const SlidesEditor = lazy(() => import('./pages/slides/SlidesEditor'))
+const HwpFileEditor = lazy(() => import('./pages/hwpfile/HwpFileEditor'))
 const AuthFinish = lazy(() => import('./pages/auth/AuthFinish'))
 
 // K2-9: 페이지 전환 크로스페이드 — 정규화 경로(/en 프리픽스 제외) 키로 재마운트 →
@@ -90,7 +95,7 @@ function AppChrome({ children }) {
   const { pathname } = useLocation()
   // 자료실 상세에서 진입하지만 전공 나침반 자체는 독립 프레젠테이션 화면이다.
   // 사이트 헤더·푸터·상세 본문 틀을 겹치지 않게 해 슬라이드 구조만 남긴다.
-  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets)\/[^/]+$/.test(pathname) || /^\/form\/(?:new|[^/]+\/(?:edit|responses))$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname) || pathname === '/auth/finish') return children
+  if (/^(?:\/en)?\/(?:major-compass|annual-report(?:\/render)?)$/.test(pathname) || /^\/(?:handover|docs|sheets|boards|slides|hwp|s)\/[^/]+$/.test(pathname) || /^\/form\/(?:new|[^/]+\/(?:edit|responses))$/.test(pathname) || /^\/workspace(?:\/[^/]+)?$/.test(pathname) || pathname === '/auth/finish') return children
   const workSurface = /^\/admin\/(?:exhibition-entries\/sheet|forms\/(?:new|[^/]+\/(?:edit|responses\/sheet)))$/.test(pathname)
 
   return (
@@ -188,6 +193,14 @@ const PUBLIC_ROUTES = [
     ),
   },
   {
+    path: '/workspace/integrations',
+    element: (
+      <Suspense fallback={null}>
+        <Integrations />
+      </Suspense>
+    ),
+  },
+  {
     path: '/workspace/:kind',
     element: (
       <Suspense fallback={null}>
@@ -235,6 +248,10 @@ const PUBLIC_ROUTES = [
       </Suspense>
     ),
   },
+  { path: '/s/:code', element: <Suspense fallback={null}><ShortLink /></Suspense> },
+  { path: '/boards/:id', element: <Suspense fallback={null}><BoardEditor /></Suspense> },
+  { path: '/slides/:id', element: <Suspense fallback={null}><SlidesEditor /></Suspense> },
+  { path: '/hwp/:id', element: <Suspense fallback={null}><HwpFileEditor /></Suspense> },
   { path: '/resources/:id', element: <ResourceDetail /> },
   { path: '/privacy', element: <Privacy /> },
   { path: '/terms', element: <Terms /> },

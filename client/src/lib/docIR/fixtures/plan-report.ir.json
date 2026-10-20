@@ -1,0 +1,1070 @@
+{
+ "version": 1,
+ "meta": {
+  "created": "2026-10-12T00:00:00Z",
+  "title": "계획서 시험"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "portrait",
+  "marginMm": {
+   "top": 20,
+   "right": 20,
+   "bottom": 18,
+   "left": 20
+  },
+  "headerMm": 10,
+  "footerMm": 10
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 10.5,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 150
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "footer": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "- "
+    },
+    {
+     "field": "page"
+    },
+    {
+     "text": " -"
+    }
+   ],
+   "align": "center",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "body": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "학습 커뮤니티 운영 계획서",
+     "sizePt": 22,
+     "bold": true,
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     }
+    }
+   ],
+   "align": "center",
+   "spaceAfterPt": 14,
+   "heading": 1
+  },
+  {
+   "t": "table",
+   "widthPt": 481.9,
+   "colPt": [
+    90,
+    391.9
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "사업명"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEF1FA",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2026-2학기 디지털인문예술전공 학습 커뮤니티 운영"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 26,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "기간"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEF1FA",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2026. 9. 14. ~ 2026. 12. 14."
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 26,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "목적"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEF1FA",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "학년 간 학습 격차를 줄이고, 학과 구성원이 함께 쓰는 도구와 자료를 만든다."
+          }
+         ],
+         "align": "justify"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 26,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "1. 추진 배경",
+     "bold": true,
+     "sizePt": 13
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 14,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#E9EEFB"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "학과 구성원이 학기 중 자료를 찾고 서로 묻는 경로가 흩어져 있어 한곳에 모을 필요가 있다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "신입생이 과제 양식과 제출 방법을 알아내는 데 걸리는 시간을 줄인다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 1
+   },
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "양식은 한글과 워드 양쪽으로 내려받을 수 있게 한다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 2
+   },
+   "indent": {
+    "leftPt": 42,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "쪽 수와 표 모양이 편집기와 같은지 확인한다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 2
+   },
+   "indent": {
+    "leftPt": 42,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "선배의 경험을 정리해 다음 학기에 이어 쓴다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 1
+   },
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "2. 추진 내용",
+     "bold": true,
+     "sizePt": 13
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 14,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#E9EEFB"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "정기 활동: 주 1회 3시간 이상, 온라인 또는 오프라인."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "활동 보고서는 활동 다음 날까지 작성한다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 1
+   },
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "자료 정리: 활동마다 쓴 도구와 설치 순서를 문서로 남긴다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "문서는 공용 저장소에 올린다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 1
+   },
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "결과 공유: 학기 말 발표에서 활동 사례를 소개한다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "figure",
+   "id": "fig1",
+   "wPt": 240,
+   "hPt": 150,
+   "align": "center",
+   "caption": {
+    "t": "p",
+    "runs": [
+     {
+      "text": "그림 1. 활동 단계별 참여 인원(자리표시)",
+      "sizePt": 9
+     }
+    ],
+    "align": "center",
+    "spaceAfterPt": 6
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "3. 소요 예산",
+     "bold": true,
+     "sizePt": 13
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 14,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#E9EEFB"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "아래 표의 산출 내역은 단가 x 수량 x 횟수이며, 금액은 그 곱이다.",
+     "sizePt": 9.5
+    }
+   ],
+   "spaceAfterPt": 4
+  },
+  {
+   "t": "table",
+   "widthPt": 482,
+   "colPt": [
+    40,
+    158,
+    76,
+    56,
+    56,
+    96
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "구분",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "rowspan": 2,
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "rowspan": 2,
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "산출 내역",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "colspan": 3,
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "금액(원)",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "rowspan": 2,
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      }
+     ],
+     "header": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "단가(원)",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "수량",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "횟수",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DDE3F5",
+       "vAlign": "middle"
+      }
+     ],
+     "header": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "운영비"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "rowspan": 4,
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "교육 자료 인쇄"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "4,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "30"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "1"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "120,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 22,
+     "heightRule": "atLeast",
+     "cantSplit": true
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "간식비(활동 당)"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "3,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "15"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "4"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "180,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 22,
+     "heightRule": "atLeast",
+     "cantSplit": true
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "외부 강사 사례"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "150,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "1"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "300,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 22,
+     "heightRule": "atLeast",
+     "cantSplit": true
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "소모품(필기구, 메모지)"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "1,500"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "20"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "1"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "30,000"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 22,
+     "heightRule": "atLeast",
+     "cantSplit": true
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "합계",
+           "bold": true
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "colspan": 5,
+       "bg": "#F1F3FA",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "630,000",
+           "bold": true
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "bg": "#F1F3FA",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast",
+     "cantSplit": true
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "4. 기대 효과",
+     "bold": true,
+     "sizePt": 13
+    }
+   ],
+   "heading": 2,
+   "spaceBeforePt": 14,
+   "spaceAfterPt": 4,
+   "keepNext": true,
+   "bg": "#E9EEFB"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "구성원이 같은 양식과 같은 순서로 문서를 만들어 검토 시간이 줄어든다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "활동 기록이 남아 다음 학기의 계획을 짜는 근거가 된다."
+    }
+   ],
+   "align": "justify",
+   "list": {
+    "kind": "bullet",
+    "level": 0
+   },
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -12
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 150
+   }
+  }
+ ],
+ "assets": {
+  "fig1": {
+   "mime": "image/png",
+   "data": "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aAPd8JO9hnI6ZN02+eL48oED5SGEWCy13g8tCiF88bz+6WkJbmN49bW3Ct9PdpvwF4b3m7fglTbZmff+eMK5Qz78oO/Mfrn5s6+ffNt/DuyfN3hgz+f++FqSN6l9wiXUefqmS+e29Z51PEoZGbE2bVrGv9889sjV7T741DQajdw349Ip0+asfePd70/6sgsROAaBXrRk7Q+mNvunZ9xzx4Svfrn+HQvTb/lm+3atG2486cZZyQP9pVFn3nvnhHPO6lP3Qb643j07z33iB9XVNY3Pn5wa/3meqanRtFiLWCw1Pb1FWqxFdlZmLNbo2Xh59ZsPz1pU73HtRYvXbvjb1vjyO+8WhhBK95f941UPffgXuXzMsCF97v7Rdx477U+XT/hCevphkzaxWOpP75pYtKsky+eEwDEJdCSScgR37x7zz8EuGDOosVXRaCTJTypt3Sr9CJ4IL9q175WC/6334vbC4nq3VFdVVdfd7JJvnBsfRH/virGNvXPCb1EARxLo80cPPH/0wGOy75mPL87MSGv4+ifwKbshg3vNfrDZP7n/9NNOcYUBJ+VvVIk/03FS6NA+a/i5WS4X4FMe6LM+16uxm4Xratum1VHuKC83Z8jg3g0/nGyKPr277N9fdkrntsfttMT3mNPetwHgkJSZc1bFl8aP89gxwImXP68g+K3eAJ9kAg0g0AAINIBAAyDQAAINgEADINAAAg2AQAMINAACDYBAAwg0AAININAACDSAQAMg0AAINIBAAyDQAAINgEADINAAAg3AkUp1CoDmevR3J2U6Lv96pRE0AAININAACDQAAg0g0AAINIBAAyDQAAINgEADINAAAg2AQAMINAACDYBAAwg0AAININAACDSAQAMg0AAINIBAAyDQAAINgEADINAAAg2AQAMINAACDSDQAAg0AAININAACDSAQAMg0AAINIBAAyDQAAINgEADINAAAg2AQAMINAAfo1Sn4NPt21PKT8bD/q8ZMf92YAQNINAACDSAQAMg0AACDYBAAyDQAAINgEADCDQAAg2AQAMINAACDSDQAAg0gEADINAACDSAQAMg0AACDYBAAyDQAAINgEADCDQAAg3w/1iqUwBx036RclIe9lU1/u2MoAEQaAAEGkCgARBoAIEGQKABBBoAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaACBBkCgARBoAIEGQKABBBoAgQZAoAEEGgCBBvjUST0ZD3rsFRtPxsNeNCvPBQcYQQMINAACDSDQAAg0AAININAACDSAQAMg0AAINIBAAyDQAAINgEADCDQAAg2AQAMINAACDSDQAAg0AAININAACDSAQAMg0AACDYBAAyDQAAINgEADCDQAAg2AQAMINAACDSDQAAg0gEADINAACDSAQAMg0AACDYBAAyDQAAINgEADCDQAAg2AQAMINAACDSDQAAg0gEADINAACDSAQAMg0AACDYBAAyDQAAINgEADCDQAAg0g0AAINAACDSDQAAg0gEADINAACDSAQAMg0AACDYBAAwg0AAINgEADCDQAAg0g0AAINAACDSDQAAg0wKdVysw5q+JL48cNdjoATrj8eQVG0ADBFAcAAg0g0AAINIBAAyDQAAg0gEADINAAAg2AQAMg0AACDYBAAwg0AAININAACDQAAg0g0AAINIBAAyDQAAg0gEADINAAAg2AQAMINAACDYBAAwg0AAININAAnHiptUv58wqcDgAjaAAEGuDk9H8EAgYX1u0KCwAAAABJRU5ErkJggg==",
+   "w": 480,
+   "h": 300
+  }
+ }
+}

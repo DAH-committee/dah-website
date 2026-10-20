@@ -1,0 +1,1008 @@
+{
+ "version": 1,
+ "meta": {
+  "created": "2026-10-12T00:00:00Z",
+  "title": "한림멘토링 활동 보고서(캡처 복제)"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "portrait",
+  "marginMm": {
+   "top": 15,
+   "right": 16.5,
+   "bottom": 15,
+   "left": 16.5
+  },
+  "headerMm": 8,
+  "footerMm": 8
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 10,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 160
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "body": [
+  {
+   "t": "figure",
+   "id": "logo",
+   "wPt": 78.6,
+   "hPt": 26.2,
+   "align": "right"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "2026-2학기 한림멘토링 ( 2 )주차 활동 보고서",
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     },
+     "sizePt": 20
+    }
+   ],
+   "align": "center",
+   "spaceBeforePt": 10,
+   "spaceAfterPt": 10
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": ""
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  },
+  {
+   "t": "table",
+   "widthPt": 499.9,
+   "colPt": [
+    85.6,
+    178.4,
+    77.2,
+    158.7
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "□ 멘토링 그룹 정보",
+           "highlight": "#FFFFFF"
+          }
+         ]
+        }
+       ],
+       "colspan": 4,
+       "bg": "#C5CCEB",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 29.5,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "학과(전공)",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "디지털인문예술전공"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "교과목명",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "서비스디자인"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 31,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "그룹명",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "온새마루 1기"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 3
+      }
+     ],
+     "heightPt": 32,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 목표",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "멘티 3명이 AI 개발 도구 Antigravity IDE와 Node.js를 각자 컴퓨터에 설치한다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설치를 마쳐 3주차의 IDE 화면 구성과 첫 작업 요청을 시작할 수 있는 상태를 만든다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "colspan": 3,
+       "vAlign": "middle"
+      }
+     ]
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": ""
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  },
+  {
+   "t": "table",
+   "widthPt": 499.70000000000005,
+   "colPt": [
+    84,
+    114.3,
+    128.9,
+    99.7,
+    72.8
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "□ 멘토링 활동 내용",
+           "highlight": "#FFFFFF"
+          }
+         ]
+        }
+       ],
+       "colspan": 5,
+       "bg": "#C5CCEB",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 29.5,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "멘토링 일시",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2026년 10월 7일(수), 20:00~23:00(3시간) ※ 주차 당 3시간 이상 활동"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 4
+      }
+     ],
+     "heightPt": 36,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 방법",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "",
+           "check": {
+            "checked": true
+           }
+          },
+          {
+           "text": " 온라인(ZOOM)"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "",
+           "check": {
+            "checked": false
+           }
+          },
+          {
+           "text": " 오프라인"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "(멘티)출석 인원",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "3명 중 3명",
+           "highlight": "#FFFF00"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 36,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "구분",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "세부 내용",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "colspan": 4,
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 31,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 내용"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "온라인(ZOOM)으로 진행했다. 학습 계획서 1주차 항목 가운데 사전 평가 이후 남은 개발 환경 설치를 이 주에 진행했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "Node.js 설치 후 터미널에서 버전을 확인하고, 패키지 관리자가 동작하는지 한 줄 명령으로 점검했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "Antigravity IDE를 내려받아 로그인과 작업 폴더 열기까지 화면을 공유하며 함께 따라 했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설치 중 막힌 단계는 오류 문구를 그대로 복사해 검색하는 방법으로 해결 경로를 연습했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "멘티별 컴퓨터 환경(운영체제, 저장 공간)이 달라 설치 경로 안내를 따로 했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 시간 안에 세 멘티 모두 IDE 첫 화면을 띄웠고, 폴더 열기까지 확인했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설치가 끝난 뒤에는 각자 터미널을 열어 현재 위치를 확인하는 명령과 폴더를 만드는 명령을 한 번씩 입력해 보며 명령어 입력 방식에 익숙해지도록 했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "멘티들이 서로의 화면을 보며 같은 오류가 났을 때 해결한 방법을 공유했고, 멘토는 공통으로 막히는 단계만 정리해 다음 활동 자료에 넣기로 했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "마지막 30분에는 3주차 활동 전에 준비할 내용을 함께 정하고, 각자 해 올 과제를 한 줄로 말해 서로 확인했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 내용은 활동 직후 공유 문서에 정리해 멘티 전원이 볼 수 있게 했다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "colspan": 4
+      }
+     ]
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "차주 계획"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "3주차에는 IDE의 화면 구성(파일 목록, 편집 영역, 터미널)을 익히고 첫 작업 요청을 보낸다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "요청문을 쓰는 방법을 짧은 예시 두 개로 연습하고, 결과를 서로 읽어 본다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설치가 끝나지 않은 멘티가 있으면 시간 전에 따로 만나 먼저 마친다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "colspan": 4
+      }
+     ]
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "특이 사항"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "일부 멘티의 컴퓨터에서 설치 파일 내려받기가 오래 걸려 진행이 지연되었다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "다음 주부터는 활동 전날 설치 파일을 미리 내려받도록 안내한다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "colspan": 4
+      }
+     ]
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": ""
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  },
+  {
+   "t": "table",
+   "widthPt": 499.9,
+   "colPt": [
+    84,
+    415.9
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "□ 멘토링 운영 의견",
+           "highlight": "#FFFFFF"
+          }
+         ]
+        }
+       ],
+       "colspan": 2,
+       "bg": "#C5CCEB",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 29.5,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "운영 의견",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "활동 시간이 3시간으로 길어 중간 휴식 시간을 정해 두면 집중이 더 잘 유지된다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "온라인 활동에서는 화면 공유 순서를 미리 정해 두면 시간이 줄어든다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ]
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "건의 사항",
+           "highlight": "#FFFFFF"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#DFE4F3",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설치 안내 문서를 활동 전날 미리 받아 볼 수 있으면 좋겠다."
+          }
+         ],
+         "align": "justify",
+         "list": {
+          "kind": "bullet",
+          "level": 0,
+          "marker": "▪"
+         },
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 220
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ]
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  }
+ ],
+ "assets": {
+  "logo": {
+   "mime": "image/png",
+   "data": "iVBORw0KGgoAAAANSUhEUgAAAWgAAAB4CAIAAABQJv+tAAAXWElEQVR42u2dd1xb173AjxZaSGyxzJ4CDNgx4IUXBg/sOK9OnKRxE7t2Rp282E3SJK3Tl/a1btP0tfFL3Tp5bvzSl6SOcdI4MYYUbLBNANvY7D3MXkJCoAWSkO77Q7V8JUADDSTx+370B7o6dx10v/rdc879HQKGYQgAAMAciFAFAACAOAAAAHEAAADiAAAAxAEAAIgDAAAAxAEAAIgDAAAQBwAAIA4AAEAcAAAAIA4AAEAcAAAsFmSHOpqTdbdML3wsJQP+fwCwKBAW97F6s0wBHgGAJS0OK/oCDAIALi4Om/oCDAIAriYOOysD9AEATiwOy31R1UwwvXBaAgYGAQDnFsfCrGGWKcz1CLgDABxXHAvoVX3q3G3bnaSeQUAfAOBY4jBRGdpL16a+MGwQ0AcAOIQ4TLHGYiljTn2AOwBgkcVh1BrWuiVpbOw2vXBSUoRhg4A7AGDRxGHYGhZGGWaZwlyPgDsAYBHEYQtlfPZkOkIo5fh52522nkGcTh9Xmjpm1Grt2/hATrivl312LVfOlLZ24ZdkRIV6Mej22XtJS6diRvVg15GhXkwb7vqfDW34y8Oe9ezK4jBgDXOVoZGFrX1h2CDaY7ADarXxaicQCIR5+qbX/OqUeFqufftm7ub9a1fa58h5IsmW332IX/LJc0+sCAu24i6+rm6q7h3Uvt2WFLs2Jlzz96Z3PuCLpdqPPj78+KqIZfNWMoa9kVdgdHc/271lPvGl/Pw9FU7Q9qxn5KpPx1rLGoulDPx9kEYfT527bTd37PjjXweFIsNl3t+/Zws3egl+Kat7B7+806B9G+HnrRWHeWCosL7VaKkfb8u0W8S01MVhFWvY4ZbE3GaUp87ZNe6wD29eKLjZ1beAFYtee9aNTIKLBLB5Pg4TrWFhlFF34nFTii1g442N3a7nDvG0HB/eA8jGbUCTU9NW3yybTqVRKM4tjjnDDZsqw0RTGF7LxD02NnanHO9OSopwvdDDnjQNjt7s6jW9/P41K6kUa6eVIqDDG43/E1k0qhX3Wdra9drn+Vavz3cfz92ZHO/E4liwNcxVxsJkYeIGjR6DRh9WPwYtF178gdpYszST6ua84qjpHXzvn2Wml9+7arnVxUEkEI7lZLqGiAnImW9VDHe+Wssatrtc9XZh9GBSjp+30cGw6TS7/Y8Pb0h/ZGWS0WINA8Nnb1Q5e2sOvrN2YQR4sF7fucnRTo1IIDirOOazhtEhoaZbww7KMFcfVnHH6l+dmlIoLdxItL/Ply89vYAVTewrJREJyMkpae6UWVzPMf6+jhhxOK84FpbkwkRr2FkZZunDcneo1Wr8cADbDf1wWIgEQnJIIIYQwjAMIQzDMITUGIYwhCEMwxCJ6CIJ99dGh+Ud2W/hRoSyqec//lLnQiURnVIcC2jacHxl6B3Gybpb/5vXY6CDxkEO1VyUKtWMSm1Kd4DtjoFGIX/6/JNoCcCm0xKCLb0PHZrQH+NDIZFcJOKw3BqOdh1qz8iAPpzRHX/8tuyTirtL4aL94YZ0pcrSNg5vJgM5QJ+u/oXqjBGHgTZRw52vTmQNpDsOfb4n6xbmjr89+4TlDxO6UcgIMMgLm1fPF3N1jPL7xyfFU9NqDGPTacFeHnEBfuYOb/u6pqmufxjpjjoN8mRb/USmZ4mDRia7QsRhuEHU6JBQh7XGsZSMk3W30hIwhKzpDm4QZ76ItLp3sHOUPyGbVszMeDLoQZ7sFWHB3CCOWa3oErlCIJHhl3gx6ETnb+y0nE6e4OOyqoL61tm9LWQScVtS3KENabEBfiZurWWI1zLEQ7o9VsjTBhHHjL446G4UJxOHualDjY6bcopo37A7LKdjlH/qSsXV5o45P43m+Ly0dV1WQoyJ9jh1pfzUlXL8ksJXD4V4ey5lZQxPiE5cKrne1jVfqDejUl+ua7lc17IhLuL47q3BXmzHOfg5Ig4KxekjDgPhhuGmDadQhibo0LoDzZUQxJLGDqlc8cuLxYUNrQbuXTp5gmN//4YbxDmxd7vpv4fI5O7Gr15+xrWt0cMfP/jXvDHTBtrfaOtuHvr7x4f3hft6I4cZt663xN3BRgMSTbmQTMxV4QLWmPOM5kwjtrCnbKaVykNnLxTUt5rS4tEyxDvw17z2kbElfrsxMiluHhzVvEzpHppRqV85lz/bGsFeHmuiwzJjI2bn1OCLpa9+nm+0y5wbxNmRHI9/sehUm4hj1q2KPUcMWjPi0HOHgTZRR3ja1T5zOC0g7vjjt2WNAyN6Czls92h/X6YbpW98on1kDO8U0dT06+cv5734g6X8lOqnFdWfVlSbXv5qc4eebblBnLd2Z6WEBmmXNA+Onrh0Fd/S2TY8VtrStTUxxsCW96xItE8+Dr2Ig0ohO9oXgGzdH+f5rOGkIyA05/XUudvz9bOY5Y5xqSyvqk4n/qRR396zddvyOG1TaCdP8OtvrtzpHsDfthQ3teemcA1seVcqd32sTljk485c2PlK5Aq+WMoXS8fEkqEJUQ9f2DY89vCKBCdKYKOXoMyLQf/oh4/p/WInBPv/z8FHH3n/b8O4ERPX2+4ZFofdEMvl+Ld+LCZygcfqzU0d6rzWQKb10ZrItZYuvUj7v596OCMyFOk2i55++ntPnP6siydAuESBhsWRFBywy2ABPP3jkz/8KE8zoEitxuQzM1KFQiZXSuUKqVwxO0hGCCWHBDrRf2p0UoJ/mxYZMmecz6S6rYkO+wcuY9DIpNi6R1Lc1HH8i0L8kqKfPOt5P2nQmeu3zlx70PMQyfH5/EdPzXkkAR4sR6tkoq3DDRewhrbtxsLGjgHhJP6tvwdLzxrofsfbtqRYvUsdWbPFXnn7Xn95R095R09lV29172Db8Fj/+MS4VDanNRBCA8IJJ/p/eTJ0NNE5yp+vZJfuR57WzgOmUqtlCiX+hXRGl+h8ir89GZlwRXF89mS6ibkqXCPWsNYZuemO4ZHJFfM9fiKaluuuuMj3twNWNZe5vJi19rvjRzQvU4Z16sVH98bG37lcqlfVGIb+UlKpN5pr+bIA5DDtwfi3gR5s5DIZwPTc4QJtogsenGJiS0eEn7deYq6zZVWzM8108QT5tS0GVrQD7jQqh8X0Z7NCfT0j/XySFvWKortRtLGAKaPaHlmZ9GHpTYlcgXDNq1ebO3elcEN9PElEYv/4REFda69AqNffuXtFgoN83wZ1n1VxwIiD7Jg/zg4edCzMkhvjItxpVAkumjhZVNY8NPr91StiAnzpFMqAcPKfDW2fVlTr5Z7LtSz10+w84EQCopBJFBKJTCRSyWQmzY1No7rTqCwa1ZNB57CZjjbcyCy8mPT/eCT7jbzL+P6p4QnRmeuGhjL+fM9WB0lZPCGbGtWNOKL9fVxTHK4dblira5ZGoRzNXn/i0lX8wqLG9qLGdgNrZcZGLDDH932yEqKzEqyWLZ1MIiYG++OXMNwcLlPZzuR4DMN+cbHYlDQoVAr5F3uyc01uXbY1zYOjSCcTB4oL5CyViMNVww0Lg44nMlLbR8YuVNWbWD4u0O83j+5wqHP3ZjLOW5xvwg7kpnDXx0b8vbLms8qaCdkUmifb6BOrU59e+5BNZ3VC5qdrxb8N8fZ0d7wkkmR7ZuJzVYkgM/I4obcfyU5aFvBh6c3ZORf0fgb3paUcyVpj3VS6MoVSMWPlvBssGtXCNDxqDOsTCAeFonWWxVZ6eNBpP9qy5mDmqutt3Q0Dw/2CSfH0tBrD2DRakBd7+bKAjfFRhq/Jx9KS8alhYwLskRwsLTLkpa3r+gTCPsFEn2CC63jhhpUjDteOMqx4sntXLd+zIvGr6sbPKqq7xgR6w8+9mPTcFO7hDem+Nhj2859fF+u1vFqOKTO5KVXq0yWVSpVKqVLPqNRKlUqpUk0rZ8bEktFJyYhILFfOsOm0irdeRNbPIUTZlhSr18NtIm89nGX/r1ZqaFAqbpCrY2Z+gxQPi1TvJOJjacmPpSWLpqbvjY1PyqaVKhWbTgv0ZLnkU61KlerPVysMlxFNTUvlCivmdtcMUbHiWawMC44L9LNz1TlmegQQxyIglE5JcGOKAzxY+F8YtLSfZ4viWK0Hobixw7qpz97M3Wx/cSyJmdwAUzhZVIafGzU+kPPFSz+AaqGSyfO1YgIgDsAKfH30ANIdr7Ww7WREhp45+Kh5QYFInPP7M8j4MFmStlmXQCC4kUlUMsmNTKaSyVQKmUomUclkFo3qx2L6sdz9PdxjAvwifL2cNNd5ZWcv/tkiLc1Do3pL8m7XM+7n8qrvH9LLbG7iQ8AZUaGLPocDiMMp4bDdrTVrgbm30GTTru196Sn70lPQYo8EC/XxtHCsvdqE1CmX61ouVjeZssH3i7+b7yO+WPrO5VJTNvIfe7JBHABgK57blPHcpgxLtrDmV6fEus8NAdZ8OhYAAARtHAAAmI4fy92eDyKybZOvEMSBnC4f99tfFVm4kd2pCbMfZjOKQqXSm1fBKOaWXwoczVl/NGc9RByAXZmcmsb3zi6MxOCABYjjbs/Axt+ehn8BgKCNAwAAiDiAJUeEr3daRAh6kP+KBXUC4gBQYrC/1Tv5Qrw9XKZ+DmSuOpC5Cr4njgzB8smQASdCIJHJFApk7dFoVHtNiXzi0lW8c5/ftNqm3Rlv5hVMKR+kAvreQ8s3xkfCtwjEAQAAgsZRAABAHAAAgDgAAABxAAAA4gAAAABxAAAA4gAAAMQBAACIAwAAEAcAAACIAwAAEAcAACAOAABAHAAAgDgAAABAHAAAgDgAAABxAACAIFkxoKGuf3h4QrQ5PopKeVDtLUO8XoFwbXQYm07TKdw3NDwpzogK9WLQjW7E8Ed3egb4YmlmbAST6oZwUxzf6RngBnHCfLw0K5KIxOzEGPyKajVW1NSOEIri+Mye5fj2vf5xqSw7MQY/xXzjwMigcHLb8jjt8cQG+EXi0oL28IWtw7wNcZGaSdubBkf7xyfWx4S706h3ugf4EukWbrQbmYTfUSdP0DnKz4yN6OQJhidEeoeBPwXNEjaNGuLjGeKtM910r0B4q6tvVCTxZjK4QZyVYcGa5fgDaBwYGRBOzjnPtieTbrgOQRyArTh3sya/tqXkjec5lAdzzX9T0/xJxd28I/sTgh+IQ41hr3yePzopPpaTeXhjutGNGP6IJ5K8fv7ykS1rjmSt1S48WVRW2NBW+Moh7YoIoW+OHcRf5FU9/a99no8Qen7z6tniOF1SWdXdX/X2y3S3B+K4UFV/sbpJIw7NZsN9vS++/AyZ9K8y37V3v3O5tPDVQwxvT4TQl3ca8m7XXTx6IJpGre4dfL/4u5Pff3irrr9+l1/awePnJMZqjxPP8d1ZYT5esz9aGxP+hyd2sWhUhNBnlTXvFlxTqdUMN4pMoUQI/Xrv9kdWJuodwIWq+jlnxmLRqD/fs9VwHYI4gMWnqrt/dFJMJBIu1TbriWMB7Fge/9GN238rv/vkmhWa+KWHP/5NbfOB9as47H8phkggqDGsqLH9hc2rtSsWNbYTCMjCbNY9/PFPKu4ezEwzWjI3Jf5PV74rqG/Fi2NcKrvV3bd/zUoikaBZcv7Ifj8WE39Va//+6uVnfFnMCenUJxV3827X/1fh9V/+W45AIvt94TVuEOfE3u1RHB/5zEzLEA8fOGh5dfuGF7PWIoRah8eO/N8/9qUnv7B5Dbo/O6zROoQ2DmCRuVTTzGG771mR2MUTtA7zLNwagYCOZmdK5YqPrt/WLPnz1UqGm9uhDQ+U5EGnxQb4FTe146Oeq82dK0KDLdm1O42aHhnyQenNMbHUaOFgL4/U0ODrrfek8gcTOHzb0KZWY7tSuOjBDM9MDttd+6K7UfBn4cWgR/h5v7V7K5VMvn2vHyHUPjo2o1JncaOjOD4IISqZnBoaNDuAQgix6TTNNn3dGQghBtVNuxdT6hDEASwmcuVMcVPHzuT4h1ckaCRi+TY3xEWsDAs+d7OWJ5J0jPK/bWg9lJnmoduqkpMU2zY81isQat7W9A7yxdJty2MtchZCP921ZUqp/MO315FJU2dz5TMzJc2d2iWF9W3hvt4Jwf7mfa2JBBKRoFSpEEKaAKGis1etxmxdhyAOwFZ8cafh04pq7atleFSvQGlrl1Su2Jkc/1D4Mn8PVkF9q4XfeA3HtmXKZ2ZOl1SeulLuzWTsX7tSr0BOUixCqLix4/59Sscybw9ukL+F+43x992XlpJf21LTO2i0cE5SLJlELKhv1bwdnhDV9g3uTuXiy3x1t/HczVrNa75A5vytOplCuT42AiEUF8BJDQ2q6u7Pfe/sqSvlXTyB7eoQ2jgAW/GXqxWGC3xT0xzu66X5jd2RHPdx2Z1b9/rWRIdZuN+VYcEb4iK/vNugVmPHd2fhI3wNkX7eURyf4qb2wxvTMQxdae7YlcIlWOOU/z17XWF962/yS84f2W+4pCeDvj4moqy9Wyib8mLQC+vbMAzlpuiI409XyrV/xwf64ds7njlznkQkCqUy0fT00+seOpqzXnOn9uGBvX+6Un6xuumD0psflN7czI369d7tCwgWjNYhiAOwFSVvPI9vTvvd5WufVNzVvhVKp8o7erISom929SGEOCx3hNCl2mbLxYEQOpq9/kbbvUBP9mNpyfP94J8uqRwUivgS6eikeFtSrHxmxvL9etBpL21dd+LS1S+q6k25W7nW2lXc2L4vPaWwoTU1NGiZ7rS4ha8e8mf/axpqCkmn43ZnSjyLRj13swZD6IXNq7UTUzKpbm/mbn51+4ay9u6PblSVtnT9Nr/kncd22qIO4VYFWAQK6ltVanVRY/vhsxcOn73wbsE1hNCVpo5p3Aymltw1IITCfby0naN6aMZxFDe1Fze2B3t5GG5Z0Pzeano3tcgUyjl/hx9PT4nx932/uHxCNmX4IDfFRzGpbgV1rT388ZYh3i7d+xSEEJVMdiOTNC8CQX8vB9avemX7RtHU9J+vVuqtSCGRtnCjPzywl0oml3f02KgOQRzAIpBf2xzj71v0k2e1rxc2r5YplCUtXXbYe2yAX5iPV1Fje3FTu9Fm0QhfL4RQ99g40h1nFao78krbWvnTXVsmZFOfVtYY3iyVQs5OjLnbO3C27A6ZRNQMCTGLbUmxqaFBn9+qvad7bBrcqW5+bCZ800AcrkMPX9gwMJKbwg3yZGtfj6YlEwgov1anb+Xe2HgnT6B9aboPjH5kCjlJsfX9w4NC0bYkI1dszvI4IoHwXlEZ/34L5Vd3G5sHR7ckRM9ZPj0yJDsxRoKba34+clO5GIb+cadhXUy43sDZ2ScolM4Rwry+c5MaU79bUIoQquzqza9tGZ4QqdRqmUL5cdmdgfHJVeHL4PsGbRyuE24QCGhHcjx+YYAH66HwZeUdveNSmTeToVl4+OwFnRV/fDDc19voR6aQnRRz5vqtYC92orEe0JSQwJ/s3Hiy6Lst737IYblL5QrxtHxDXMTBzFXzrfLajk032rqNtptkRIb6sZhjYumuFO7sT/VO8OXs9c9tytArkxwSuGN5fEF96422btH09M++LFSrMc0gN4RQNMfnjdzN8H2zBAKGYVAL9qF1mMcTSTKiQrWNdgihLp5gUDi5MizYnUat6x+eUihXR4XOHnzZJ5hIDA7wcWdoNqJXIC0ihO5GMfCR5m8MQ2Xt9zwZ9OSQQL0DG5fI1saEa97eaOv2ZTESgvwRQqKp6dq+oVAfz/nswxNJanoHB4UiDwYt2t83Bbfl1mGeQCJbd3+zGhoGRoRSWXpkCI1CQQh1jPKHJ0QPhS/TG8rZPDjKl0j16mrOEwz39Q718Zxdt0LpVMPAsC+LmRDkrznIEZGETCSG+XitjQ7TjkOd8wAk0/Lq3sFl3p74AfiG6xDEAQAAAG0cAACAOAAAAHEAAADiAAAAxAEAAADiAAAAxAEAAIgDAAAQBwAAIA4AAAAQBwAAIA4AAEAcAACAOAAAAHEAAADiAAAAAHEAAADiAAAAxAEAgDPz/whWba1iGUNNAAAAAElFTkSuQmCC",
+   "w": 360,
+   "h": 120
+  }
+ }
+}

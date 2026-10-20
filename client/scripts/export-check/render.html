@@ -1,0 +1,133 @@
+<!doctype html>
+<!-- 시험용 DOCX 렌더 페이지. docx-preview 는 쪽을 자동으로 나누지 않으므로(명시적 쪽 나눔만 구분) 본문 블록 높이로 쪽을 어림해 나눈다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>docx render</title>
+<style>
+  body { margin: 0; background: #fff; }
+  .docx-wrapper { background: #fff !important; padding: 0 !important; }
+  .docx-wrapper > section.docx { box-shadow: none !important; margin: 0 0 24px 0 !important; }
+  #mask { position: absolute; background: #fff; z-index: 99999; display: none; }
+</style>
+<script src="/vendor/jszip.min.js"></script>
+<script src="/vendor/docx-preview.min.js"></script>
+</head>
+<body>
+<div id="host"></div>
+<script>
+const PX2PT = 0.75
+const r1 = (n) => Math.round(n * 10) / 10
+
+// 같은 값으로 묶어 정렬(열 경계 후보)
+function cluster(vals, tol = 1) {
+  const s = [...vals].sort((a, b) => a - b)
+  const out = []
+  for (const v of s) {
+    if (out.length && v - out[out.length - 1].max <= tol) { const o = out[out.length - 1]; o.max = v; o.sum += v; o.n++ }
+    else out.push({ max: v, sum: v, n: 1 })
+  }
+  return out.map((o) => o.sum / o.n)
+}
+
+window.renderDocx = async function (url, opts = {}) {
+  const buf = await (await fetch(url)).arrayBuffer()
+  const host = document.getElementById('host')
+  host.innerHTML = ''
+  await docx.renderAsync(buf, host, null, { inWrapper: true, ignoreWidth: false, ignoreHeight: false, breakPages: true, ignoreLastRenderedPageBreak: true, renderHeaders: true, renderFooters: true, useBase64URL: true, experimental: false })
+  await new Promise((r) => setTimeout(r, 400))
+  const imgs = [...host.querySelectorAll('img')]
+  await Promise.all(imgs.map((im) => (im.complete ? 1 : new Promise((r) => { im.onload = im.onerror = r }))))
+  const headerRows = opts.headerRows || [] // 최상위 표별 제목 행 수(docx-preview 가 tblHeader 를 모름)
+  const breakBefore = new Set(opts.breakBefore || []) // pageBreakBefore 인 본문 블록 번호(docx-preview 가 무시)
+  const sections = [...host.querySelectorAll('section.docx')]
+  const pages = []
+  const tables = []
+  let tableIdx = 0
+  const sx = window.scrollX, sy = window.scrollY
+  sections.forEach((sec, si) => {
+    const sr = sec.getBoundingClientRect()
+    const cs = getComputedStyle(sec)
+    const padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom), padL = parseFloat(cs.paddingLeft)
+    const article = sec.querySelector(':scope > article') || sec
+    const ar = article.getBoundingClientRect()
+    const pageH = parseFloat(cs.minHeight) || sr.height
+    const bodyH = pageH - padT - padB
+    const secTop = sr.top + sy, secLeft = sr.left + sx
+    let startY = 0 // 현재 쪽의 본문 시작(article 기준 px)
+    let pageNo = pages.length
+    const pageStarts = [{ startY, pageNo }]
+    const newPage = (top) => { startY = top; pageNo++; pageStarts.push({ startY, pageNo }) }
+    // 한 덩어리(문단 또는 표 행)를 놓는다. 쪽을 넘으면 새 쪽
+    const place = (top, bottom, splittable, repeatH = 0) => {
+      if (bottom - startY > bodyH + 0.5) {
+        if (top > startY + 0.5) newPage(top - repeatH)
+        if (splittable) while (bottom - startY > bodyH + 0.5) newPage(startY + bodyH)
+      }
+      return pageNo
+    }
+    const blocks = [...article.children]
+    let bi = -1
+    for (const b of blocks) {
+      bi++
+      const br = b.getBoundingClientRect()
+      const top = br.top - ar.top, bottom = br.bottom - ar.top
+      if (si === 0 && breakBefore.has(bi) && top > startY + 0.5) newPage(top)
+      if (b.tagName === 'TABLE') {
+        const rows = [...b.querySelectorAll(':scope > tbody > tr, :scope > thead > tr, :scope > tr')]
+        const nh = headerRows[tableIdx] || 0
+        const frags = []
+        let repeatH = 0
+        if (nh) { const hr = rows[nh - 1]?.getBoundingClientRect(); if (hr) repeatH = hr.bottom - rows[0].getBoundingClientRect().top }
+        let cur = null
+        const edgesAll = []
+        rows.forEach((tr, ri) => {
+          const rr = tr.getBoundingClientRect()
+          const t = rr.top - ar.top, bt = rr.bottom - ar.top
+          const before = pageNo
+          const pg = place(t, bt, false, ri >= nh ? repeatH : 0)
+          const yLocal = padT + (t - startY)
+          if (!cur || cur.page !== pg) { cur = { page: pg, y0: yLocal, y1: yLocal + (bt - t) }; frags.push(cur) } else cur.y1 = yLocal + (bt - t)
+          for (const td of tr.children) { const cr = td.getBoundingClientRect(); edgesAll.push(cr.left - sr.left, cr.right - sr.left) }
+        })
+        const tr0 = b.getBoundingClientRect()
+        tables.push({
+          index: tableIdx, rows: rows.length,
+          x0: r1((tr0.left - sr.left) * PX2PT), x1: r1((tr0.right - sr.left) * PX2PT),
+          frags: frags.map((f) => ({ page: f.page, y0: r1(f.y0 * PX2PT), y1: r1(f.y1 * PX2PT) })),
+          colEdges: cluster(edgesAll, 1.5).map((v) => r1(v * PX2PT)),
+          nested: b.querySelectorAll('table').length,
+        })
+        tableIdx++
+      } else {
+        const lines = Math.max(1, Math.round((bottom - top) / 18))
+        place(top, bottom, lines > 3)
+      }
+    }
+    // 마지막 쪽 밑으로 내용이 더 있으면(오차) 쪽 수 보정은 하지 않는다
+    pageStarts.forEach((ps) => pages.push({ section: si, pageNo: ps.pageNo, clipX: r1(secLeft), clipY: r1(secTop + ps.startY), w: r1(sr.width), h: r1(pageH), padT, padB, startY: ps.startY, bodyH }))
+  })
+  // 쪽 번호가 구간마다 이어지도록 다시 매김
+  pages.forEach((p, i) => (p.pageNo = i))
+  const secs = sections.map((s) => { const r = s.getBoundingClientRect(); return { wPt: r1(r.width * PX2PT), hPt: r1(parseFloat(getComputedStyle(s).minHeight) * PX2PT || r.height * PX2PT), contentHPt: r1(r.height * PX2PT) } })
+  return { sections: secs, pageCount: pages.length, pages, tables, docHeight: document.documentElement.scrollHeight, fonts: [...new Set([...host.querySelectorAll('*')].map((e) => getComputedStyle(e).fontFamily.split(',')[0].trim()))].slice(0, 12) }
+}
+
+// i 쪽만 보이도록 앞뒤 가림판(마스크)을 host 안에 둔다. 가림판은 시험 뒤 제거
+window.maskPage = function (p, s) {
+  const host = document.getElementById('host')
+  host.style.position = 'relative'
+  host.querySelectorAll('.mask-x').forEach((e) => e.remove())
+  const mk = (x, y, w, h) => { const d = document.createElement('div'); d.className = 'mask-x'; d.style.cssText = `position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;background:#fff;z-index:99999`; host.appendChild(d) }
+  mk(p.clipX, p.clipY, p.w, p.padT)
+  mk(p.clipX, p.clipY + p.padT + p.bodyH, p.w, 20000)
+  mk(0, p.clipY, p.clipX, p.h) // 쪽 왼쪽 회색 바탕 가림
+  mk(p.clipX + p.w, p.clipY, 4000, p.h)
+  host.style.transformOrigin = '0 0'
+  host.style.transform = `translate(${-p.clipX * s}px, ${-p.clipY * s}px) scale(${s})`
+  return true
+}
+window.unmask = () => { const h = document.getElementById('host'); h.querySelectorAll('.mask-x').forEach((e) => e.remove()); h.style.transform = '' }
+</script>
+</body>
+</html>

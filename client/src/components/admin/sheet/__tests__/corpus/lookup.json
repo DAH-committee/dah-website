@@ -1,0 +1,1332 @@
+[
+ {
+  "formula": "=VLOOKUP(\"Lee\",A2:C6,3,FALSE)",
+  "expected": 20,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"lee\",A2:C6,3,FALSE)",
+  "expected": 20,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "대소문자 무시",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"Lee\",A2:C6,2,FALSE)",
+  "expected": "B",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"Zed\",A2:C6,3,FALSE)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"Lee\",A2:C6,4,FALSE)",
+  "expected": {
+   "error": "#REF!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-189 열 번호 초과"
+ },
+ {
+  "formula": "=VLOOKUP(\"Lee\",A2:C6,0,FALSE)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"L*\",A2:C6,3,FALSE)",
+  "expected": 20,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "와일드카드",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(25,A1:B4,2,TRUE)",
+  "expected": "b",
+  "cells": {
+   "A1": "10",
+   "B1": "a",
+   "A2": "20",
+   "B2": "b",
+   "A3": "30",
+   "B3": "c",
+   "A4": "40",
+   "B4": "d"
+  },
+  "note": "정렬된 근사 일치",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(5,A1:B3,2)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "10",
+   "B1": "a",
+   "A2": "20",
+   "B2": "b",
+   "A3": "30",
+   "B3": "c"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(99,A1:B3,2)",
+  "expected": "c",
+  "cells": {
+   "A1": "10",
+   "B1": "a",
+   "A2": "20",
+   "B2": "b",
+   "A3": "30",
+   "B3": "c"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(20,A1:B3,2,0)",
+  "expected": "b",
+  "cells": {
+   "A1": "10",
+   "B1": "a",
+   "A2": "20",
+   "B2": "b",
+   "A3": "30",
+   "B3": "c"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(B1,A1:A3,1,FALSE)",
+  "expected": "x",
+  "cells": {
+   "A1": "x",
+   "A2": "y",
+   "A3": "z",
+   "B1": "x"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(2,A1:B3,2,FALSE)",
+  "expected": "two",
+  "cells": {
+   "A1": "1",
+   "B1": "one",
+   "A2": "2",
+   "B2": "two",
+   "A3": "3",
+   "B3": "three"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"2\",A1:B3,2,FALSE)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "1",
+   "B1": "one",
+   "A2": "2",
+   "B2": "two"
+  },
+  "note": "텍스트 2와 숫자 2는 다름",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HLOOKUP(\"b\",A1:C2,2,FALSE)",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "B1": "b",
+   "C1": "c",
+   "A2": "1",
+   "B2": "2",
+   "C2": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HLOOKUP(\"z\",A1:C2,2,FALSE)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "a",
+   "B1": "b",
+   "C1": "c",
+   "A2": "1",
+   "B2": "2",
+   "C2": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"Park\",A2:A6,C2:C6)",
+  "expected": 30,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"Zed\",A2:A6,C2:C6)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"Zed\",A2:A6,C2:C6,\"없음\")",
+  "expected": "없음",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(25,C2:C6,A2:A6,\"x\",-1)",
+  "expected": "Lee",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "이하 중 가장 가까운 값",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(25,C2:C6,A2:A6,\"x\",1)",
+  "expected": "Park",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"A\",B2:B6,A2:A6,\"x\",0,-1)",
+  "expected": "Park",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "뒤에서부터 검색",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"P*\",A2:A6,C2:C6,\"x\",2)",
+  "expected": 30,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XLOOKUP(\"Lee\",A2:A6,B2:C6)",
+  "expected": [
+   [
+    "B",
+    20
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XMATCH(\"Park\",A2:A6)",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XMATCH(\"Zed\",A2:A6)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XMATCH(25,C2:C6,-1)",
+  "expected": 2,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XMATCH(25,C2:C6,1)",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(\"Park\",A2:A6,0)",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(\"park\",A2:A6,0)",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(\"Zed\",A2:A6,0)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(25,{10,20,30},1)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(25,{10,20,30})",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(25,{30,20,10},-1)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(5,{10,20,30},1)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(\"P*\",A2:A6,0)",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MATCH(20,A1:B2,0)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "1",
+   "B1": "2",
+   "A2": "3",
+   "B2": "4"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A1:C6,3,1)",
+  "expected": "Lee",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A1:C6,6,3)",
+  "expected": 40,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A1:C6,9,1)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-168/220 (관찰값, 의심 항목)"
+ },
+ {
+  "formula": "=INDEX(C2:C6,2)",
+  "expected": 20,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A1:C1,2)",
+  "expected": "Dept",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(INDEX(A1:C6,0,3))",
+  "expected": 105,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX({1,2;3,4},2,2)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A2:C6,MATCH(\"Park\",A2:A6,0),3)",
+  "expected": 30,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(A2:C6,2,0)",
+  "expected": [
+   [
+    "Lee",
+    "B",
+    20
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOOKUP(25,{10,20,30},{\"a\",\"b\",\"c\"})",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOOKUP(2,A1:A3,B1:B3)",
+  "expected": "y",
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "x",
+   "B2": "y",
+   "B3": "z"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOOKUP(0,{10,20},{\"a\",\"b\"})",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSE(2,\"a\",\"b\",\"c\")",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSE(4,\"a\",\"b\",\"c\")",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-169 (관찰값, 의심 항목)"
+ },
+ {
+  "formula": "=CHOOSE(1,10,1/0)",
+  "expected": 10,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSE(A1,\"x\",\"y\")",
+  "expected": "y",
+  "cells": {
+   "A1": "2"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(OFFSET(A1,1,0,3,1))",
+  "expected": 9,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OFFSET(A1,2,1)",
+  "expected": "q",
+  "cells": {
+   "A1": "1",
+   "B3": "q"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OFFSET(A1,-1,0)",
+  "expected": {
+   "error": "#REF!"
+  },
+  "cells": {
+   "A1": "1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(OFFSET(B1,0,-1,3,2))",
+  "expected": 21,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "4",
+   "B2": "5",
+   "B3": "6"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDIRECT(\"A2\")",
+  "expected": "b",
+  "cells": {
+   "A1": "a",
+   "A2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDIRECT(\"A\"&2)",
+  "expected": "b",
+  "cells": {
+   "A1": "a",
+   "A2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(INDIRECT(\"A1:A3\"))",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDIRECT(\"zzz\")",
+  "expected": {
+   "error": "#REF!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDIRECT(B1)",
+  "expected": "b",
+  "cells": {
+   "A2": "b",
+   "B1": "A2"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROW(A5)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROW()",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COLUMN(C1)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COLUMN()",
+  "expected": 4,
+  "note": "수식 칸은 D열에 놓임(시험 하네스)",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROWS(A1:A5)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COLUMNS(A1:C1)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROWS(A1:C4)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROW(A2:A4)",
+  "expected": [
+   [
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COLUMN(A1:C1)",
+  "expected": [
+   [
+    1,
+    2,
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(2,3)",
+  "expected": "$C$2",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(2,3,4)",
+  "expected": "C2",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(2,3,2)",
+  "expected": "C$2",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(2,3,3)",
+  "expected": "$C2",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(1,1,1,TRUE,\"Sheet2\")",
+  "expected": "Sheet2!$A$1",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ADDRESS(0,1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A:A)",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1:A)",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(2:2)",
+  "expected": 7,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "B2": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTA(A:A)",
+  "expected": 3,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "c"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM($A$1:$A$3)",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAX(A:B)",
+  "expected": 9,
+  "cells": {
+   "A1": "1",
+   "B2": "9"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=Sheet2!A1*2",
+  "expected": 10,
+  "sheets": {
+   "Sheet1": {},
+   "Sheet2": {
+    "A1": "5"
+   }
+  },
+  "note": "다른 시트 참조",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(Sheet2!A1:A3)",
+  "expected": 6,
+  "sheets": {
+   "Sheet1": {},
+   "Sheet2": {
+    "A1": "1",
+    "A2": "2",
+    "A3": "3"
+   }
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "='내 시트'!B2",
+  "expected": "ok",
+  "sheets": {
+   "Sheet1": {},
+   "내 시트": {
+    "B2": "ok"
+   }
+  },
+  "note": "한글 시트 이름",
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VLOOKUP(\"b\",'내 시트'!A1:B2,2,FALSE)",
+  "expected": 2,
+  "sheets": {
+   "Sheet1": {},
+   "내 시트": {
+    "A1": "a",
+    "B1": "1",
+    "A2": "b",
+    "B2": "2"
+   }
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=Nope!A1",
+  "expected": {
+   "error": "#REF!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(Sheet2!A:A)",
+  "expected": 3,
+  "sheets": {
+   "Sheet1": {},
+   "Sheet2": {
+    "A1": "1",
+    "A2": "2"
+   }
+  },
+  "source": "https://support.google.com/docs/table/25273 (찾기·참조, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

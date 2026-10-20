@@ -58,7 +58,7 @@
 .ws-card { position: relative; display: flex; flex-direction: column; background: #fff; border-radius: 4px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); cursor: pointer; transition: box-shadow 140ms ease; }
 .ws-card:hover { box-shadow: 0 0 0 3px var(--ws-purple); }
 .ws-card__thumb { position: relative; overflow: hidden; border-radius: 4px 4px 0 0; background: #f2f2f2; }
-.ws-card__thumb, .ws-card__thumb--docs, .ws-card__thumb--sheets, .ws-card__thumb--forms { height: 190px; }
+.ws-card__thumb, .ws-card__thumb--docs, .ws-card__thumb--sheets, .ws-card__thumb--forms, .ws-card__thumb--boards, .ws-card__thumb--slides { height: 190px; }
 .ws-card__foot { padding: 12px 8px 8px 16px; background: #fff; border-radius: 0 0 4px 4px; }
 .ws-card__foot strong { display: -webkit-box; height: 40px; font-size: 14px; font-weight: 500; line-height: 20px; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: keep-all; }
 .ws-card__meta { position: relative; display: flex; align-items: center; gap: 8px; height: 36px; color: var(--ws-sub); font-size: 13px; letter-spacing: -0.02em; }
@@ -154,9 +154,61 @@
 .ws .ws-signin__alt { min-height: 44px; padding: 0 20px; border-radius: 22px; background: #fff; color: var(--ws-ink); font-size: 15px; font-weight: 600; }
 .ws .ws-signin__alt:hover { background: #e2e2e2; }
 
-/* 비공개·나만 보기 표시 */
+/* 나만 보기·팀 표시 */
 .ws-tag { display: inline-flex; flex: none; align-items: center; gap: 3px; height: 20px; padding: 0 7px; border-radius: 10px; background: #1f1f1f; color: #fff; font-size: 11px; font-style: normal; font-weight: 600; letter-spacing: 0; }
 .ws-row__title .ws-tag { margin-left: 4px; }
 
 /* 휴지통 안내 */
 .ws-note { margin: 0 0 16px; padding: 10px 16px; border-radius: 4px; background: #e2e2e2; color: var(--ws-ink); font-size: 14px; }
+
+/* 보드 썸네일: 점 격자, 흰 메모, 보라 키워드, 연결선 */
+.ws-thumb--board { background-color: #f2f2f2; background-image: radial-gradient(#bdbdbd 1px, transparent 1.2px); background-size: 12px 12px; }
+.ws-thumb__memo { position: absolute; width: 34%; height: 24%; border-radius: 3px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); }
+.ws-thumb__chip { position: absolute; width: 26%; height: 9%; border-radius: 10px; background: #7a3cff; }
+.ws-thumb__link { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ws-thumb__link path { fill: none; stroke: #5f6368; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.ws-thumb__count { position: absolute; right: 8px; bottom: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: #1f1f1f; color: #fff; font-size: 11px; font-weight: 600; line-height: 22px; text-align: center; }
+
+/* 왼쪽 메뉴: 공간(내 파일, 팀) */
+.ws-drawer__label { margin: 0; padding: 4px 16px 6px; color: var(--ws-sub); font-size: 12px; font-weight: 600; }
+.ws .ws-drawer__item { width: 100%; font-size: 14px; text-align: left; }
+.ws-drawer__item svg { flex-shrink: 0; color: #5f6368; }
+.ws-drawer__item.is-on svg { color: var(--ws-purple); }
+.ws-drawer__text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-drawer__item small { color: var(--ws-sub); font-size: 12px; font-weight: 500; }
+
+/* 팀 공간 표시 */
+.ws-band__head h2 { display: flex; align-items: center; gap: 12px; }
+.ws-band__team { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 14px; background: #7a3cff; color: #fff; font-size: 13px; font-weight: 600; }
+.ws-recent__title { display: flex; align-items: center; gap: 8px; }
+.ws-recent__title svg { color: var(--ws-purple); }
+.ws-recent__title span { color: var(--ws-sub); font-weight: 400; }
+.ws-teamlink { color: var(--ws-ink); text-decoration: none; }
+.ws-teamlink svg { color: #5f6368; }
+@media (max-width: 900px) {
+  .ws-band__team { display: none; }
+  .ws-teamlink { display: none; }
+}
+.ws-tag--team { flex: 0 1 auto; min-width: 0; max-width: 58%; }
+.ws-tag--team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-tag svg { flex-shrink: 0; }
+
+/* 슬라이드 썸네일: 회색 바탕에 16:9 카드(첫 슬라이드의 제목 글) */
+.ws-thumb--slide { display: grid; place-items: center; background: #f2f2f2; }
+.ws-slide { display: flex; align-items: center; justify-content: center; width: 86%; aspect-ratio: 16 / 9; padding: 8%; border-radius: 3px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28); text-align: center; overflow: hidden; }
+.ws-slide b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: 15px; font-weight: 700; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
+.ws-thumb--slide.is-small .ws-slide b { font-size: 12px; }
+.ws-owner--row { display: inline-flex; align-items: center; gap: 4px; }
+.ws-grid--slides { grid-template-columns: repeat(auto-fill, 210px); }
+
+/* 한글 파일: 카드 썸네일은 서버가 그린 1쪽(위쪽 기준 자름), 새로 만들기 칸은 종이와 줄 */
+.ws-card__thumb--hwp { height: 190px; }
+.ws-grid--hwp { grid-template-columns: repeat(auto-fill, 210px); }
+.ws-thumb--hwp { position: absolute; inset: 0; display: grid; place-items: start center; background: #f2f2f2; overflow: hidden; }
+.ws-thumb--hwp img { width: 100%; height: 100%; object-fit: cover; object-position: top center; background: #fff; display: block; }
+.ws-thumb__paper { display: block; width: 62%; height: 92%; margin-top: 8%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); }
+.ws-thumb__fmt { position: absolute; right: 8px; bottom: 8px; padding: 1px 6px; border-radius: 3px; background: #7a3cff; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.02em; }
+.ws-thumb--hwptpl { display: flex; flex-direction: column; gap: 7px; justify-content: flex-start; padding: 22px 26px; background: #fff; }
+.ws-thumb--hwptpl b { align-self: center; margin-bottom: 8px; font-size: 13px; color: #111; letter-spacing: 0.3em; }
+.ws-thumb--hwptpl i { display: block; height: 4px; border-radius: 2px; background: #cfcfcf; }
+.ws-thumb--hwptpl i.is-short { width: 60%; }

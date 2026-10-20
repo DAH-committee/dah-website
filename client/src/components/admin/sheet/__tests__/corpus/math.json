@@ -1,0 +1,1565 @@
+[
+ {
+  "formula": "=SUM(A1:A5)",
+  "expected": 15,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(1,2,3)",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1:A2,10)",
+  "expected": 13,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(\"3\",4)",
+  "expected": 7,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(TRUE,1)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1:A3)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "x",
+   "A3": "2"
+  },
+  "note": "범위 안 텍스트는 무시",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(\"x\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1:A2)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "=NA()",
+   "A2": "1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM()",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1)",
+  "expected": 0,
+  "cells": {
+   "A1": "abc"
+  },
+  "note": "참조된 텍스트 무시",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1)",
+  "expected": 5,
+  "cells": {
+   "A1": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PRODUCT(2,3,4)",
+  "expected": 24,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PRODUCT(A1:A4)",
+  "expected": 24,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMSQ(1,2,3)",
+  "expected": 14,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMSQ(A1:A3)",
+  "expected": 14,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGE(A1:A5)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGE(2,4)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGE(A1:A3)",
+  "expected": 1.5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "x"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGE(A1:A2)",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGEA(A1:A3)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "x"
+  },
+  "note": "AVERAGEA는 텍스트를 0으로",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MIN(A1:A5)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAX(A1:A5)",
+  "expected": 5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MIN(3,1,2)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAX(3,1,2)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAX(A1:A2)",
+  "expected": 0,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MINA(A1:A3)",
+  "expected": 0,
+  "cells": {
+   "A1": "2",
+   "A2": "x",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAXA(A1:A3)",
+  "expected": 3,
+  "cells": {
+   "A1": "2",
+   "A2": "x",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNT(A1:A5)",
+  "expected": 5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNT(A1:A4)",
+  "expected": 2,
+  "cells": {
+   "A1": "1",
+   "A2": "x",
+   "A3": "",
+   "A4": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNT(1,\"2\",\"x\")",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTA(A1:A4)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "x",
+   "A3": "",
+   "A4": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTBLANK(A1:A4)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "x",
+   "A3": "",
+   "A4": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTUNIQUE(A1:A5)",
+  "expected": 3,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "A4": "c",
+   "A5": "B"
+  },
+  "note": "대소문자 무시",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTUNIQUE(1,1,2)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A5,\">2\")",
+  "expected": 12,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A5,\"<=2\")",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A3,\"a\",B1:B3)",
+  "expected": 4,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A3,\"<>a\",B1:B3)",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A3,\"a*\",B1:B3)",
+  "expected": 4,
+  "cells": {
+   "A1": "apple",
+   "A2": "b",
+   "A3": "avocado",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "note": "와일드카드",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIF(A1:A3,\"?\",B1:B3)",
+  "expected": 2,
+  "cells": {
+   "A1": "ab",
+   "A2": "b",
+   "A3": "cd",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A5,\">=3\")",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A5,3)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A3,\"a\")",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "A",
+   "A3": "b"
+  },
+  "note": "대소문자 무시",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A3,\"\")",
+  "expected": 1,
+  "cells": {
+   "A1": "a",
+   "A2": "",
+   "A3": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A3,\"<>\")",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "",
+   "A3": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A3,\"~*\")",
+  "expected": 1,
+  "cells": {
+   "A1": "*",
+   "A2": "x",
+   "A3": "xx"
+  },
+  "note": "~로 와일드카드 이스케이프",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A3,\"5\")",
+  "expected": 2,
+  "cells": {
+   "A1": "5",
+   "A2": "'5",
+   "A3": "6"
+  },
+  "note": "텍스트 5도 일치",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIF(A1:A4,TRUE)",
+  "expected": 1,
+  "cells": {
+   "A1": "TRUE",
+   "A2": "1",
+   "A3": "x",
+   "A4": "FALSE"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIFS(C1:C4,A1:A4,\"a\",B1:B4,\">1\")",
+  "expected": 7,
+  "cells": {
+   "A1": "a",
+   "A2": "a",
+   "A3": "b",
+   "A4": "a",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3",
+   "B4": "4",
+   "C1": "10",
+   "C2": "3",
+   "C3": "5",
+   "C4": "4"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIFS(B1:B3,A1:A3,\"x\")",
+  "expected": 0,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "c",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMIFS(A1:A3,B1:B2,\"x\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "x",
+   "B2": "x"
+  },
+  "note": "크기 불일치",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIFS(A1:A4,\"a\",B1:B4,\">1\")",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "a",
+   "A3": "b",
+   "A4": "a",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3",
+   "B4": "4"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTIFS(A1:A3,\">1\",A1:A3,\"<3\")",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGEIF(A1:A5,\">2\")",
+  "expected": 4,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGEIF(A1:A3,\"a\",B1:B3)",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "B1": "1",
+   "B2": "2",
+   "B3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGEIF(A1:A3,\"z\")",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVERAGEIFS(C1:C3,A1:A3,\"a\",B1:B3,\">0\")",
+  "expected": 2,
+  "cells": {
+   "A1": "a",
+   "A2": "a",
+   "A3": "b",
+   "B1": "1",
+   "B2": "1",
+   "B3": "1",
+   "C1": "1",
+   "C2": "3",
+   "C3": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAXIFS(B1:B4,A1:A4,\"a\")",
+  "expected": 4,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "A4": "a",
+   "B1": "1",
+   "B2": "9",
+   "B3": "4",
+   "B4": "2"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MINIFS(B1:B4,A1:A4,\"a\")",
+  "expected": 1,
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "A3": "a",
+   "A4": "a",
+   "B1": "1",
+   "B2": "9",
+   "B3": "4",
+   "B4": "2"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT(A1:A3,B1:B3)",
+  "expected": 32,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "4",
+   "B2": "5",
+   "B3": "6"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT((A1:A5>2)*(A1:A5))",
+  "expected": 12,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT(A1:A3)",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT({1,2,3},{4,5,6})",
+  "expected": 32,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT(A1:A3,B1:B2)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "1",
+   "B2": "2"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MOD(10,3)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MOD(-10,3)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MOD(10,-3)",
+  "expected": -2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MOD(5,0)",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MOD(5.5,2)",
+  "expected": 1.5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUOTIENT(7,2)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUOTIENT(-7,2)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=POWER(2,10)",
+  "expected": 1024,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=POWER(4,0.5)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SQRT(16)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SQRT(-1)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EXP(0)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EXP(1)",
+  "expected": 2.718281828459045,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LN(1)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LN(0)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOG(100)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOG(8,2)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOG10(1000)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LOG(0)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INT(3.7)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INT(-3.2)",
+  "expected": -4,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUNC(3.789,2)",
+  "expected": 3.78,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUNC(-3.789)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUNC(1234,-2)",
+  "expected": 1200,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(2.5)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(-2.5)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(3.14159,2)",
+  "expected": 3.14,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(1234.5678,-2)",
+  "expected": 1200,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(1.005,2)",
+  "expected": 1.01,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(2.675,2)",
+  "expected": 2.68,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(0.5)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUND(1.45,1)",
+  "expected": 1.5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDUP(3.14159,2)",
+  "expected": 3.15,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDUP(-3.14159,2)",
+  "expected": -3.15,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDUP(1234,-2)",
+  "expected": 1300,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDDOWN(3.99,0)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDDOWN(-3.99,0)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROUNDDOWN(1299,-2)",
+  "expected": 1200,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CEILING(2.5,1)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CEILING(2.5,2)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CEILING(2.1)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FLOOR(2.5,1)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FLOOR(7,5)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FLOOR(2.9)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MROUND(10,3)",
+  "expected": 9,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MROUND(11,3)",
+  "expected": 12,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MROUND(-10,-3)",
+  "expected": -9,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MROUND(5,-2)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SIGN(-5)",
+  "expected": -1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SIGN(0)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SIGN(9)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ABS(-4.5)",
+  "expected": 4.5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ABS(\"-3\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PI()",
+  "expected": 3.141592653589793,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EVEN(3)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EVEN(-1)",
+  "expected": -2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ODD(2)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ODD(-2)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISEVEN(4)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISEVEN(3)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISODD(3)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISODD(4)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FACT(5)",
+  "expected": 120,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FACT(0)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FACT(-1)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=GCD(12,18)",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=GCD(12,18,8)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LCM(4,6)",
+  "expected": 12,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LCM(2,3,4)",
+  "expected": 12,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COMBIN(5,2)",
+  "expected": 10,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PERMUT(5,2)",
+  "expected": 20,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SIN(0)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COS(0)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TAN(0)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ASIN(1)",
+  "expected": 1.5707963267948966,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ACOS(1)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ATAN(1)",
+  "expected": 0.7853981633974483,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ATAN2(1,1)",
+  "expected": 0.7853981633974483,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DEGREES(PI())",
+  "expected": 180,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RADIANS(180)",
+  "expected": 3.141592653589793,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RAND()",
+  "expected": 0.5,
+  "note": "시험에서는 난수원을 0.5로 고정",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANDBETWEEN(1,10)",
+  "expected": 6,
+  "note": "고정 난수 0.5 -> 1+floor(5)=6",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANDBETWEEN(5,5)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANDBETWEEN(10,1)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MEDIAN(1,2,3,4)",
+  "expected": 2.5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MEDIAN(A1:A5)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MEDIAN(5,1,3)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MODE(1,2,2,3)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MODE(1,2,3)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MODE(1,1,2,2)",
+  "expected": 1,
+  "note": "동률이면 먼저 나온 값",
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=STDEV(2,4,4,4,5,5,7,9)",
+  "expected": 2.138089935299395,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=STDEVP(2,4,4,4,5,5,7,9)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VAR(1,2,3,4,5)",
+  "expected": 2.5,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VARP(1,2,3,4,5)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=STDEV(1)",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=STDEV.S(1,2,3)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=STDEV.P(1,2,3)",
+  "expected": 0.816496580927726,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LARGE(A1:A5,2)",
+  "expected": 4,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SMALL(A1:A5,2)",
+  "expected": 2,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LARGE(A1:A5,9)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANK(3,A1:A5)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANK(3,A1:A5,1)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANK(5,A1:A5)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RANK(9,A1:A5)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PERCENTILE(A1:A5,0.5)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PERCENTILE(A1:A5,0.25)",
+  "expected": 2,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PERCENTILE(A1:A5,1)",
+  "expected": 5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=PERCENTILE(A1:A4,0.5)",
+  "expected": 2.5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUARTILE(A1:A5,1)",
+  "expected": 2,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUARTILE(A1:A5,3)",
+  "expected": 4,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUARTILE(A1:A5,0)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUARTILE(A1:A5,4)",
+  "expected": 5,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CORREL(A1:A5,B1:B5)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SLOPE(B1:B5,A1:A5)",
+  "expected": 2,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INTERCEPT(B1:B5,A1:A5)",
+  "expected": 0,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FORECAST(6,B1:B5,A1:A5)",
+  "expected": 12,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FORECAST.LINEAR(7,B1:B5,A1:A5)",
+  "expected": 14,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=RSQ(B1:B5,A1:A5)",
+  "expected": 1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5",
+   "B1": "2",
+   "B2": "4",
+   "B3": "6",
+   "B4": "8",
+   "B5": "10"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CORREL(A1:A3,B1:B3)",
+  "expected": -1,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "3",
+   "B2": "2",
+   "B3": "1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=GEOMEAN(1,4)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AVEDEV(1,2,3,4,5)",
+  "expected": 1.2,
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBTOTAL(9,A1:A5)",
+  "expected": 15,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBTOTAL(1,A1:A5)",
+  "expected": 3,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUBTOTAL(109,A1:A5)",
+  "expected": 15,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "A4": "4",
+   "A5": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MMULT({1,2;3,4},{5;6})",
+  "expected": [
+   [
+    17
+   ],
+   [
+    39
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FREQUENCY({1,2,3,4,5},{2,4})",
+  "expected": [
+   [
+    2
+   ],
+   [
+    2
+   ],
+   [
+    1
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (수학, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

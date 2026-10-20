@@ -2,7 +2,9 @@
 import 'dotenv/config'
 import { createApp } from './app.js'
 import { runAutoTasks, ensureExhibitAutoSchema } from './lib/exhibitionPipeline.js'
+import { ensureHwpSchema } from './lib/hwpSchema.js'
 import { isConfigured, ensurePublicAuthSchema, ensureDriveSchema, ensureSheetStateSchema, ensureHandoverSchema } from './db.js'
+import { ensureMcpSchema } from './lib/mcpSchema.js'
 
 const PORT = process.env.PORT || 4000
 const app = createApp()
@@ -21,6 +23,8 @@ app.listen(PORT, async () => {
   await ensureSheetStateSchema()
   await ensureHandoverSchema()
   await ensureExhibitAutoSchema()
+  await ensureHwpSchema() // 한글 파일(kind=hwp) 버전·암호화 저장 테이블
+  await ensureMcpSchema()
   console.log('[dah-server] google drive 저장소 스키마 확인 완료')
   // 전시회 자동 작업: 드라이브 재전송, 수정 마감 뒤 채점기준표와 교수님 공유. EXHIBIT_AUTO=off면 끈다
   if (process.env.EXHIBIT_AUTO !== 'off') {

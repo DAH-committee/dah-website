@@ -1,0 +1,595 @@
+[
+ {
+  "formula": "=IF(1>0,\"y\",\"n\")",
+  "expected": "y",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(1<0,\"y\",\"n\")",
+  "expected": "n",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(1<0,\"y\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(TRUE,1)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(\"a\",\"y\",\"n\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(0,1,2)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(5,1,2)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(\"TRUE\",1,2)",
+  "expected": 1,
+  "note": "\"TRUE\" 텍스트는 불리언으로 변환",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(A1,1,2)",
+  "expected": 2,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(1/0,1,2)",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IF(TRUE,1,1/0)",
+  "expected": 1,
+  "note": "고르지 않은 쪽은 계산 안 함",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFS(1>2,\"a\",2>1,\"b\")",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFS(1>2,\"a\",2>3,\"b\")",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFS(FALSE,1,TRUE,2,TRUE,3)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFS(TRUE,1,2)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "note": "쌍이 맞지 않음",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SWITCH(2,1,\"a\",2,\"b\",3,\"c\")",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SWITCH(9,1,\"a\",2,\"b\",\"other\")",
+  "expected": "other",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SWITCH(9,1,\"a\",2,\"b\")",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SWITCH(\"A\",\"a\",1,\"b\",2)",
+  "expected": 1,
+  "note": "텍스트 비교는 대소문자 무시",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(1/0,\"err\")",
+  "expected": "err",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(5,\"err\")",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(1/0)",
+  "expected": "",
+  "note": "대체값 생략 시 빈 문자열",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(NA(),0)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(VLOOKUP(9,A1:B2,2,FALSE),\"없음\")",
+  "expected": "없음",
+  "cells": {
+   "A1": "1",
+   "B1": "a",
+   "A2": "2",
+   "B2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFNA(NA(),\"x\")",
+  "expected": "x",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFNA(1/0,\"x\")",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFNA(3,\"x\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(TRUE,TRUE)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(TRUE,FALSE)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(1,1)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(1,0)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(A1:A3)",
+  "expected": true,
+  "cells": {
+   "A1": "TRUE",
+   "A2": "TRUE",
+   "A3": "x"
+  },
+  "note": "범위 안 텍스트는 무시",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=AND(\"x\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OR(FALSE,TRUE)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OR(FALSE,FALSE)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OR(0,0,1)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=OR(A1:A2)",
+  "expected": false,
+  "cells": {
+   "A1": "FALSE",
+   "A2": "0"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XOR(TRUE,FALSE)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XOR(TRUE,TRUE)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=XOR(TRUE,TRUE,TRUE)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NOT(TRUE)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NOT(0)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NOT(\"a\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUE()",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FALSE()",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISBLANK(A1)",
+  "expected": true,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISBLANK(A1)",
+  "expected": false,
+  "cells": {
+   "A1": "x"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISBLANK(A1)",
+  "expected": false,
+  "cells": {
+   "A1": "0"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISBLANK(\"\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNUMBER(5)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNUMBER(\"5\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNUMBER(A1)",
+  "expected": true,
+  "cells": {
+   "A1": "5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISTEXT(\"a\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISTEXT(1)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISTEXT(A1)",
+  "expected": false,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISLOGICAL(TRUE)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISLOGICAL(1)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISERROR(1/0)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISERROR(1)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISERR(1/0)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISERR(NA())",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNA(NA())",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNA(1/0)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNONTEXT(5)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNONTEXT(\"a\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(\"2026-01-05\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(\"hello\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(5)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(A1)",
+  "expected": true,
+  "cells": {
+   "A1": "2026-01-05"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISREF(A1)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISREF(5)",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISEMAIL(\"a@b.co\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISEMAIL(\"a@b\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISURL(\"https://example.com\")",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISURL(\"nope\")",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=N(5)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=N(\"a\")",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=N(TRUE)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=T(\"a\")",
+  "expected": "a",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=T(5)",
+  "expected": "",
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TYPE(1)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TYPE(\"a\")",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TYPE(TRUE)",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TYPE(1/0)",
+  "expected": 16,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TYPE({1,2})",
+  "expected": 64,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ERROR.TYPE(1/0)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ERROR.TYPE(NA())",
+  "expected": 7,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ERROR.TYPE(SQRT(-1))",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ERROR.TYPE(1)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NA()",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISFORMULA(A1)",
+  "expected": true,
+  "cells": {
+   "A1": "=1+1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISFORMULA(A1)",
+  "expected": false,
+  "cells": {
+   "A1": "1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FORMULATEXT(A1)",
+  "expected": "=1+1",
+  "cells": {
+   "A1": "=1+1"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FOO(1)",
+  "expected": {
+   "error": "#NAME?"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1+",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=(1",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"abc",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ABS()",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ABS(1,2)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1:",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=foo",
+  "expected": {
+   "error": "#NAME?"
+  },
+  "source": "https://support.google.com/docs/table/25273 (논리·정보, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

@@ -34,20 +34,9 @@ import { api, useApi } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { formatKst, submitErrorMessage } from '../submit/exhibitFormShared'
+import { errorText, visibleIds } from '../../components/forms/formLogic'
 
 const statusCls = 'px-4 text-small-m text-text-meta'
-
-// 서버 검증 코드({field, error, label}) → 인라인 문구
-const FIELD_ERROR = {
-  required: '필수 항목입니다',
-  phone: '010-0000-0000 형식으로 입력해 주세요',
-  email: '이메일 주소 형식으로 입력해 주세요',
-  studentid: '학번 8자리 숫자로 입력해 주세요',
-  date: '날짜를 선택해 주세요',
-  time: '시간을 14:30처럼 입력해 주세요',
-  scale: '점수를 골라 주세요',
-  option: '보기 중에서 선택해 주세요',
-}
 
 // 서버가 코드 문자열로 주는 거절 사유 → 사용자 문구
 const SERVER_ERROR = {
@@ -61,14 +50,7 @@ const SERVER_ERROR = {
 /** 검증 실패 응답을 FormRenderer errors 맵({ [field.id]: 문구 })으로 바꾼다 */
 function toFieldErrors(err) {
   const list = Array.isArray(err?.body?.errors) ? err.body.errors : []
-  return Object.fromEntries(
-    list.map((item) => [
-      item.field,
-      item.error === 'maxLength'
-        ? `${item.max}자 이내로 입력해 주세요`
-        : (FIELD_ERROR[item.error] ?? '입력을 확인해 주세요'),
-    ])
-  )
+  return Object.fromEntries(list.map((item) => [item.field, errorText(item)]))
 }
 
 function errorMessage(err) {
@@ -91,11 +73,33 @@ function firstValue(fields, data) {
 // 제출 버튼의 기본 상태는 필수값 충족 여부로 결정한다. 형식·기간·정원 등 최종 검증은
 // 계속 서버가 담당하므로, 여기서는 빈 제출만 선제적으로 막는다.
 function hasRequiredValues(fields, value) {
-  return fields.filter((field) => field.type !== 'section' && field.required).every((field) => {
+  const reach = visibleIds(fields, value) // 분기로 건너뛴 쪽의 필수 질문은 세지 않는다
+  return fields.filter((field) => field.type !== 'section' && field.required && reach.has(field.id)).every((field) => {
     const current = value?.[field.id]
     if (Array.isArray(current)) return current.length > 0
+    if (current && typeof current === 'object') return Object.values(current).some((v) => (Array.isArray(v) ? v.length : v))
     return String(current ?? '').trim().length > 0
   })
+}
+
+/** 퀴즈 결과 카드: 점수와 문항별 해설 */
+function QuizResult({ quiz }) {
+  if (!quiz) return null
+  return (
+    <div className="mt-12 flex flex-col gap-8 text-body-m text-text-pri">
+      <p className="text-body-l-m font-bold">점수 {quiz.score} / {quiz.max}</p>
+      <ul className="flex flex-col gap-8">
+        {quiz.items.map((it) => (
+          <li key={it.id} className="rounded-sm bg-bg-elev p-12 text-small-m">
+            <span className="font-semibold">{it.label || '질문'}</span>
+            <span className={it.correct ? ' text-purple-primary' : ' text-state-error'}> {it.correct ? '정답' : '오답'} ({it.earned}/{it.max}점)</span>
+            {it.feedback && <span className="mt-4 block text-text-sec">{it.feedback}</span>}
+            {!it.correct && it.answer && <span className="mt-4 block text-text-sec">정답: {it.answer.join(', ')}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 /**
@@ -308,7 +312,7 @@ function FormPage() {
   const { data, loading } = useApi(`/forms/${slug}`)
   // 공개 제출자 신원. 스태프 로그인(useAuth)과 다른 신원 클래스다(41_AUTH_CONTRACT)
   const { user, loading: authLoading, logout } = usePublicAuth()
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState(null)
 
   const form = data?.form ?? null
   const win = data?.window ?? null
@@ -395,8 +399,9 @@ function FormPage() {
             </>
           }
         >
-          제출이 접수되었습니다. 내용 수정은 제출에 사용한 구글 계정으로 로그인해 가능합니다
-          {editEnd ? ` (수정 마감: ${editEnd})` : ''}.
+          {done?.confirmation_ko || '제출이 접수되었습니다.'}
+          {win.can_edit ? ` 내용 수정은 제출에 사용한 구글 계정으로 로그인해 가능합니다${editEnd ? ` (수정 마감: ${editEnd})` : ''}.` : ''}
+          <QuizResult quiz={done?.quiz} />
         </NoticeCard>
       ) : !win.can_submit ? (
         <NoticeCard
@@ -433,8 +438,9 @@ function FormPage() {
             busyLabel="제출 중"
             uploadContext={uploadContext}
             onSubmit={async (value) => {
-              await api.post(`/forms/${slug}/submit`, { data: value })
-              setDone(true)
+              const res = await api.post(`/forms/${slug}/submit`, { data: value })
+              setDone({ quiz: res?.quiz ?? null, confirmation_ko: res?.confirmation_ko || '' })
+              window.scrollTo?.({ top: 0 })
             }}
           />
           {win.can_edit && (

@@ -1,0 +1,593 @@
+[
+ {
+  "formula": "=DATE(2024,1,1)",
+  "expected": 45292,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2000,1,1)",
+  "expected": 36526,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,1,5)",
+  "expected": 46027,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(1900,1,1)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "1899-12-30이 0이므로 1900-01-01은 2"
+ },
+ {
+  "formula": "=DATE(2026,13,1)",
+  "expected": 46388,
+  "note": "월 넘침은 다음 해로",
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,1,32)",
+  "expected": 46054,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,0,1)",
+  "expected": 45992,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,2,0)",
+  "expected": 46053,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(99,1,1)",
+  "expected": 36161,
+  "note": "1900 미만 연도는 1900을 더함",
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEVALUE(\"2026-01-05\")",
+  "expected": 46027,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEVALUE(\"2026/01/05\")",
+  "expected": 46027,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEVALUE(\"hello\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEVALUE(\"2024-02-30\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIMEVALUE(\"12:00\")",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIMEVALUE(\"6:00 PM\")",
+  "expected": 0.75,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIMEVALUE(\"x\")",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIME(12,0,0)",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIME(25,0,0)",
+  "expected": 0.041666666666666664,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIME(0,90,0)",
+  "expected": 0.0625,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TIME(6,0,0)",
+  "expected": 0.25,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEAR(DATE(2026,1,5))",
+  "expected": 2026,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MONTH(DATE(2026,1,5))",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAY(DATE(2026,1,5))",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEAR(\"2026-03-04\")",
+  "expected": 2026,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MONTH(\"2026-03-04\")",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAY(\"2026-03-04\")",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEAR(A1)",
+  "expected": 2026,
+  "cells": {
+   "A1": "2026-12-31"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HOUR(0.75)",
+  "expected": 18,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MINUTE(TIME(1,30,0))",
+  "expected": 30,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SECOND(TIME(1,2,3))",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HOUR(A1)",
+  "expected": 13,
+  "cells": {
+   "A1": "13:20"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MINUTE(A1)",
+  "expected": 20,
+  "cells": {
+   "A1": "13:20"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TODAY()",
+  "expected": 46286,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NOW()",
+  "expected": 46286.5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TODAY()-DATE(2026,9,1)",
+  "expected": 20,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INT(NOW())",
+  "expected": 46286,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NOW()-TODAY()",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TODAY()>DATE(2026,1,1)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEAR(TODAY())",
+  "expected": 2026,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MONTH(TODAY())",
+  "expected": 9,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"Y\")",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"M\")",
+  "expected": 80,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"D\")=DATE(2026,9,21)-DATE(2020,1,15)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"MD\")",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"YM\")",
+  "expected": 8,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,15),DATE(2026,9,21),\"YD\")",
+  "expected": 249,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2026,9,21),DATE(2020,1,15),\"Y\")",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,31),DATE(2020,2,29),\"M\")",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,1),DATE(2021,1,1),\"Y\")",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATEDIF(DATE(2020,1,1),DATE(2021,1,1),\"X\")",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EDATE(DATE(2026,1,31),1)=DATE(2026,2,28)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EDATE(DATE(2026,1,15),-1)=DATE(2025,12,15)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EDATE(DATE(2026,1,15),12)=DATE(2027,1,15)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EOMONTH(DATE(2026,1,15),0)=DATE(2026,1,31)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EOMONTH(DATE(2024,1,15),1)=DATE(2024,2,29)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EOMONTH(DATE(2026,1,15),-1)=DATE(2025,12,31)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5))",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5),2)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5),3)",
+  "expected": 0,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,4))",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,4),2)",
+  "expected": 7,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5),11)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5),17)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKDAY(DATE(2026,1,5),9)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKNUM(DATE(2026,1,5))",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKNUM(DATE(2026,1,1))",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKNUM(DATE(2026,1,5),2)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WEEKNUM(DATE(2026,1,5),21)",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISOWEEKNUM(DATE(2026,1,5))",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISOWEEKNUM(DATE(2026,1,1))",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISOWEEKNUM(DATE(2021,1,1))",
+  "expected": 53,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISOWEEKNUM(DATE(2024,12,30))",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS(DATE(2026,1,5),DATE(2026,1,9))",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS(DATE(2026,1,5),DATE(2026,1,11))",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS(DATE(2026,1,5),DATE(2026,1,11),DATE(2026,1,7))",
+  "expected": 4,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS(DATE(2026,1,9),DATE(2026,1,5))",
+  "expected": -5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS.INTL(DATE(2026,1,5),DATE(2026,1,11),11)",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS.INTL(DATE(2026,1,5),DATE(2026,1,11),\"0000011\")",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=NETWORKDAYS.INTL(DATE(2026,1,5),DATE(2026,1,11),1)",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WORKDAY(DATE(2026,1,9),1)=DATE(2026,1,12)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WORKDAY(DATE(2026,1,5),5)=DATE(2026,1,12)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WORKDAY(DATE(2026,1,12),-1)=DATE(2026,1,9)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WORKDAY(DATE(2026,1,5),1,DATE(2026,1,6))=DATE(2026,1,7)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WORKDAY.INTL(DATE(2026,1,9),1,\"0000011\")=DATE(2026,1,12)",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAYS(DATE(2026,1,10),DATE(2026,1,1))",
+  "expected": 9,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAYS(\"2026-01-10\",\"2026-01-01\")",
+  "expected": 9,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAYS360(DATE(2026,1,1),DATE(2026,12,31))",
+  "expected": 360,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAYS360(DATE(2026,1,31),DATE(2026,3,31))",
+  "expected": 60,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEARFRAC(DATE(2026,1,1),DATE(2026,7,1))",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEARFRAC(DATE(2026,1,1),DATE(2027,1,1),3)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEARFRAC(DATE(2026,1,1),DATE(2026,7,1),2)",
+  "expected": 0.5027777777777778,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=YEARFRAC(DATE(2026,1,1),DATE(2026,7,1),1)",
+  "expected": 0.4958904109589041,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TO_DATE(46027)",
+  "expected": 46027,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TO_DATE(DATE(2026,1,5))+1",
+  "expected": 46028,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EPOCHTODATE(0)",
+  "expected": 25569,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EPOCHTODATE(86400)",
+  "expected": 25570,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,1,5)+30",
+  "expected": 46057,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DATE(2026,1,5)-DATE(2025,1,5)",
+  "expected": 365,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(DATE(2026,1,5))",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISDATE(TODAY())",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1-B1",
+  "expected": 10,
+  "cells": {
+   "A1": "2026-01-15",
+   "B1": "2026-01-05"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1>B1",
+  "expected": true,
+  "cells": {
+   "A1": "2026-01-15",
+   "B1": "2026-01-05"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=DAYS(A1,B1)",
+  "expected": 10,
+  "cells": {
+   "A1": "2026-01-15",
+   "B1": "2026-01-05"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=EDATE(A1,1)=DATE(2026,2,15)",
+  "expected": true,
+  "cells": {
+   "A1": "2026-01-15"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(YEAR(A1:A2))",
+  "expected": [
+   [
+    2026
+   ],
+   [
+    2027
+   ]
+  ],
+  "cells": {
+   "A1": "2026-01-15",
+   "A2": "2027-02-01"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(MONTH(A1:A2))",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ]
+  ],
+  "cells": {
+   "A1": "2026-01-15",
+   "A2": "2027-02-01"
+  },
+  "source": "https://support.google.com/docs/table/25273 (날짜·시간, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

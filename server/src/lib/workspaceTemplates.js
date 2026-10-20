@@ -33,7 +33,7 @@ export const DOC_TEMPLATES = {
   plan: () =>
     doc(
       h(1, '행사·전시 기획안'),
-      table(['항목', '내용'], [['행사명', ''], ['슬로건', ''], ['일시', ''], ['장소', ''], ['대상', ''], ['주관', '디지털인문예술전공 운영위원회']]),
+      table(['항목', '내용'], [['행사명', ''], ['슬로건', ''], ['일시', ''], ['장소', ''], ['대상', ''], ['주관', '']]),
       h(2, '1. 기획 의도 및 목적'),
       h(3, '1) 기획 의도'),
       ul(''),
@@ -122,6 +122,160 @@ export const DOC_TEMPLATES = {
     ),
 }
 
+// ── 한글 모드 공문 양식(행정업무운영 편람 구성). 사실 값은 넣지 않고 ○○○ 자리와 자료값(변수)만 둔다.
+// 자료값은 문서 설정(content.hwp.vars)에 한 번 두고, 본문의 hwpVar 칸과 두문·결문의 {이름} 자리가 같은 값을 쓴다.
+const V = (key) => ({ type: 'hwpVar', attrs: { key, calc: null, digits: 0, unit: '' } })
+const C = (calc, unit = '', digits = 0) => ({ type: 'hwpVar', attrs: { key: null, calc, digits, unit } })
+const hp = (...parts) => ({ type: 'paragraph', attrs: { textAlign: null }, content: parts.map((x) => (typeof x === 'string' ? t(x) : x)).filter((x) => x.type !== 'text' || x.text !== '') })
+const hh = (level, ...parts) => ({ type: 'heading', attrs: { textAlign: null, level }, content: hp(...parts).content })
+// 목록: 항목은 [글 조각들] 또는 { p: [글 조각들], sub: [하위 항목] }
+const hli = (it) => (Array.isArray(it) ? { type: 'listItem', content: [hp(...it)] } : { type: 'listItem', content: [hp(...it.p), hul(...it.sub)] })
+const hul = (...items) => ({ type: 'bulletList', content: items.map(hli) })
+const quote = (...parts) => ({ type: 'blockquote', content: [hp(...parts)] })
+const hcell = (parts, header = false) => ({ type: header ? 'tableHeader' : 'tableCell', attrs: { colspan: 1, rowspan: 1, colwidth: null }, content: [hp(...(Array.isArray(parts) ? parts : [parts]))] })
+const htable = (head, rows) => ({ type: 'table', content: [{ type: 'tableRow', content: head.map((x) => hcell(x, true)) }, ...rows.map((r) => ({ type: 'tableRow', content: r.map((x) => hcell(x)) }))] })
+const vars = (...list) => Object.fromEntries(list.map(([key, label, unit = ''], o) => [key, { label, value: '', unit, o }]))
+const hwpDoc = (hwp, ...content) => ({ type: 'doc', content, hwp: { mode: 'hwp', head: {}, foot: {}, ...hwp } })
+
+export const HWP_DOC_TEMPLATES = {
+  // 기안문: 두문(행정기관명·수신·경유·제목) + 본문(1. 가. 1) 항목) + 결문(발신명의·결재선·시행·연락처)
+  gian: () =>
+    hwpDoc(
+      {
+        preset: '기안문',
+        vars: vars(['org', '기관명'], ['dept', '부서명'], ['title', '제목'], ['date', '일시'], ['place', '장소'], ['people', '인원', '명'], ['budget', '예산', '원']),
+        head: { org: '{기관명}', to: '수신자 참조', via: '', title: '{제목}' },
+        foot: { sender: '{기관명}장', drafter: '기안자 ○○○', reviewer: '검토자 ○○○', approver: '결재권자 ○○○', docNum: '{부서명}-○○○', disclosure: '공개' },
+      },
+      hul(
+        ['관련: ', V('dept'), '-○○○(○○○○. ○. ○.)'],
+        {
+          p: ['○○○ 운영을 위하여 다음과 같이 시행하고자 합니다.'],
+          sub: [
+            ['일시: ', V('date')],
+            ['장소: ', V('place')],
+            ['대상: ○○○ ', V('people')],
+            ['소요 예산: ', V('budget'), '(1인당 ', C('{예산} / {인원}', '원'), ')'],
+            ['세부 내용: 붙임 참조'],
+          ],
+        }
+      ),
+      hp('붙임  ○○○ 계획 1부.')
+    ),
+  // 보고서: 제목, 요약(보고 목적 한 문장), 장(Ⅰ) / 절(□) / 항목(ㅇ - ㆍ)
+  hreport: () =>
+    hwpDoc(
+      { preset: '보고서', vars: vars(['title', '제목'], ['dept', '부서명'], ['start', '시작일'], ['end', '종료일'], ['people', '인원', '명'], ['budget', '예산', '원']) },
+      hh(1, V('title'), ' 추진 현황 보고'),
+      quote(V('title'), ' 추진 현황과 향후 계획을 보고하고자 함'),
+      hh(2, '추진 배경'),
+      hul({ p: ['○○○ 관련 ○○○ 필요'], sub: [['○○○']] }),
+      hh(2, '추진 현황'),
+      hh(3, '사업 개요'),
+      hul(['기간: ', V('start'), ' ~ ', V('end')], ['대상: ○○○ ', V('people')], ['예산: ', V('budget'), '(1인당 ', C('{예산} / {인원}', '원'), ')']),
+      hh(3, '주요 실적'),
+      hul({ p: ['○○○ 실시(○. ○.)'], sub: [['○○○']] }),
+      hh(2, '향후 계획'),
+      hul(['○○○ 추진(○월 중)'], ['○○○ 결과 보고(○월 중)'])
+    ),
+  // 계획서: 목적, 개요, 세부 계획, 소요 예산(단가 × 인원 계산), 일정, 행정 사항
+  hplan: () =>
+    hwpDoc(
+      { preset: '계획서', vars: vars(['name', '사업명'], ['org', '기관명'], ['start', '시작일'], ['end', '종료일'], ['place', '장소'], ['people', '인원', '명'], ['unit', '1인당 단가', '원']) },
+      hh(1, V('name'), ' 추진 계획'),
+      quote(V('name'), ' 추진을 위한 세부 계획을 수립하고자 함'),
+      hh(2, '추진 목적'),
+      hul(['○○○ 위한 ○○○ 마련']),
+      hh(2, '추진 개요'),
+      hul(['기간: ', V('start'), ' ~ ', V('end')], ['장소: ', V('place')], ['대상: ○○○ ', V('people')], ['주관: ', V('org')]),
+      hh(2, '세부 추진 계획'),
+      hh(3, '준비'),
+      hul(['○○○(담당: ○○○)']),
+      hh(3, '운영'),
+      hul(['○○○(담당: ○○○)']),
+      hh(2, '소요 예산'),
+      htable(['구분', '산출 근거', '금액'], [['○○○', [V('unit'), ' × ', V('people')], [C('{1인당 단가} * {인원}', '원')]], ['합계', '', [C('{1인당 단가} * {인원}', '원')]]]),
+      hh(2, '추진 일정'),
+      htable(['구분', '기간', '비고'], [['준비', '○. ○. ~ ○. ○.', ''], ['운영', '○. ○. ~ ○. ○.', ''], ['결과 보고', '○. ○.', '']]),
+      hh(2, '행정 사항'),
+      hul(['○○○'])
+    ),
+  // 결과보고서: 개요, 결과, 예산 집행(집행률 계산), 개선 사항, 향후 조치
+  hresult: () =>
+    hwpDoc(
+      { preset: '보고서', vars: vars(['name', '사업명'], ['start', '시작일'], ['end', '종료일'], ['place', '장소'], ['plan', '계획 인원', '명'], ['actual', '참여 인원', '명'], ['budget', '예산', '원'], ['spent', '집행액', '원']) },
+      hh(1, V('name'), ' 결과 보고'),
+      quote(V('name'), ' 추진 결과를 보고하고자 함'),
+      hh(2, '추진 개요'),
+      hul(['기간: ', V('start'), ' ~ ', V('end')], ['장소: ', V('place')], ['참여: ', V('actual'), '(계획 ', V('plan'), ' 대비 ', C('{참여 인원} / {계획 인원} * 100', '%', 1), ')']),
+      hh(2, '추진 결과'),
+      hh(3, '주요 내용'),
+      hul(['○○○']),
+      hh(3, '성과'),
+      hul(['○○○']),
+      hh(2, '예산 집행'),
+      htable(['구분', '예산', '집행액', '집행률'], [['계', [V('budget')], [V('spent')], [C('{집행액} / {예산} * 100', '%', 1)]]]),
+      hh(2, '개선 사항'),
+      hul(['○○○']),
+      hh(2, '향후 조치'),
+      hul(['○○○'])
+    ),
+  // 회의록(공문 항목 부호): 회의 개요 표, 안건, 논의 내용, 결정 사항, 향후 일정
+  hminutes: () =>
+    hwpDoc(
+      { preset: '회의록', vars: vars(['name', '회의명'], ['when', '일시'], ['place', '장소'], ['people', '참석 인원', '명'], ['next', '다음 회의']) },
+      hh(1, V('name'), ' 회의록'),
+      htable(['구분', '내용'], [['일시', [V('when')]], ['장소', [V('place')]], ['참석자', ['○○○ 등 ', V('people')]], ['작성자', '○○○']]),
+      hh(2, '안건'),
+      hul(['제1호 안건: ○○○'], ['제2호 안건: ○○○']),
+      hh(2, '논의 내용'),
+      hul({ p: ['제1호 안건'], sub: [['○○○']] }, { p: ['제2호 안건'], sub: [['○○○']] }),
+      hh(2, '결정 사항'),
+      hul(['○○○(담당: ○○○, 기한: ○. ○.)']),
+      hh(2, '향후 일정'),
+      hul(['다음 회의: ', V('next')])
+    ),
+  // 통지(공문): 관련, 안내 사항(일시·장소·대상·신청), 문의
+  hnotice: () =>
+    hwpDoc(
+      { preset: '통지', vars: vars(['title', '제목'], ['when', '일시'], ['place', '장소'], ['due', '신청 기한'], ['dept', '담당 부서'], ['tel', '연락처']) },
+      hh(1, V('title'), ' 안내'),
+      hul(
+        ['관련: ○○○'],
+        { p: ['○○○을 다음과 같이 안내합니다.'], sub: [['일시: ', V('when')], ['장소: ', V('place')], ['대상: ○○○'], ['신청 방법: ○○○(', V('due'), '까지)']] },
+        ['문의: ', V('dept'), '(', V('tel'), ')']
+      )
+    ),
+  // 보도자료: 머리(보도 시점, 담당), 제목, 요지(□), 본문
+  hpress: () =>
+    hwpDoc(
+      {
+        preset: '보도자료',
+        vars: vars(['org', '기관명'], ['title', '제목'], ['release', '보도 시점'], ['dept', '담당 부서'], ['manager', '담당자'], ['tel', '연락처']),
+        press: { release: '{보도 시점}', dept: '{담당 부서}', manager: '{담당자}', phone: '{연락처}' },
+      },
+      hh(1, V('title')),
+      hul({ p: ['○○○ 기간 ○○○ 대상 ○○○ 운영'], sub: [['○○○']] }),
+      hp(V('org'), '은 ○○○을 ○○○한다고 밝혔다.'),
+      hp('○○○'),
+      hp('붙임  사진 ○매.')
+    ),
+  // 업무보고: 일반 현황, 주요 업무 추진 상황, 현안 및 건의 사항
+  hbiz: () =>
+    hwpDoc(
+      { preset: '업무보고', vars: vars(['dept', '부서명'], ['people', '인원', '명'], ['date', '보고일']) },
+      hh(1, V('dept'), ' 주요 업무 보고'),
+      hh(2, '일반 현황'),
+      hul(['조직: ○○○'], ['인원: ', V('people')]),
+      hh(2, '주요 업무 추진 상황'),
+      hh(3, '○○○ 사업'),
+      hul(['추진 실적: ○○○'], ['향후 계획: ○○○']),
+      hh(2, '현안 및 건의 사항'),
+      hul(['○○○'])
+    ),
+}
+Object.assign(DOC_TEMPLATES, HWP_DOC_TEMPLATES)
+
 const cols = (labels, width = 140) => labels.map((label, i) => ({ key: `c${i}`, label, width }))
 const rowsOf = (labels, data, blank = 30) => {
   const rows = data.map((r, i) => ({ id: i + 1, cells: Object.fromEntries(r.map((v, j) => [`c${j}`, v]).filter(([, v]) => v !== '' && v !== undefined)) }))
@@ -189,13 +343,21 @@ export const DOC_TEMPLATE_META = [
   { id: 'minutes', name: '회의록', sub: '안건, 논의, 결정 사항' },
   { id: 'contest', name: '공모전 안내', sub: '주제, 시상, 출품 방법' },
   { id: 'guestbook', name: '방명록', sub: '학과, 학번, 성명, 서명' },
+  { id: 'gian', name: '기안문', sub: '한글 양식, 두문과 결문', hwp: true },
+  { id: 'hreport', name: '보고서', sub: '한글 양식, 요약과 항목', hwp: true },
+  { id: 'hplan', name: '계획서', sub: '한글 양식, 예산 자동 계산', hwp: true },
+  { id: 'hresult', name: '결과보고서', sub: '한글 양식, 집행률 자동 계산', hwp: true },
+  { id: 'hminutes', name: '회의록(한글)', sub: '한글 양식, 안건과 결정 사항', hwp: true },
+  { id: 'hnotice', name: '통지(공문)', sub: '한글 양식, 안내 사항', hwp: true },
+  { id: 'hpress', name: '보도자료', sub: '한글 양식, 보도 시점과 담당', hwp: true },
+  { id: 'hbiz', name: '업무보고', sub: '한글 양식, 현황과 현안', hwp: true },
 ]
 
 export const SHEET_TEMPLATE_META = [
   { id: 'blank', name: '빈 스프레드시트', sub: '' },
   { id: 'participants', name: '참여자 명단', sub: '순번, 학과, 학번, 참석' },
   { id: 'budget', name: '예산·물품 집행', sub: '단가 × 수량 자동 계산' },
-  { id: 'judging', name: '출품작 심사채점표', sub: '나만 보기, 총점 자동', ownerOnly: true, siteOwnerOnly: true },
+  { id: 'judging', name: '출품작 심사채점표', sub: '나만 보기, 총점 자동', ownerOnly: true },
   { id: 'worklog', name: '근무 기록', sub: '날짜, 내용, 시간' },
   { id: 'files', name: '전시 제출물 관리', sub: '과목, 작품, 파일명' },
 ]

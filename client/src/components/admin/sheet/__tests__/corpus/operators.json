@@ -1,0 +1,382 @@
+[
+ {
+  "formula": "=1+2",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=5-8",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=3*4",
+  "expected": 12,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=10/4",
+  "expected": 2.5,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2^10",
+  "expected": 1024,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2^0.5",
+  "expected": 1.4142135623730951,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=-2^2",
+  "expected": 4,
+  "note": "단항 마이너스가 ^보다 먼저 묶임(구글 동작과 같다고 알려짐, 관찰 필요)",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1/0",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=0^0",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-177 0^0 = 1"
+ },
+ {
+  "formula": "=\"a\"&\"b\"",
+  "expected": "ab",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1&2",
+  "expected": "12",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"x\"&TRUE",
+  "expected": "xTRUE",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=50%",
+  "expected": 0.5,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=200*10%",
+  "expected": 20,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1+2*3",
+  "expected": 7,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=(1+2)*3",
+  "expected": 9,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2^3^2",
+  "expected": 64,
+  "note": "왼쪽 결합",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=-(3)",
+  "expected": -3,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=+5",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=--5",
+  "expected": 5,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1=1",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1<>2",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2>1",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2>=2",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1<=0",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"a\"=\"A\"",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"a\"<\"b\"",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"b\">\"a\"",
+  "expected": true,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1=\"1\"",
+  "expected": false,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"a\">1",
+  "expected": true,
+  "note": "텍스트는 숫자보다 큼",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUE>\"a\"",
+  "expected": true,
+  "note": "불리언은 텍스트보다 큼",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRUE+TRUE",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1+1",
+  "expected": 1,
+  "cells": {},
+  "note": "빈 칸은 0",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1&\"x\"",
+  "expected": "x",
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1=0",
+  "expected": true,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1=\"\"",
+  "expected": true,
+  "cells": {},
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"3\"+4",
+  "expected": 7,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=\"abc\"+1",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1+A2",
+  "expected": 5,
+  "cells": {
+   "A1": "2",
+   "A2": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1*A2",
+  "expected": 6,
+  "cells": {
+   "A1": "2",
+   "A2": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1+1",
+  "expected": 1001,
+  "cells": {
+   "A1": "1,000"
+  },
+  "note": "쉼표 숫자 입력",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1*2",
+  "expected": 1,
+  "cells": {
+   "A1": "50%"
+  },
+  "note": "퍼센트 입력",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1+1",
+  "expected": 46028,
+  "cells": {
+   "A1": "2026-01-05"
+  },
+  "note": "날짜 입력은 일련번호",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1*24",
+  "expected": 12,
+  "cells": {
+   "A1": "12:00"
+  },
+  "note": "시간 입력은 하루의 비율",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1+1",
+  "expected": 1001,
+  "cells": {
+   "A1": "₩1,000"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1",
+  "expected": true,
+  "cells": {
+   "A1": "TRUE"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISNUMBER(A1)",
+  "expected": true,
+  "cells": {
+   "A1": "1.5"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ISTEXT(A1)",
+  "expected": true,
+  "cells": {
+   "A1": "'123"
+  },
+  "note": "작은따옴표 접두는 텍스트",
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1&\"\"",
+  "expected": "123",
+  "cells": {
+   "A1": "'123"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1E3",
+  "expected": 1000,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=.5+.5",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1.5E-1",
+  "expected": 0.15,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=#N/A",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=IFERROR(#REF!,1)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1+#DIV/0!",
+  "expected": {
+   "error": "#DIV/0!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(1,#N/A)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1 + 2",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "= 4 * 5",
+  "expected": 20,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=((((2))))",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2*-3",
+  "expected": -6,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=4/-2",
+  "expected": -2,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=1-1-1",
+  "expected": -1,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=8/2/2",
+  "expected": 2,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=2*3%",
+  "expected": 0.06,
+  "source": "https://support.google.com/docs/table/25273 (연산자, 함수 도움말의 정의·예시 기준, 미관찰)"
+ }
+]

@@ -1,0 +1,1934 @@
+[
+ {
+  "formula": "=QUERY(A1:C6,\"select A\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select *\",1)",
+  "expected": [
+   [
+    "Name",
+    "Dept",
+    "Sales"
+   ],
+   [
+    "Kim",
+    "A",
+    10
+   ],
+   [
+    "Lee",
+    "B",
+    20
+   ],
+   [
+    "Park",
+    "A",
+    30
+   ],
+   [
+    "Choi",
+    "B",
+    5
+   ],
+   [
+    "Jung",
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C where C > 15\",1)",
+  "expected": [
+   [
+    "Name",
+    "Sales"
+   ],
+   [
+    "Lee",
+    20
+   ],
+   [
+    "Park",
+    30
+   ],
+   [
+    "Jung",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where B = 'A'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where B = 'A' and C > 15\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where B = 'A' or B = 'C'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where not B = 'A'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where B != 'A'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where B <> 'A'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A contains 'e'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Lee"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A starts with 'K'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A ends with 'g'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A like 'P%'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A matches 'K.*'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where A like '_im'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where C is null\",1)",
+  "expected": [
+   [
+    "Name"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40",
+   "C7": ""
+  },
+  "note": "결과 행이 없으면 머리글만",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where C is not null\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C order by C desc\",1)",
+  "expected": [
+   [
+    "Name",
+    "Sales"
+   ],
+   [
+    "Jung",
+    40
+   ],
+   [
+    "Park",
+    30
+   ],
+   [
+    "Lee",
+    20
+   ],
+   [
+    "Kim",
+    10
+   ],
+   [
+    "Choi",
+    5
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C order by C\",1)",
+  "expected": [
+   [
+    "Name",
+    "Sales"
+   ],
+   [
+    "Choi",
+    5
+   ],
+   [
+    "Kim",
+    10
+   ],
+   [
+    "Lee",
+    20
+   ],
+   [
+    "Park",
+    30
+   ],
+   [
+    "Jung",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A order by B, C desc\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C order by C desc limit 2\",1)",
+  "expected": [
+   [
+    "Name",
+    "Sales"
+   ],
+   [
+    "Jung",
+    40
+   ],
+   [
+    "Park",
+    30
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C order by C desc limit 2 offset 1\",1)",
+  "expected": [
+   [
+    "Name",
+    "Sales"
+   ],
+   [
+    "Park",
+    30
+   ],
+   [
+    "Lee",
+    20
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A limit 1\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, sum(C) group by B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "sum Sales"
+   ],
+   [
+    "A",
+    40
+   ],
+   [
+    "B",
+    25
+   ],
+   [
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, avg(C) group by B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "avg Sales"
+   ],
+   [
+    "A",
+    20
+   ],
+   [
+    "B",
+    12.5
+   ],
+   [
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, count(A) group by B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "count Name"
+   ],
+   [
+    "A",
+    2
+   ],
+   [
+    "B",
+    2
+   ],
+   [
+    "C",
+    1
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, max(C), min(C) group by B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "max Sales",
+    "min Sales"
+   ],
+   [
+    "A",
+    30,
+    10
+   ],
+   [
+    "B",
+    20,
+    5
+   ],
+   [
+    "C",
+    40,
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select sum(C)\",1)",
+  "expected": [
+   [
+    "sum Sales"
+   ],
+   [
+    105
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select count(A)\",1)",
+  "expected": [
+   [
+    "count Name"
+   ],
+   [
+    5
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select avg(C) where B = 'A'\",1)",
+  "expected": [
+   [
+    "avg Sales"
+   ],
+   [
+    20
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, sum(C) group by B order by sum(C) desc\",1)",
+  "expected": [
+   [
+    "Dept",
+    "sum Sales"
+   ],
+   [
+    "A",
+    40
+   ],
+   [
+    "C",
+    40
+   ],
+   [
+    "B",
+    25
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "동률은 그룹 키 순서 유지",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, sum(C) where C > 5 group by B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "sum Sales"
+   ],
+   [
+    "A",
+    40
+   ],
+   [
+    "B",
+    20
+   ],
+   [
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, sum(C) group by B label B '부서', sum(C) '합계'\",1)",
+  "expected": [
+   [
+    "부서",
+    "합계"
+   ],
+   [
+    "A",
+    40
+   ],
+   [
+    "B",
+    25
+   ],
+   [
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A label A '이름'\",1)",
+  "expected": [
+   [
+    "이름"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C * 2 where C > 20\",1)",
+  "expected": [
+   [
+    "Name",
+    "product(Sales2())"
+   ],
+   [
+    "Park",
+    60
+   ],
+   [
+    "Jung",
+    80
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "식의 머리글은 식 문자열(구글 정확 표기 관찰 필요) / 관찰값으로 수정: 식 머리글 관찰 gs-606",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A, C + 1 where C = 5\",1)",
+  "expected": [
+   [
+    "Name",
+    "sum(Sales1())"
+   ],
+   [
+    "Choi",
+    6
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: 식 머리글 관찰 gs-606"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select B, sum(C) group by B pivot B\",1)",
+  "expected": [
+   [
+    "Dept",
+    "A",
+    "B",
+    "C"
+   ],
+   [
+    "A",
+    40,
+    null,
+    null
+   ],
+   [
+    "B",
+    null,
+    25,
+    null
+   ],
+   [
+    "C",
+    null,
+    null,
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "피벗 머리글은 피벗 값(집계가 하나일 때)",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A\",0)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "머리글 0줄이면 첫 줄도 데이터",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A2:C6,\"select A where C > 15\",0)",
+  "expected": [
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A2:C6,\"select Col1, Col3 where Col3 > 25\",0)",
+  "expected": [
+   [
+    "Park",
+    30
+   ],
+   [
+    "Jung",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "Col1 표기",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where C > \"&10,1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Jung"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select Z\",1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"selec A\",1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where\",1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where C >\",1)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:B5,\"select A, sum(B) group by A\",1)",
+  "expected": [
+   [
+    "k",
+    "sum v"
+   ],
+   [
+    "x",
+    6
+   ],
+   [
+    "y",
+    2
+   ]
+  ],
+  "cells": {
+   "A1": "k",
+   "B1": "v",
+   "A2": "x",
+   "B2": "1",
+   "A3": "y",
+   "B3": "2",
+   "A4": "x",
+   "B4": "5"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:B4,\"select A where B > 1\")",
+  "expected": [
+   [
+    "k"
+   ],
+   [
+    "y"
+   ]
+  ],
+  "cells": {
+   "A1": "k",
+   "B1": "v",
+   "A2": "x",
+   "B2": "1",
+   "A3": "y",
+   "B3": "2"
+  },
+  "note": "머리글 줄 수 생략: 자동 추정",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:B4,\"select A where B > date '2026-01-10'\",1)",
+  "expected": [
+   [
+    "d"
+   ],
+   [
+    "y"
+   ]
+  ],
+  "cells": {
+   "A1": "d",
+   "B1": "dt",
+   "A2": "x",
+   "B2": "2026-01-05",
+   "A3": "y",
+   "B3": "2026-02-05"
+  },
+  "note": "날짜 리터럴은 일련번호와 비교",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:B4,\"select year(B), count(A) group by year(B)\",1)",
+  "expected": [
+   [
+    "year(dt)",
+    "count d"
+   ],
+   [
+    2026,
+    2
+   ]
+  ],
+  "cells": {
+   "A1": "d",
+   "B1": "dt",
+   "A2": "x",
+   "B2": "2026-01-05",
+   "A3": "y",
+   "B3": "2026-02-05"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:A4,\"select A where A > 1\",1)",
+  "expected": [
+   [
+    "v"
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "cells": {
+   "A1": "v",
+   "A2": "1",
+   "A3": "2",
+   "A4": "3"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:A4,\"select sum(A)\",1)",
+  "expected": [
+   [
+    "sum v"
+   ],
+   [
+    6
+   ]
+  ],
+  "cells": {
+   "A1": "v",
+   "A2": "1",
+   "A3": "2",
+   "A4": "3"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:B4,\"select A, B where B is not null\",1)",
+  "expected": [
+   [
+    "a",
+    "b"
+   ],
+   [
+    "x",
+    1
+   ],
+   [
+    "z",
+    3
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "B1": "b",
+   "A2": "x",
+   "B2": "1",
+   "A3": "y",
+   "B3": "",
+   "A4": "z",
+   "B4": "3"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select A where upper(B) = 'A'\",1)",
+  "expected": [
+   [
+    "Name"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=QUERY(A1:C6,\"select count(A) where C > 100\",1)",
+  "expected": [
+   [
+    "count Name"
+   ],
+   [
+    0
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "조건에 맞는 행이 없어도 집계는 한 행",
+  "source": "https://developers.google.com/chart/interactive/docs/querylanguage (QUERY, 문서의 정의·예시 기준, 미관찰)"
+ }
+]

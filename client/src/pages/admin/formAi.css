@@ -1,0 +1,15 @@
+/* 설문 편집기 AI 창: 오른쪽에 붙는 칸. 위 줄(.ed-row)은 그대로 두고 본문 영역만 줄어든다 */
+.fm-ai-btn { display: inline-flex; flex: none; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border: 0; border-radius: 20px; background: #7A3CFF; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 120ms ease; }
+.fm-ai-btn:hover { background: #6200ea; }
+.fm-ai-btn.is-on { background: #e2e2e2; color: #1f1f1f; }
+.fm-ai-btn.is-on:hover { background: #d4d4d4; }
+.fm-ai-btn.is-on svg { color: #7A3CFF; }
+.fm-ai { width: 372px; flex: none; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; padding: 0 12px 12px 0; }
+.fm-ai__privacy { display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; margin-bottom: 8px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); border-radius: 12px; width: 360px; box-sizing: border-box; flex: none; }
+.fm-ai__privacy > div { flex: 1; min-width: 0; }
+.fm-ai__privacy strong { display: block; font-size: 13px; font-weight: 600; color: #1f1f1f; }
+.fm-ai__privacy span { display: block; font-size: 12px; color: #5f6368; line-height: 1.4; }
+.fm-ai__panel { flex: 1; min-height: 0; }
+.fm-ai__note { display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: #5f6368; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); }
+@media (max-width: 900px) { .fm-ai { position: absolute; right: 0; top: 0; bottom: 0; width: min(372px, 100%); padding: 0; z-index: 20; background: #f6f6f6; } .fm-ai__privacy { width: auto; border-radius: 0; margin: 0; } }
+@media print { .fm-ai { display: none !important; } }

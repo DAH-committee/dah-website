@@ -101,7 +101,7 @@ export async function ensureSheetStateSchema() {
   }
 }
 
-// 운영위원회 인수인계 문서: 문서, 여백 댓글, 비밀값, 열람 비밀번호 해시. 부팅 때 멱등 보장한다.
+// 인수인계 문서: 문서, 여백 댓글, 비밀값, 열람 비밀번호 해시. 부팅 때 멱등 보장한다.
 export const HANDOVER_SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS handover_settings (
      key        TEXT PRIMARY KEY,
@@ -166,10 +166,14 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
      updated_by TEXT,
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
-  // 공유 설정(구글 독스 방식): 일반 액세스(제한됨 / 운영위원회 및 교수진 / 전체 공개)와 사람별 권한
+  // 공유 설정(구글 독스 방식): 일반 액세스(제한됨 / 팀 / 한림대 계정 / 링크가 있는 모든 사용자)와 사람별 권한
   "ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS general_access TEXT NOT NULL DEFAULT 'restricted'",
   "ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS general_role TEXT NOT NULL DEFAULT 'viewer'",
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS share_token TEXT',
+  // 짧은 공유 주소(/s/코드): 링크가 있는 모든 사용자 공유일 때 만든다. 가리키는 편집기 경로도 함께 저장한다
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS short_code TEXT',
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS short_path TEXT',
+  'CREATE UNIQUE INDEX IF NOT EXISTS ws_files_short_code_idx ON ws_files (short_code) WHERE short_code IS NOT NULL',
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_email TEXT',
   `CREATE TABLE IF NOT EXISTS ws_shares (
      id         SERIAL PRIMARY KEY,
@@ -192,11 +196,10 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
   // 한림대·초대·위원회 등록 이메일이 아닌 구글 계정도 DAH Docs·Sheet·Form에는 로그인할 수 있다.
   // 이런 계정은 ws_only=true로 표시해 전시회·쇼케이스 제출(사전 등록 필요)에는 쓰지 못하게 한다.
   'ALTER TABLE public_users ADD COLUMN IF NOT EXISTS ws_only BOOLEAN NOT NULL DEFAULT false',
-  // 비공개: 공유받지 않은 사람의 목록에서 아예 숨긴다(잠긴 카드도 보이지 않음). 운영위원회 및 교수진이 켜고 끈다.
+  // hidden 열은 더 이상 쓰지 않는다(개념 삭제). 지우지 않고 남겨 둔다.
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS hidden BOOLEAN NOT NULL DEFAULT false',
   // 나만 보기: 만든 사람만 열 수 있고 공유도 할 수 없다(사이트 관리자도 열 수 없음). 심사채점표가 이 상태로 만들어진다.
   'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS owner_only BOOLEAN NOT NULL DEFAULT false',
-  // 사이트 계정과 별개인 DAH Docs·Sheet·Form 운영위원회 구성원(구글 이메일). 사이트 관리자가 등록한다.
   // 휴지통: 지우면 deleted_at만 찍고 30일 보관한 뒤 영구 삭제한다. 그 전에는 복원할 수 있다.
   // 목록이 "내 파일·공유받은 파일·링크로 연 파일"만 보이도록 바뀌어, 소유자가 없는 예전 파일(폼 등)은 만든 계정에 붙이고
   // 만든 사람을 알 수 없으면 사이트 오너(id가 가장 작은 오너 계정)에게 붙인다. 이미 소유자가 있는 파일은 건드리지 않는다.
@@ -221,6 +224,38 @@ export const HANDOVER_SCHEMA_STATEMENTS = [
      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
   'CREATE UNIQUE INDEX IF NOT EXISTS ws_members_email_idx ON ws_members (lower(email))',
+  // 팀: 누구나 만들고(만든 사람이 팀 오너), 구글 이메일로 팀원을 추가한다. 팀 파일은 ws_files.team_id로 묶는다.
+  // ws_members(예전 구성원 등록)는 더 이상 쓰지 않지만 지우지 않는다.
+  `CREATE TABLE IF NOT EXISTS teams (
+     id          SERIAL PRIMARY KEY,
+     name        TEXT NOT NULL,
+     description TEXT,
+     created_by  TEXT,
+     owner_email TEXT NOT NULL,
+     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  `CREATE TABLE IF NOT EXISTS team_members (
+     team_id    INTEGER NOT NULL,
+     email      TEXT NOT NULL,
+     role       TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'member')),
+     added_by   TEXT,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (team_id, email)
+   )`,
+  'CREATE UNIQUE INDEX IF NOT EXISTS team_members_team_email_idx ON team_members (team_id, lower(email))',
+  'CREATE INDEX IF NOT EXISTS team_members_email_idx ON team_members (lower(email))',
+  'ALTER TABLE ws_files ADD COLUMN IF NOT EXISTS team_id INTEGER',
+  'CREATE INDEX IF NOT EXISTS ws_files_team_idx ON ws_files (team_id) WHERE team_id IS NOT NULL',
+  // 개인 연동(Figma, Notion): 사용자별 개인 토큰을 secretBox로 봉인해 보관한다. 토큰은 클라이언트에 내리지 않는다.
+  `CREATE TABLE IF NOT EXISTS ws_connections (
+     id         SERIAL PRIMARY KEY,
+     email      TEXT NOT NULL,
+     provider   TEXT NOT NULL,
+     token_enc  TEXT NOT NULL,
+     meta       JSONB,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+   )`,
+  'CREATE UNIQUE INDEX IF NOT EXISTS ws_connections_email_provider_idx ON ws_connections (lower(email), provider)',
 ]
 
 export async function ensureHandoverSchema() {
@@ -239,7 +274,7 @@ export async function ensureHandoverSchema() {
     if (orphan.rows.length) {
       let g = (await impl.query("SELECT id FROM ws_files WHERE kind = 'doc' AND gated = true ORDER BY id LIMIT 1")).rows[0]
       if (!g) {
-        const t = (await impl.query("SELECT value FROM handover_settings WHERE key = 'doc_title'")).rows[0]?.value || '운영위원회 인수인계 문서'
+        const t = (await impl.query("SELECT value FROM handover_settings WHERE key = 'doc_title'")).rows[0]?.value || '인수인계 문서'
         g = (await impl.query("INSERT INTO ws_files (kind, title, gated, created_by) VALUES ('doc', $1, true, '주현호') RETURNING id", [t])).rows[0]
       }
       await impl.query('UPDATE handover_docs SET ws_id = $1 WHERE ws_id IS NULL', [g.id])
@@ -247,9 +282,8 @@ export async function ensureHandoverSchema() {
   } catch (err) {
     console.error('[schema] 인수인계 문서 묶기 실패(계속 진행):', err.message)
   }
-  // 공유 설정 첫 적용: 예전 '열람 비밀번호 문서'는 운영위원회 및 교수진이 편집하는 문서로 옮기고, 소유자 이메일을 채운다.
+  // 공유 설정 첫 적용: 소유자 이메일과 공유 링크 키를 채운다. (예전 위원회 일반 액세스는 없어졌다)
   try {
-    await impl.query("UPDATE ws_files SET general_access = 'committee', general_role = 'editor' WHERE gated = true AND share_token IS NULL")
     await impl.query('UPDATE ws_files f SET owner_email = lower(u.email) FROM users u WHERE f.owner_email IS NULL AND f.created_by IS NOT NULL AND u.name = f.created_by')
     const missing = await impl.query('SELECT id FROM ws_files WHERE share_token IS NULL')
     for (const r of missing.rows) {
@@ -257,24 +291,5 @@ export async function ensureHandoverSchema() {
     }
   } catch (err) {
     console.error('[schema] 공유 설정 초기화 실패(계속 진행):', err.message)
-  }
-  // 1회 이관(2026-10-05): 공개 전까지 만들어진 문서·시트·폼은 모두 "운영위원회 및 교수진 / 편집자"로 둔다.
-  // 이후 새로 만드는 파일은 "제한됨"(만든 사람만)으로 시작하고, 공유는 각자 공유 버튼으로 정한다.
-  try {
-    const done = (await impl.query("SELECT 1 FROM handover_settings WHERE key = 'ws_committee_migrated'")).rows[0]
-    if (!done) {
-      const forms = await impl.query('SELECT f.id, f.title_ko FROM custom_forms f WHERE NOT EXISTS (SELECT 1 FROM ws_files w WHERE w.form_id = f.id)')
-      for (const f of forms.rows) {
-        await impl.query(
-          "INSERT INTO ws_files (kind, title, form_id, general_access, general_role, share_token) VALUES ('form', $1, $2, 'committee', 'editor', $3) ON CONFLICT DO NOTHING",
-          [f.title_ko || '제목 없는 설문지', f.id, crypto.randomBytes(18).toString('base64url')]
-        )
-      }
-      const r = await impl.query("UPDATE ws_files SET general_access = 'committee', general_role = 'editor'")
-      await impl.query("INSERT INTO handover_settings (key, value, updated_at) VALUES ('ws_committee_migrated', now()::text, now()) ON CONFLICT (key) DO NOTHING")
-      console.log(`[schema] 기존 문서·시트·폼 ${r.rowCount}개를 운영위원회 및 교수진 전용으로 이관`)
-    }
-  } catch (err) {
-    console.error('[schema] 운영위원회 전용 이관 실패(계속 진행):', err.message)
   }
 }

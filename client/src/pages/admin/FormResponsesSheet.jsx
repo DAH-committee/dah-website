@@ -24,6 +24,7 @@ import { useToast } from '../../components/common/Toast'
 import { API_BASE, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { confirmDialog } from '../../components/common/AppDialog'
+import { cellValue, expandColumns, quizOn } from '../../components/forms/formLogic'
 
 const POLL_MS = 20000
 const DEFAULT_WIDTH = 180
@@ -44,6 +45,9 @@ const TYPE_WIDTH = {
   date: 130,
   time: 100,
   scale: 100,
+  rating: 110,
+  radio_grid: 150,
+  checkbox_grid: 180,
 }
 
 // 인적사항 탭에 담을 필드는 타입으로 판별하고, 이름은 타입이 없어 라벨로 본다.
@@ -146,6 +150,9 @@ function FormResponsesSheet() {
     return [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   }, [form])
 
+  const dataCols = useMemo(() => expandColumns(fields), [fields])
+  const quiz = quizOn(form?.settings)
+
   const allColumns = useMemo(() => {
     const base = [
       { key: 'seq', label: '번호', width: 72, get: (r) => String(r.seq) },
@@ -159,19 +166,23 @@ function FormResponsesSheet() {
     ]
     return [
       ...base,
-      ...fields.map((f) => ({
-        key: `data.${f.id}`,
-        label: f.label_ko || f.id,
-        width: TYPE_WIDTH[f.type] || DEFAULT_WIDTH,
-        // checkbox 응답은 배열이라 cellText가 표시용으로만 이어 붙인다.
-        get: (r) => cellText(r.data?.[f.id]),
+      // 격자는 행마다 한 열, checkbox 응답은 배열이라 cellText가 표시용으로만 이어 붙인다.
+      ...dataCols.map((c) => ({
+        key: `data.${c.key}`,
+        label: c.label || c.field.id,
+        width: TYPE_WIDTH[c.field.type] || DEFAULT_WIDTH,
+        get: (r) => cellText(cellValue(c, r.data)),
       })),
+      ...(quiz
+        ? [{ key: 'quiz.score', label: '점수', width: 100, get: (r) => (r.data?._quiz ? `${r.data._quiz.score} / ${r.data._quiz.max}` : '') }]
+        : []),
     ]
-  }, [fields])
+  }, [dataCols, quiz])
 
   // 인적사항 탭은 같은 행을 신원 컬럼만 잘라 본다(별도 집계 없음).
   const identityColumns = useMemo(() => {
     const keys = new Set(fields.filter(isIdentityField).map((f) => `data.${f.id}`))
+    keys.add('quiz.score')
     return allColumns.filter((c) => c.key === 'seq' || c.key === 'google_email' || keys.has(c.key))
   }, [allColumns, fields])
 

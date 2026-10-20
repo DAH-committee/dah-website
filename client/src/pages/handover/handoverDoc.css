@@ -396,3 +396,12 @@ button.gd-tab__chev:hover { background: rgba(68, 71, 70, 0.12); }
 .gd-meta--link:disabled { cursor: default; opacity: 1; }
 .gd-page .gd-flash { background: #FFEA00; border-radius: 3px; box-shadow: 0 0 0 4px #FFEA00; animation: gd-flash-out 3.6s ease-out forwards; }
 @keyframes gd-flash-out { 0%, 55% { background: #FFEA00; box-shadow: 0 0 0 4px #FFEA00; } 100% { background: transparent; box-shadow: 0 0 0 4px transparent; } }
+
+/* AI 창: 오른쪽에 붙는 폭 고정 칸. 위 줄(.ed-row)은 그대로 두고 본문 영역만 줄어든다 */
+.gd-ai { width: 360px; flex-shrink: 0; display: flex; flex-direction: column; min-height: 0; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22); border-radius: 12px; margin: 0 12px 12px 0; overflow: hidden; }
+.gd-ai > * { flex: 1; min-height: 0; }
+.gd-ai__note { display: grid; place-items: center; padding: 24px; text-align: center; font-size: 14px; color: #5f6368; }
+@media (max-width: 900px) {
+  .gd-ai { position: absolute; right: 0; top: 0; bottom: 0; width: min(360px, 100%); margin: 0; border-radius: 0; z-index: 20; }
+}
+@media print { .gd-ai { display: none !important; } }

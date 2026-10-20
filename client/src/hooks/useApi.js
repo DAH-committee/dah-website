@@ -189,25 +189,63 @@ function shareHeaders(base = {}) {
   }
 }
 
-// 파일 업로드는 서버로 직접 보낸다: 같은 사이트 경로(/api, Vercel 전달)는 요청 본문이 4.5MB를 넘으면 거절된다.
-// 직접 요청은 다른 사이트라 쿠키가 안 실리는 브라우저가 있어, 로그인한 경우 같은 사이트 경로로 10분짜리 업로드 토큰을 받아
-// Authorization 헤더로 보낸다(로그인하지 않았으면 토큰 없이 보내며, 서버가 비로그인 허용 용도만 받는다).
+// 파일 업로드
+// · 배포: 프론트와 서버가 같은 주소(/api)라 로그인 쿠키가 그대로 실린다. 다만 Vercel Functions는 요청 본문이
+//   4.5MB를 넘으면 거절하므로, 4MB가 넘는 파일은 서버에서 한 파일용 서명 주소를 받아 브라우저가 Blob으로 바로 올린다
+//   (로그인 필요, 이미지·PDF·오피스·한글·ZIP, 100MB까지). 폼 첨부(formSlug 등)는 서버가 저장 위치를 정해야 해서 4MB까지만 받는다.
+// · 서버가 다른 주소(절대 URL)인 예전 구성은 같은 사이트 경로로 10분짜리 업로드 토큰을 받아 Authorization 헤더로 보낸다.
+const SAME_ORIGIN_API = typeof ENV_API === 'string' && ENV_API.startsWith('/')
+const DIRECT_UPLOAD_BYTES = 4 * 1024 * 1024
+const TOO_LARGE_MSG = '파일이 너무 큽니다. 4MB 이하 파일만 이 방법으로 올릴 수 있습니다.'
+
+function uploadError(message, status) {
+  const err = new Error(message)
+  err.status = status
+  return err
+}
+
 async function uploadToServer(fd) {
-  let headers = {}
-  if (API_BASE === '/api' && ENV_API) {
+  let res
+  if (API_BASE === '/api' && ENV_API && !SAME_ORIGIN_API) {
+    let headers = {}
     try {
       const r = await fetch(`${API_BASE}/auth/upload-token`, { method: 'POST', credentials: 'include' })
       if (r.ok) headers = { Authorization: `Bearer ${(await r.json()).token}` }
     } catch {
       /* 토큰 없이 진행 */
     }
+    res = await fetch(`${ENV_API}/upload`, { method: 'POST', credentials: 'omit', headers, body: fd })
+  } else {
+    res = await fetch(`${API_BASE}/upload`, { method: 'POST', credentials: 'include', body: fd })
   }
-  return fetch(`${API_BASE === '/api' ? ENV_API : API_BASE}/upload`, {
+  // 같은 주소 배포에서 413은 Vercel의 4.5MB 본문 한도에 걸린 것(응답 본문이 JSON이 아닐 수 있다)
+  if (res.status === 413 && SAME_ORIGIN_API) throw uploadError(TOO_LARGE_MSG, 413)
+  return parseResponse(res)
+}
+
+// 4MB 넘는 파일: 서명 주소 발급(POST /blob/client-token) 후 브라우저가 Blob으로 바로 PUT
+async function uploadDirectToBlob(file) {
+  const ticket = await fetch(`${API_BASE}/blob/client-token`, {
     method: 'POST',
-    credentials: API_BASE === '/api' ? 'omit' : 'include',
-    headers,
-    body: fd,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, size: file.size }),
   }).then(parseResponse)
+  let res
+  try {
+    res = await fetch(ticket.uploadUrl, { method: ticket.method || 'PUT', headers: ticket.headers, body: file })
+  } catch {
+    throw uploadError('파일 저장소에 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 0)
+  }
+  let json = null
+  try {
+    json = await res.json()
+  } catch {
+    json = null
+  }
+  if (!res.ok || !json?.url) throw uploadError(`파일을 올리지 못했습니다. (${res.status})`, res.status)
+  const ext = (file.name.split('.').pop() || '').toLowerCase()
+  return { url: json.url, name: file.name, type: ticket.contentType, bytes: file.size, format: ext, storage: 'blob' }
 }
 
 export const api = {
@@ -240,7 +278,18 @@ export const api = {
    * @param {File} file
    * @param {Object} [extra] - 함께 보낼 추가 필드
    */
-  upload: (file, extra) => {
+  upload: async (file, extra) => {
+    if (SAME_ORIGIN_API && file?.size > DIRECT_UPLOAD_BYTES) {
+      // 용도(usage)만 있는 일반 첨부는 바로 올리기, 그 밖(폼 첨부·전시 원본)은 서버를 거쳐야 하므로 4MB 안내
+      const plain = !extra || Object.keys(extra).every((k) => k === 'usage')
+      if (!plain) throw uploadError(TOO_LARGE_MSG, 413)
+      try {
+        return await uploadDirectToBlob(file)
+      } catch (err) {
+        // 저장소 미연결·구버전 SDK(501·503)일 때만 서버 업로드로 대신한다(4.5MB를 넘으면 위 413 안내)
+        if (err.status !== 501 && err.status !== 503) throw err
+      }
+    }
     const fd = new FormData()
     fd.append('file', file)
     if (extra) for (const [k, v] of Object.entries(extra)) fd.append(k, v)

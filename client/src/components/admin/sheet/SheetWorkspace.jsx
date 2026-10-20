@@ -13,8 +13,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlignCenter, AlignLeft, AlignRight, Baseline, Bold, Filter, Maximize, PaintBucket, Plus, Printer,
-  Cloud, Lock, MoreVertical, Redo2, RefreshCw, Search, Sheet as SheetIcon, Trash2, Undo2, WrapText, X,
+  Cloud, Lock, MoreVertical, Redo2, RefreshCw, Search, Sheet as SheetIcon, Sparkles, Trash2, Undo2, WrapText, X,
 } from 'lucide-react'
+import './sheetAi.css'
 import ColumnFilter from '../../common/ColumnFilter'
 import { useToast } from '../../common/Toast'
 import { api } from '../../../hooks/useApi'
@@ -131,6 +132,12 @@ export default function SheetWorkspace({
   readOnly = false,
   lastEdit = null,
   onCellEdited,
+  apiRef,
+  aiOpen = false,
+  onToggleAi,
+  topExtra = null,
+  aiSlot = null,
+  aiShortcut = '⌘J',
 }) {
   const showToast = useToast()
   const [sheetId, setSheetId] = useState(sheets[0]?.id)
@@ -144,7 +151,14 @@ export default function SheetWorkspace({
   const ShareIcon = useShareIcon(fileId, shareTick)
   const [jump, setJump] = useState(null) // 마지막으로 수정한 칸으로 이동 요청
   const [flashCell, setFlashCell] = useState(null)
-  const [allUi, setAllUi] = useState({})
+  const [allUi, setAllUiState] = useState({})
+  const allUiRef = useRef({})
+  // 화면 상태 바꾸기. ref 에도 바로 반영해 AI 도구가 방금 바뀐 값을 읽을 수 있게 한다
+  const setAllUi = useCallback((v) => {
+    const next = typeof v === 'function' ? v(allUiRef.current) : v
+    allUiRef.current = next
+    setAllUiState(next)
+  }, [])
   const [uiLoaded, setUiLoaded] = useState(false)
   const [saveState, setSaveState] = useState('saved') // saved | dirty | saving | error
   const dirtyRef = useRef(false)
@@ -162,7 +176,7 @@ export default function SheetWorkspace({
     return () => {
       alive = false
     }
-  }, [statePath])
+  }, [statePath, setAllUi])
 
   const setUi = useCallback(
     (patch) => {
@@ -174,7 +188,7 @@ export default function SheetWorkspace({
       dirtyRef.current = true
       setSaveState('dirty')
     },
-    [sheet.id]
+    [sheet.id, setAllUi]
   )
 
   useEffect(() => {
@@ -208,12 +222,30 @@ export default function SheetWorkspace({
   const allCols = useMemo(() => {
     if (!sheet.formulas) return rawCols
     const rowIndex = new Map(sheet.rows.map((r, i) => [r, i]))
-    const evaluate = createEvaluator((c, r) => {
-      const col = rawCols[c]
-      if (!col) return null
-      if (r === 1) return col.label
-      const row = sheet.rows[r - 2]
-      return row ? col.get(row) : null
+    // 수식 엔진. 다른 시트의 칸도 읽을 수 있고(시트2!A1), 배열 결과는 빈 칸 쪽으로 펼쳐진다
+    const evaluate = createEvaluator({
+      getRaw: (c, r, sid) => {
+        if (sid === undefined || sid === sheet.id) {
+          const col = rawCols[c]
+          if (!col || r < 1) return null
+          if (r === 1) return col.label
+          const row = sheet.rows[r - 2]
+          return row ? col.get(row) : null
+        }
+        const other = sheets.find((x) => x.id === sid)
+        const col = other?.columns[c]
+        if (!col || r < 1) return null
+        if (r === 1) return col.label
+        const row = other.rows[r - 2]
+        return row ? col.get(row) : null
+      },
+      getBounds: (sid) => {
+        if (sid === undefined || sid === sheet.id) return { rows: sheet.rows.length + 1, cols: rawCols.length }
+        const other = sheets.find((x) => x.id === sid)
+        return other ? { rows: other.rows.length + 1, cols: other.columns.length } : { rows: 0, cols: 0 }
+      },
+      sheets: sheets.map((x) => ({ id: x.id, name: x.label })),
+      defaultSheet: sheet.id,
     })
     return rawCols.map((col, ci) => ({
       ...col,
@@ -222,8 +254,20 @@ export default function SheetWorkspace({
         const ri = rowIndex.get(row)
         return ri === undefined ? col.get(row) : evaluate(ci, ri + 2)
       },
+      // 이 칸이 다른 칸 수식이 펼친 값이면 그 수식 칸 주소(F2)를 돌려준다. 아니면 null
+      spillOf: (row) => {
+        const ri = rowIndex.get(row)
+        if (ri === undefined || col.get(row) !== '') return null
+        return evaluate.spillOwner(sheet.id, { c: ci, r: ri + 2 })?.ref || null
+      },
+      // 오류 칸의 영문 설명(막힌 펼침 등). 툴팁에 쓴다
+      errorOf: (row) => {
+        const ri = rowIndex.get(row)
+        if (ri === undefined) return ''
+        return evaluate.evaluateCell(sheet.id, { c: ci, r: ri + 2 }).error?.message || ''
+      },
     }))
-  }, [rawCols, sheet.rows, sheet.formulas])
+  }, [rawCols, sheet.rows, sheet.formulas, sheet.id, sheets])
   const columns = useMemo(() => allCols.filter((c) => !ui.hidden.includes(c.key)), [allCols, ui.hidden])
   const letterOf = useCallback((col) => colLetter(allCols.findIndex((c) => c.key === col.key)), [allCols])
   const widthOf = useCallback((col) => ui.widths[col.key] || col.width || DEFAULT_WIDTH, [ui.widths])
@@ -396,6 +440,12 @@ export default function SheetWorkspace({
     }
     if (!canEdit(col)) {
       showToast('이 칸은 고칠 수 없습니다')
+      return
+    }
+    // 다른 칸의 수식이 펼친 값이면 고치지 못하게 막고 어디를 고쳐야 하는지 알린다
+    const owner = col.spillOf?.(row)
+    if (owner) {
+      showToast(`이 칸은 ${owner} 수식이 펼친 값입니다. ${owner} 의 수식을 고치거나 지워 주세요`)
       return
     }
     const orig = rawOf(col, row)
@@ -808,7 +858,60 @@ export default function SheetWorkspace({
     setSort(null)
     setSel(null)
     setEditing(null)
-    hist.current = { undo: [], redo: [] }
+    // 시트 전체를 되돌리는 항목(global)은 시트를 옮겨도 남긴다
+    hist.current = { undo: hist.current.undo.filter((e) => e.global), redo: hist.current.redo.filter((e) => e.global) }
+  }
+
+  // ── AI 창과 주고받는 창구(SheetEditor 가 apiRef 로 쓴다) ──
+  if (apiRef) {
+    apiRef.current = {
+      getAllUi: () => allUiRef.current,
+      applyAllUi: (next) => {
+        setAllUi(next)
+        dirtyRef.current = true
+        setSaveState('dirty')
+      },
+      pushHistory,
+      undo,
+      redo,
+      topEntry: () => hist.current.undo[hist.current.undo.length - 1],
+      inUndo: (e) => hist.current.undo.includes(e),
+      dropEntry: (e) => {
+        hist.current.undo = hist.current.undo.filter((x) => x !== e)
+        hist.current.redo = hist.current.redo.filter((x) => x !== e)
+        bump((n) => n + 1)
+      },
+      getActiveSheetId: () => sheet.id,
+      setActiveSheet: (sid) => changeSheet(sid),
+      toast: showToast,
+      // 선택 범위를 시트 주소(A1, 행은 머리글이 1)로 바꿔 돌려준다. 정렬·필터·숨긴 열이 있으면 filtered 로 알린다
+      getSelection: () => {
+        const filtered = visibleRows.length !== sheet.rows.length || visibleRows.some((r, i) => r !== sheet.rows[i]) || columns.length !== allCols.length
+        if (!bounds) return { sheetId: sheet.id, range: null, active: null, filtered }
+        const idx = new Map(sheet.rows.map((r, i) => [r, i]))
+        const colIdx = (c) => allCols.findIndex((x) => x.key === columns[c]?.key)
+        const rs = []
+        for (let r = bounds.r0; r <= bounds.r1; r += 1) if (visibleRows[r] && idx.has(visibleRows[r])) rs.push(idx.get(visibleRows[r]) + 2)
+        const cs = []
+        for (let c = bounds.c0; c <= bounds.c1; c += 1) if (colIdx(c) >= 0) cs.push(colIdx(c))
+        if (!rs.length || !cs.length) return { sheetId: sheet.id, range: null, active: null, filtered }
+        const a0 = active && visibleRows[active.r] && idx.has(visibleRows[active.r]) ? { c: colIdx(active.c), r: idx.get(visibleRows[active.r]) + 2 } : null
+        return { sheetId: sheet.id, range: { c0: Math.min(...cs), c1: Math.max(...cs), r0: Math.min(...rs), r1: Math.max(...rs) }, active: a0, filtered }
+      },
+      select: (sid, g) => {
+        if (sid && sid !== sheet.id) return
+        if (!g) return
+        const rowOf = (n) => visibleRows.findIndex((row) => row === sheet.rows[n - 2])
+        const colOf = (c) => columns.findIndex((x) => x.key === allCols[c]?.key)
+        const r0 = Math.max(g.r0, 2)
+        const a = rowOf(r0)
+        const b = rowOf(Math.min(g.r1, sheet.rows.length + 1))
+        const c0 = colOf(g.c0)
+        const c1 = colOf(Math.min(g.c1, allCols.length - 1))
+        if (a < 0 || b < 0 || c0 < 0 || c1 < 0) return
+        setSel({ anchor: { r: a, c: c0 }, focus: { r: b, c: c1 } })
+      },
+    }
   }
 
   // 정렬과 필터를 메뉴에서도 쓸 수 있게 선택 열 기준으로 연결
@@ -973,6 +1076,7 @@ export default function SheetWorkspace({
           <Cloud size={16} aria-hidden="true" />
           {readOnly ? '보기 전용' : saveLabel}
         </span>
+        {topExtra}
         <div className="ml-auto flex items-center gap-12 print:hidden">
           <div className="flex flex-col items-end gap-4">
             <p className="text-small-m text-reading-text">
@@ -988,6 +1092,11 @@ export default function SheetWorkspace({
               updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>
             )}
           </div>
+          {onToggleAi && (
+            <button type="button" className={`sh-ai-btn ${aiOpen ? 'is-on' : ''}`} aria-pressed={aiOpen} onClick={() => onToggleAi()} title={`AI 창 (${aiShortcut})`}>
+              <Sparkles size={16} aria-hidden="true" /> AI
+            </button>
+          )}
           {fileId && (
             <button type="button" className="ed-share" onClick={() => setShareOpen(true)}>
               <ShareIcon size={16} aria-hidden="true" /> 공유
@@ -1001,6 +1110,8 @@ export default function SheetWorkspace({
         <SheetMenuBar menus={menus} />
       </div>
 
+      <div className="relative flex min-h-0 flex-1 print:block">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* 도구 모음 */}
       <div role="toolbar" aria-label="시트 도구 모음" className="mx-24 mt-4 flex flex-wrap items-center gap-4 rounded-md bg-reading-subtle px-8 py-4 print:hidden">
         <button type="button" aria-label="실행취소" title="실행취소 (⌘Z)" onClick={undo} disabled={!hist.current.undo.length} className={TB_BTN}><Undo2 size={18} /></button>
@@ -1240,6 +1351,8 @@ export default function SheetWorkspace({
                       const isEditing = editing && editing.r === r && editing.c === c
                       const f = (row && ui.formats[fmtKey(row, col)]) || {}
                       const note = row ? ui.notes[fmtKey(row, col)] : undefined
+                      const spillOwner = row && value !== '' ? col.spillOf?.(row) : null
+                      const errText = row && value.startsWith('#') ? col.errorOf?.(row) : ''
                       const fill = FILL_COLORS.find((x) => x.key === f.fill)?.cls || ''
                       const color = TEXT_COLORS.find((x) => x.key === f.color)?.cls || ''
                       const frozen = c < ui.freezeCols
@@ -1293,7 +1406,7 @@ export default function SheetWorkspace({
                             />
                           )}
                           <div
-                            title={note ? `메모: ${note}` : value}
+                            title={note ? `메모: ${note}` : spillOwner ? `${spillOwner} 수식이 펼친 값` : errText ? `${value}: ${errText}` : value}
                             onMouseDown={(e) => {
                               e.preventDefault()
                               if (editingRef.current) commitEdit(0, 0, { move: false })
@@ -1304,7 +1417,7 @@ export default function SheetWorkspace({
                             }}
                             onMouseEnter={() => dragging.current && setSel((prev) => (prev ? { ...prev, focus: { r, c } } : prev))}
                             onDoubleClick={() => startEdit(r, c)}
-                            className={`relative block min-h-[24px] w-full cursor-cell px-6 py-[2px] text-[13px] leading-[20px] ${f.align ? ALIGN_CLASS[f.align] : sheet.formulas && /^-?\d+(\.\d+)?$/.test(value) ? 'text-right' : 'text-left'} ${f.b ? 'font-bold' : ''} ${color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
+                            className={`relative block min-h-[24px] w-full cursor-cell px-6 py-[2px] text-[13px] leading-[20px] ${f.align ? ALIGN_CLASS[f.align] : sheet.formulas && /^-?\d+(\.\d+)?$/.test(value) ? 'text-right' : 'text-left'} ${f.b ? 'font-bold' : ''} ${spillOwner ? 'sh-spill' : errText ? 'text-state-error' : color || 'text-reading-text'} ${ui.wrap ? 'whitespace-pre-wrap break-words' : 'truncate'} ${
                               isActive
                                 ? 'outline outline-2 outline-offset-[-2px] outline-reading-accent'
                                 : on
@@ -1374,6 +1487,10 @@ export default function SheetWorkspace({
           {summarySum !== null ? `, 합계 ${summarySum.toLocaleString('ko-KR')}` : ''}
           {!sheet.editable ? (selectedCount > 1 ? ', ' : '') + '읽기 전용 시트' : ''}
         </p>
+      </div>
+
+      </div>
+      {aiOpen && aiSlot ? <aside className="sh-ai print:hidden" aria-label="시트 AI">{aiSlot}</aside> : null}
       </div>
 
       {shareOpen && fileId && <ShareDialog fileId={fileId} title={title} linkPath={window.location.pathname} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}

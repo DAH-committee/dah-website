@@ -1,54 +1,54 @@
-// 문서·시트 접근 권한 (구글 독스 공유 방식).
+// 문서·시트·폼·보드·슬라이드 접근 권한 (구글 독스 공유 방식) + 팀.
 //
-// 신원 세 가지를 함께 본다.
-//   - 스태프: 이메일·비밀번호 또는 구글로 로그인한 운영위원회·교수진 사이트 계정(dah_access 쿠키, manager 이상)
-//   - 위원회 구성원: 사이트 계정은 없지만 관리자가 DAH Docs·Sheet·Form 구성원으로 등록한 구글 이메일(ws_members)
-//   - 게스트: 구글로 로그인한 일반 계정(dah_pub_access 쿠키)
-// 스태프와 위원회 구성원을 합쳐 "운영위원회 및 교수진"(committee)이라 부른다.
+// 작업공간에는 특별한 등급이 없다. 사이트 스태프 계정도 여기서는 일반 사용자와 같다.
+// (사이트 오너 역할은 /admin/* 저장소 설정에만 쓴다.)
 //
 // 한 파일에서 사람이 얻는 권한은 아래 중 가장 높은 것이다. (viewer < editor)
-//   0. 나만 보기(owner_only) 파일: 만든 사람만 editor, 그 밖에는 아무도 열 수 없다(사이트 관리자 포함)
-//   1. 사이트 admin·owner 계정과 파일 소유자: editor
-//   2. 파일에 이메일로 추가된 사람(ws_shares): 지정한 권한
-//   3. 일반 액세스
-//        restricted  제한됨: 위 1·2에 해당하는 사람만
-//        committee   운영위원회 및 교수진: committee 전원에게 general_role
-//        major       디지털인문예술전공: committee + 한림대 구글 계정(@hallym.ac.kr, 하위 도메인 포함)으로 로그인한 사람에게 general_role
-//        public      전체 공개: committee 전원 + 링크(share_token)를 가진 모든 사람에게 general_role
+//   0. 휴지통에 있는 파일: 아무도 열 수 없다(복원 전까지)
+//   1. 나만 보기(owner_only) 파일: 만든 사람만 editor, 그 밖에는 아무도 열 수 없다
+//   2. 파일 소유자: editor
+//   3. 파일에 이메일로 추가된 사람(ws_shares): 지정한 권한
+//   4. 일반 액세스
+//        restricted  제한됨: 위 2·3에 해당하는 사람만
+//        team        팀: 파일이 속한 팀(ws_files.team_id)의 팀원에게 general_role
+//        major       한림대 계정: 한림대 구글 계정(@hallym.ac.kr, 하위 도메인 포함)으로 로그인한 사람에게 general_role
+//        public      링크가 있는 모든 사용자: 링크 키(share_token)를 가진 사람, 또는 그 링크로 이미 열어 본 로그인 사용자에게 general_role
+// 예전 값 'committee'는 더 이상 쓰지 않으며 제한됨과 같게 다룬다.
 import crypto from 'node:crypto'
 import { query } from '../db.js'
 import { hasRole } from '../middleware/auth.js'
 import { optionalPublicAuth } from '../middleware/publicAuth.js'
 
 export const RANK = { viewer: 1, editor: 2 }
-export const GENERAL = ['restricted', 'committee', 'major', 'public']
+export const GENERAL = ['restricted', 'team', 'major', 'public']
 export const HALLYM_RE = /@(?:[a-z0-9-]+\.)*hallym\.ac\.kr$/
 export const ROLES = ['viewer', 'editor']
+export const TEAM_ROLES = ['owner', 'member']
 
 export const newToken = () => crypto.randomBytes(18).toString('base64url')
 const lower = (v) => String(v || '').trim().toLowerCase()
 const best = (a, b) => ((RANK[a] || 0) >= (RANK[b] || 0) ? a : b)
 
-/** 요청자의 신원(스태프 사용자, 게스트, 이메일 목록)을 한 번만 계산한다 */
+/** 요청자의 신원(이메일 목록, 한림대 계정 여부, 내 팀과 팀 역할)을 한 번만 계산한다 */
 export async function identityOf(req, res) {
   if (req._wsIdentity) return req._wsIdentity
   if (req.publicUser === undefined) await new Promise((done) => optionalPublicAuth(req, res, done))
-  const staff = req.user && hasRole(req.user, 'manager') ? req.user : null
   const emails = new Set()
   if (req.user?.email) emails.add(lower(req.user.email))
   if (req.publicUser?.email) emails.add(lower(req.publicUser.email))
   const list = [...emails]
-  const member = list.length
-    ? (await query('SELECT id, email, name FROM ws_members WHERE lower(email) = ANY($1::text[]) LIMIT 1', [list])).rows[0] || null
-    : null
+  const teams = new Map()
+  if (list.length) {
+    const { rows } = await query('SELECT team_id, role FROM team_members WHERE lower(email) = ANY($1::text[])', [list])
+    for (const r of rows) if (teams.get(r.team_id) !== 'owner') teams.set(r.team_id, r.role)
+  }
   req._wsIdentity = {
-    staff,
-    member,
-    committee: Boolean(staff || member),
+    // 사이트 스태프 계정(인수인계 비밀값 등 사이트 기능에서만 쓴다. 작업공간 권한에는 영향 없음)
+    staff: req.user && hasRole(req.user, 'manager') ? req.user : null,
     hallym: list.some((e) => HALLYM_RE.test(e)),
     guest: req.publicUser || null,
     emails: list,
-    isSite: Boolean(req.user && hasRole(req.user, 'admin')),
+    teams,
   }
   return req._wsIdentity
 }
@@ -58,38 +58,50 @@ export function authorOf(req) {
   return req.user?.name || req.publicUser?.name || req.publicUser?.email || '게스트'
 }
 
+export const FILE_COLS = 'id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, owner_only, deleted_at, team_id'
+
 export async function fileRow(wsId) {
   if (wsId === null || wsId === undefined) return null
-  const { rows } = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at FROM ws_files WHERE id = $1',
-    [wsId]
-  )
+  const n = parseInt(wsId, 10)
+  if (!Number.isInteger(n)) return null
+  const { rows } = await query(`SELECT ${FILE_COLS} FROM ws_files WHERE id = $1`, [n])
   return rows[0] || null
+}
+
+/** 이 파일의 소유자인가 */
+export function isOwnerOf(id, file) {
+  if (file.owner_email && id.emails.includes(lower(file.owner_email))) return true
+  return Boolean(!file.owner_email && id.staff && file.created_by && id.staff.name === file.created_by)
+}
+
+/** 팀 역할: 'owner' | 'member' | null */
+export function teamRoleOf(id, teamId) {
+  if (teamId === null || teamId === undefined) return null
+  return id.teams.get(Number(teamId)) || null
 }
 
 /** 요청자가 이 파일에서 갖는 권한: 'editor' | 'viewer' | null */
 export async function levelFor(req, res, file) {
   if (!file) return null
   const id = await identityOf(req, res)
-  let level = null
   if (file.deleted_at) return null // 휴지통에 있는 파일은 복원하기 전까지 아무도 열 수 없다
   if (file.owner_only) return file.owner_email && id.emails.includes(lower(file.owner_email)) ? 'editor' : null
-  if (id.isSite) return 'editor'
-  // 소유자: 이메일이 같거나, 예전 파일은 만든 사람 이름이 같을 때
-  if (file.owner_email && id.emails.includes(lower(file.owner_email))) return 'editor'
-  if (!file.owner_email && id.staff && file.created_by && id.staff.name === file.created_by) return 'editor'
+  if (isOwnerOf(id, file)) return 'editor'
+  let level = null
   if (id.emails.length) {
     const { rows } = await query('SELECT role FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[])', [file.id, id.emails])
     for (const r of rows) level = best(level, r.role)
   }
   const role = ROLES.includes(file.general_role) ? file.general_role : 'viewer'
-  if (file.general_access === 'committee' && id.committee) level = best(level, role)
-  if (file.general_access === 'major' && (id.committee || id.hallym)) level = best(level, role)
+  if (file.general_access === 'team' && teamRoleOf(id, file.team_id)) level = best(level, role)
+  if (file.general_access === 'major' && id.hallym) level = best(level, role)
   if (file.general_access === 'public') {
-    if (id.committee) level = best(level, role)
-    else {
-      const key = req.get?.('x-share-key') || req.query?.k
-      if (key && file.share_token && key === file.share_token) level = best(level, role)
+    const key = req.get?.('x-share-key') || req.query?.k
+    if (key && file.share_token && key === file.share_token) level = best(level, role)
+    else if (id.emails.length && level !== 'editor') {
+      // 링크로 한 번 연 로그인 사용자는 다음부터 목록에서 키 없이도 연다(링크를 새로 만들면 이 기록이 지워진다)
+      const seen = await query('SELECT 1 FROM ws_recent WHERE ws_id = $1 AND email = ANY($2::text[]) LIMIT 1', [file.id, id.emails])
+      if (seen.rows.length) level = best(level, role)
     }
   }
   return level
@@ -100,37 +112,24 @@ export async function levelForId(req, res, wsId) {
   return levelFor(req, res, await fileRow(wsId))
 }
 
-/** 운영위원회 및 교수진(스태프 또는 등록된 위원회 구성원)만 통과. 삭제·비공개 전환에 쓴다 */
-export function committeeOnly(req, res, next) {
-  identityOf(req, res)
-    .then((id) => {
-      if (!id.committee) return res.status(id.emails.length ? 403 : 401).json({ error: 'committee only', hint: '운영위원회 및 교수진만 할 수 있습니다.' })
-      next()
-    })
-    .catch(next)
-}
-
 /**
  * 폼(custom_forms)마다 공유 설정 행(ws_files kind=form)을 보장하고 돌려준다.
- * 예전 폼은 "운영위원회 및 교수진 / 편집자"로 시작한다(지금까지 스태프만 다루던 것과 같은 범위).
+ * 행이 없는 예전 폼은 "제한됨"으로 시작한다.
  */
 export async function formFile(formId, init = null) {
   const id = parseInt(formId, 10)
   if (!Number.isInteger(id)) return null
-  const found = await query(
-    'SELECT id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at FROM ws_files WHERE form_id = $1',
-    [id]
-  )
+  const found = await query(`SELECT ${FILE_COLS} FROM ws_files WHERE form_id = $1`, [id])
   if (found.rows[0]) return found.rows[0]
   const form = (await query('SELECT id, title_ko FROM custom_forms WHERE id = $1', [id])).rows[0]
   if (!form) return null
-  const g = init || { general_access: 'committee', general_role: 'editor', owner_email: null, created_by: null }
+  const g = { general_access: 'restricted', general_role: 'viewer', owner_email: null, created_by: null, team_id: null, ...(init || {}) }
   const { rows } = await query(
-    `INSERT INTO ws_files (kind, title, form_id, general_access, general_role, owner_email, created_by, share_token)
-     VALUES ('form', $1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO ws_files (kind, title, form_id, general_access, general_role, owner_email, created_by, share_token, team_id)
+     VALUES ('form', $1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (form_id) WHERE form_id IS NOT NULL DO UPDATE SET title = EXCLUDED.title
-     RETURNING id, kind, title, created_by, owner_email, general_access, general_role, share_token, gated, form_id, last_edit, hidden, owner_only, deleted_at`,
-    [form.title_ko || '제목 없는 설문지', id, g.general_access, g.general_role, g.owner_email, g.created_by, newToken()]
+     RETURNING ${FILE_COLS}`,
+    [form.title_ko || '제목 없는 설문지', id, g.general_access, g.general_role, g.owner_email, g.created_by, newToken(), g.team_id]
   )
   return rows[0]
 }
@@ -140,25 +139,17 @@ export async function formFile(formId, init = null) {
 // 폼은 사이트에 공개되어 있을 수 있어, 휴지통에 넣는 동안 응답 받기를 끄고 복원 때 원래 상태로 돌린다.
 export const TRASH_DAYS = 30
 
-/** 이 파일의 소유자인가 */
-export function isOwnerOf(id, file) {
-  if (file.owner_email && id.emails.includes(lower(file.owner_email))) return true
-  return Boolean(!file.owner_email && id.staff && file.created_by && id.staff.name === file.created_by)
-}
-
-/** 지울 수 있는가: 소유자 본인, 또는 운영위원회 및 교수진. 나만 보기 파일은 소유자만, 인수인계 문서는 오너만 */
+/** 지울 수 있는가(휴지통으로 옮기기·복원·영구 삭제): 파일 소유자, 또는 팀 파일이면 그 팀의 오너. 나만 보기 파일은 소유자만, 인수인계 문서는 사이트 오너만 */
 export function canDeleteFile(id, user, file) {
   if (file.gated && !hasRole(user, 'owner')) return false
   const mine = isOwnerOf(id, file)
   if (file.owner_only) return mine
-  return mine || id.committee
+  return mine || teamRoleOf(id, file.team_id) === 'owner'
 }
 
-/** 휴지통 목록에서 이 파일을 다룰 수 있는가(복원·영구 삭제): 지울 수 있는 사람 중 원래 목록에서 보이던 범위 */
-export function canManageTrash(id, user, file, shared = false) {
-  if (!canDeleteFile(id, user, file)) return false
-  if (isOwnerOf(id, file) || shared) return true
-  return ['committee', 'major', 'public'].includes(file.general_access) && id.committee
+/** 휴지통에서 이 파일을 다룰 수 있는가(복원·영구 삭제). 지울 수 있는 사람과 같다 */
+export function canManageTrash(id, user, file) {
+  return canDeleteFile(id, user, file)
 }
 
 export function daysLeft(deletedAt) {
@@ -185,7 +176,15 @@ export async function restoreFile(file) {
 }
 
 /** 영구 삭제(되돌릴 수 없음) */
+// 종류별 영구 삭제 보조 동작(예: 한글 파일의 버전·본문 정리). 해당 모듈이 불러올 때 등록한다.
+const PURGE_HOOKS = new Map()
+export function registerPurgeHook(kind, fn) {
+  PURGE_HOOKS.set(kind, fn)
+}
+
 export async function purgeFile(file) {
+  const hook = PURGE_HOOKS.get(file.kind)
+  if (hook) await hook(file.id)
   if (file.kind === 'doc') {
     await query('DELETE FROM handover_comments WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [file.id])
     await query('DELETE FROM handover_versions WHERE doc_id IN (SELECT id FROM handover_docs WHERE ws_id = $1)', [file.id])
@@ -199,13 +198,13 @@ export async function purgeFile(file) {
 }
 
 /**
- * 링크로 연 파일을 내 "최근" 목록에 남긴다(소유자는 이미 목록에 있으니 제외, 비공개·나만 보기 파일은 남기지 않음).
+ * 링크로 연 파일을 내 "최근" 목록에 남긴다(소유자는 이미 목록에 있으니 제외, 나만 보기 파일은 남기지 않음).
  * 목록은 열 수 있는 권한으로 한 번 더 걸러지므로, 권한이 사라지면 목록에서도 사라진다.
  */
 export async function touchRecent(req, res, file) {
   try {
     const id = await identityOf(req, res)
-    if (!id.emails.length || file.hidden || file.owner_only || file.deleted_at) return
+    if (!id.emails.length || file.owner_only || file.deleted_at) return
     if (isOwnerOf(id, file)) return
     await query(
       `INSERT INTO ws_recent (email, ws_id, opened_at) VALUES ($1, $2, now())

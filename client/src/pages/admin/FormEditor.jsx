@@ -8,13 +8,13 @@
 // 공개 토글은 화면 상태만 바꾼다. 저장 버튼을 눌러야 반영된다(P1-3). 저장하지 않은 변경이 있으면 위쪽에 알린다.
 // 네이티브 select, date, radio, checkbox 금지. 전부 공용 커스텀 컴포넌트로 그린다.
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   AlignLeft, ArrowDown, ArrowLeft, ArrowUp, Calendar, Check, ChevronDown, ChevronDownCircle, ChevronUp,
   CircleDot, Clock, Copy, Download, EllipsisVertical, Eye, FileText, GraduationCap, Link as LinkIcon, Mail,
   Phone, Plus, PlusCircle, Rows3, Save, SlidersHorizontal, SquareCheck, Table2, Text, TextCursorInput,
-  Trash2, Upload, UploadCloud, X, Cloud, Lock,
+  Trash2, Upload, UploadCloud, X, Cloud, Lock, Grid3x3, Star, ListChecks, Sparkles,
 } from 'lucide-react'
 import { API_BASE, useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
@@ -23,7 +23,16 @@ import { HeaderCard } from '../../components/forms/respondent'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { DragHandle, useDragSort } from '../../components/common/DragHandle'
 import { formStatus } from './formStatus'
+import {
+  BranchingEditor, FlowSummary, GRADABLE, GridEditor, OptionExtras, QuizKeyEditor, QuizSettings, RatingEditor, ResponseSummary,
+  RuleEditor, SectionAfter, targetsAfter,
+} from './FormEditorParts'
+import { FIELD_TYPES as LOGIC_TYPES, GRID_TYPES, buildPages, validateDefinition, cleanSettingsQuiz } from '../../components/forms/formLogic'
 import { confirmDialog } from '../../components/common/AppDialog'
+import { useToast } from '../../components/common/Toast'
+import { buildFormContext, createFormTools, toolsFor } from './aiFormTools'
+import { FORM_QUICK_ACTIONS, buildFormSystemPrompt } from './aiFormPrompts'
+import './formAi.css'
 import AccountMenu from '../../components/common/AccountMenu'
 import ShareDialog, { useShareIcon } from '../../components/common/ShareDialog'
 import NoAccess from '../../components/common/NoAccess'
@@ -38,6 +47,31 @@ import {
   Select,
   Toggle,
 } from '../../components/admin/FormControls'
+
+// AI 창(공용 패널)은 다른 담당이 만든다. 파일이 없어도 이 화면이 빌드되도록 glob 으로 느슨하게 불러온다.
+import { useMcpRelay } from '../../components/ai/mcpRelay'
+const AI_PANEL_LOADERS = import.meta.glob('../../components/ai/AiPanel.jsx')
+const AI_LOADER = AI_PANEL_LOADERS['../../components/ai/AiPanel.jsx']
+const AiPanelLazy = AI_LOADER ? lazy(() => AI_LOADER().then((m) => ({ default: m.default || m.AiPanel }))) : null
+const AI_OPEN_KEY = 'dah-ai-open:form'
+const AI_TEXT_ACK_KEY = 'dah-ai-text-ack:form'
+const MOD_KEY = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || '') ? '⌘' : 'Ctrl+'
+
+// AI 창이 오류를 내도 편집기 전체가 멈추지 않게 한다
+class AiBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    return this.state.failed ? <div className="fm-ai__note">AI 창을 열지 못했습니다. 화면을 새로 고쳐 주세요</div> : this.props.children
+  }
+}
 
 export const CATEGORY_LABEL = { event: '행사', recruit: '모집', other: '기타' }
 const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABEL).map(([value, label]) => ({ value, label }))
@@ -57,6 +91,9 @@ const TYPE_LABEL = {
   time: '시간',
   scale: '선형 배율',
   section: '섹션',
+  radio_grid: '객관식 격자',
+  checkbox_grid: '체크박스 격자',
+  rating: '평점',
 }
 const OPTION_TYPES = ['select', 'radio', 'checkbox']
 
@@ -177,7 +214,7 @@ function normField(f, i, formSettings = {}) {
     id: String(f?.id ?? `f${i + 1}`),
     label_ko: f?.label_ko ?? '',
     label_en: f?.label_en ?? '',
-    type: TYPE_LABEL[f?.type] ? f.type : 'text',
+    type: TYPE_LABEL[f?.type] && LOGIC_TYPES.includes(f?.type) ? f.type : 'text',
     required: Boolean(f?.required),
     placeholder_ko: f?.placeholder_ko ?? '',
     placeholder_en: f?.placeholder_en ?? '',
@@ -189,6 +226,10 @@ function normField(f, i, formSettings = {}) {
       f?.validation && typeof f.validation === 'object' && !Array.isArray(f.validation)
         ? f.validation
         : {},
+    // 새 기능 키: 격자 행·열, 섹션 분기, 퀴즈 정답. 없으면 만들지 않는다(예전 폼과 같은 모양 유지)
+    ...(GRID_TYPES.includes(f?.type) ? { rows: Array.isArray(f?.rows) ? f.rows.map(String) : [], columns: Array.isArray(f?.columns) ? f.columns.map(String) : [] } : {}),
+    ...(f?.logic && typeof f.logic === 'object' ? { logic: f.logic } : {}),
+    ...(f?.quiz && typeof f.quiz === 'object' ? { quiz: f.quiz } : {}),
     order: i + 1,
   }
 }
@@ -219,6 +260,8 @@ const EMPTY = {
     drive_course_field_id: '',
     drive_share_mode: 'restricted',
     drive_connection_id: '',
+    confirmation_ko: '',
+    quiz: { enabled: false, release: 'immediate', released: false, show_answers: false },
   },
 }
 
@@ -253,6 +296,8 @@ function fromItem(item) {
       drive_course_field_id: s.drive_course_field_id || '',
       drive_share_mode: s.drive_share_mode === 'link' ? 'link' : 'restricted',
       drive_connection_id: s.drive_connection_id == null ? '' : String(s.drive_connection_id),
+      confirmation_ko: s.confirmation_ko || '',
+      quiz: cleanSettingsQuiz(s.quiz),
     },
   }
 }
@@ -268,7 +313,7 @@ function toPayload(form) {
     category: form.category,
     published: form.published,
     // 화면에 보이는 순서가 곧 저장 순서. FormRenderer는 order 오름차순으로 그린다
-    fields: form.fields.map((f, i) => ({ ...f, order: i + 1 })),
+    fields: form.fields.map((f, i) => ({ ...f, order: i + 1, ...(f.type === 'section' ? {} : {}) })),
     settings: {
       accept_start: fromLocalInput(s.accept_start),
       accept_end: fromLocalInput(s.accept_end),
@@ -289,6 +334,8 @@ function toPayload(form) {
       drive_course_field_id: s.drive_course_field_id,
       drive_share_mode: s.drive_share_mode,
       drive_connection_id: s.drive_connection_id === '' ? null : Number(s.drive_connection_id),
+      confirmation_ko: s.confirmation_ko || '',
+      quiz: s.quiz,
     },
   }
 }
@@ -537,6 +584,9 @@ const TYPE_META = {
   studentid: { label: '학번', desc: '숫자 8자리만 입력 가능', icon: GraduationCap },
   file: { label: '파일 올리기', desc: '이미지, PDF 같은 파일 받기', icon: Upload },
   scale: { label: '선형 배율', desc: '1점부터 5점처럼 점수 매기기', icon: SlidersHorizontal },
+  radio_grid: { label: '객관식 격자', desc: '행마다 열 중 하나 고르기', icon: Grid3x3 },
+  checkbox_grid: { label: '체크박스 격자', desc: '행마다 열 여러 개 고르기', icon: ListChecks },
+  rating: { label: '평점', desc: '별점이나 하트로 점수 주기', icon: Star },
   date: { label: '날짜', desc: '달력에서 날짜 고르기', icon: Calendar },
   time: { label: '시간', desc: '14:30처럼 시각 입력', icon: Clock },
 }
@@ -546,7 +596,8 @@ const TYPE_GROUPS = [
   ['radio', 'checkbox', 'select'],
   ['phone', 'email', 'studentid'],
   ['file'],
-  ['scale'],
+  ['scale', 'rating'],
+  ['radio_grid', 'checkbox_grid'],
   ['date', 'time'],
 ]
 
@@ -554,7 +605,8 @@ const TYPE_GROUPS = [
 function defaultsFor(type) {
   return {
     options: OPTION_TYPES.includes(type) ? ['옵션 1'] : [],
-    validation: type === 'scale' ? { scaleMin: 1, scaleMax: 5, scaleMinLabel: '', scaleMaxLabel: '' } : {},
+    validation: type === 'scale' ? { scaleMin: 1, scaleMax: 5, scaleMinLabel: '', scaleMaxLabel: '' } : type === 'rating' ? { ratingMax: 5, ratingIcon: 'star' } : {},
+    ...(GRID_TYPES.includes(type) ? { rows: ['행 1', '행 2'], columns: ['열 1', '열 2', '열 3'] } : {}),
   }
 }
 
@@ -810,6 +862,15 @@ function FieldPreview({ field }) {
         </div>
       )
     }
+    case 'radio_grid':
+    case 'checkbox_grid':
+      return (
+        <p className={`text-body-m ${SUB}`}>
+          행 {(field.rows || []).length}개 x 열 {(field.columns || []).length}개 {field.type === 'radio_grid' ? '(행마다 하나)' : '(행마다 여러 개)'}
+        </p>
+      )
+    case 'rating':
+      return <p className={`text-body-m ${SUB}`}>{field.validation?.ratingMax || 5}단계 {field.validation?.ratingIcon === 'heart' ? '하트' : field.validation?.ratingIcon === 'thumb' ? '엄지' : '별'} 평점</p>
     case 'date':
       return line('연도-월-일')
     case 'time':
@@ -838,7 +899,7 @@ const SCALE_TO = Array.from({ length: 9 }, (_, i) => ({ value: String(i + 2), la
 /** 질문 카드 한 장. 선택하면 펼쳐지고 나머지는 접힌 미리보기로 보인다 */
 function QuestionCard({
   field, index, total, active, onActivate, onChange, onRemove, onDuplicate, onMove,
-  dragging, over, rowProps, armed, onArm, driveProps,
+  dragging, over, rowProps, armed, onArm, driveProps, ctx = {},
 }) {
   const [showHint, setShowHint] = useState(Boolean(field.hint_ko))
   const set = (key) => (v) => onChange({ ...field, [key]: v })
@@ -851,6 +912,9 @@ function QuestionCard({
     const next = { ...field, type }
     if (OPTION_TYPES.includes(type) && !field.options.length) next.options = base.options
     if (type === 'scale') next.validation = { ...base.validation, ...field.validation }
+    if (type === 'rating') next.validation = { ...base.validation, ...field.validation }
+    if (GRID_TYPES.includes(type)) { next.rows = field.rows?.length ? field.rows : base.rows; next.columns = field.columns?.length ? field.columns : base.columns }
+    if (!['radio', 'select'].includes(type)) delete next.logic
     if (type === 'file') next.storage = normStorage(field.storage, driveProps.settings)
     onChange(next)
   }
@@ -937,6 +1001,12 @@ function QuestionCard({
           )}
 
           {OPTION_TYPES.includes(field.type) && <OptionList type={field.type} options={field.options} onChange={set('options')} />}
+          {OPTION_TYPES.includes(field.type) && <OptionExtras field={field} setValidation={(patch) => setValidation(patch)} />}
+          {['radio', 'select'].includes(field.type) && <BranchingEditor field={field} targets={ctx.targets || []} onChange={(logic) => { const { logic: _l, ...rest } = field; onChange(logic ? { ...rest, logic } : rest) }} />}
+          {GRID_TYPES.includes(field.type) && <GridEditor field={field} onChange={onChange} />}
+          {field.type === 'rating' && <RatingEditor field={field} setValidation={setValidation} />}
+          {['text', 'textarea', 'checkbox'].includes(field.type) && <RuleEditor field={field} setValidation={setValidation} />}
+          {ctx.quizOn && GRADABLE.includes(field.type) && <QuizKeyEditor field={field} onChange={onChange} />}
 
           {(field.type === 'text' || field.type === 'textarea') && (
             <div className="flex flex-col gap-12">
@@ -1018,7 +1088,7 @@ function QuestionCard({
 }
 
 /** 섹션(페이지 나누기) 카드 */
-function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRemove, onMove, total, dragging, over, rowProps, armed, onArm }) {
+function SectionCard({ field, index, pageNo, targets = [], active, onActivate, onChange, onRemove, onMove, total, dragging, over, rowProps, armed, onArm }) {
   const rp = rowProps(index)
   return (
     <div
@@ -1033,7 +1103,7 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
       className={`group relative mt-16 ${dragging ? 'opacity-40' : ''}`}
     >
       <span className="absolute -top-0 left-0 z-10 rounded-t-md bg-purple-deep px-16 py-8 text-small-m font-semibold text-button-primaryText">
-        {pageNo}페이지 시작
+        섹션 {pageNo}
       </span>
       <div className={`${CARD} ${active ? 'shadow-[0_2px_8px_rgb(0_0_0/0.22)]' : ''} mt-32 border-t-8 border-t-purple-deep ${over ? '!border-purple-primary' : ''}`}>
         <span
@@ -1050,16 +1120,17 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
             aria-label={`${pageNo}페이지 제목`}
             value={field.label_ko}
             onChange={(e) => onChange({ ...field, label_ko: e.target.value })}
-            placeholder="페이지 제목"
+            placeholder="섹션 제목"
             className={`min-h-48 w-full py-8 !rounded-none !border-0 !border-b !border-border-strong !bg-bg-elev px-16 text-body-l-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0 md:text-body-l-d`}
           />
           <AutoText
             aria-label={`${pageNo}페이지 설명`}
             value={field.hint_ko}
             onChange={(e) => onChange({ ...field, hint_ko: e.target.value })}
-            placeholder="페이지 설명"
+            placeholder="섹션 설명"
             className={`min-h-40 w-full py-8 !rounded-none !border-0 !border-b !bg-transparent px-0 text-body-m ${INK} outline-none transition hover:!border-border-strong focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
           />
+          <SectionAfter field={field} targets={targets} onChange={(logic) => { const { logic: _l, ...rest } = field; onChange(logic ? { ...rest, logic } : rest) }} />
           <div className="flex flex-wrap items-center justify-end gap-4 border-t border-border-subtle pt-16">
             <button type="button" onClick={() => onMove(-1)} disabled={index === 0} className={TEXT_BTN}>
               <ArrowUp size={18} aria-hidden="true" /> 위로
@@ -1078,10 +1149,10 @@ function SectionCard({ field, index, pageNo, active, onActivate, onChange, onRem
 }
 
 /** 오른쪽(좁은 화면에서는 카드 아래) 추가 도구. 글자가 붙어 있어서 아이콘 뜻을 몰라도 된다 */
-function AddToolbar({ onAdd }) {
+function AddToolbar({ onAdd, inline = false }) {
   const btn = `flex h-48 w-full cursor-pointer items-center gap-12 rounded-sm px-16 text-left text-small-m font-semibold ${INK} transition hover:bg-glass-strong hover:text-purple-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-border-focus`
   return (
-    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md bg-bg-panel p-4 shadow-[0_1px_2px_rgb(0_0_0/0.18)] sm:flex-row lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col`}>
+    <div role="toolbar" aria-label="질문 추가 도구" className={`mt-12 flex flex-col rounded-md bg-bg-panel p-4 shadow-[0_1px_2px_rgb(0_0_0/0.18)] sm:flex-row ${inline ? '' : 'lg:absolute lg:-right-[176px] lg:top-0 lg:mt-0 lg:w-[160px] lg:flex-col'}`}>
       <button type="button" onClick={() => onAdd('radio')} className={btn}>
         <PlusCircle size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 질문 추가
       </button>
@@ -1089,7 +1160,7 @@ function AddToolbar({ onAdd }) {
         <Upload size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 파일 질문 추가
       </button>
       <button type="button" onClick={() => onAdd('section')} className={btn}>
-        <Rows3 size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 페이지 나누기
+        <Rows3 size={20} className="shrink-0 text-purple-light" aria-hidden="true" /> 섹션 추가
       </button>
     </div>
   )
@@ -1155,6 +1226,16 @@ function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy
         <SwitchRow title="제출 확인 메일" checked={s.confirmation_mail} onChange={setSetting('confirmation_mail')} label="제출 확인 메일 보내기" />
       </SettingGroup>
 
+      <SettingGroup title="완료 문구">
+        <Field label="제출 후 보여줄 말">
+          <Input value={s.confirmation_ko} onChange={setSettingInput('confirmation_ko')} placeholder="제출이 접수되었습니다." maxLength={1000} />
+        </Field>
+      </SettingGroup>
+
+      <SettingGroup title="퀴즈">
+        <QuizSettings settings={s} setSetting={setSetting} fields={form.fields} />
+      </SettingGroup>
+
       <SettingGroup title="사이트 표시">
         <SwitchRow title="상단 신청 버튼" checked={s.show_button_in_header} onChange={setSetting('show_button_in_header')} label="상단 버튼 표시 여부" />
         <Field label="버튼 글자">
@@ -1193,7 +1274,7 @@ function SettingsTab({ form, set, setSetting, setSettingInput, publicUrl, onCopy
 }
 
 /** 응답 탭: 개수와 문항별 요약. 자세한 표는 응답 시트에서 본다 */
-function ResponsesTab({ formId, fields, resp }) {
+function ResponsesTab({ formId, fields, resp, settings }) {
   const { data, loading, error } = resp
   const [busy, setBusy] = useState(false)
   const [dlError, setDlError] = useState(null)
@@ -1229,20 +1310,6 @@ function ResponsesTab({ formId, fields, resp }) {
     )
   }
 
-  const summarizable = fields.filter((f) => ['radio', 'select', 'checkbox', 'scale'].includes(f.type))
-  const countsFor = (f) => {
-    const map = new Map()
-    for (const r of items) {
-      const v = r.data?.[f.id]
-      const list = Array.isArray(v) ? v : v == null || v === '' ? [] : [String(v)]
-      for (const x of list) map.set(x, (map.get(x) || 0) + 1)
-    }
-    const order = f.type === 'scale'
-      ? (() => { const { min, max } = scaleBounds(f.validation); return Array.from({ length: max - min + 1 }, (_, i) => String(min + i)) })()
-      : f.options
-    return order.map((label) => ({ label, n: map.get(label) || 0 }))
-  }
-
   return (
     <div className="flex flex-col gap-16">
       <section className={`${CARD} gap-16 p-24 md:p-32`}>
@@ -1269,30 +1336,7 @@ function ResponsesTab({ formId, fields, resp }) {
         </div>
       )}
 
-      {items.length > 0 &&
-        summarizable.map((f) => {
-          const rows = countsFor(f)
-          const top = Math.max(1, ...rows.map((r) => r.n))
-          return (
-            <section key={f.id} className={`${CARD} gap-16 p-24 md:p-32`}>
-              <header>
-                <h3 className={`break-words text-body-l-m font-medium md:text-body-l-d ${INK}`}>{f.label_ko || '제목 없는 질문'}</h3>
-                <p className={`mt-4 text-small-m ${SUB}`}>{TYPE_META[f.type]?.label}, 응답 {rows.reduce((a, r) => a + r.n, 0)}개</p>
-              </header>
-              <ul className="flex flex-col gap-12">
-                {rows.map((r) => (
-                  <li key={r.label} className="grid grid-cols-[minmax(0,160px)_minmax(0,1fr)_56px] items-center gap-12 text-small-m">
-                    <span className={`truncate ${INK}`}>{r.label}</span>
-                    <span className="h-16 rounded-sm bg-bg-elev">
-                      <span className="block h-16 rounded-sm bg-purple-primary" style={{ width: `${(r.n / top) * 100}%` }} />
-                    </span>
-                    <span className={`text-right ${SUB}`}>{r.n}명</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )
-        })}
+      {items.length > 0 && <ResponseSummary fields={fields} items={items} settings={settings} card={CARD} typeLabel={(t) => TYPE_META[t]?.label || ''} />}
     </div>
   )
 }
@@ -1318,7 +1362,7 @@ function FormEditor() {
   const { data, loading, error, refetch } = useApi(isNew ? null : `/admin/forms/${id}`)
   // 새 폼도 곧바로 저장할 수 있도록 내부 주소를 기본 발급한다. 제목은 질문 탭 맨 위에서 바로 편집한다.
   const [form, setForm] = useState(() =>
-    isNew ? { ...EMPTY, slug: `form-${Date.now().toString(36)}` } : EMPTY
+    isNew ? { ...EMPTY, slug: Math.random().toString(36).slice(2, 8) } : EMPTY
   )
   const [hydrated, setHydrated] = useState(isNew)
   const [busy, setBusy] = useState(false)
@@ -1385,6 +1429,88 @@ function FormEditor() {
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
   }, [dirty])
+
+  // ── AI 창 ──
+  const showToast = useToast()
+  const formRef = useRef(form)
+  formRef.current = form
+  const [aiOpen, setAiOpenState] = useState(() => {
+    try {
+      return localStorage.getItem(AI_OPEN_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
+  const setAiOpen = useCallback((v) => {
+    setAiOpenState((prev) => {
+      const next = typeof v === 'function' ? v(prev) : v
+      try {
+        localStorage.setItem(AI_OPEN_KEY, next ? '1' : '0')
+      } catch { /* 저장소를 못 쓰는 환경 */ }
+      return next
+    })
+  }, [])
+  const textKey = `dah-ai-text:form:${id || 'new'}`
+  const [aiText, setAiTextState] = useState(() => {
+    try {
+      return localStorage.getItem(textKey) === '1'
+    } catch {
+      return false
+    }
+  })
+  const aiTextRef = useRef(aiText)
+  aiTextRef.current = aiText
+  const toggleAiText = async () => {
+    if (!aiText) {
+      let acked = false
+      try { acked = localStorage.getItem(AI_TEXT_ACK_KEY) === '1' } catch { /* 저장소를 못 쓰는 환경 */ }
+      if (!acked) {
+        const ok = await confirmDialog({
+          title: '응답 글을 AI에게 보여 주기',
+          message: '단답형과 서술형 응답 글(최대 30개씩, 이메일·전화 모양은 가림)이 내가 연결한 AI 제공업체로 전송됩니다. 이름, 연락처, 학번, 파일은 어떤 경우에도 보내지 않습니다. 켤까요?',
+          confirmLabel: '켜기',
+        })
+        if (!ok) return
+        try { localStorage.setItem(AI_TEXT_ACK_KEY, '1') } catch { /* 저장소를 못 쓰는 환경 */ }
+      }
+    }
+    const next = !aiText
+    setAiTextState(next)
+    try { localStorage.setItem(textKey, next ? '1' : '0') } catch { /* 저장소를 못 쓰는 환경 */ }
+  }
+  const aiLive = useRef({})
+  const aiTools = useMemo(
+    () =>
+      createFormTools({
+        getForm: () => formRef.current,
+        canEdit: () => aiLive.current.canEdit !== false,
+        getActiveId: () => aiLive.current.activeId,
+        // 응답에서는 질문 답(data)과 날짜만 도구에 넘긴다. 제출 계정, 시각은 여기서 떨군다.
+        getItems: () => (aiLive.current.items || []).map((r) => ({ data: r.data, day: r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('sv-SE') : null })),
+        textAccess: () => aiTextRef.current,
+        apply: (next, { focus } = {}) => {
+          const before = formRef.current
+          const normalized = { ...next, fields: next.fields.map((f, i) => ({ ...f, order: i + 1 })) }
+          if (JSON.stringify(normalized) === JSON.stringify(before)) return null
+          formRef.current = normalized
+          setForm(normalized)
+          if (focus) aiLive.current.setActiveId?.(focus)
+          return { before, after: normalized }
+        },
+        revert: ({ before, after }) => {
+          if (JSON.stringify(formRef.current) === JSON.stringify(after)) {
+            formRef.current = before
+            setForm(before)
+          } else aiLive.current.toast?.('그 뒤에 고친 내용이 있어 되돌릴 수 없습니다. 직접 고쳐 주세요')
+        },
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+  // 응답 글 도구는 스위치가 켜졌을 때만 목록에 둔다
+  const aiToolList = useMemo(() => toolsFor(aiTools, { text: aiText }), [aiText, aiTools])
+  const mcpRelay = useMcpRelay({ fileId: wsId, kind: 'form', tools: aiToolList, canEdit: canEditForm })
+  const aiSystem = useMemo(() => buildFormSystemPrompt(), [])
 
   const set = (key) => (v) => setForm((prev) => ({ ...prev, [key]: v }))
   const setInput = (key) => (e) => set(key)(e.target.value)
@@ -1521,6 +1647,14 @@ function FormEditor() {
       setActiveId('header')
       return
     }
+    const defIssues = validateDefinition(form.fields, form.settings)
+    if (defIssues.length) {
+      setSaveError('저장하기 전에 아래 문제를 고쳐 주세요')
+      setSaveIssues(defIssues.map((it, i) => ({ code: `def${i}`, message: it.message })))
+      setTab('questions')
+      if (defIssues[0].id) setActiveId(defIssues[0].id)
+      return
+    }
     setBusy(true)
     setSaveError(null)
     setSaveIssues([])
@@ -1553,6 +1687,10 @@ function FormEditor() {
         event.preventDefault()
         document.getElementById('form-editor')?.requestSubmit()
       }
+      if (!event.altKey && !event.shiftKey && event.key.toLowerCase() === 'j' && AiPanelLazy) {
+        event.preventDefault()
+        setAiOpen((v) => !v)
+      }
       if (event.shiftKey && event.key.toLowerCase() === 'p') {
         event.preventDefault()
         setPreview(true)
@@ -1560,14 +1698,14 @@ function FormEditor() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [setAiOpen])
 
   const status = formStatus(form.published, {
     accept_start: fromLocalInput(form.settings.accept_start),
     accept_end: fromLocalInput(form.settings.accept_end),
   })
   const responseCount = resp.data?.total
-  let pageNo = 1
+  const flowPages = buildPages(form.fields)
 
   const driveProps = {
     settings: form.settings,
@@ -1586,6 +1724,11 @@ function FormEditor() {
     preparing,
   }
 
+  aiLive.current = { canEdit: canEditForm, activeId, items: resp.data?.items || [], setActiveId, toast: showToast, dirty, responseCount: responseCount ?? 0 }
+  const aiGetContext = useCallback(
+    () => buildFormContext({ form: formRef.current, activeId: aiLive.current.activeId, responseCount: aiLive.current.responseCount, dirty: aiLive.current.dirty, canEdit: aiLive.current.canEdit }),
+    []
+  )
   if (!isNew && (error?.status === 401 || error?.status === 403)) return <NoAccess kind="form" />
   if (!isNew && !loading && !data && error?.status === 404) return <NoAccess kind="form" notFound />
   return (
@@ -1606,6 +1749,7 @@ function FormEditor() {
             <Cloud size={16} aria-hidden="true" />
             {!canEditForm ? '보기 전용' : busy ? '저장 중' : dirty ? '저장 전' : savedAt ? '저장됨' : ''}
           </span>
+          {mcpRelay.badge}
           <div className="ml-auto flex shrink-0 items-center gap-8">
             {lastEdit && (
               <button type="button" className="ed-lastedit" onClick={jumpLast} title="수정한 위치로 이동">
@@ -1615,6 +1759,11 @@ function FormEditor() {
             <button type="button" onClick={() => setTab('settings')} className={`h-32 cursor-pointer rounded-full bg-bg-elev px-12 text-small-m font-semibold ${STATUS_TONE[status.tone]}`} title="공개 설정으로 이동">
               {status.label}
             </button>
+            {AiPanelLazy && (
+              <button type="button" className={`fm-ai-btn ${aiOpen ? 'is-on' : ''}`} aria-pressed={aiOpen} onClick={() => setAiOpen((v) => !v)} title={`AI 창 (${MOD_KEY}J)`}>
+                <Sparkles size={16} aria-hidden="true" /> AI
+              </button>
+            )}
             <button type="button" onClick={() => setPreview(true)} aria-label="미리보기" title="미리보기" className="flex h-40 w-40 cursor-pointer items-center justify-center rounded-full text-text-sec transition hover:bg-bg-elev">
               <Eye size={20} aria-hidden="true" />
             </button>
@@ -1650,7 +1799,8 @@ function FormEditor() {
           ))}
         </div>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto pb-80">
+      <div className="relative flex min-h-0 flex-1">
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pb-80">
 
       {!isNew && !hydrated ? (
         <div className="flex flex-col items-start gap-16 p-24">
@@ -1686,7 +1836,7 @@ function FormEditor() {
                     className={`w-full !rounded-none !border-0 !border-b !border-border-subtle !bg-transparent px-0 pb-8 text-body-m ${INK} outline-none transition focus:!border-b-2 focus:!border-purple-primary focus:ring-0`}
                   />
                 </div>
-                {activeId === 'header' && <AddToolbar onAdd={addField} />}
+                {activeId === 'header' && <AddToolbar onAdd={addField} inline={aiOpen} />}
               </div>
 
               {form.fields.length === 0 && (
@@ -1703,6 +1853,7 @@ function FormEditor() {
                 </button>
               )}
 
+              <FlowSummary fields={form.fields} />
               <ul className="flex flex-col gap-16">
                 {form.fields.map((field, i) => {
                   const common = {
@@ -1723,12 +1874,12 @@ function FormEditor() {
                     armed: armed === i,
                     onArm: (on) => setArmed(on ? i : null),
                   }
-                  const toolbar = activeId === field.id ? <AddToolbar onAdd={addField} /> : null
+                  const toolbar = activeId === field.id ? <AddToolbar onAdd={addField} inline={aiOpen} /> : null
                   if (field.type === 'section') {
-                    pageNo += 1
+                    const pageNo = flowPages.findIndex((p) => p.section?.id === field.id) + 1
                     return (
                       <li key={field.id} className="relative list-none">
-                        <SectionCard {...common} pageNo={pageNo} />
+                        <SectionCard {...common} pageNo={pageNo} targets={targetsAfter(form.fields, i)} />
                         {toolbar}
                       </li>
                     )
@@ -1745,6 +1896,7 @@ function FormEditor() {
                           setActiveId(copy.id)
                         }}
                         driveProps={{ ...driveProps, prepareResult: prepareResults[field.id] }}
+                        ctx={{ quizOn: form.settings.quiz?.enabled === true, targets: targetsAfter(form.fields, i) }}
                       />
                       {toolbar}
                     </li>
@@ -1754,7 +1906,7 @@ function FormEditor() {
             </>
           )}
 
-          {tab === 'responses' && <ResponsesTab formId={id ? Number(id) : null} fields={form.fields} resp={resp} />}
+          {tab === 'responses' && <ResponsesTab formId={id ? Number(id) : null} fields={form.fields} resp={resp} settings={form.settings} />}
 
           {tab === 'settings' && (
             <SettingsTab
@@ -1779,6 +1931,38 @@ function FormEditor() {
         </form>
       )}
 
+      </div>
+      {aiOpen && AiPanelLazy && (
+        <aside className="fm-ai" aria-label="설문 AI">
+          {aiLive.current.canEdit !== false && (
+            <div className="fm-ai__privacy">
+              <div>
+                <strong>응답 글을 AI에게 보여 주기</strong>
+                <span>{aiText ? '단답, 서술형 응답 글(최대 30개)이 AI 제공업체로 전송됩니다' : '꺼짐: AI는 개수와 비율 같은 집계만 봅니다'}</span>
+              </div>
+              <Toggle checked={aiText} onChange={toggleAiText} label="응답 글을 AI에게 보여 주기" />
+            </div>
+          )}
+          <div className="fm-ai__panel">
+            <AiBoundary>
+              <Suspense fallback={<div className="fm-ai__note">AI 창을 불러오는 중</div>}>
+                <AiPanelLazy
+                  open
+                  onClose={() => setAiOpen(false)}
+                  scope={`form:${id || 'new'}`}
+                  title="설문 AI"
+                  systemPrompt={aiSystem}
+                  tools={aiToolList}
+                  getContext={aiGetContext}
+                  quickActions={FORM_QUICK_ACTIONS}
+                  placeholder="설문을 어떻게 만들고 고칠까요?"
+                  canEdit={canEditForm}
+                />
+              </Suspense>
+            </AiBoundary>
+          </div>
+        </aside>
+      )}
       </div>
       {shareOpen && wsId && <ShareDialog fileId={wsId} title={form.title_ko || '제목 없는 설문지'} linkPath={`/form/${id}/edit`} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}
       {preview && (

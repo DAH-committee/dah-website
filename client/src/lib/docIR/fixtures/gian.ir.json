@@ -1,0 +1,831 @@
+{
+ "version": 1,
+ "meta": {
+  "created": "2026-10-12T00:00:00Z",
+  "title": "기안문(공문) 시험"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "portrait",
+  "marginMm": {
+   "top": 20,
+   "right": 20,
+   "bottom": 15,
+   "left": 20
+  },
+  "headerMm": 10,
+  "footerMm": 10
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 11,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 160
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "body": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "디지털인문예술전공",
+     "sizePt": 22,
+     "bold": true,
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     }
+    }
+   ],
+   "align": "center",
+   "spaceAfterPt": 8
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "수신  내부결재"
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   },
+   "spaceAfterPt": 2
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "(경유)"
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   },
+   "spaceAfterPt": 2
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "제목  ",
+     "bold": true
+    },
+    {
+     "text": "2026-2학기 한림멘토링 활동비 지출 및 활동 보고서 제출 건",
+     "bold": true
+    }
+   ],
+   "spaceAfterPt": 10,
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "관련: 한림멘토링 운영 계획(2026. 9. 14.)과 한림대학교 학생 학습 지원 규정 제12조에 따른 사항입니다."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 0,
+    "marker": "1."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "위 관련 근거에 따라 2026-2학기 한림멘토링 2주차 활동 결과를 다음과 같이 보고하오니 검토하여 주시기 바랍니다."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 0,
+    "marker": "2."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "활동 일시: 2026. 10. 7.(수) 20:00 ~ 23:00(3시간), 온라인(ZOOM)"
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 1,
+    "marker": "가."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "참여 인원: 멘토 1명, 멘티 3명(전원 출석). 활동 내용은 개발 환경 설치와 첫 화면 구성 확인으로, 설치 도중 막힌 단계는 오류 문구 검색과 화면 공유로 해결하였습니다."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 1,
+    "marker": "나."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "설치 대상: Node.js, 코드 편집 도구."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 44,
+    "rightPt": 0,
+    "firstLinePt": -16
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 2,
+    "marker": "1)"
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "확인 항목: 버전 확인, 작업 폴더 열기, 첫 실행."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 44,
+    "rightPt": 0,
+    "firstLinePt": -16
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 2,
+    "marker": "2)"
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "버전 확인은 터미널에서 한 줄 명령으로 수행함."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 60,
+    "rightPt": 0,
+    "firstLinePt": -16
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 3,
+    "marker": "가)"
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "설치 경로 안내는 컴퓨터 환경별로 따로 진행함."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 60,
+    "rightPt": 0,
+    "firstLinePt": -16
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 3,
+    "marker": "나)"
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "다음 활동: 2026. 10. 14.(수) 20:00, 화면 구성과 첫 작업 요청 연습."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 28,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 1,
+    "marker": "다."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "위 사항에 관한 증빙은 붙임 파일로 제출하며, 추가 서류가 필요한 경우 안내하여 주시기 바랍니다."
+    }
+   ],
+   "align": "justify",
+   "indent": {
+    "leftPt": 14,
+    "rightPt": 0,
+    "firstLinePt": -14
+   },
+   "list": {
+    "kind": "ordered",
+    "level": 0,
+    "marker": "3."
+   },
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "붙임  1. 2주차 활동 보고서 1부."
+    },
+    {
+     "text": "",
+     "br": true
+    },
+    {
+     "text": "       2. 활동 사진 1부.  끝."
+    }
+   ],
+   "spaceBeforePt": 8,
+   "spaceAfterPt": 18,
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 160
+   },
+   "indent": {
+    "leftPt": 0,
+    "rightPt": 0,
+    "firstLinePt": 0
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "디지털인문예술전공 학과장",
+     "sizePt": 20,
+     "bold": true,
+     "font": {
+      "ko": "HY헤드라인M",
+      "latin": "HY헤드라인M"
+     }
+    }
+   ],
+   "align": "center",
+   "spaceBeforePt": 14,
+   "spaceAfterPt": 12
+  },
+  {
+   "t": "table",
+   "widthPt": 240,
+   "colPt": [
+    48,
+    64,
+    64,
+    64
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "구분"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "기안자"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "검토자"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "결재권자"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 20,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "직위(직급)",
+           "sizePt": 9
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "조교"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "교수"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "학과장"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "서명",
+           "sizePt": 9
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "heightPt": 42,
+     "heightRule": "exact"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "결재일자",
+           "sizePt": 9
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2026. 10. 12.",
+           "sizePt": 8
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      }
+     ],
+     "heightPt": 20,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   },
+   "align": "right"
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": ""
+    }
+   ],
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  },
+  {
+   "t": "table",
+   "widthPt": 481,
+   "colPt": [
+    62,
+    150,
+    62,
+    207
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "협조자"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "시행"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "디지털인문예술전공-0000 (2026. 10. 12.)"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "우"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "00000 강원특별자치도 춘천시 한림대학길 1"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 3
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "전화"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "033-000-0000"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "전자우편"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "bg": "#EEEEEE",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "example@example.ac.kr / 공개(대국민 공개)"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  }
+ ],
+ "assets": {}
+}

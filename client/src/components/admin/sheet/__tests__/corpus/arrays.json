@@ -1,0 +1,1644 @@
+[
+ {
+  "formula": "=SEQUENCE(3)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEQUENCE(2,3)",
+  "expected": [
+   [
+    1,
+    2,
+    3
+   ],
+   [
+    4,
+    5,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEQUENCE(3,1,10,5)",
+  "expected": [
+   [
+    10
+   ],
+   [
+    15
+   ],
+   [
+    20
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEQUENCE(1,3,0,-1)",
+  "expected": [
+   [
+    0,
+    -1,
+    -2
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SEQUENCE(0)",
+  "expected": {
+   "error": "#NUM!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-556"
+ },
+ {
+  "formula": "={1,2,3}",
+  "expected": [
+   [
+    1,
+    2,
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1;2;3}",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1,2;3,4}",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={\"a\",\"b\"}",
+  "expected": [
+   [
+    "a",
+    "b"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1,2;3}",
+  "expected": {
+   "error": "#ERROR!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1,2,3}*2",
+  "expected": [
+   [
+    2,
+    4,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1;2}+{10,20}",
+  "expected": [
+   [
+    11,
+    21
+   ],
+   [
+    12,
+    22
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "={1,2}+{1,2,3}",
+  "expected": [
+   [
+    2,
+    4,
+    "#N/A"
+   ]
+  ],
+  "note": "크기 안 맞는 칸은 #N/A",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRANSPOSE({1,2,3})",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TRANSPOSE(A1:B2)",
+  "expected": [
+   [
+    "a",
+    "c"
+   ],
+   [
+    "b",
+    "d"
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "B1": "b",
+   "A2": "c",
+   "B2": "d"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT({3;1;2},1,TRUE)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT({3;1;2},1,FALSE)",
+  "expected": [
+   [
+    3
+   ],
+   [
+    2
+   ],
+   [
+    1
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT(A2:C6,3,TRUE)",
+  "expected": [
+   [
+    "Choi",
+    "B",
+    5
+   ],
+   [
+    "Kim",
+    "A",
+    10
+   ],
+   [
+    "Lee",
+    "B",
+    20
+   ],
+   [
+    "Park",
+    "A",
+    30
+   ],
+   [
+    "Jung",
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT(A2:C6,2,TRUE,3,FALSE)",
+  "expected": [
+   [
+    "Park",
+    "A",
+    30
+   ],
+   [
+    "Kim",
+    "A",
+    10
+   ],
+   [
+    "Lee",
+    "B",
+    20
+   ],
+   [
+    "Choi",
+    "B",
+    5
+   ],
+   [
+    "Jung",
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT({\"b\";\"A\";\"c\"},1,TRUE)",
+  "expected": [
+   [
+    "A"
+   ],
+   [
+    "b"
+   ],
+   [
+    "c"
+   ]
+  ],
+  "note": "대소문자 무시",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT({3;\"\";1},1,TRUE)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    3
+   ],
+   [
+    ""
+   ]
+  ],
+  "note": "빈 문자열 텍스트는 숫자 뒤",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT(A2:A6)",
+  "expected": [
+   [
+    "Choi"
+   ],
+   [
+    "Jung"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "sort_column 필수 / 관찰값으로 수정: gs-531/639 인수 1개 SORT 허용",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT(A2:C6,9,TRUE)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORT(A2:A6,C2:C6,FALSE)",
+  "expected": [
+   [
+    "Jung"
+   ],
+   [
+    "Park"
+   ],
+   [
+    "Lee"
+   ],
+   [
+    "Kim"
+   ],
+   [
+    "Choi"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "정렬 기준을 다른 범위로",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORTN(A2:C6,2,0,3,FALSE)",
+  "expected": [
+   [
+    "Jung",
+    "C",
+    40
+   ],
+   [
+    "Park",
+    "A",
+    30
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORTN({1;1;2;3},2,1,1,TRUE)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    1
+   ]
+  ],
+  "note": "동점 포함 모드 1: 마지막 값과 같은 것까지",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SORTN({1;1;2;2;3},3,2,1,TRUE)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "note": "모드 2: 중복 행 제거",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FILTER(A2:C6,C2:C6>15)",
+  "expected": [
+   [
+    "Lee",
+    "B",
+    20
+   ],
+   [
+    "Park",
+    "A",
+    30
+   ],
+   [
+    "Jung",
+    "C",
+    40
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FILTER(A2:A6,B2:B6=\"A\")",
+  "expected": [
+   [
+    "Kim"
+   ],
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FILTER(A2:A6,B2:B6=\"A\",C2:C6>15)",
+  "expected": [
+   [
+    "Park"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FILTER(A2:A6,C2:C6>100)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FILTER(A2:A6,C2:C5>1)",
+  "expected": {
+   "error": "#N/A"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)",
+  "note": "관찰값으로 수정: gs-522 조건 길이 불일치는 #N/A"
+ },
+ {
+  "formula": "=FILTER({1,2,3},{TRUE,FALSE,TRUE})",
+  "expected": [
+   [
+    1,
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(FILTER(C2:C6,B2:B6=\"B\"))",
+  "expected": 25,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNIQUE({1;2;1;3;2})",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNIQUE(B2:B6)",
+  "expected": [
+   [
+    "A"
+   ],
+   [
+    "B"
+   ],
+   [
+    "C"
+   ]
+  ],
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNIQUE({1;2;1;3;2},FALSE,TRUE)",
+  "expected": [
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNIQUE({\"a\";\"A\"})",
+  "expected": [
+   [
+    "a"
+   ],
+   [
+    "A"
+   ]
+  ],
+  "note": "대소문자 무시(구글 동작 관찰 필요) / 관찰값으로 수정: gs-534 UNIQUE는 대소문자 구분",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=UNIQUE({1,2;1,2;3,4})",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=COUNTA(UNIQUE(B2:B6))",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ROWS(UNIQUE(B2:B6))",
+  "expected": 3,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FLATTEN({1,2;3,4})",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=FLATTEN(A1:B1,A2:B2)",
+  "expected": [
+   [
+    "a"
+   ],
+   [
+    "b"
+   ],
+   [
+    "c"
+   ],
+   [
+    "d"
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "B1": "b",
+   "A2": "c",
+   "B2": "d"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HSTACK({1;2},{3;4})",
+  "expected": [
+   [
+    1,
+    3
+   ],
+   [
+    2,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VSTACK({1,2},{3,4})",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=HSTACK({1;2},{3})",
+  "expected": [
+   [
+    1,
+    3
+   ],
+   [
+    2,
+    "#N/A"
+   ]
+  ],
+  "note": "모자란 칸은 #N/A",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=VSTACK({1,2},{3})",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    "#N/A"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TOCOL({1,2;3,4})",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ],
+   [
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TOROW({1,2;3,4})",
+  "expected": [
+   [
+    1,
+    2,
+    3,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TOCOL(A1:B2,1)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    3
+   ],
+   [
+    4
+   ]
+  ],
+  "note": "빈 값 무시",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)",
+  "cells": {
+   "A1": "1",
+   "B1": "",
+   "A2": "3",
+   "B2": "4"
+  }
+ },
+ {
+  "formula": "=TOCOL({1,2;3,4},0,TRUE)",
+  "expected": [
+   [
+    1
+   ],
+   [
+    3
+   ],
+   [
+    2
+   ],
+   [
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WRAPROWS({1,2,3,4,5},2)",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    "#N/A"
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WRAPROWS({1,2,3,4,5},2,0)",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ],
+   [
+    5,
+    0
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=WRAPCOLS({1,2,3,4},2)",
+  "expected": [
+   [
+    1,
+    3
+   ],
+   [
+    2,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSECOLS({1,2,3;4,5,6},1,3)",
+  "expected": [
+   [
+    1,
+    3
+   ],
+   [
+    4,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSECOLS({1,2,3},-1)",
+  "expected": [
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSEROWS({1;2;3},3,1)",
+  "expected": [
+   [
+    3
+   ],
+   [
+    1
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=CHOOSEROWS({1;2;3},9)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAY_CONSTRAIN({1,2,3;4,5,6},1,2)",
+  "expected": [
+   [
+    1,
+    2
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(A1:A3*2)",
+  "expected": [
+   [
+    2
+   ],
+   [
+    4
+   ],
+   [
+    6
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(A1:A3*B1:B3)",
+  "expected": [
+   [
+    4
+   ],
+   [
+    10
+   ],
+   [
+    18
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3",
+   "B1": "4",
+   "B2": "5",
+   "B3": "6"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(IF(A1:A3>1,\"y\",\"n\"))",
+  "expected": [
+   [
+    "n"
+   ],
+   [
+    "y"
+   ],
+   [
+    "y"
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(SUM(A1:A3))",
+  "expected": 6,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(IFERROR(1/A1:A3,0))",
+  "expected": [
+   [
+    1
+   ],
+   [
+    0.5
+   ],
+   [
+    0
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": ""
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(A1:A2&B1:B2)",
+  "expected": [
+   [
+    "ac"
+   ],
+   [
+    "bd"
+   ]
+  ],
+  "cells": {
+   "A1": "a",
+   "A2": "b",
+   "B1": "c",
+   "B2": "d"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(ROW(A1:A3))",
+  "expected": [
+   [
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(A1:A2+B1:C1)",
+  "expected": [
+   [
+    11,
+    21
+   ],
+   [
+    12,
+    22
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "B1": "10",
+   "C1": "20"
+  },
+  "note": "열 벡터 + 행 벡터는 브로드캐스트",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(VLOOKUP(A1:A2,C1:D2,2,FALSE))",
+  "expected": [
+   [
+    "x"
+   ],
+   [
+    "y"
+   ]
+  ],
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "C1": "1",
+   "D1": "x",
+   "C2": "2",
+   "D2": "y"
+  },
+  "note": "VLOOKUP 키 배열은 첫 값만(구글은 배열 키 미지원으로 알려짐) / 관찰값으로 수정: gs-542 키 배열은 원소별",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=A1:A3*2",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "note": "ARRAYFORMULA 없이 범위 연산은 왼쪽 위 칸만(구글 동작 관찰 필요) / 관찰값으로 수정: gs-575 ARRAYFORMULA 없는 범위 연산은 #VALUE!",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(A1:A3*2)",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "note": "같은 이유 / 관찰값으로 수정: gs-575 같은 이유",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT(A1:A3*2)",
+  "expected": 12,
+  "cells": {
+   "A1": "1",
+   "A2": "2",
+   "A3": "3"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAP({1,2,3},LAMBDA(x,x*x))",
+  "expected": [
+   [
+    1,
+    4,
+    9
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAP({1,2},{10,20},LAMBDA(a,b,a+b))",
+  "expected": [
+   [
+    11,
+    22
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=REDUCE(0,{1,2,3},LAMBDA(a,v,a+v))",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SCAN(0,{1,2,3},LAMBDA(a,v,a+v))",
+  "expected": [
+   [
+    1,
+    3,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=BYROW({1,2;3,4},LAMBDA(r,SUM(r)))",
+  "expected": [
+   [
+    3
+   ],
+   [
+    7
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=BYCOL({1,2;3,4},LAMBDA(c,SUM(c)))",
+  "expected": [
+   [
+    4,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MAKEARRAY(2,3,LAMBDA(r,c,r*c))",
+  "expected": [
+   [
+    1,
+    2,
+    3
+   ],
+   [
+    2,
+    4,
+    6
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(a,2,b,3,a*b)",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(x,5,x+1)",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(a,1,a+b)",
+  "expected": {
+   "error": "#NAME?"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LAMBDA(x,x*2)(4)",
+  "expected": 8,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(f,LAMBDA(x,x+1),f(10))",
+  "expected": 11,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(r,SEQUENCE(3),SUM(r))",
+  "expected": 6,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=LET(a,5,LET(b,a*2,b+1))",
+  "expected": 11,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MUNIT(2)",
+  "expected": [
+   [
+    1,
+    0
+   ],
+   [
+    0,
+    1
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=MMULT({1,2;3,4},{1,0;0,1})",
+  "expected": [
+   [
+    1,
+    2
+   ],
+   [
+    3,
+    4
+   ]
+  ],
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(SEQUENCE(10))",
+  "expected": 55,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT(SEQUENCE(3),SEQUENCE(3))",
+  "expected": 14,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(SEQUENCE(5),3)",
+  "expected": 3,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=TEXTJOIN(\",\",TRUE,SEQUENCE(3))",
+  "expected": "1,2,3",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=JOIN(\"-\",SEQUENCE(3))",
+  "expected": "1-2-3",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(SPLIT(A1:A2,\",\"))",
+  "expected": [
+   [
+    "a",
+    "b"
+   ],
+   [
+    "c",
+    ""
+   ]
+  ],
+  "cells": {
+   "A1": "a,b",
+   "A2": "c"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=ARRAYFORMULA(TEXTJOIN(\",\",TRUE,A1:A2))",
+  "expected": "a,b",
+  "cells": {
+   "A1": "a",
+   "A2": "b"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(SORT({3;1;2},1,TRUE),1)",
+  "expected": 1,
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(SPLIT(\"a,b,c\",\",\"),1,2)",
+  "expected": "b",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(FILTER(A2:A6,C2:C6=MAX(C2:C6)),1)",
+  "expected": "Jung",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=INDEX(SORT(A2:C6,3,FALSE),1,1)",
+  "expected": "Jung",
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUM(IF(B2:B6=\"A\",C2:C6,0))",
+  "expected": {
+   "error": "#VALUE!"
+  },
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "note": "배열 모드가 아닌 IF는 조건을 왼쪽 위 칸으로 줄이고 참 분기의 범위 전체를 돌려줌(구글 동작 관찰 필요) / 관찰값으로 수정: gs-577 ARRAYFORMULA 없는 IF 범위 조건은 #VALUE!",
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ },
+ {
+  "formula": "=SUMPRODUCT((B2:B6=\"A\")*C2:C6)",
+  "expected": 40,
+  "cells": {
+   "A1": "Name",
+   "B1": "Dept",
+   "C1": "Sales",
+   "A2": "Kim",
+   "B2": "A",
+   "C2": "10",
+   "A3": "Lee",
+   "B3": "B",
+   "C3": "20",
+   "A4": "Park",
+   "B4": "A",
+   "C4": "30",
+   "A5": "Choi",
+   "B5": "B",
+   "C5": "5",
+   "A6": "Jung",
+   "B6": "C",
+   "C6": "40"
+  },
+  "source": "https://support.google.com/docs/table/25273 (배열·동적, 문서의 정의·예시 기준, 미관찰)"
+ }
+]

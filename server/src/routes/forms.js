@@ -15,7 +15,7 @@
 import { Router } from 'express'
 import { query } from '../db.js'
 import { optionalAuth } from '../middleware/auth.js'
-import { canDeleteFile, canManageTrash, daysLeft, formFile, identityOf, isOwnerOf, levelFor, purgeExpired, touchRecent, trashFile } from '../lib/wsAccess.js'
+import { canDeleteFile, canManageTrash, daysLeft, formFile, identityOf, isOwnerOf, levelFor, purgeExpired, teamRoleOf, touchRecent, trashFile } from '../lib/wsAccess.js'
 import { requirePublicAuth, optionalPublicAuth } from '../middleware/publicAuth.js'
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { wrap } from './content.js'
@@ -23,6 +23,12 @@ import { normalizeFileStorage, publicFileStorage } from '../lib/formStorage.js'
 import { attachUploads } from '../lib/driveConnections.js'
 import { preflightForm } from '../lib/drivePreflight.js'
 import { sendFormConfirmation } from '../lib/mailer.js'
+import {
+  FIELD_TYPES, LIMITS, cleanSettingsQuiz, expandColumns, cellValue, gradeResponse, normalizeExtras,
+  pickData, resultForResponder, scoreVisible, quizOn, validateDefinition, validateResponse, scaleRange,
+} from '../lib/formLogic.js'
+
+export { validateResponse, scaleRange, pickData }
 
 const router = Router()
 
@@ -50,34 +56,16 @@ const signedIn = [
   }),
 ]
 
-const FIELD_TYPES = [
-  'text', 'textarea', 'select', 'radio', 'checkbox',
-  'phone', 'email', 'studentid', 'file', 'date', 'time', 'scale', 'section',
-]
 const CATEGORIES = ['event', 'recruit', 'other']
 
-const PHONE_RE = /^010-\d{4}-\d{4}$/
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const STUDENT_ID_RE = /^\d{8}$/
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
-
-/** 선형 배율의 범위. 저장된 값이 이상해도 1~5로 되돌려 검증이 깨지지 않게 한다 */
-export function scaleRange(validation) {
-  const lo = Number(validation?.scaleMin)
-  const hi = Number(validation?.scaleMax)
-  const min = lo === 0 ? 0 : 1
-  const max = Number.isInteger(hi) && hi >= 2 && hi <= 10 ? hi : 5
-  return { min, max }
-}
 
 function asArray(v) {
   return Array.isArray(v) ? v : []
 }
 
 /** 필드 목록 정규화 — 저장 시 타입·순서를 정리하고 알 수 없는 키는 버린다 */
-function normalizeFields(raw) {
-  return asArray(raw).map((f, i) => ({
+export function normalizeFields(raw) {
+  return asArray(raw).slice(0, LIMITS.fields).map((f, i) => ({
     // 53_DRIVE_STORAGE: 파일 질문의 저장소 설정. 화이트리스트를 통과한 모양만 저장한다.
     // 설정이 없는 예전 폼은 storage 키를 만들지 않고 남긴다 — 폼 전역 Drive 설정을 그대로
     // 해석하는 런타임 폴백(normalizeFileStorage)이 살아 있어야 기존 폼이 그대로 동작한다.
@@ -85,20 +73,24 @@ function normalizeFields(raw) {
       ? { storage: normalizeFileStorage(f.storage, {}) }
       : {}),
     id: String(f?.id ?? `f${i + 1}`),
-    label_ko: String(f?.label_ko ?? ''),
+    label_ko: String(f?.label_ko ?? '').slice(0, LIMITS.label),
     label_en: f?.label_en ? String(f.label_en) : '',
     type: FIELD_TYPES.includes(f?.type) ? f.type : 'text',
     required: Boolean(f?.required),
     placeholder_ko: f?.placeholder_ko ? String(f.placeholder_ko) : '',
     placeholder_en: f?.placeholder_en ? String(f.placeholder_en) : '',
-    hint_ko: f?.hint_ko ? String(f.hint_ko) : '',
+    hint_ko: f?.hint_ko ? String(f.hint_ko).slice(0, LIMITS.hint) : '',
     hint_en: f?.hint_en ? String(f.hint_en) : '',
-    options: asArray(f?.options).map((o) => String(o)),
+    options: asArray(f?.options).slice(0, LIMITS.options).map((o) => String(o).slice(0, LIMITS.optionLen)),
     options_en: asArray(f?.options_en).map((o) => String(o)),
-    validation:
-      f?.validation && typeof f.validation === 'object' && !Array.isArray(f.validation)
-        ? f.validation
-        : {},
+    // 새 기능 키(격자 행·열, 분기, 퀴즈 정답, 검증 규칙)는 허용 목록으로만 통과시킨다
+    ...(() => {
+      const x = normalizeExtras({ ...f, type: FIELD_TYPES.includes(f?.type) ? f.type : 'text' })
+      const base = f?.validation && typeof f.validation === 'object' && !Array.isArray(f.validation) ? f.validation : {}
+      // 예전 검증 키(maxLength, scale*)는 정리된 값으로 덮고, 알 수 없는 예전 키는 그대로 둔다
+      const { rule: _r, shuffle: _s, other: _o, ratingMax: _m, ratingIcon: _i, noDuplicate: _n, requireEachRow: _q, ...legacy } = base
+      return { ...x, validation: { ...legacy, ...x.validation } }
+    })(),
     order: Number.isFinite(Number(f?.order)) ? Number(f.order) : i + 1,
   }))
 }
@@ -122,86 +114,18 @@ function windowState(settings) {
 }
 
 /**
- * 응답 값 검증 — 필드 정의 기준. 위반 목록을 배열로 돌려준다(빈 배열이면 통과).
- * checkbox는 배열, 그 외는 문자열로 다룬다.
- */
-export function validateResponse(fields, data) {
-  const errors = []
-  const body = data && typeof data === 'object' && !Array.isArray(data) ? data : {}
-
-  for (const f of asArray(fields)) {
-    if (f.type === 'section') continue
-    const raw = body[f.id]
-    const isCheckbox = f.type === 'checkbox'
-    const value = isCheckbox ? asArray(raw) : raw == null ? '' : String(raw).trim()
-    const empty = isCheckbox ? value.length === 0 : value === ''
-
-    if (f.required && empty) {
-      errors.push({ field: f.id, error: 'required', label: f.label_ko })
-      continue
-    }
-    if (empty) continue
-
-    const max = Number(f.validation?.maxLength)
-    if (Number.isFinite(max) && !isCheckbox && value.length > max) {
-      errors.push({ field: f.id, error: 'maxLength', max, label: f.label_ko })
-    }
-    if (f.type === 'phone' && !PHONE_RE.test(value)) {
-      errors.push({ field: f.id, error: 'phone', label: f.label_ko })
-    }
-    if (f.type === 'email' && !EMAIL_RE.test(value)) {
-      errors.push({ field: f.id, error: 'email', label: f.label_ko })
-    }
-    if (f.type === 'studentid' && !STUDENT_ID_RE.test(value)) {
-      errors.push({ field: f.id, error: 'studentid', label: f.label_ko })
-    }
-    if (f.type === 'date' && !DATE_RE.test(value)) {
-      errors.push({ field: f.id, error: 'date', label: f.label_ko })
-    }
-    if (f.type === 'time' && !TIME_RE.test(value)) {
-      errors.push({ field: f.id, error: 'time', label: f.label_ko })
-    }
-    if (f.type === 'scale') {
-      const { min, max } = scaleRange(f.validation)
-      const n = Number(value)
-      if (!Number.isInteger(n) || n < min || n > max) {
-        errors.push({ field: f.id, error: 'scale', label: f.label_ko })
-      }
-    }
-    // 선택지형은 정의된 보기 안의 값만 받는다 — 임의 값 주입 차단
-    if (['select', 'radio'].includes(f.type) && f.options.length && !f.options.includes(value)) {
-      errors.push({ field: f.id, error: 'option', label: f.label_ko })
-    }
-    if (isCheckbox && f.options.length) {
-      const bad = value.filter((v) => !f.options.includes(String(v)))
-      if (bad.length) errors.push({ field: f.id, error: 'option', label: f.label_ko })
-    }
-  }
-  return errors
-}
-
-/** 정의에 없는 키를 버리고 필드 순서대로 정리 — 임의 컬럼 주입 차단 */
-function pickData(fields, data) {
-  const body = data && typeof data === 'object' && !Array.isArray(data) ? data : {}
-  const out = {}
-  for (const f of asArray(fields)) {
-    if (f.type === 'section') continue
-    if (body[f.id] === undefined) continue
-    out[f.id] = f.type === 'checkbox' ? asArray(body[f.id]).map(String) : body[f.id]
-  }
-  return out
-}
-
-/**
  * 공개 폼 응답. 파일 질문은 "어디에 저장되는지"까지만 알려준다 —
  * 폴더 ID·연결 프로필 ID·공유 설정은 내리지 않는다(클라이언트가 경로를 조작할 여지를 없앤다).
  */
-function publicForm(row) {
+export function publicForm(row) {
   const settings = row.settings || {}
   const fields = asArray(row.fields).map((field) => {
-    if (field?.type !== 'file') return field
-    const storage = normalizeFileStorage(field.storage, settings)
-    return { ...field, storage: publicFileStorage(storage) }
+    // 정답·해설은 제출 전에 절대 내려보내지 않는다. 배점만 보여 준다.
+    const { quiz, ...rest } = field || {}
+    const open = quiz?.points > 0 ? { ...rest, quiz: { points: quiz.points } } : rest
+    if (open?.type !== 'file') return open
+    const storage = normalizeFileStorage(open.storage, settings)
+    return { ...open, storage: publicFileStorage(storage) }
   })
   const driveFields = fields.filter((f) => f?.type === 'file' && f?.storage?.target === 'drive')
   return {
@@ -215,6 +139,7 @@ function publicForm(row) {
     fields,
     settings: {
       ...settings,
+      quiz: quizOn(settings) ? { enabled: true } : undefined,
       // 레거시 플래그 유지: 예전 클라이언트가 이 값으로 Drive 아이콘을 그린다
       drive_enabled: driveFields.length > 0,
       drive_auto_folder: driveFields.some((f) => f.storage.requires_course),
@@ -224,6 +149,19 @@ function publicForm(row) {
     },
     published: row.published,
   }
+}
+
+/** 응답자에게 돌려줄 응답 행: 점수(_quiz)는 공개 설정일 때만 */
+export function responderRow(row, form) {
+  if (!row) return row
+  const { _quiz, ...data } = row.data || {}
+  return { ...row, data: scoreVisible(form.settings) && _quiz ? { ...data, _quiz } : data }
+}
+
+/** 채점해 저장용 data 에 점수를 얹는다(클라이언트가 보낸 _quiz 는 pickData 가 이미 버린다) */
+export function withScore(form, data) {
+  const graded = gradeResponse(form.fields, data, form.settings)
+  return { graded, data: graded ? { ...data, _quiz: graded } : data }
 }
 
 /**
@@ -322,6 +260,7 @@ router.post(
 
     const errors = validateResponse(form.fields, req.body?.data)
     if (errors.length) return res.status(400).json({ error: 'validation failed', errors })
+    const scored = withScore(form, pickData(form.fields, req.body?.data))
 
     const { rows } = await query(
       `INSERT INTO custom_form_responses (form_id, data, public_user_id, google_email)
@@ -329,7 +268,7 @@ router.post(
        RETURNING id, form_id, data, google_email, submitted_at, updated_at`,
       [
         form.id,
-        JSON.stringify(pickData(form.fields, req.body?.data)),
+        JSON.stringify(scored.data),
         req.publicUser?.id ?? null,
         req.publicUser?.email ?? null,
       ]
@@ -351,7 +290,11 @@ router.post(
     sendFormConfirmation({ form, response: rows[0] }).catch((err) =>
       console.error('[forms] 제출 확인 메일 실패:', err.message)
     )
-    res.status(201).json({ response: rows[0] })
+    res.status(201).json({
+      response: responderRow(rows[0], form),
+      quiz: resultForResponder(form.fields, scored.graded, form.settings),
+      confirmation_ko: form.settings?.confirmation_ko || '',
+    })
   })
 )
 
@@ -368,7 +311,7 @@ router.get(
        ORDER BY submitted_at DESC`,
       [form.id, req.publicUser.id, req.publicUser.email]
     )
-    res.json({ responses: rows, window: windowState(form.settings) })
+    res.json({ responses: rows.map((r) => responderRow(r, form)), window: windowState(form.settings) })
   })
 )
 
@@ -401,12 +344,13 @@ router.put(
     const errors = validateResponse(form.fields, req.body?.data)
     if (errors.length) return res.status(400).json({ error: 'validation failed', errors })
 
+    const scored = withScore(form, pickData(form.fields, req.body?.data))
     const { rows } = await query(
       `UPDATE custom_form_responses
        SET data = $1, public_user_id = COALESCE(public_user_id, $2), updated_at = now()
        WHERE id = $3
        RETURNING id, form_id, data, google_email, submitted_at, updated_at`,
-      [JSON.stringify(pickData(form.fields, req.body?.data)), req.publicUser.id, id]
+      [JSON.stringify(scored.data), req.publicUser.id, id]
     )
     try {
       await attachUploads({
@@ -419,7 +363,7 @@ router.put(
     } catch (err) {
       console.error('[forms] 업로드 상태 전환 실패(수정은 정상):', err.message)
     }
-    res.json({ response: rows[0] })
+    res.json({ response: responderRow(rows[0], form), quiz: resultForResponder(form.fields, scored.graded, form.settings) })
   })
 )
 
@@ -430,54 +374,76 @@ const FORM_COLUMNS = [
   'category', 'fields', 'settings', 'published',
 ]
 
+/** 설정 JSON: 예전 키는 그대로 두고 새 키(퀴즈, 완료 문구)만 정리한다 */
+function normalizeSettings(raw) {
+  const s = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {}
+  if (s.quiz !== undefined) s.quiz = cleanSettingsQuiz(s.quiz)
+  if (s.confirmation_ko !== undefined) s.confirmation_ko = String(s.confirmation_ko ?? '').slice(0, 1000)
+  return s
+}
+
+/** 새 기능(분기, 퀴즈, 격자, 규칙) 정의 검사. 문제가 있으면 한국어 목록을 돌려준다 */
+function definitionIssues(body, existing) {
+  if (body.fields === undefined && body.settings === undefined) return []
+  const fields = body.fields !== undefined ? normalizeFields(body.fields) : asArray(existing?.fields)
+  const settings = body.settings !== undefined ? normalizeSettings(body.settings) : existing?.settings || {}
+  return validateDefinition(fields, settings)
+}
+
 function pickFormBody(body) {
   const data = {}
   for (const col of FORM_COLUMNS) {
     if (body[col] === undefined) continue
     if (col === 'fields') data.fields = JSON.stringify(normalizeFields(body.fields))
-    else if (col === 'settings') data.settings = JSON.stringify(body.settings ?? {})
+    else if (col === 'settings') data.settings = JSON.stringify(normalizeSettings(body.settings))
     else if (col === 'category') data.category = CATEGORIES.includes(body.category) ? body.category : 'other'
     else data[col] = body[col]
   }
   return data
 }
 
+// 목록: 내 목록(내가 만든 폼, 이메일로 공유받은 폼, 링크로 열어 본 폼) 또는 ?team=<id> 팀 목록(그 팀 폼 중 열 수 있는 것, 팀원만).
+// ?trash=1 은 휴지통(지울 수 있는 폼만). 열 수 없는 폼은 이름도 보이지 않는다.
 router.get(
   '/admin/forms',
   optionalAuth,
   wrap(async (req, res) => {
     const idn = await identityOf(req, res)
-    if (!idn.emails.length) return res.json({ items: [], total: 0, staff: false, committee: false })
-    const onlyHidden = req.query.hidden === '1' && idn.committee
+    if (!idn.emails.length) return res.json({ items: [], total: 0 })
     const trash = req.query.trash === '1'
+    let team = null
+    if (req.query.team !== undefined) {
+      team = parseInt(req.query.team, 10)
+      if (!Number.isInteger(team) || team <= 0) return res.status(400).json({ error: 'invalid team' })
+      if (!teamRoleOf(idn, team)) return res.status(403).json({ error: '팀원만 볼 수 있습니다' })
+    }
     await purgeExpired().catch(() => {})
     const { rows } = await query(
       `SELECT f.*, (SELECT COUNT(*)::int FROM custom_form_responses r WHERE r.form_id = f.id) AS response_count
        FROM custom_forms f ORDER BY f.created_at DESC, f.id DESC`
     )
-    // 내 목록: 내가 만든 폼, 이메일로 공유받은 폼, 링크로 열어 본 폼(문서·시트와 같은 규칙). 위원회·전공 공개 설정만으로는 목록에 나오지 않는다.
     const recent = new Set((await query('SELECT ws_id FROM ws_recent WHERE email = ANY($1::text[])', [idn.emails])).rows.map((r) => r.ws_id))
     const items = []
     for (const f of rows) {
       const ws = await formFile(f.id)
       if (Boolean(ws.deleted_at) !== trash) continue
-      if (onlyHidden && !ws.hidden) continue
+      if (team && ws.team_id !== team) continue
       const probe = { ...ws, deleted_at: null }
+      if (trash && !canManageTrash(idn, req.user, probe)) continue
       const level = await levelFor(req, res, probe)
       if (!level) continue
-      const mine = isOwnerOf(idn, ws)
-      const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
-      const opened = !trash && !ws.hidden && recent.has(ws.id)
-      if (!mine && !shared && !opened) continue
-      if (trash && !canManageTrash(idn, req.user, probe, Boolean(shared))) continue
+      if (!team) {
+        const mine = isOwnerOf(idn, ws)
+        const shared = (await query('SELECT 1 FROM ws_shares WHERE ws_id = $1 AND lower(email) = ANY($2::text[]) LIMIT 1', [ws.id, idn.emails])).rows[0]
+        const opened = !trash && recent.has(ws.id)
+        if (!mine && !shared && !opened) continue
+      }
       items.push({
-        ...f, ws_id: ws.id, my_role: level, hidden: Boolean(ws.hidden), can_delete: canDeleteFile(idn, req.user, probe),
-        can_hide: idn.committee && level === 'editor' && !ws.owner_only,
+        ...f, ws_id: ws.id, my_role: level, mine: isOwnerOf(idn, ws), team_id: ws.team_id, can_delete: canDeleteFile(idn, req.user, probe),
         ...(trash ? { trashed: true, days_left: daysLeft(ws.deleted_at) } : {}),
       })
     }
-    // 열 수 없는 폼은 이름도 보이지 않는다(잠긴 카드 없음).
-    res.json({ items, total: items.length, staff: Boolean(idn.staff), committee: idn.committee })
+    res.json({ items, total: items.length, team })
   })
 )
 
@@ -527,10 +493,18 @@ router.post(
     if (!data.slug || !data.title_ko) {
       return res.status(400).json({ error: 'slug and title_ko required' })
     }
+    const defIssues = definitionIssues(req.body || {}, null)
+    if (defIssues.length) return res.status(400).json({ error: defIssues[0].message, issues: defIssues })
+    // team_id(선택): 내가 속한 팀에만 만들 수 있다
+    let team = null
+    if (req.body?.team_id !== undefined && req.body?.team_id !== null && req.body?.team_id !== '') {
+      team = parseInt(req.body.team_id, 10)
+      if (!Number.isInteger(team) || !teamRoleOf(req.wsIdentity, team)) return res.status(403).json({ error: '내가 속한 팀에만 만들 수 있습니다' })
+    }
     const blocked = await publishPreflight(req.body || {}, null)
     if (blocked) {
       return res.status(422).json({
-        error: 'Google Drive 설정이 끝나지 않아 공개할 수 없습니다.',
+        error: '파일 저장소 설정을 마쳐야 공개할 수 있습니다.',
         issues: blocked.issues,
       })
     }
@@ -541,13 +515,14 @@ router.post(
        RETURNING *`,
       [...cols.map((c) => data[c]), req.user?.id ?? null]
     )
-    // 만든 사람이 소유자. 새 폼은 "제한됨"으로 시작한다(구글 폼과 같음).
+    // 만든 사람이 소유자. 새 폼은 "제한됨"으로 시작한다(구글 폼과 같음). 팀 공간에서 만들면 팀원 모두 편집자로 시작한다.
     const owner = String(req.user?.email || req.publicUser?.email || '').toLowerCase() || null
     const ws = await formFile(rows[0].id, {
-      general_access: 'restricted',
-      general_role: 'viewer',
+      general_access: team ? 'team' : 'restricted',
+      general_role: team ? 'editor' : 'viewer',
       owner_email: owner,
       created_by: req.user?.name || req.publicUser?.name || owner,
+      team_id: team,
     })
     res.status(201).json({ item: { ...rows[0], ws_id: ws.id } })
   })
@@ -561,14 +536,13 @@ router.put(
     const cols = Object.keys(data)
     if (!cols.length) return res.status(400).json({ error: 'empty body' })
     const { rows: current } = await query('SELECT * FROM custom_forms WHERE id = $1', [req.params.id])
-    const idnPut = await identityOf(req, res)
-    if (!idnPut.staff && req.body?.published === true && normalizeFields(req.body?.fields ?? current[0]?.fields ?? []).some((f) => f?.type === 'file')) {
-      return res.status(403).json({ error: '파일 질문이 있는 설문지는 운영위원회 및 교수진만 공개할 수 있습니다.', hint: '파일 질문을 빼거나 운영위원회에 공개를 요청하세요.' })
-    }
+    const defIssues = definitionIssues(req.body || {}, current[0] || null)
+    if (defIssues.length) return res.status(400).json({ error: defIssues[0].message, issues: defIssues })
+    // 편집 권한이 있으면 누구나 공개할 수 있다(파일 질문이 있어도 같다). 저장소 설정이 덜 되어 파일을 잃을 수 있을 때만 아래 사전검사가 막는다.
     const blocked = await publishPreflight(req.body || {}, current[0] || null)
     if (blocked) {
       return res.status(422).json({
-        error: 'Google Drive 설정이 끝나지 않아 공개할 수 없습니다.',
+        error: '파일 저장소 설정을 마쳐야 공개할 수 있습니다.',
         issues: blocked.issues,
       })
     }
@@ -583,14 +557,14 @@ router.put(
   })
 )
 
-// 삭제: 휴지통으로 옮긴다(30일 보관, 복원 가능). 소유자 본인과 운영위원회 및 교수진이 할 수 있다.
+// 삭제: 휴지통으로 옮긴다(30일 보관, 복원 가능). 폼 소유자, 팀 폼이면 그 팀의 오너도 할 수 있다.
 // 휴지통에 있는 동안은 응답 받기가 꺼지고, 복원하면 원래 상태로 돌아온다. 복원·영구 삭제는 /workspace/files/:wsId/restore, /permanent.
 router.delete(
   '/admin/forms/:id',
   ...formGuard('viewer'),
   wrap(async (req, res) => {
     const idn = await identityOf(req, res)
-    if (!canDeleteFile(idn, req.user, req.formWs)) return res.status(403).json({ error: '설문지를 만든 사람이나 운영위원회 및 교수진만 삭제할 수 있습니다' })
+    if (!canDeleteFile(idn, req.user, req.formWs)) return res.status(403).json({ error: '설문지를 만든 사람이나 팀 오너만 삭제할 수 있습니다' })
     await trashFile(req.formWs, req.user?.name || req.publicUser?.name || req.publicUser?.email)
     res.json({ ok: true, trashed: true, days: 30 })
   })
@@ -644,8 +618,9 @@ router.get(
        WHERE form_id = $1 ORDER BY submitted_at DESC, id DESC`,
       [form.id]
     )
-    const fields = asArray(form.fields).filter((field) => field?.type !== 'section')
-    const header = ['번호', '제출 계정', '제출 시각', ...fields.map((f) => f.label_ko)]
+    const cols = expandColumns(form.fields)
+    const quiz = quizOn(form.settings)
+    const header = ['번호', '제출 계정', '제출 시각', ...cols.map((c) => c.label), ...(quiz ? ['점수', '만점'] : [])]
     const lines = [header.map(csvCell).join(',')]
     rows.forEach((r, i) => {
       lines.push(
@@ -653,7 +628,8 @@ router.get(
           i + 1,
           r.google_email ?? '',
           r.submitted_at ? new Date(r.submitted_at).toISOString() : '',
-          ...fields.map((f) => r.data?.[f.id]),
+          ...cols.map((c) => cellValue(c, r.data)),
+          ...(quiz ? [r.data?._quiz?.score ?? '', r.data?._quiz?.max ?? ''] : []),
         ]
           .map(csvCell)
           .join(',')

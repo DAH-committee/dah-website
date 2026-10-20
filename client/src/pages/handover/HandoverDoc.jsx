@@ -1,7 +1,7 @@
 // /handover/:id: 운영위원회 인수인계 문서 편집기 (id = 탭 id).
 // 화면 구조: 제목 줄(문서 제목 하나) / 메뉴 / 알약형 툴바 / 눈금자 / 왼쪽 문서 탭·개요 / 종이 / 오른쪽 여백 댓글.
 // 열람: 관리자 로그인(manager 이상) 또는 열람 비밀번호. 편집·댓글·탭 관리: 관리자 로그인.
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import AccountMenu, { AVATAR_PURPLE, useMe } from '../../components/common/AccountMenu'
@@ -13,11 +13,6 @@ import { generateJSON } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import LinkExt from '@tiptap/extension-link'
-import Image from '@tiptap/extension-image'
-import Table from '@tiptap/extension-table'
-import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
 import TaskList from '@tiptap/extension-task-list'
@@ -31,12 +26,54 @@ import {
   IndentDecrease, IndentIncrease, RemoveFormatting, Search, Star, Cloud, MessageSquareText, Lock,
   ChevronDown, ChevronRight, MoreVertical, Check, X, Pencil, Eye, ArrowLeft, FileText, Plus, ExternalLink, Unlink,
   KeyRound, Minus, Table as TableIcon, PanelLeft, Baseline, Copy, Trash2, Download, History,
+  Variable, Upload, FileSearch, SpellCheck, PanelRight, SquareCheck, FileDown, Sparkles,
 } from 'lucide-react'
 import { api } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import { CommentMark, SecretNode, HandoverStorage, FontSize, Flash, flashKey } from './extensions'
 import { download, safeName, toDocx, toHtml, toMarkdown, toPdf, toPlainText } from './exporters'
 import './handoverDoc.css'
+import './docTools.css'
+import { DOC_EXTENSIONS } from './docExtensions'
+import { ImageToolbar, TableToolbar } from './DocTools'
+import PageSetupDialog from './PageSetupDialog'
+import { insertTableFixed } from './tableOps'
+import { FORMATS, exportDocument, getDefaultFormat, importDocument, previewDocument, setDefaultFormat, summarizeIssues } from './docExport'
+import { normPage } from '../../lib/docIR/tiptapToIR'
+import { HwpVar, HwpMarks, HwpTextStyle, LineHeight, repaintVars, setHwpView } from '../hwp/hwpExtensions'
+import { HWP_FONTS, fontCss, hwpCss, hwpFontOf, metricsOf, normHwp, pageOf, walkMarks } from '../hwp/hwpDoc'
+import { fillTokens, resolveVars } from '../hwp/hwpVars'
+import { buildRequest, generateHwpx, lintHwp, parseHwpFile, previewHwpx, toHwpxPayload } from '../hwp/hwpExport'
+import { guessPreset, markdownToHtml } from '../hwp/hwpImport'
+import HwpPane from '../hwp/HwpPane'
+import HwpPreview from '../hwp/HwpPreview'
+import '../hwp/hwp.css'
+import { createDocTools } from './aiDocTools'
+import { buildQuickActions, buildSystemPrompt } from './aiDocPrompts'
+import { getKnowledge } from '../../components/ai/knowledge'
+
+// AI 창(공용 패널)은 다른 담당이 만든다. 파일이 아직 없어도 이 화면이 빌드되도록 glob 으로 느슨하게 불러온다.
+import { useMcpRelay } from '../../components/ai/mcpRelay'
+const AI_PANEL_LOADERS = import.meta.glob('../../components/ai/AiPanel.jsx')
+const AiPanelLazy = AI_PANEL_LOADERS['../../components/ai/AiPanel.jsx']
+  ? lazy(() => AI_PANEL_LOADERS['../../components/ai/AiPanel.jsx']().then((m) => ({ default: m.default || m.AiPanel })))
+  : null
+
+// AI 창이 오류를 내도 문서 화면 전체가 멈추지 않게 한다
+class AiBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { failed: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true }
+  }
+
+  render() {
+    return this.state.failed ? <div className="gd-ai__note">AI 창을 열지 못했습니다. 화면을 새로 고쳐 주세요</div> : this.props.children
+  }
+}
 
 const GOOGLE_FONTS_HREF =
   'https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;600&family=Roboto:wght@400;500;700&family=Montserrat:wght@400;700&family=Lora:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&display=swap'
@@ -466,6 +503,95 @@ function blockTexts(json) {
   return out
 }
 
+// 한글 모드: 기안문 두문(행정기관명, 수신, 경유, 제목)과 결문(발신명의, 결재선, 시행, 연락처). 작업 창 문서 정보에서 고친다
+const spaced = (s) => [...String(s || '')].join(' ')
+function GianHead({ hwp, onOpen }) {
+  const v = hwp.vars
+  const h = hwp.head || {}
+  return (
+    <div className="hw-frame hw-gian-head" onClick={onOpen} title="두문 고치기">
+      <div className="org">{fillTokens(h.org, v) || '○○○'}</div>
+      <div className="row"><b>{spaced('수신')}</b><span>{fillTokens(h.to, v)}</span></div>
+      <div className="row"><b>(경유)</b><span>{fillTokens(h.via, v)}</span></div>
+      <div className="row title"><b>{spaced('제목')}</b><span>{fillTokens(h.title, v)}</span></div>
+    </div>
+  )
+}
+function GianFoot({ hwp, onOpen }) {
+  const v = hwp.vars
+  const f = Object.fromEntries(Object.entries(hwp.foot || {}).map(([k, x]) => [k, fillTokens(x, v)]))
+  return (
+    <div className="hw-frame hw-gian-foot" onClick={onOpen} title="결문 고치기">
+      <div className="end">끝.</div>
+      <div className="sender">{f.sender || '○○○'}</div>
+      <div className="bar" />
+      <div className="line sign">{[f.drafter, f.reviewer, f.approver].filter(Boolean).map((s, i) => <span key={i}>{s}</span>)}</div>
+      <div className="line"><span>협조자 {f.cooperator || ''}</span></div>
+      <div className="line"><span>시행 {f.docNum || ''}</span><span>접수 {f.receive || ''}</span></div>
+      <div className="line"><span>우 {f.zip || ''} {f.address || ''}</span><span>/ {f.site || ''}</span></div>
+      <div className="line"><span>전화 {f.phone || ''}</span><span>/전송 {f.fax || ''}</span><span>/ {f.email || ''}</span><span>/ {f.disclosure || ''}</span></div>
+    </div>
+  )
+}
+
+// 머리말·꼬리말 장식: 첫 쪽 위와 마지막 쪽 아래에 보여 준다(내보낸 파일에서는 쪽마다 들어간다)
+function PageDeco({ cfg, pg }) {
+  const side = (spec, cls, style) => {
+    if (!spec.text && !spec.image) return null
+    const al = (a) => (a === 'center' || a === 'right' ? a : 'left')
+    return (
+      <div className={`gd-pagedeco ${cls}`} style={style}>
+        {spec.image && <div className={`row ${al(spec.image.align)}`}><img src={spec.image.src} alt="머리말 그림" style={{ width: `${Math.round(((spec.image.wPt || 90) * 96) / 72)}px`, maxHeight: 'none' }} /></div>}
+        {spec.text && <div className={`row ${al(spec.align)}`}>{spec.text}</div>}
+      </div>
+    )
+  }
+  return (
+    <>
+      {side(cfg.header, 'gd-pagedeco--head', { top: `${cfg.headerMm}mm`, left: `${pg.left}mm`, right: `${pg.right}mm` })}
+      {(cfg.footer.text || cfg.footer.image || cfg.pageNumbers.on) && (
+        <div className="gd-pagedeco gd-pagedeco--foot" style={{ bottom: `${cfg.footerMm}mm`, left: `${pg.left}mm`, right: `${pg.right}mm` }}>
+          {cfg.footer.image && <div className={`row ${cfg.footer.image.align || 'left'}`}><img src={cfg.footer.image.src} alt="꼬리말 그림" style={{ width: `${Math.round(((cfg.footer.image.wPt || 90) * 96) / 72)}px`, maxHeight: 'none' }} /></div>}
+          {cfg.footer.text && <div className={`row ${cfg.footer.align || 'center'}`}>{cfg.footer.text}</div>}
+          {cfg.pageNumbers.on && <div className={`row ${cfg.pageNumbers.pos}`}>1</div>}
+        </div>
+      )}
+    </>
+  )
+}
+
+// 한글 모드 쪽 경계(근사): 양식의 위아래 여백을 뺀 본문 높이마다 점선을 긋는다. 정확한 쪽은 한글 미리보기에서 본다
+const MM = 96 / 25.4
+function PageGuides({ pageRef, pg, deps }) {
+  const [n, setN] = useState(1)
+  useLayoutEffect(() => {
+    const el = pageRef.current
+    if (!el) return undefined
+    const usable = (pg.height - pg.top - pg.bottom) * MM
+    const measure = () => {
+      const pm = el.querySelector('.ProseMirror')
+      const frames = [...el.querySelectorAll('.hw-frame')].reduce((a, f) => a + f.offsetHeight, 0)
+      const h = (pm?.offsetHeight || 0) + frames
+      setN(Math.max(1, Math.ceil(h / usable)))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    const pm = el.querySelector('.ProseMirror')
+    if (pm) ro.observe(pm)
+    return () => ro.disconnect()
+  }, [pageRef, pg.height, pg.top, pg.bottom, deps])
+  const usable = pg.height - pg.top - pg.bottom
+  return (
+    <>
+      <style>{`.gd .gd-page{min-height:${n * pg.height}mm !important;}`}</style>
+      {Array.from({ length: n - 1 }, (_, i) => (
+        <div key={i} className="hw-guide" style={{ top: `${pg.top + (i + 1) * usable}mm` }} aria-hidden="true"><span>{i + 1}쪽 끝(대략)</span></div>
+      ))}
+    </>
+  )
+}
+
 export default function HandoverDoc() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -509,16 +635,41 @@ export default function HandoverDoc() {
   const [olderTexts, setOlderTexts] = useState(null)
   const [showChanges, setShowChanges] = useState(true)
   const [onlyNamed, setOnlyNamed] = useState(false)
+  // 한글 모드 설정(탭마다 content.hwp 에 함께 저장): 보기, 양식, 두문·결문, 자료값
+  const [hwp, setHwp] = useState(() => normHwp(null))
+  const hwpRef = useRef(hwp)
+  // 쪽 설정(탭마다 content.page 에 함께 저장): 용지, 여백, 머리말·꼬리말, 쪽 번호
+  const [page, setPage] = useState(null)
+  const pageSetRef = useRef(null)
+  const [pageDlg, setPageDlg] = useState(false)
+  const [paneOpen, setPaneOpen] = useState(true)
+  const [paneDocs, setPaneDocs] = useState(false) // Docs 모드에서 자료값을 넣으려고 연 작업 창
+  const [paneTab, setPaneTab] = useState('char')
+  const [focusVar, setFocusVar] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [lint, setLint] = useState(null)
+  const importRef = useRef(null)
+  const hwpOn = hwp.mode === 'hwp'
+  const pageEff = normPage(page, hwpOn ? pageOf(hwp.preset) : null)
+  const pgBox = (() => {
+    const sz = typeof pageEff.size === 'object' ? pageEff.size : { A4: [210, 297], B5: [176, 250], Letter: [215.9, 279.4], A3: [297, 420] }[pageEff.size] || [210, 297]
+    const [a, b] = Array.isArray(sz) ? sz : [sz.wMm, sz.hMm]
+    const land = pageEff.orientation === 'landscape'
+    return { width: land ? Math.max(a, b) : Math.min(a, b), height: land ? Math.min(a, b) : Math.max(a, b), top: pageEff.marginMm.top, bottom: pageEff.marginMm.bottom, left: pageEff.marginMm.left, right: pageEff.marginMm.right }
+  })()
+  const [fmt, setFmt] = useState('hwpx')
   const liveRef = useRef(null)
   const canvasRef = useRef(null)
   const pageRef = useRef(null)
   const cardRefs = useRef({})
   const saveTimer = useRef(null)
+  const flashTimer = useRef(null)
   const canEdit = access.canEdit === true
 
-  const flash = (t) => {
+  const flash = (t, ms = 2400) => {
     setToast(t)
-    setTimeout(() => setToast(''), 2400)
+    clearTimeout(flashTimer.current)
+    flashTimer.current = setTimeout(() => setToast(''), ms)
   }
 
   // 구글 폰트(나눔고딕, 노토 산스 등)는 이 화면에서만 불러온다
@@ -545,8 +696,15 @@ export default function HandoverDoc() {
           api.get('/handover/meta', { ws }),
         ])
         if (off) return
+        const h = normHwp(d.item.content?.hwp)
+        hwpRef.current = h
+        setHwp(h)
+        pageSetRef.current = d.item.content?.page || null
+        setPage(d.item.content?.page || null)
+        setLint(null)
         setDoc(d.item)
         docWsRef.current = ws
+        setFmt(getDefaultFormat(ws))
         setTabs(list.items)
         setComments(cm.items)
         setDocTitle(meta.title)
@@ -554,7 +712,7 @@ export default function HandoverDoc() {
         setLastEdit(meta.last_edit || null)
         setAccess({ loading: false, access: d.access, canEdit: d.canEdit })
         setMode(d.canEdit ? 'edit' : 'view')
-        document.title = `${meta.title} | 디지털인문예술전공`
+        document.title = `${meta.title} | 디인예 워크스페이스`
       } catch (e) {
         if (off) return
         if (e?.status === 401 || e?.status === 403) setAccess({ loading: false, denied: true })
@@ -573,7 +731,7 @@ export default function HandoverDoc() {
       if (!canEdit) return
       setSaveState('saving')
       try {
-        await api.put(`/handover/docs/${id}`, { content: ed.getJSON() })
+        await api.put(`/handover/docs/${id}`, { content: { ...ed.getJSON(), hwp: hwpRef.current, page: pageSetRef.current } })
         setSaveState('saved')
         // 마지막으로 수정한 위치(커서가 있는 문단)를 기록한다. 이후 "마지막으로 수정"을 누르면 그 문단으로 이동한다.
         const { $from } = ed.state.selection
@@ -604,11 +762,7 @@ export default function HandoverDoc() {
         StarterKit.configure({ heading: { levels: [1, 2, 3, 4] } }),
         Underline,
         LinkExt.configure({ openOnClick: false, autolink: true, HTMLAttributes: { target: '_blank', rel: 'noreferrer' } }),
-        Image,
-        Table.configure({ resizable: false }),
-        TableRow,
-        TableHeader,
-        TableCell,
+        ...DOC_EXTENSIONS,
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
         Highlight.configure({ multicolor: true }),
         TaskList,
@@ -621,6 +775,10 @@ export default function HandoverDoc() {
         CommentMark,
         SecretNode,
         HandoverStorage,
+        HwpVar,
+        HwpMarks,
+        HwpTextStyle,
+        LineHeight,
       ],
       content: doc ? doc.content || doc.content_html || '<p></p>' : '',
       editable: false,
@@ -654,7 +812,7 @@ export default function HandoverDoc() {
       onSelectionUpdate: ({ editor: ed }) => {
         force((v) => v + 1)
         const fs = ed.getAttributes('textStyle').fontSize
-        setSizeDraft(fs ? String(parseFloat(fs)) : '11')
+        setSizeDraft(fs ? String(parseFloat(fs)) : ed.storage.hwpMarks?.on ? String(metricsOf(ed.storage.hwpMarks.preset).body.pt) : '11')
         if (!ed.isActive('link')) {
           setLinkBubble(null)
           return
@@ -668,6 +826,170 @@ export default function HandoverDoc() {
     },
     [doc?.id]
   )
+
+  // 한글 모드 보기와 자료값을 편집기에 알린다(자료값 칸을 누르면 작업 창 자료값으로)
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return
+    editor.storage.hwpVar.vars = hwp.vars
+    editor.storage.hwpVar.onPick = (attrs) => {
+      setFocusVar(attrs.key || null)
+      setPaneTab('vars')
+      setPaneOpen(true)
+      setPaneDocs(true)
+    }
+    repaintVars(editor)
+    setHwpView(editor, hwp.mode === 'hwp', hwp.preset)
+  }, [editor, hwp])
+
+  const updateHwp = useCallback(
+    (patch) => {
+      const next = { ...hwpRef.current, ...patch }
+      hwpRef.current = next
+      setHwp(next)
+      if (!canEdit || !editor) return
+      setSaveState('dirty')
+      clearTimeout(saveTimer.current)
+      saveTimer.current = setTimeout(() => save(editor), 1200)
+    },
+    [canEdit, editor, save]
+  )
+  function switchMode(m) {
+    if (m === hwpRef.current.mode) return
+    updateHwp({ mode: m })
+    if (m === 'hwp') {
+      if (!aiOpenRef.current) setPaneOpen(true) // AI 창이 열려 있으면 종이가 좁아지지 않게 작업 창은 접어 둔다
+      if (!comments.length) setShowComments(false)
+    }
+  }
+
+  // ── AI 창: 열림 상태는 사용자별로 기억한다
+  const aiUserKey = `dah.ai.doc.open:${user?.id ?? user?.email ?? user?.name ?? 'guest'}`
+  const [aiOpen, setAiOpen] = useState(false)
+  const aiOpenRef = useRef(false)
+  useEffect(() => {
+    let v = false
+    try { v = localStorage.getItem(aiUserKey) === '1' } catch { /* 저장소 사용 불가 */ }
+    aiOpenRef.current = v
+    setAiOpen(v)
+  }, [aiUserKey])
+  const toggleAi = useCallback((next) => {
+    const v = typeof next === 'boolean' ? next : !aiOpenRef.current
+    aiOpenRef.current = v
+    setAiOpen(v)
+    // 한글 모드에서는 작업 창과 AI 창이 함께 있으면 종이가 너무 좁아지므로 AI 창을 열 때 작업 창을 접는다
+    if (v && hwpRef.current.mode === 'hwp') setPaneOpen(false)
+    try { localStorage.setItem(aiUserKey, v ? '1' : '0') } catch { /* 저장소 사용 불가 */ }
+  }, [aiUserKey])
+  useEffect(() => {
+    const k = (e) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && String(e.key).toLowerCase() === 'j') {
+        e.preventDefault()
+        toggleAi()
+      }
+    }
+    window.addEventListener('keydown', k)
+    return () => window.removeEventListener('keydown', k)
+  }, [toggleAi])
+  const aiLive = useRef({})
+  aiLive.current = { editor, canEdit, mode, historyOpen, doc, docTitle, comments, tabTitle: tabs.find((x) => String(x.id) === String(id))?.title, save, updateHwp, pageEff, page }
+  const aiTools = useMemo(
+    () => createDocTools({
+      getEditor: () => aiLive.current.editor,
+      editBlock: () => {
+        const c = aiLive.current
+        if (!c.canEdit) return '이 문서를 고칠 권한이 없습니다(보기 전용)'
+        if (c.historyOpen) return '버전 기록을 보는 중에는 고칠 수 없습니다. 기록 창을 닫아 주세요'
+        if (c.mode !== 'edit') return '지금은 보기 모드입니다. 수정 모드로 바꿔 주세요'
+        return ''
+      },
+      getHwp: () => ({ mode: hwpRef.current.mode, preset: hwpRef.current.preset }),
+      getTabTitle: () => aiLive.current.tabTitle || '',
+      getTitle: () => aiLive.current.docTitle || '',
+      setTitle: async (t) => {
+        await api.put('/handover/meta', { ws: aiLive.current.doc.ws_id, title: t })
+        setDocTitle(t)
+        setTitleDraft(t)
+        document.title = `${t} | 디인예 워크스페이스`
+      },
+      hwpMarks: (d) => {
+        const m = new Map()
+        walkMarks(d, hwpRef.current.preset, (kind, node, pos, info) => { if (info?.mark) m.set(pos, info.mark) })
+        return m
+      },
+      runLint: async () => {
+        const ed2 = aiLive.current.editor
+        const { markdown } = toHwpxPayload(ed2.getJSON(), hwpRef.current)
+        const r = await lintHwp(markdown, hwpRef.current.preset)
+        const items = [...(r.gongmun || []), ...(r.munche || [])]
+        setLint({ items })
+        return items
+      },
+      commentCount: () => aiLive.current.comments.length,
+      notify: (m) => flash(m),
+      getComments: () => aiLive.current.comments,
+      addComment: async ({ from, to, quote, body }) => {
+        const L = aiLive.current
+        try {
+          const anchorId = newAnchorId()
+          const r = await api.post(`/handover/docs/${id}/comments`, { anchor_id: anchorId, side: 'right', quote, body, images: [] })
+          L.editor.chain().setTextSelection({ from, to }).setMark('comment', { id: anchorId }).run()
+          L.save(L.editor)
+          setComments((v) => [...v, r.item])
+          setShowComments(true)
+          return { ok: true, id: r.item.id }
+        } catch (e) {
+          return { ok: false, error: e?.message || '댓글을 저장하지 못했습니다' }
+        }
+      },
+      replyComment: async ({ anchor_id, quote, body }) => {
+        try {
+          const r = await api.post(`/handover/docs/${id}/comments`, { anchor_id, side: 'right', quote, body, images: [] })
+          setComments((v) => [...v, r.item])
+          return { ok: true, id: r.item.id }
+        } catch (e) {
+          return { ok: false, error: e?.message || '답글을 저장하지 못했습니다' }
+        }
+      },
+      updateComment: async (c, patch) => {
+        const r = await api.put(`/handover/comments/${c.id}`, patch)
+        setComments((v) => v.map((x) => (x.id === c.id ? r.item : x)))
+      },
+      deleteComment: async (cid, opts = {}) => {
+        const L = aiLive.current
+        const c = L.comments.find((x) => x.id === cid)
+        await api.del(`/handover/comments/${cid}`)
+        setComments((v) => v.filter((x) => x.id !== cid))
+        if (c && !opts.keepMark && !L.comments.some((x) => x.id !== cid && x.anchor_id === c.anchor_id) && L.editor) {
+          const tr = L.editor.state.tr
+          L.editor.state.doc.descendants((n, pos) => {
+            if (n.marks?.some((m) => m.type.name === 'comment' && m.attrs.id === c.anchor_id)) tr.removeMark(pos, pos + n.nodeSize, L.editor.schema.marks.comment)
+          })
+          if (tr.docChanged) { L.editor.view.dispatch(tr); L.save(L.editor) }
+        }
+      },
+      getPage: () => aiLive.current.pageEff,
+      getRawPage: () => pageSetRef.current,
+      setPage: (p) => {
+        const L = aiLive.current
+        pageSetRef.current = p
+        setPage(p)
+        if (L.canEdit && L.editor) {
+          setSaveState('dirty')
+          clearTimeout(saveTimer.current)
+          saveTimer.current = setTimeout(() => L.save(L.editor), 600)
+        }
+      },
+      updateHwp: (patch) => aiLive.current.updateHwp(patch),
+      getHwpFull: () => hwpRef.current,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+  const aiToolList = useMemo(() => aiTools.tools.filter((x) => x.name !== 'run_gongmun_check' || hwpOn), [aiTools, hwpOn])
+  const aiSystem = useMemo(() => buildSystemPrompt({ hwp: { mode: hwp.mode, preset: hwp.preset }, knowledge: getKnowledge('docs') }), [hwp.mode, hwp.preset])
+  const aiQuick = useMemo(() => buildQuickActions({ hwpOn }), [hwpOn])
+  const aiGetContext = useCallback(() => aiTools.getContext(), [aiTools])
+  const mcpRelay = useMcpRelay({ fileId: doc?.ws_id, kind: 'doc', tools: aiToolList, canEdit })
 
   useEffect(() => {
     if (!editor) return
@@ -835,7 +1157,7 @@ export default function HandoverDoc() {
     setTabs((t) => t.map((x) => (x.id === tab.id ? { ...x, title } : x)))
   }
   async function duplicateTab(tab) {
-    const json = String(tab.id) === String(id) ? editor.getJSON() : (await api.get(`/handover/docs/${tab.id}`)).item.content
+    const json = String(tab.id) === String(id) ? { ...editor.getJSON(), hwp: hwpRef.current, page: pageSetRef.current } : (await api.get(`/handover/docs/${tab.id}`)).item.content
     await addTab({ title: `${tab.title} 사본`, json })
   }
   async function deleteTab(tab) {
@@ -854,7 +1176,7 @@ export default function HandoverDoc() {
     }
     await api.put('/handover/meta', { ws: doc.ws_id, title: t })
     setDocTitle(t)
-    document.title = `${t} | 디지털인문예술전공`
+    document.title = `${t} | 디인예 워크스페이스`
   }
 
 
@@ -893,6 +1215,13 @@ export default function HandoverDoc() {
     setSelVer(null)
     setOlderTexts(null)
     editor.commands.setContent(r.content?.html || r.content, false)
+    if (r.content?.hwp) {
+      const h = normHwp(r.content.hwp)
+      hwpRef.current = h
+      setHwp(h)
+    }
+    pageSetRef.current = r.content?.page || null
+    setPage(r.content?.page || null)
     editor.setEditable(canEdit && mode === 'edit')
     refreshOutline(editor)
     setSaveState('saved')
@@ -954,19 +1283,128 @@ export default function HandoverDoc() {
     editor.chain().focus().insertContent({ type: 'secret', attrs: { id: r.item.id, label } }).run()
   }
 
-  const fileBase = () => safeName(`${docTitle} - ${doc?.title || ''}`)
+  const fileBase = () => safeName(tabs.length > 1 ? `${docTitle} - ${doc?.title || ''}` : docTitle)
+  const plainJson = () => resolveVars(editor.getJSON(), hwpRef.current.vars)
+
+  // 한글(HWPX): 서버 kordoc 엔진이 만들고 구조 검사를 통과한 파일만 내려준다
+  async function hwpBody() {
+    const { body, dropped } = await buildRequest(editor.getJSON(), hwpRef.current, fileBase())
+    if (dropped) flash(`그림 ${dropped}개는 넣지 못했습니다`)
+    return body
+  }
+  // 한글(HWPX), Word(DOCX): 편집기 문서 -> IR -> 형식별 작성기. 작성기를 불러오지 못하면 옛 방식(한글은 서버 마크다운 경로)으로 만든다
+  async function runExport(format) {
+    if (!editor || !doc) return
+    setDefaultFormat(doc.ws_id, format)
+    setFmt(format)
+    try {
+      const r = await exportDocument(format, {
+        editor,
+        hwp: hwpRef.current,
+        page: pageSetRef.current,
+        title: docTitle,
+        fileBase: fileBase(),
+        progress: (t) => flash(t, 30000),
+        legacy: {
+          hwpx: async () => { const { blob } = await generateHwpx(await hwpBody()); download(blob, `${fileBase()}.hwpx`) },
+          docx: async () => { download(await toDocx(plainJson(), docTitle), `${fileBase()}.docx`) },
+        },
+      })
+      const note = summarizeIssues(r.issues)
+      flash(`${FORMATS[format].label} 저장 완료${r.fallback ? ' (간단 변환)' : ''}${note ? `. 확인할 점: ${note}` : ''}`, note || r.fallback ? 8000 : 2800)
+    } catch (e) {
+      flash(`${FORMATS[format].label} 저장 실패: ${e.message}`, 7000)
+    }
+  }
+  const saveHwpx = () => runExport('hwpx')
+  async function openPreview() {
+    if (!editor) return
+    setPreview({ loading: true })
+    try {
+      // 내보내기와 같은 작성기로 만든 한글 파일을 그린다(병합·칸 색·쪽 설정이 실제 결과와 같게 보인다)
+      const r = await previewDocument({ editor, hwp: hwpRef.current, page: pageSetRef.current, title: docTitle })
+      setPreview(r || (await previewHwpx(await hwpBody())))
+    } catch (e) {
+      try {
+        setPreview(await previewHwpx(await hwpBody()))
+      } catch {
+        setPreview({ error: `미리보기 실패: ${e.message}` })
+      }
+    }
+  }
+  async function runLint() {
+    if (!editor) return
+    setPaneOpen(true)
+    setPaneTab('lint')
+    setLint({ loading: true })
+    try {
+      const { markdown } = toHwpxPayload(editor.getJSON(), hwpRef.current)
+      const r = await lintHwp(markdown, hwpRef.current.preset)
+      setLint({ items: [...(r.gongmun || []), ...(r.munche || [])] })
+    } catch (e) {
+      setLint({ error: e.message })
+    }
+  }
+  function jumpTo(q) {
+    if (!editor || !q) return
+    const tries = [q, q.replace(/^[-*>#\s]+/, '').replace(/[*_\\]/g, ''), q.replace(/^[-*>#\s]+/, '').slice(0, 12)].filter((x) => x && x.trim())
+    let hit = null
+    for (const t of tries) {
+      editor.state.doc.descendants((n, pos) => {
+        if (hit || !n.isText) return
+        const i = n.text.indexOf(t)
+        if (i >= 0) hit = { from: pos + i, to: pos + i + t.length }
+      })
+      if (hit) break
+    }
+    if (!hit) {
+      flash('본문에서 찾지 못했습니다')
+      return
+    }
+    editor.chain().focus().setTextSelection(hit).scrollIntoView().run()
+  }
+  // 가져오기: 한글·Word·PDF 파일을 읽어 새 탭으로 넣는다(한글 파일은 한글 모드로)
+  async function importFile(file) {
+    if (!file || !editor) return
+    if (file.size > 15 * 1024 * 1024) {
+      flash('15MB 이하 파일만 가져올 수 있습니다')
+      return
+    }
+    flash('파일 읽는 중', 30000)
+    try {
+      let viaIR = null
+      try {
+        viaIR = await importDocument(file, { upload: (f) => api.upload(f, { usage: 'general' }) })
+      } catch {
+        viaIR = null // 읽기기가 못 읽으면 아래 옛 방식으로
+      }
+      if (viaIR) {
+        await addTab({ title: viaIR.title, json: { ...viaIR.json, hwp: normHwp({ mode: 'docs' }), page: viaIR.page } })
+        const note = summarizeIssues(viaIR.issues)
+        flash(`새 탭으로 가져왔습니다${note ? `. 확인할 점: ${note}` : ''}`, note ? 7000 : 2800)
+        return
+      }
+      const r = await parseHwpFile(file)
+      const json = generateJSON(markdownToHtml(r.markdown), editor.extensionManager.extensions)
+      const isHwp = /^hwpx?$/i.test(r.fileType || '') || /\.hwpx?$/i.test(file.name)
+      await addTab({ title: String(r.title || file.name).slice(0, 60), json: { ...json, hwp: normHwp({ mode: isHwp ? 'hwp' : 'docs', preset: guessPreset(r.markdown) }) } })
+      flash('새 탭으로 가져왔습니다')
+    } catch (e) {
+      flash(e.message)
+    }
+  }
+
   async function exportAs(kind) {
     try {
-      if (kind === 'docx') {
-        flash('Word 파일 만드는 중')
-        download(await toDocx(editor.getJSON(), docTitle), `${fileBase()}.docx`)
+      if (kind === 'hwpx' || kind === 'docx') {
+        await runExport(kind)
       } else if (kind === 'pdf') {
         flash('PDF 만드는 중')
         await toPdf(pageRef.current, fileBase())
       } else if (kind === 'md') {
-        download(new Blob([toMarkdown(editor.getJSON(), `${docTitle} - ${doc.title}`)], { type: 'text/markdown;charset=utf-8' }), `${fileBase()}.md`)
+        download(new Blob([toMarkdown(plainJson(), `${docTitle} - ${doc.title}`)], { type: 'text/markdown;charset=utf-8' }), `${fileBase()}.md`)
       } else if (kind === 'txt') {
-        download(new Blob([toPlainText(editor.getJSON())], { type: 'text/plain;charset=utf-8' }), `${fileBase()}.txt`)
+        download(new Blob([toPlainText(plainJson())], { type: 'text/plain;charset=utf-8' }), `${fileBase()}.txt`)
       } else if (kind === 'html') {
         download(new Blob([toHtml(editor.getHTML(), docTitle)], { type: 'text/html;charset=utf-8' }), `${fileBase()}.html`)
       }
@@ -981,7 +1419,7 @@ export default function HandoverDoc() {
       await navigator.clipboard.write([
         new ClipboardItem({
           'text/html': new Blob([toHtml(editor.getHTML(), docTitle)], { type: 'text/html' }),
-          'text/plain': new Blob([toPlainText(editor.getJSON())], { type: 'text/plain' }),
+          'text/plain': new Blob([toPlainText(plainJson())], { type: 'text/plain' }),
         }),
       ])
       flash('서식 포함 복사 완료. 새 구글 문서에서 ⌘V')
@@ -1121,7 +1559,10 @@ export default function HandoverDoc() {
   const styleValue = !ed ? 'p' : [1, 2, 3, 4].map((l) => (ed.isActive('heading', { level: l }) ? `h${l}` : null)).find(Boolean) || 'p'
   const applyStyle = (v) => (v === 'p' ? ed.chain().focus().setParagraph().run() : ed.chain().focus().setHeading({ level: Number(v.slice(1)) }).run())
   const curFont = ed?.getAttributes('textStyle').fontFamily || ''
-  const curFontLabel = FONTS.find((f) => f.value === curFont)?.label || (curFont ? curFont.replace(/'/g, '') : 'Pretendard')
+  const fontList = hwpOn ? HWP_FONTS.map((n) => ({ label: n, value: fontCss(n) })) : FONTS
+  const curFontLabel = hwpOn
+    ? hwpFontOf(curFont) || (curFont ? curFont.split(',')[0].replace(/'/g, '') : metricsOf(hwp.preset).body.font)
+    : FONTS.find((f) => f.value === curFont)?.label || (curFont ? curFont.replace(/'/g, '') : 'Pretendard')
   const applySize = (n) => {
     const v = Math.max(1, Math.min(400, Number(n) || 11))
     setSizeDraft(String(v))
@@ -1131,7 +1572,9 @@ export default function HandoverDoc() {
   const AlignIcon = { left: AlignLeft, center: AlignCenter, right: AlignRight, justify: AlignJustify }[curAlign]
 
   const downloads = [
-    { label: 'Microsoft Word(.docx)', onClick: () => exportAs('docx') },
+    { label: FORMATS.hwpx.label, icon: <FileDown size={16} />, hint: fmt === 'hwpx' ? '기본' : '', onClick: () => exportAs('hwpx') },
+    { label: FORMATS.docx.label, icon: <FileDown size={16} />, hint: fmt === 'docx' ? '기본' : '', onClick: () => exportAs('docx') },
+    '-',
     { label: 'PDF 문서(.pdf)', onClick: () => exportAs('pdf') },
     { label: '마크다운(.md)', onClick: () => exportAs('md') },
     { label: '일반 텍스트(.txt)', onClick: () => exportAs('txt') },
@@ -1143,9 +1586,12 @@ export default function HandoverDoc() {
       { label: '새 문서', icon: <Plus size={16} />, onClick: async () => { const r = await api.post('/workspace/files', { kind: 'doc', template: 'blank' }); navigate(`/docs/${r.item.first_tab}`) }, disabled: !canEdit },
       { label: '공유', icon: <Lock size={16} />, onClick: () => setShareOpen(true) },
       { label: '문서 목록', onClick: () => navigate(listHref) },
+      { label: '쪽 설정', onClick: () => setPageDlg(true), disabled: !canEdit },
       '-',
       { label: '버전 기록', icon: <History size={16} />, children: [{ label: '버전 기록 보기', hint: '⌘⌥⇧H', onClick: openHistory }] },
       { label: '다운로드', icon: <Download size={16} />, children: downloads },
+      { label: '한글 미리보기', icon: <FileSearch size={16} />, onClick: openPreview },
+      { label: '가져오기(Word, 한글, PDF)', icon: <Upload size={16} />, onClick: () => importRef.current?.click(), disabled: !canEdit },
       { label: 'Google Docs로 열기', icon: <ExternalLink size={16} />, onClick: openInGoogleDocs },
       '-',
       { label: '인쇄', hint: '⌘P', icon: <Printer size={16} />, onClick: () => window.print() },
@@ -1161,14 +1607,20 @@ export default function HandoverDoc() {
       { label: '댓글 표시', checked: showComments, onClick: () => setShowComments((v) => !v) },
       { label: '해결된 댓글 표시', checked: showResolved, onClick: () => setShowResolved((v) => !v) },
       { label: '탭 및 개요 표시', checked: showSidebar, onClick: () => setShowSidebar((v) => !v) },
+      '-',
+      { label: '한글 모드', checked: hwpOn, onClick: () => switchMode(hwpOn ? 'docs' : 'hwp') },
+      { label: '작업 창', checked: paneOpen, onClick: () => setPaneOpen((v) => !v) },
     ],
     삽입: [
       { label: '이미지', icon: <ImagePlus size={16} />, onClick: () => document.getElementById('gd-img-input')?.click(), disabled: !editing },
-      { label: '표', icon: <TableIcon size={16} />, onClick: () => ed.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(), disabled: !editing },
+      { label: '표', icon: <TableIcon size={16} />, onClick: () => insertTableFixed(ed, 3, 3, false), disabled: !editing },
+      { label: '체크박스 ☐', icon: <SquareCheck size={16} />, onClick: () => ed.chain().focus().insertCheckbox().run(), disabled: !editing },
       { label: '링크', hint: '⌘K', icon: <Link2 size={16} />, onClick: setLink, disabled: !editing },
       { label: '가로줄', onClick: () => ed.chain().focus().setHorizontalRule().run(), disabled: !editing },
       { label: '체크리스트', icon: <ListChecks size={16} />, onClick: () => ed.chain().focus().toggleTaskList().run(), disabled: !editing },
       { label: '비밀값 (계정 비밀번호)', icon: <KeyRound size={16} />, onClick: insertSecret, disabled: !editing },
+      { label: '자료값', icon: <Variable size={16} />, onClick: () => { setPaneOpen(true); setPaneDocs(true); setPaneTab('vars') }, disabled: !editing },
+      { label: '쪽 나눔', onClick: () => ed.chain().focus().insertPageBreak().run(), disabled: !editing },
       '-',
       { label: '탭', icon: <Plus size={16} />, onClick: () => addTab(), disabled: !canEdit },
       { label: '댓글', hint: '⌘⌥M', icon: <MessageSquarePlus size={16} />, onClick: startComment, disabled: !canEdit },
@@ -1176,9 +1628,19 @@ export default function HandoverDoc() {
     서식: [
       ...STYLE_OPTIONS.map((o) => ({ label: o.label, checked: styleValue === o.value, onClick: () => applyStyle(o.value), disabled: !editing })),
       '-',
+      { label: '위 첨자', checked: ed.isActive('superscript'), onClick: () => ed.chain().focus().toggleSuperscript().run(), disabled: !editing },
+      { label: '아래 첨자', checked: ed.isActive('subscript'), onClick: () => ed.chain().focus().toggleSubscript().run(), disabled: !editing },
+      '-',
+      { label: '쪽 설정', onClick: () => setPageDlg(true), disabled: !canEdit },
+      '-',
       { label: '서식 지우기', hint: '⌘\\', icon: <RemoveFormatting size={16} />, onClick: () => ed.chain().focus().unsetAllMarks().clearNodes().run(), disabled: !editing },
     ],
-    도구: [{ label: '글자 수', onClick: () => flash(`글자 수 ${ed.state.doc.textContent.length.toLocaleString()}자 · 댓글 ${comments.length}개`) }],
+    도구: [
+      { label: '글자 수', onClick: () => flash(`글자 수 ${ed.state.doc.textContent.length.toLocaleString()}자 · 댓글 ${comments.length}개`) },
+      { label: 'AI 창 열기', hint: '⌘J', icon: <Sparkles size={16} />, checked: aiOpen && !historyOpen, onClick: () => toggleAi() },
+      { label: '공문 검사', icon: <SpellCheck size={16} />, onClick: runLint },
+      { label: '한글 미리보기', icon: <FileSearch size={16} />, onClick: openPreview },
+    ],
     도움말: [
       { label: '댓글: 문장 선택 후 툴바 댓글 버튼', onClick: () => {} },
       { label: '탭 이름: 두 번 클릭 또는 ⋮ > 이름 바꾸기', onClick: () => {} },
@@ -1198,8 +1660,10 @@ export default function HandoverDoc() {
   )
 
   return (
-    <div className="gd">
+    <div className={`gd${hwpOn ? ' hw-on' : ''}`}>
       <style>{highlightCss}</style>
+      {hwpOn && <style>{hwpCss(hwp.preset)}</style>}
+      <input ref={importRef} type="file" hidden accept=".hwp,.hwpx,.docx,.pdf" onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; importFile(f) }} />
       <header className="gd-top ed-row">
         <Link to={listHref} className="ed-icon" aria-label="문서 홈" title="문서 홈"><DocsIcon size={40} /></Link>
         <input
@@ -1213,6 +1677,11 @@ export default function HandoverDoc() {
           title={docTitle}
         />
         <span className="ed-status"><Cloud size={16} aria-hidden="true" />{saveState === 'saved' ? '저장됨' : saveState === 'saving' ? '저장 중' : saveState === 'error' ? '저장 실패' : ''}</span>
+        {mcpRelay.badge}
+        <div className="hw-seg" role="group" aria-label="편집 모드">
+          <button type="button" className={hwpOn ? '' : 'is-on'} aria-pressed={!hwpOn} onClick={() => switchMode('docs')}>Docs</button>
+          <button type="button" className={hwpOn ? 'is-on' : ''} aria-pressed={hwpOn} onClick={() => switchMode('hwp')}>한글</button>
+        </div>
         <div className="gd-actions">
           {lastEdit || doc.updated_by ? (
             <button type="button" className="gd-meta gd-meta--link" onClick={jumpToLastEdit} title="수정한 위치로 이동">
@@ -1224,6 +1693,19 @@ export default function HandoverDoc() {
           </button>
           <button type="button" className={`gd-round${showComments ? ' is-on' : ''}`} aria-label="댓글 표시" title="댓글 표시" onClick={() => setShowComments((v) => !v)}>
             <MessageSquareText size={20} />
+          </button>
+          {hwpOn && (
+            <button type="button" className={`gd-round${paneOpen ? ' is-on' : ''}`} aria-label="작업 창" title="작업 창" onClick={() => setPaneOpen((v) => !v)}>
+              <PanelRight size={20} />
+            </button>
+          )}
+          {hwpOn && (
+            <button type="button" className="hw-primary" onClick={saveHwpx}>
+              <Download size={16} /> <span>한글로 저장</span>
+            </button>
+          )}
+          <button type="button" className={`gd-round${aiOpen && !historyOpen ? ' is-on' : ''}`} aria-label="AI 창" aria-pressed={aiOpen && !historyOpen} title="AI 창 (⌘J)" onClick={() => toggleAi()}>
+            <Sparkles size={20} />
           </button>
           <button type="button" className="gd-share" onClick={() => setShareOpen(true)}>
             <ShareIcon size={16} /> <span>공유</span>
@@ -1259,7 +1741,7 @@ export default function HandoverDoc() {
         </Dropdown>
         <span className="gd-sep" />
         <Dropdown disabled={!editing} className="gd-font-panel" trigger={() => <button type="button" className="gd-select gd-select--font" disabled={!editing}><span style={{ fontFamily: curFont || undefined }}>{curFontLabel}</span><ChevronDown size={14} /></button>}>
-          {(close) => FONTS.map((f) => (
+          {(close) => fontList.map((f) => (
             <button key={f.label} type="button" className="gd-menu__item" style={{ fontFamily: f.value || "'Pretendard Variable', Pretendard" }}
               onClick={() => { (f.value ? ed.chain().focus().setFontFamily(f.value) : ed.chain().focus().unsetFontFamily()).run(); close() }}>
               <span className="gd-menu__check">{curFont === f.value ? <Check size={16} /> : null}</span>
@@ -1311,6 +1793,7 @@ export default function HandoverDoc() {
             </div>
           )}
         </Dropdown>
+        <TB icon={SquareCheck} label="체크박스 삽입 (☐)" onClick={() => ed.chain().focus().insertCheckbox().run()} disabled={!editing} />
         <TB icon={ListChecks} label="체크리스트" onClick={() => ed.chain().focus().toggleTaskList().run()} active={ed?.isActive('taskList')} disabled={!editing} />
         <TB icon={List} label="글머리기호 목록" onClick={() => ed.chain().focus().toggleBulletList().run()} active={ed?.isActive('bulletList')} disabled={!editing} />
         <TB icon={ListOrdered} label="번호 매기기 목록" onClick={() => ed.chain().focus().toggleOrderedList().run()} active={ed?.isActive('orderedList')} disabled={!editing} />
@@ -1393,9 +1876,13 @@ export default function HandoverDoc() {
           <button type="button" className="gd-outline-open" aria-label="탭 및 개요 표시" title="탭 및 개요 표시" onClick={() => setShowSidebar(true)}><PanelLeft size={20} /></button>
         )}
         <div className="gd-scroll">
-          <div className={`gd-canvas${showComments && !historyOpen ? '' : ' no-comments'}`} ref={canvasRef} style={{ zoom: zoom / 100 }}>
+          <div className={`gd-canvas${showComments && !historyOpen ? '' : ' no-comments'}`} ref={canvasRef} style={{ zoom: zoom / 100, '--pg-w': `${pgBox.width}mm`, '--pg-h': `${pgBox.height}mm`, '--pg-pad': `${pgBox.top}mm ${pgBox.right}mm ${pgBox.bottom}mm ${pgBox.left}mm` }}>
             <div className="gd-page" ref={pageRef}>
+              {hwpOn && hwp.preset === '기안문' && <GianHead hwp={hwp} onOpen={() => { setPaneOpen(true); setPaneTab('info') }} />}
               <EditorContent editor={ed} />
+              {hwpOn && hwp.preset === '기안문' && <GianFoot hwp={hwp} onOpen={() => { setPaneOpen(true); setPaneTab('info') }} />}
+              <PageGuides pageRef={pageRef} pg={pgBox} deps={`${zoom}|${doc?.id}|${hwpOn}`} />
+              <PageDeco cfg={pageEff} pg={pgBox} />
               {linkBubble && (
                 <div className="gd-linkbubble" style={{ top: linkBubble.top, left: linkBubble.left }}>
                   <a href={linkBubble.href} target="_blank" rel="noreferrer"><ExternalLink size={14} /> {linkBubble.href.replace(/^https?:\/\//, '').slice(0, 40)}</a>
@@ -1438,6 +1925,45 @@ export default function HandoverDoc() {
             )}
           </div>
         </div>
+        {(hwpOn || paneDocs) && paneOpen && !historyOpen && (
+          <HwpPane
+            editor={ed}
+            settings={hwp}
+            update={updateHwp}
+            editing={editing}
+            tab={paneTab}
+            setTab={setPaneTab}
+            focusVar={focusVar}
+            onClose={() => { setPaneOpen(false); setPaneDocs(false) }}
+            lint={lint}
+            onLint={runLint}
+            onJump={jumpTo}
+          />
+        )}
+        {aiOpen && !historyOpen && (
+          <aside className="gd-ai" aria-label="문서 AI">
+            {AiPanelLazy ? (
+              <AiBoundary>
+                <Suspense fallback={<div className="gd-ai__note">AI 창을 불러오는 중</div>}>
+                  <AiPanelLazy
+                    open
+                    onClose={() => toggleAi(false)}
+                    scope={`doc:${doc.ws_id}`}
+                    title="문서 AI"
+                    systemPrompt={aiSystem}
+                    tools={aiToolList}
+                    getContext={aiGetContext}
+                    quickActions={aiQuick}
+                    placeholder="문서에 대해 말해 보세요. 예: 맞춤법 고쳐 줘"
+                    canEdit={canEdit && mode === 'edit'}
+                  />
+                </Suspense>
+              </AiBoundary>
+            ) : (
+              <div className="gd-ai__note">AI 창을 아직 사용할 수 없습니다</div>
+            )}
+          </aside>
+        )}
         {historyOpen && (
           <HistoryPanel
             versions={versions}
@@ -1466,6 +1992,28 @@ export default function HandoverDoc() {
       {!canEdit && <div className="gd-banner">보기 전용: 이 문서를 고칠 권한이 없습니다</div>}
       {shareOpen && <ShareDialog fileId={doc.ws_id} title={docTitle} linkPath={window.location.pathname} onClose={() => { setShareOpen(false); setShareTick((t) => t + 1) }} />}
       {toast && <div className="gd-toast">{toast}</div>}
+      <TableToolbar editor={ed} editing={editing && !historyOpen && !preview} flash={flash} />
+      <ImageToolbar editor={ed} editing={editing && !historyOpen && !preview} />
+      {pageDlg && (
+        <PageSetupDialog
+          value={page}
+          hwpOn={hwpOn}
+          presetPage={pageOf(hwp.preset)}
+          upload={async (f) => (await api.upload(f, { usage: 'general' })).url}
+          onClose={() => setPageDlg(false)}
+          onApply={(p) => {
+            pageSetRef.current = p
+            setPage(p)
+            setPageDlg(false)
+            if (canEdit && editor) {
+              setSaveState('dirty')
+              clearTimeout(saveTimer.current)
+              saveTimer.current = setTimeout(() => save(editor), 600)
+            }
+          }}
+        />
+      )}
+      {preview && <HwpPreview state={preview} onClose={() => setPreview(null)} onSave={saveHwpx} />}
       {lightbox && <Lightbox images={lightbox.images} index={lightbox.index} onClose={() => setLightbox(null)} />}
     </div>
   )

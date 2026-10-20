@@ -1,0 +1,46 @@
+/* 슬라이드 그리기(편집, 썸네일, 발표, 내보내기 공통). 슬라이드 안 색은 사용자 내용이라 자유롭다. */
+.sl-frame { position: relative; overflow: hidden; flex: none; }
+.sl-slide { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: hidden; color: #111; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.sl-el { position: absolute; box-sizing: border-box; transform-origin: 50% 50%; }
+.sl-text { width: 100%; word-break: keep-all; overflow-wrap: anywhere; white-space: normal; outline: none; }
+.sl-text p, .sl-text div { margin: 0; }
+.sl-text ul, .sl-text ol { margin: 0; padding-left: 1.25em; }
+.sl-text ul { list-style: disc; }
+.sl-text ol { list-style: decimal; }
+.sl-text ul ul { list-style: circle; }
+.sl-text ol ol { list-style: lower-alpha; }
+.sl-text li { margin: 0.12em 0; padding-left: 0.1em; }
+.sl-text li::marker { color: inherit; }
+.sl-text a { color: var(--sl-link, inherit); text-decoration: underline; text-underline-offset: 0.12em; }
+.sl-text > p + p, .sl-text > p + ul, .sl-text > p + ol, .sl-text > ul + p, .sl-text > ol + p, .sl-text > li + li { margin-top: var(--sl-para, 0); }
+.sl-text > ul > li + li, .sl-text > ol > li + li { margin-top: max(0.12em, var(--sl-para, 0px)); }
+.sl-text--ph { opacity: 0.42; }
+.sl-text--edit { position: relative; cursor: text; user-select: text; -webkit-user-select: text; caret-color: currentColor; }
+.sl-text--edit:empty::before, .sl-text--edit:has(> p:only-child > br:only-child)::before { content: attr(data-ph); position: absolute; left: 0; right: 0; top: 0; opacity: 0.42; pointer-events: none; }
+.sl-img-ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(128, 128, 128, 0.22); color: rgba(0, 0, 0, 0.55); font-size: 28px; font-weight: 600; }
+.sl-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; line-height: 1.3; }
+.sl-table td { border: 2px solid; padding: 10px 16px; vertical-align: middle; word-break: keep-all; overflow-wrap: anywhere; outline: none; white-space: pre-wrap; }
+.sl-table td[contenteditable] { cursor: text; user-select: text; -webkit-user-select: text; }
+.sl-table td[contenteditable]:focus { box-shadow: inset 0 0 0 4px #7A3CFF; }
+.sl-embed { position: absolute; inset: 0; display: flex; overflow: hidden; border-radius: 20px; text-decoration: none; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18); }
+.sl-embed__img { flex: none; overflow: hidden; background: rgba(128, 128, 128, 0.2); }
+.sl-embed__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sl-embed__body { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 0.4em; overflow: hidden; }
+.sl-embed__site { display: flex; align-items: center; gap: 0.4em; opacity: 0.7; font-weight: 600; }
+.sl-embed__title { font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sl-embed__desc { opacity: 0.75; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* 등장 효과 */
+.sl-anim-fade { animation: sl-fade 480ms ease both; }
+.sl-anim-rise { animation: sl-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.sl-anim-zoom { animation: sl-zoom 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes sl-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sl-rise { from { opacity: 0; translate: 0 60px; } to { opacity: 1; translate: 0 0; } }
+@keyframes sl-zoom { from { opacity: 0; scale: 0.8; } to { opacity: 1; scale: 1; } }
+@media (prefers-reduced-motion: reduce) { .sl-anim-fade, .sl-anim-rise, .sl-anim-zoom { animation-duration: 1ms; } }
+.sl-el > svg { pointer-events: none; }
+/* 내보내기(html2canvas)는 목록 기호를 작게 그리므로 글자로 대신 그린다 */
+.sl-slide.is-export .sl-text ul { list-style: none; }
+.sl-slide.is-export .sl-text ul > li { position: relative; }
+.sl-slide.is-export .sl-text ul > li::before { content: '•'; position: absolute; left: -0.95em; width: 0.8em; text-align: center; }
+.sl-slide.is-export .sl-text ul ul > li::before { content: '◦'; }

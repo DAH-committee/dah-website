@@ -1,0 +1,25 @@
+/* 연동 화면의 "AI 앱 연결(MCP)" 카드. 테두리 없이 채움으로만 구분한다 */
+.ig-card--wide { grid-column: 1 / -1; }
+.mcp-url { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 12px 16px; border-radius: 12px; background: #ececec; }
+.mcp-url > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mcp-url__label { font-size: 12px; font-weight: 600; color: var(--ws-sub); }
+.mcp-url code { font-size: 15px; font-weight: 600; color: var(--ws-ink); word-break: break-all; }
+.mcp-h { margin: 24px 0 8px; font-size: 16px; font-weight: 600; }
+.mcp-apps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mcp-apps li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 16px; border-radius: 12px; background: #f2f2f2; }
+.mcp-apps__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mcp-apps__main b { font-size: 15px; }
+.mcp-apps__main small { color: var(--ws-sub); font-size: 12.5px; }
+.mcp-log { margin-top: 10px; font-size: 13px; color: var(--ws-sub); }
+.mcp-log summary { cursor: pointer; font-weight: 600; }
+.mcp-log ul { list-style: none; margin: 8px 0 4px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.mcp-log li { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.mcp-log code { color: var(--ws-ink); }
+.mcp-guides { display: flex; flex-direction: column; gap: 8px; }
+.mcp-guide { padding: 12px 16px; border-radius: 12px; background: #f2f2f2; }
+.mcp-guide summary { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; font-weight: 600; }
+.mcp-guide summary svg { color: #7a3cff; }
+.mcp-guide[open] summary { margin-bottom: 4px; }
+.mcp-code { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.mcp-code pre { flex: 1 1 280px; margin: 0; padding: 10px 14px; border-radius: 10px; background: #1f1f1f; color: #fff; font-size: 13px; line-height: 1.55; white-space: pre-wrap; word-break: break-all; }
+.mcp-foot { margin: 16px 0 0; color: var(--ws-sub); font-size: 12.5px; }

@@ -1,18 +1,20 @@
-// /workspace/:kind (docs | sheets | forms): 문서·스프레드시트·설문지 홈.
-// 구글 문서·시트·폼 홈과 같은 구조: 상단 바(햄버거, 제품 아이콘과 이름, 검색, 3종 전환, 계정)
-// → 템플릿 띠 → 최근 항목(카드 격자 또는 목록, 정렬, 소유자 필터, 항목별 ⋮ 메뉴).
-// 문서와 시트는 /workspace/files, 폼은 기존 /admin/forms를 쓴다.
+// /workspace/:kind (docs | sheets | forms | boards | slides): 문서·스프레드시트·설문지·보드·프레젠테이션 홈.
+// 구조: 상단 바(햄버거, 제품 아이콘과 이름, 검색, 5종 전환, 계정) → 템플릿 띠 → 최근 항목(카드 격자 또는 목록, 정렬, 필터, 항목별 ⋮ 메뉴).
+// 왼쪽 메뉴에서 "내 파일"(내가 만든 파일, 공유받은 파일, 링크로 연 파일)과 내가 속한 팀 공간(?team=<id>)을 고른다.
+// 팀 공간에서 템플릿으로 만들면 그 팀 파일(팀원 모두 편집자)로 만들어진다.
+// 문서·시트·보드·슬라이드는 /workspace/files, 폼은 /admin/forms를 쓴다.
+// 문서 홈에는 "Notion에서 가져오기"가 있다(연동 페이지에서 노션 토큰을 연결해야 한다).
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { ArrowDownAZ, ChevronDown, ExternalLink, LayoutGrid, List, Menu, Pencil, Plus, Search, Table2, Trash2, X, Clock3, ListChecks, Lock, Eye, EyeOff, UsersRound, Undo2 } from 'lucide-react'
-import { api } from '../../hooks/useApi'
+import { ArrowDownAZ, ChevronDown, ExternalLink, FolderClosed, LayoutGrid, List, Menu, Pencil, Plus, Search, Settings, Table2, Trash2, X, Clock3, ListChecks, Lock, UsersRound, Undo2, Link2, FileDown, Upload } from 'lucide-react'
+import { api, API_BASE } from '../../hooks/useApi'
+import { hwpCreate, hwpUpload } from '../hwpfile/hwpApi'
+import { errorText as hwpErrorText } from '../hwpfile/hwpCore'
 import { useAuth } from '../../context/AuthContext'
 import AccountMenu, { GoogleG, startGoogleLogin, useMe } from '../../components/common/AccountMenu'
-import NoAccess from '../../components/common/NoAccess'
 import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
-import { useLoginModal } from '../../context/LoginModalContext'
 import { ICONS, KINDS } from './icons'
 import './workspace.css'
 
@@ -29,7 +31,7 @@ const consent = (id, items, purpose) =>
     options: ['동의합니다', '동의하지 않습니다'],
     hint_ko: `수집 항목: ${items}\n이용 목적: ${purpose}\n보유 기간: 목적 달성 후 ○년(행사에 맞게 수정)\n동의를 거부할 수 있으며, 거부하면 신청이 제한될 수 있습니다.`,
   })
-// 템플릿 근거: 운영위원회 개강·종강총회 방명록 hwp, 기말전시 기획안(참여형 방명록), 포스터 공모전 요강·출품자 명단,
+// 템플릿 근거: 개강·종강총회 방명록 hwp, 기말전시 기획안(참여형 방명록), 포스터 공모전 요강·출품자 명단,
 // 근로일지 기록카드 hwp, 멘토 결과 보고서 hwpx (구조만 옮김)
 const FORM_TEMPLATES = [
   { id: 'blank', name: '빈 양식', sub: '', title: '제목 없는 설문지', category: 'other', fields: [f('f1', '제목 없는 질문', 'radio', { options: ['옵션 1'] })] },
@@ -148,10 +150,106 @@ function FormThumb({ title, fields = [] }) {
   )
 }
 
+/* 보드 썸네일: 점 격자 위에 메모 두 장과 키워드 하나(내용 미리보기 대신 자리 표시) */
+function BoardThumb({ count }) {
+  return (
+    <div className="ws-thumb ws-thumb--board">
+      <i className="ws-thumb__memo" style={{ left: '12%', top: '18%' }} />
+      <i className="ws-thumb__memo" style={{ left: '52%', top: '40%' }} />
+      <i className="ws-thumb__chip" style={{ left: '20%', top: '66%' }} />
+      <svg className="ws-thumb__link" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M46 30 C 50 30, 48 52, 52 52" /></svg>
+      {count > 0 && <span className="ws-thumb__count">{count}</span>}
+    </div>
+  )
+}
+
+/* 슬라이드 썸네일: 16:9 흰 카드에 첫 슬라이드의 제목 글 */
+function SlideThumb({ title, bg = '#ffffff', fg = '#111111', small = false }) {
+  return (
+    <div className={`ws-thumb ws-thumb--slide${small ? ' is-small' : ''}`}>
+      <div className="ws-slide" style={{ background: bg, color: fg }}>
+        <b>{title}</b>
+      </div>
+    </div>
+  )
+}
+
+/* 한글 파일 썸네일: 서버가 그린 1쪽 PNG(버전별로 캐시됨). 서버가 PNG 를 못 만드는 환경이면 쪽 그림(svg)으로 대신하고, 그것도 안 되면 빈 종이 */
+let hwpPngBroken = false
+function HwpThumb({ file }) {
+  const [src, setSrc] = useState(null)
+  const [bad, setBad] = useState(false)
+  const v = file.current_version || 1
+  useEffect(() => {
+    let live = true
+    let url = null
+    const png = `${API_BASE}/hwp/files/${file.id}/thumbs/1.png?version=${v}`
+    const svg = async () => {
+      try {
+        const r = await fetch(`${API_BASE}/hwp/files/${file.id}/pages?from=1&to=1&version=${v}&format=svg`, { credentials: 'include' })
+        const j = await r.json()
+        const s = j?.pages?.[0]?.svg
+        if (!s || !live) throw new Error('none')
+        url = URL.createObjectURL(new Blob([s], { type: 'image/svg+xml' }))
+        setSrc(url)
+      } catch {
+        if (live) setBad(true)
+      }
+    }
+    if (hwpPngBroken) svg()
+    else setSrc(png)
+    return () => {
+      live = false
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [file.id, v])
+  return (
+    <div className="ws-thumb ws-thumb--hwp">
+      {bad || !src ? (
+        <i className="ws-thumb__paper" />
+      ) : (
+        <img
+          src={src}
+          alt=""
+          loading="lazy"
+          onError={() => {
+            if (src.startsWith('blob:')) return setBad(true)
+            hwpPngBroken = true
+            setSrc(null)
+            fetch(`${API_BASE}/hwp/files/${file.id}/pages?from=1&to=1&version=${v}&format=svg`, { credentials: 'include' })
+              .then((r) => r.json())
+              .then((j) => {
+                const s = j?.pages?.[0]?.svg
+                if (!s) throw new Error('none')
+                setSrc(URL.createObjectURL(new Blob([s], { type: 'image/svg+xml' })))
+              })
+              .catch(() => setBad(true))
+          }}
+        />
+      )}
+      {file.format && <span className="ws-thumb__fmt">{String(file.format).toUpperCase()}</span>}
+    </div>
+  )
+}
+
+/* 한글 새로 만들기 칸: 종이 위에 두문 줄 모양, 올리기는 위쪽 화살표 */
+function HwpTplThumb({ tpl }) {
+  if (tpl.id === 'upload') return <div className="ws-plus"><Upload size={40} strokeWidth={2.2} /></div>
+  return (
+    <div className="ws-thumb ws-thumb--hwptpl">
+      <b>{tpl.paper}</b>
+      <i /><i /><i className="is-short" />
+    </div>
+  )
+}
+
 function TemplateThumb({ kind, tpl }) {
+  if (kind === 'hwp') return <HwpTplThumb tpl={tpl} />
   if (tpl.id === 'blank') return <div className="ws-plus"><Plus size={44} strokeWidth={2.4} /></div>
   if (kind === 'docs') return <DocThumb text={tpl.preview || tpl.name} />
   if (kind === 'sheets') return <SheetThumb head={tpl.head || [tpl.name]} rows={tpl.rows || []} />
+  if (kind === 'boards') return <BoardThumb />
+  if (kind === 'slides') return <SlideThumb title={tpl.name} small />
   return <FormThumb title={tpl.title} fields={tpl.fields} />
 }
 
@@ -225,39 +323,29 @@ function CardMenu({ items, onClose, anchorRef, align = 'right' }) {
   )
 }
 
-function LockedThumb() {
-  return (
-    <div className="ws-locked" aria-hidden="true">
-      <div className="ws-locked__ghost">
-        <i /><i /><i /><i /><i /><i /><i />
-      </div>
-      <span className="ws-locked__badge"><Lock size={26} /></span>
-    </div>
-  )
-}
-
-function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHide, onRestore, onPurge, extraMenu = [] }) {
+function FileCard({ file, kind, view, showTeam, onOpen, onRename, onDelete, onNewTab, onRestore, onPurge, extraMenu = [] }) {
   const [menu, setMenu] = useState(false)
   const btn = useRef(null)
   const Icon = ICONS[kind]
   const items = file.trashed ? [
     ...(file.can_delete ? [{ label: '복원', icon: <Undo2 size={20} />, onClick: () => onRestore(file) }, { label: '영구 삭제', icon: <Trash2 size={20} />, onClick: () => onPurge(file) }] : []),
   ] : [
-    { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.system || file.my_role === 'viewer' },
-    ...(file.can_hide ? [{ label: file.hidden ? '비공개 해제' : '비공개로 전환', icon: file.hidden ? <Eye size={20} /> : <EyeOff size={20} />, onClick: () => onHide(file) }] : []),
-    ...(file.can_delete ? [{ label: '휴지통으로 이동', icon: <Trash2 size={20} />, onClick: () => onDelete(file), disabled: file.system }] : []),
+    { label: '이름 바꾸기', icon: <Pencil size={20} />, onClick: () => onRename(file), disabled: file.my_role === 'viewer' },
+    ...(file.can_delete ? [{ label: '휴지통으로 이동', icon: <Trash2 size={20} />, onClick: () => onDelete(file) }] : []),
     { label: '새 탭에서 열기', icon: <ExternalLink size={20} />, onClick: () => onNewTab(file) },
     ...extraMenu.map((m) => ({ ...m, onClick: () => m.onClick(file) })),
-  ].filter((x) => !(file.system && (x.label === '이름 바꾸기' || x.label === '휴지통으로 이동')))
-  const hasMenu = !file.locked
-  const thumb = file.locked ? <LockedThumb /> :
-    kind === 'docs' ? <DocThumb text={file.excerpt} /> : kind === 'sheets' ? <SheetThumb head={file.head} rows={file.preview} /> : <FormThumb title={file.title} fields={file.fields} />
+  ]
+  const hasMenu = items.length > 0
+  const thumb = kind === 'docs' ? <DocThumb text={file.excerpt} /> : kind === 'sheets' ? <SheetThumb head={file.head} rows={file.preview} /> : kind === 'boards' ? <BoardThumb count={file.items} /> : kind === 'slides' ? <SlideThumb title={file.slide_preview?.title || file.title} bg={file.slide_preview?.bg} fg={file.slide_preview?.fg} /> : kind === 'hwp' ? <HwpThumb file={file} /> : <FormThumb title={file.title} fields={file.fields} />
+  const tag = file.owner_only
+    ? <em className="ws-tag" title="만든 사람만 볼 수 있습니다"><Lock size={12} />나만 보기</em>
+    : showTeam && file.team_name ? <em className="ws-tag ws-tag--team" title={`${file.team_name} 팀 파일`}><UsersRound size={12} /><span>{file.team_name}</span></em> : null
 
   if (view === 'list') {
     return (
       <div className="ws-row" onClick={() => onOpen(file)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
-        <span className="ws-row__title">{file.locked ? <Lock size={24} /> : <Icon size={24} />}{file.title}{file.owner_only ? <em className="ws-tag">나만 보기</em> : file.hidden ? <em className="ws-tag">비공개</em> : null}</span>
-        <span className="ws-row__owner">{file.system ? '자동 연결' : file.created_by || '-'}</span>
+        <span className="ws-row__title"><Icon size={24} />{file.title}{tag}</span>
+        <span className="ws-row__owner">{file.mine ? '나' : file.created_by || '-'}</span>
         <span className="ws-row__date">{file.trashed ? `${file.days_left}일 뒤 삭제` : fmtDate(file.opened_at || file.updated_at)}</span>
         <span className="ws-row__more" onClick={(e) => e.stopPropagation()}>
           {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
@@ -267,14 +355,14 @@ function FileCard({ file, kind, view, onOpen, onRename, onDelete, onNewTab, onHi
     )
   }
   return (
-    <div className={`ws-card${file.locked ? ' is-locked' : ''}`} role="button" tabIndex={0} onClick={() => onOpen(file)} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
+    <div className="ws-card" role="button" tabIndex={0} onClick={() => onOpen(file)} onKeyDown={(e) => e.key === 'Enter' && onOpen(file)}>
       <div className={`ws-card__thumb ws-card__thumb--${kind}`}>{thumb}</div>
       <div className="ws-card__foot">
         <strong title={file.title}>{file.title}</strong>
         <div className="ws-card__meta">
-          {file.locked ? <Lock size={20} /> : <Icon size={22} />}
-          {file.owner_only ? <em className="ws-tag" title="만든 사람만 볼 수 있습니다"><Lock size={12} />나만 보기</em> : file.hidden ? <em className="ws-tag" title="공유받지 않은 사람의 목록에 나오지 않습니다"><EyeOff size={12} />비공개</em> : null}
-          <span>{file.locked ? '접근 권한 없음' : file.system ? '자동 연결 시트' : file.trashed ? `${file.days_left}일 뒤 삭제` : fmtDate(file.opened_at || file.updated_at, true)}</span>
+          <Icon size={22} />
+          {tag}
+          <span>{file.trashed ? `${file.days_left}일 뒤 삭제` : fmtDate(file.opened_at || file.updated_at, true)}</span>
           <span className="ws-card__more" onClick={(e) => e.stopPropagation()}>
             {hasMenu && <button ref={btn} type="button" className="ws-iconbtn" aria-label="더보기" onClick={() => setMenu((v) => !v)}><MoreV /></button>}
             {menu && <CardMenu items={items} onClose={() => setMenu(false)} anchorRef={btn} />}
@@ -291,18 +379,30 @@ function MoreV() {
   )
 }
 
+const KIND_API = { docs: 'doc', sheets: 'sheet', boards: 'board', slides: 'slide', hwp: 'hwp' }
+const NOUN = { docs: '문서', sheets: '스프레드시트', forms: '설문지', boards: '보드', slides: '프레젠테이션', hwp: '한글 문서' }
+
+// 한글 새로 만들기: 서버 내장 서식(gian, gian-simple)과 보고서(개조식 마크다운). 올리기는 파일 선택 창을 연다.
+const HWP_TEMPLATES = [
+  { id: 'gian', name: '빈 기안문', sub: '일반기안문 서식', paper: '기안문' },
+  { id: 'gian-simple', name: '간이 기안문', sub: '간이기안문 서식', paper: '간이' },
+  { id: 'report', name: '보고서', sub: '개조식 보고서', paper: '보고서' },
+  { id: 'upload', name: '파일 올리기', sub: '.hwp .hwpx .docx' },
+]
+const HWP_REPORT_MD = '# 보고서 제목\n\n> 보고 목적을 한 문장으로 쓴다.\n\n## 1. 추진 배경\n\n- 배경을 항목별로 쓴다\n\n## 2. 주요 내용\n\n- 내용을 항목별로 쓴다\n\n## 3. 향후 계획\n\n- 계획을 항목별로 쓴다\n'
+
 export default function WorkspaceHub() {
   const { kind } = useParams()
   const navigate = useNavigate()
-  const { user, hasRole, loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { me, reload: reloadMe } = useMe()
-  const { openLogin } = useLoginModal()
   const [params, setParams] = useSearchParams()
-  const isStaff = hasRole('manager')
   const signedIn = Boolean(me?.user)
-  const committee = Boolean(me?.committee)
+  const teamParam = Number(params.get('team')) || null
+  const [teams, setTeams] = useState(null)
+  const team = teamParam && teams ? teams.find((t) => t.id === teamParam) || null : null
   const [files, setFiles] = useState([])
-  const [templates, setTemplates] = useState({ doc: [], sheet: [] })
+  const [templates, setTemplates] = useState({ doc: [], sheet: [], board: [], slide: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [q, setQ] = useState('')
@@ -318,48 +418,71 @@ export default function WorkspaceHub() {
   const [busy, setBusy] = useState(false)
   const ownerBtn = useRef(null)
   const hwpBtn = useRef(null)
+  const hwpInput = useRef(null)
   const [hwpMenu, setHwpMenu] = useState(false)
   const K = KINDS[kind]
   const Icon = ICONS[kind] || ICONS.docs
 
   useEffect(() => {
-    if (K) document.title = `${K.name} | 디지털인문예술전공`
-  }, [K])
+    if (K) document.title = `${team ? `${team.name} · ` : ''}${K.name} | 디인예 워크스페이스`
+  }, [K, team])
+
+  const loadTeams = useCallback(async () => {
+    try {
+      const r = await api.get('/workspace/teams')
+      setTeams(r.items || [])
+    } catch {
+      setTeams([])
+    }
+  }, [])
+  useEffect(() => {
+    if (me === undefined) return // 계정 정보를 읽는 중
+    if (signedIn) loadTeams()
+    else setTeams([])
+  }, [me, signedIn, loadTeams])
+
+  // 팀이 없어졌거나 내가 팀원이 아니면 내 파일로 돌아간다(계정과 팀 목록을 다 읽은 뒤에만 판단)
+  useEffect(() => {
+    if (!teamParam || !teams || team || me === undefined) return
+    const next = new URLSearchParams(params)
+    next.delete('team')
+    setParams(next, { replace: true })
+    setError('팀을 찾을 수 없거나 팀원이 아닙니다. 내 파일을 보여 줍니다.')
+  }, [teamParam, teams, team, me, params, setParams])
 
   const load = useCallback(async () => {
+    if (teamParam && !team) return
     setLoading(true)
     setError('')
     try {
-      const hiddenOnly = owner === 'hidden' ? { hidden: '1' } : owner === 'trash' ? { trash: '1' } : {}
+      const scope = { ...(owner === 'trash' ? { trash: '1' } : {}), ...(teamParam ? { team: String(teamParam) } : {}) }
       if (kind === 'forms') {
-        const r = await api.get('/admin/forms', hiddenOnly)
+        const r = await api.get('/admin/forms', scope)
         setFiles(
           (r.items || []).map((x) => ({
             id: x.id, title: x.title_ko || '제목 없는 설문지', created_by: '', opened_at: x.updated_at, updated_at: x.updated_at,
             fields: Array.isArray(x.fields) ? x.fields : [], response_count: x.response_count, slug: x.slug,
-            ws_id: x.ws_id, my_role: x.my_role, can_delete: x.can_delete, locked: x.locked, hidden: x.hidden, can_hide: x.can_hide,
+            ws_id: x.ws_id, my_role: x.my_role, mine: x.mine, can_delete: x.can_delete, team_id: x.team_id,
             trashed: x.trashed, days_left: x.days_left,
           }))
         )
       } else {
-        const r = await api.get('/workspace/files', { kind: kind === 'docs' ? 'doc' : 'sheet', ...hiddenOnly })
-        let items = r.items
-        // 전시회 접수 현황은 접수자 개인정보라 사이트 스태프에게만 보인다
-        if (kind === 'sheets' && owner !== 'hidden' && owner !== 'trash' && isStaff) items = [{ id: 'entries', system: true, title: '전시회 접수 현황', head: ['번호', '접수일시', '학기', '유형', '이메일'], preview: [['1', '', '', '개인', ''], ['2', '', '', '팀', '']], updated_at: null, to: '/admin/exhibition-entries/sheet' }, ...items]
-        setFiles(items)
+        const r = await api.get('/workspace/files', { kind: KIND_API[kind] || 'doc', ...scope })
+        setFiles(r.items || [])
       }
     } catch (e) {
+      setFiles([])
       setError(e.message || '불러오지 못했습니다')
     } finally {
       setLoading(false)
     }
-  }, [kind, owner, isStaff])
+  }, [kind, owner, teamParam, team])
 
   useEffect(() => {
-    if (K && !authLoading) load()
-  }, [K, load, authLoading])
+    if (K && !authLoading && me !== undefined) load()
+  }, [K, load, authLoading, me])
 
-  // 운영위원회 사이트 계정으로 로그인(모달)하면 계정 정보와 목록을 다시 읽는다
+  // 다른 계정으로 바꾸면 계정 정보와 목록을 다시 읽는다
   const staffId = user?.id ?? null
   const firstStaff = useRef(true)
   useEffect(() => {
@@ -380,56 +503,119 @@ export default function WorkspaceHub() {
   }, [params, setParams])
 
   useEffect(() => {
-    if (signedIn) api.get('/workspace/templates').then(setTemplates).catch(() => {})
+    if (signedIn) api.get('/workspace/templates').then((r) => setTemplates({ doc: [], sheet: [], board: [], slide: [], ...r })).catch(() => {})
   }, [signedIn])
 
   const tplList = useMemo(() => {
     if (kind === 'forms') return FORM_TEMPLATES
+    if (kind === 'boards') return templates.board?.length ? templates.board : [{ id: 'blank', name: '빈 보드', sub: '' }]
+    if (kind === 'slides') return templates.slide?.length ? templates.slide : [{ id: 'blank', name: '빈 프레젠테이션', sub: '' }]
+    if (kind === 'hwp') return HWP_TEMPLATES
     const src = kind === 'docs' ? templates.doc : templates.sheet
     return src.map((t) => ({ ...t, ...(kind === 'docs' ? { preview: DOC_PREVIEW[t.id] } : SHEET_PREVIEW[t.id] || {}) }))
   }, [kind, templates])
 
   const shown = useMemo(() => {
     let list = files.filter((x) => !q.trim() || x.title.toLowerCase().includes(q.trim().toLowerCase()))
-    if (owner === 'mine') list = list.filter((x) => (x.mine || kind === 'forms') && !x.locked)
-    const pinned = list.filter((x) => x.system)
-    const rest = list.filter((x) => !x.system)
+    if (owner === 'mine') list = list.filter((x) => x.mine)
+    const rest = [...list]
     rest.sort(sort === 'name' ? (a, b) => a.title.localeCompare(b.title, 'ko') : (a, b) => new Date(b.opened_at || b.updated_at) - new Date(a.opened_at || a.updated_at))
-    return [...pinned, ...rest]
-  }, [files, q, owner, sort, user])
+    return rest
+  }, [files, q, owner, sort])
 
   if (!K) return <Navigate to="/workspace/docs" replace />
   if (authLoading) return null
 
+  const spaceQuery = teamParam ? `?team=${teamParam}` : ''
+  const pickSpace = (id) => {
+    const next = new URLSearchParams(params)
+    if (id) next.set('team', String(id))
+    else next.delete('team')
+    setOwner('all')
+    setParams(next)
+    closeDrawer()
+  }
+  async function createTeam() {
+    closeDrawer()
+    const name = await promptDialog({ title: '팀 만들기', label: '팀 이름', defaultValue: '', confirmLabel: '만들기' })
+    if (!name || !name.trim()) return
+    try {
+      const r = await api.post('/workspace/teams', { name: name.trim() })
+      await loadTeams()
+      pickSpace(r.team.id)
+    } catch (e) {
+      setError(e.hint ? `${e.message} (${e.hint})` : e.message)
+    }
+  }
+
   const open = (file) => {
     if (file.trashed) return alertDialog({ title: '휴지통에 있는 파일입니다', message: `"${file.title}"은(는) 복원해야 열 수 있습니다. 카드의 ⋮ 메뉴에서 복원하세요. ${file.days_left}일 뒤에 영구 삭제됩니다.` })
-    if (file.locked) return alertDialog({ title: '접근 권한이 없습니다', message: `"${file.title}"은(는) 운영위원회 및 교수진만 열 수 있습니다. 소유자에게 이메일 공유를 요청하세요.` })
-    if (file.to) return navigate(file.to)
     if (kind === 'docs') {
       api.post(`/workspace/files/${file.id}/open`).catch(() => {})
       return navigate(`/docs/${file.first_tab}`)
     }
+    if (kind === 'boards') {
+      api.post(`/workspace/files/${file.id}/open`).catch(() => {})
+      return navigate(`/boards/${file.id}`)
+    }
+    if (kind === 'slides') {
+      api.post(`/workspace/files/${file.id}/open`).catch(() => {})
+      return navigate(`/slides/${file.id}`)
+    }
+    if (kind === 'hwp') {
+      api.post(`/workspace/files/${file.id}/open`).catch(() => {})
+      return navigate(`/hwp/${file.id}`)
+    }
     if (kind === 'sheets') return navigate(`/sheets/${file.id}`)
     return navigate(`/form/${file.id}/edit`)
   }
-  const urlOf = (file) => (file.to ? file.to : kind === 'docs' ? `/docs/${file.first_tab}` : kind === 'sheets' ? `/sheets/${file.id}` : `/form/${file.id}/edit`)
+  const urlOf = (file) => (kind === 'docs' ? `/docs/${file.first_tab}` : kind === 'sheets' ? `/sheets/${file.id}` : kind === 'boards' ? `/boards/${file.id}` : kind === 'slides' ? `/slides/${file.id}` : kind === 'hwp' ? `/hwp/${file.id}` : `/form/${file.id}/edit`)
+
+  // 한글: 올린 파일(.hwp .hwpx .docx)을 서버가 읽어 새 파일로 만든다
+  async function uploadHwp(file) {
+    if (!file || busy) return
+    setBusy(true)
+    setError('')
+    try {
+      const r = await hwpUpload(file, team ? { team_id: team.id } : {})
+      navigate(`/hwp/${(r.item || r).id}`)
+    } catch (e) {
+      setError(hwpErrorText(e))
+      setBusy(false)
+    }
+  }
 
   async function createFrom(tpl) {
     if (busy) return
+    if (kind === 'hwp' && tpl.id === 'upload') {
+      hwpInput.current?.click()
+      return
+    }
     setBusy(true)
+    const inTeam = team ? { team_id: team.id } : {}
     try {
-      if (kind === 'forms') {
+      if (kind === 'hwp') {
+        const body = tpl.id === 'report' ? { template: 'markdown', markdown: HWP_REPORT_MD, preset: '보고서', title: '제목 없는 보고서', ...inTeam } : { template: tpl.id, title: tpl.name, ...inTeam }
+        const r = await hwpCreate(body)
+        navigate(`/hwp/${(r.item || r).id}`)
+      } else if (kind === 'forms') {
         const payload = {
           slug: `form-${Date.now().toString(36)}`, title_ko: tpl.title, title_en: '', description_ko: tpl.desc || '', description_en: '',
-          category: tpl.category, fields: tpl.fields, published: false, settings: FORM_SETTINGS,
+          category: tpl.category, fields: tpl.fields, published: false, settings: FORM_SETTINGS, ...inTeam,
         }
         const r = await api.post('/admin/forms', payload)
         navigate(`/form/${r.item.id}/edit`, { state: { justSaved: true } })
       } else if (kind === 'docs') {
-        const r = await api.post('/workspace/files', { kind: 'doc', template: tpl.id })
+        const r = await api.post('/workspace/files', { kind: 'doc', template: tpl.id, ...inTeam })
         navigate(`/docs/${r.item.first_tab}`)
+      } else if (kind === 'boards') {
+        const r = await api.post('/workspace/files', { kind: 'board', template: 'blank', ...inTeam })
+        navigate(`/boards/${r.item.id}`)
+      } else if (kind === 'slides') {
+        const r = await api.post('/workspace/files', { kind: 'slide', template: tpl.id, ...inTeam })
+        navigate(`/slides/${r.item.id}`)
       } else {
-        const r = await api.post('/workspace/files', { kind: 'sheet', template: tpl.id })
+        const r = await api.post('/workspace/files', { kind: 'sheet', template: tpl.id, ...inTeam })
         navigate(`/sheets/${r.item.id}`)
       }
     } catch (e) {
@@ -478,27 +664,41 @@ export default function WorkspaceHub() {
     }
   }
 
-  async function toggleHidden(file) {
-    const hide = !file.hidden
-    const wsId = kind === 'forms' ? file.ws_id : file.id
-    if (hide && !(await confirmDialog({
-      title: '비공개로 전환',
-      message: `'${file.title}'을(를) 비공개로 바꿀까요? 소유자와 이메일로 추가된 사람의 목록에만 나오고, 링크로 연 다른 사람의 목록에는 남지 않습니다. 공유 설정은 그대로입니다.`,
-      confirmLabel: '비공개로 전환',
-    }))) return
+  // Notion 페이지를 새 문서로 가져온다: 서버가 노션 API로 본문을 HTML로 바꾸고, 정리한 HTML로 문서를 만든다.
+  async function importNotion() {
+    if (busy) return
+    const url = await promptDialog({ title: 'Notion에서 가져오기', label: 'Notion 페이지 주소', placeholder: 'https://www.notion.so/…', confirmLabel: '가져오기' })
+    if (!url || !url.trim()) return
+    setBusy(true)
     try {
-      await api.put(`/workspace/files/${wsId}/hidden`, { hidden: hide })
-      load()
+      const page = await api.get('/integrations/notion/page', { url: url.trim() })
+      const r = await api.post('/workspace/files/import-html', { html: page.html, title: page.title, ...(team ? { team_id: team.id } : {}) })
+      const notes = [page.truncated ? '페이지가 길어 앞부분만 가져왔습니다.' : '', page.notice || ''].filter(Boolean)
+      if (notes.length) await alertDialog({ title: '가져왔습니다', message: notes.join('\n') })
+      navigate(`/docs/${r.item.first_tab}`)
     } catch (e) {
-      setError(e.hint ? `${e.message} (${e.hint})` : e.message)
+      setBusy(false)
+      if (e.body?.code === 'not_connected') {
+        const go = await confirmDialog({ title: '노션이 연결되어 있지 않습니다', message: '연동 페이지에서 노션 내부 연동 토큰을 연결한 뒤 다시 시도하세요.', confirmLabel: '연동으로 이동' })
+        if (go) navigate('/workspace/integrations')
+        return
+      }
+      alertDialog({ title: '가져오지 못했습니다', message: e.hint ? `${e.message}\n${e.hint}` : e.message })
     }
   }
+
+  const cardProps = {
+    kind, showTeam: !team, onOpen: open, onRename: rename, onDelete: remove, onRestore: restore, onPurge: purge,
+    onNewTab: (file) => window.open(urlOf(file), '_blank'),
+  }
+  const formMenu = (icon) => (kind === 'forms' ? [{ label: '응답 시트 열기', icon, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : [])
+  const ownerLabel = owner === 'trash' ? '휴지통' : owner === 'mine' ? '내가 만든 항목' : '모든 항목'
 
   return (
     <div className="ws">
       <header className="ws-top">
         <button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="기본 메뉴" onClick={() => setDrawer('open')}><Menu size={24} /></button>
-        <Link to={K.path} className="ws-brand"><Icon size={40} /><span>{K.name}</span></Link>
+        <Link to={`${K.path}${spaceQuery}`} className="ws-brand"><Icon size={40} /><span>{K.name}</span></Link>
         <label className="ws-search">
           <Search size={22} aria-hidden="true" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="검색" aria-label="검색" />
@@ -512,16 +712,27 @@ export default function WorkspaceHub() {
 
       {drawer !== 'closed' && (
         <div className={`ws-drawer-wrap is-${drawer}`} onClick={() => closeDrawer()}>
-          <nav className="ws-drawer" onClick={(e) => e.stopPropagation()} aria-label="작업공간 메뉴">
-            <div className="ws-drawer__head"><button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="닫기" onClick={() => closeDrawer()}><X size={24} /></button><strong>작업공간</strong></div>
+          <nav className="ws-drawer" onClick={(e) => e.stopPropagation()} aria-label="워크스페이스 메뉴">
+            <div className="ws-drawer__head"><button type="button" className="ws-iconbtn ws-iconbtn--lg" aria-label="닫기" onClick={() => closeDrawer()}><X size={24} /></button><strong>디인예 워크스페이스</strong></div>
             {Object.values(KINDS).map((k) => {
               const I = ICONS[k.id]
-              return <Link key={k.id} to={k.path} onClick={() => closeDrawer()} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
+              return <Link key={k.id} to={`${k.path}${spaceQuery}`} onClick={() => closeDrawer()} className={`ws-drawer__item${k.id === kind ? ' is-on' : ''}`}><I size={24} />{k.name}</Link>
             })}
-            <hr />
-            {me?.admin && <Link to="/workspace/members" className="ws-drawer__item"><UsersRound size={24} />운영위원회 구성원</Link>}
-            {isStaff && <Link to="/admin" className="ws-drawer__item">관리 대시보드</Link>}
-            <Link to="/" className="ws-drawer__item">사이트로 돌아가기</Link>
+            {signedIn && (
+              <>
+                <hr />
+                <p className="ws-drawer__label">공간</p>
+                <button type="button" className={`ws-drawer__item${!teamParam ? ' is-on' : ''}`} onClick={() => pickSpace(null)}><FolderClosed size={22} />내 파일</button>
+                {(teams || []).map((t) => (
+                  <button key={t.id} type="button" className={`ws-drawer__item${teamParam === t.id ? ' is-on' : ''}`} onClick={() => pickSpace(t.id)} title={t.name}>
+                    <UsersRound size={22} /><span className="ws-drawer__text">{t.name}</span><small>{t.member_count}</small>
+                  </button>
+                ))}
+                <button type="button" className="ws-drawer__item" onClick={createTeam}><Plus size={22} />팀 만들기</button>
+                <Link to={team ? `/workspace/members?team=${team.id}` : '/workspace/members'} onClick={() => closeDrawer()} className="ws-drawer__item"><Settings size={22} />팀 관리</Link>
+                <Link to="/workspace/integrations" onClick={() => closeDrawer()} className="ws-drawer__item"><Link2 size={22} />연동</Link>
+              </>
+            )}
           </nav>
         </div>
       )}
@@ -530,10 +741,9 @@ export default function WorkspaceHub() {
         <section className="ws-band ws-signin">
           <div className="ws-wrap">
             <h2>{K.name}에 로그인</h2>
-            <p>구글 계정으로 로그인하면 누구나 새 {kind === 'docs' ? '문서' : kind === 'sheets' ? '스프레드시트' : '설문지'}를 만들고, 공유받은 파일을 열 수 있습니다.</p>
+            <p>구글 계정으로 로그인하면 누구나 새 {NOUN[kind]}를 만들고, 팀을 만들어 함께 쓰고, 공유받은 파일을 열 수 있습니다.</p>
             <div className="ws-signin__btns">
               <button type="button" className="gbtn" onClick={() => startGoogleLogin()}><GoogleG size={22} /> 구글 계정으로 로그인</button>
-              <button type="button" className="ws-signin__alt" onClick={() => openLogin()}>운영위원회 사이트 계정으로 로그인</button>
             </div>
           </div>
         </section>
@@ -543,9 +753,10 @@ export default function WorkspaceHub() {
       <section className="ws-band">
         <div className="ws-wrap">
           <div className="ws-band__head">
-            <h2>{K.start}</h2>
+            <h2>{K.start}{team && <span className="ws-band__team"><UsersRound size={16} />{team.name}에 만들기</span>}</h2>
             {kind === 'docs' && (
-              <span className="ws-owner">
+              <span className="ws-owner ws-owner--row">
+                <button type="button" className="ws-owner__btn" onClick={importNotion} disabled={busy}><FileDown size={18} />Notion에서 가져오기</button>
                 <button ref={hwpBtn} type="button" className="ws-owner__btn" onClick={() => setHwpMenu((v) => !v)}>한글(HWPX) 양식<ChevronDown size={16} /></button>
                 {hwpMenu && (
                   <CardMenu anchorRef={hwpBtn} onClose={() => setHwpMenu(false)} items={HWPX_FILES.map((x) => ({ label: x.name, icon: <ExternalLink size={20} />, onClick: () => { const a = document.createElement('a'); a.href = x.href; a.download = `${x.name}.hwpx`; a.click() } }))} />
@@ -553,6 +764,19 @@ export default function WorkspaceHub() {
               </span>
             )}
           </div>
+          {kind === 'hwp' && (
+            <input
+              ref={hwpInput}
+              type="file"
+              accept=".hwp,.hwpx,.docx"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                e.target.value = ''
+                uploadHwp(f)
+              }}
+            />
+          )}
           <div className={`ws-tpls ws-tpls--${kind}`}>
             {tplList.map((t) => (
               <button key={t.id} type="button" className="ws-tpl" disabled={busy} onClick={() => createFrom(t)}>
@@ -569,15 +793,17 @@ export default function WorkspaceHub() {
       <section className="ws-recent">
         <div className="ws-wrap">
           <div className="ws-recent__head">
-            <h2>{K.recent}</h2>
+            <h2 className="ws-recent__title">
+              {team ? <><UsersRound size={20} />{team.name}<span>{K.plural}</span></> : K.recent}
+            </h2>
             <div className="ws-recent__tools">
+              {team && <Link to={`/workspace/members?team=${team.id}`} className="ws-owner__btn ws-teamlink"><Settings size={16} />팀 관리</Link>}
               <div className="ws-owner">
-                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{owner === 'all' ? '모든 항목' : owner === 'hidden' ? '비공개 항목' : owner === 'trash' ? '휴지통' : '내가 만든 항목'}<ChevronDown size={16} /></button>
+                <button ref={ownerBtn} type="button" className="ws-owner__btn" onClick={() => setOwnerMenu((v) => !v)}>{ownerLabel}<ChevronDown size={16} /></button>
                 {ownerMenu && (
                   <CardMenu anchorRef={ownerBtn} align="left" onClose={() => setOwnerMenu(false)} items={[
                     { label: '모든 항목', icon: null, onClick: () => setOwner('all') },
                     { label: '내가 만든 항목', icon: null, onClick: () => setOwner('mine') },
-                    ...(committee ? [{ label: '비공개 항목', icon: <EyeOff size={20} />, onClick: () => setOwner('hidden') }] : []),
                     ...(signedIn ? [{ label: '휴지통', icon: <Trash2 size={20} />, onClick: () => setOwner('trash') }] : []),
                   ]} />
                 )}
@@ -587,22 +813,22 @@ export default function WorkspaceHub() {
             </div>
           </div>
 
-          {owner === 'trash' && <p className="ws-note">휴지통에 넣은 파일은 30일 동안 보관되며, 그 안에는 복원할 수 있습니다. 30일이 지나면 영구 삭제됩니다.</p>}
+          {owner === 'trash' && <p className="ws-note">휴지통에 넣은 파일은 30일 동안 보관되며, 그 안에는 복원할 수 있습니다. 30일이 지나면 영구 삭제됩니다.{team ? ' 팀 파일은 만든 사람과 팀 오너가 복원할 수 있습니다.' : ''}</p>}
           {error && <p className="ws-error" role="alert">{error}</p>}
           {loading ? (
             <p className="ws-empty">불러오는 중</p>
           ) : shown.length === 0 ? (
             <div className="ws-empty">
-              <p style={{ margin: 0 }}>{q ? '검색 결과가 없습니다.' : owner === 'hidden' ? '비공개 항목이 없습니다.' : owner === 'trash' ? '휴지통이 비어 있습니다.' : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 내 파일과 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
+              <p style={{ margin: 0 }}>{q ? '검색 결과가 없습니다.' : owner === 'trash' ? '휴지통이 비어 있습니다.' : team ? `아직 ${team.name} 팀의 ${NOUN[kind]}가 없습니다. 위 템플릿으로 만들면 팀원 모두가 편집할 수 있습니다.` : signedIn ? '아직 항목이 없습니다. 위 템플릿으로 새로 만들거나, 다른 사람이 이메일로 공유하면 여기에 표시됩니다.' : '로그인하면 내 파일과 나에게 공유된 파일이 여기에 표시됩니다.'}</p>
             </div>
           ) : view === 'list' ? (
             <div className="ws-list">
               <div className="ws-row ws-row--head"><span>이름</span><span>소유자</span><span>마지막으로 연 시간</span><span /></div>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="list" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onRestore={restore} onPurge={purge} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <Table2 size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} view="list" {...cardProps} extraMenu={formMenu(<Table2 size={20} />)} />)}
             </div>
           ) : (
             <div className={`ws-grid ws-grid--${kind}`}>
-              {shown.map((x) => <FileCard key={x.id} file={x} kind={kind} view="grid" onOpen={open} onRename={rename} onDelete={remove} onHide={toggleHidden} onRestore={restore} onPurge={purge} onNewTab={(file) => window.open(urlOf(file), '_blank')} extraMenu={kind === 'forms' ? [{ label: '응답 시트 열기', icon: <ListChecks size={20} />, onClick: (file) => navigate(`/form/${file.id}/responses`) }] : []} />)}
+              {shown.map((x) => <FileCard key={x.id} file={x} view="grid" {...cardProps} extraMenu={formMenu(<ListChecks size={20} />)} />)}
             </div>
           )}
         </div>

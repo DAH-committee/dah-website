@@ -1,0 +1,6808 @@
+{
+ "version": 1,
+ "meta": {
+  "created": "2026-10-12T00:00:00Z",
+  "title": "표 시험(병합, 선, 중첩, 쪽 넘김)"
+ },
+ "page": {
+  "size": "A4",
+  "orientation": "portrait",
+  "marginMm": {
+   "top": 20,
+   "right": 20,
+   "bottom": 15,
+   "left": 20
+  },
+  "headerMm": 10,
+  "footerMm": 10
+ },
+ "defaults": {
+  "font": {
+   "ko": "맑은 고딕",
+   "latin": "맑은 고딕"
+  },
+  "sizePt": 10,
+  "lineSpacing": {
+   "mode": "percent",
+   "value": 130
+  },
+  "color": "#000000",
+  "align": "left"
+ },
+ "footer": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "- "
+    },
+    {
+     "field": "page"
+    },
+    {
+     "text": " / "
+    },
+    {
+     "field": "pages"
+    },
+    {
+     "text": " -"
+    }
+   ],
+   "align": "center",
+   "lineSpacing": {
+    "mode": "percent",
+    "value": 100
+   }
+  }
+ ],
+ "body": [
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "표 시험 문서",
+     "sizePt": 18,
+     "bold": true
+    }
+   ],
+   "align": "center",
+   "spaceAfterPt": 6
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "1. 병합 모양 모음(가로, 세로, 2x2, 3x2)",
+     "bold": true,
+     "sizePt": 10
+    }
+   ],
+   "spaceBeforePt": 10,
+   "spaceAfterPt": 4,
+   "keepNext": true
+  },
+  {
+   "t": "table",
+   "widthPt": 481.9,
+   "colPt": [
+    80.3,
+    80.3,
+    80.3,
+    80.3,
+    80.3,
+    80.4
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "가로 2칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 2,
+       "bg": "#FFF3BF"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "가로 3칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 3,
+       "bg": "#D3F9D8"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "A1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "세로 3칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "rowspan": 3,
+       "bg": "#FFE3E3"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "B1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2x2 병합"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 2,
+       "rowspan": 2,
+       "bg": "#D0EBFF"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "B4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "B5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "C1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "C4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "C5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "D1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "3x2 병합"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 3,
+       "rowspan": 2,
+       "bg": "#E5DBFF"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "D5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "세로 2칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "rowspan": 2,
+       "bg": "#FFF3BF"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "E1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "E5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "F1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "가로 4칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 4,
+       "bg": "#D3F9D8"
+      }
+     ],
+     "heightPt": 24,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "2. 칸별 선 모양과 대각선",
+     "bold": true,
+     "sizePt": 10
+    }
+   ],
+   "spaceBeforePt": 10,
+   "spaceAfterPt": 4,
+   "keepNext": true
+  },
+  {
+   "t": "table",
+   "widthPt": 481.90000000000003,
+   "colPt": [
+    96.4,
+    96.4,
+    96.4,
+    96.4,
+    96.3
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "선 없음"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "none",
+         "widthPt": 0,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "none",
+         "widthPt": 0,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "none",
+         "widthPt": 0,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "none",
+         "widthPt": 0,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이중선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "double",
+         "widthPt": 2.25,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "double",
+         "widthPt": 2.25,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "double",
+         "widthPt": 2.25,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "double",
+         "widthPt": 2.25,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "파선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "dashed",
+         "widthPt": 1,
+         "color": "#C92A2A"
+        },
+        "right": {
+         "style": "dashed",
+         "widthPt": 1,
+         "color": "#C92A2A"
+        },
+        "bottom": {
+         "style": "dashed",
+         "widthPt": 1,
+         "color": "#C92A2A"
+        },
+        "left": {
+         "style": "dashed",
+         "widthPt": 1,
+         "color": "#C92A2A"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "점선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "dotted",
+         "widthPt": 1,
+         "color": "#1864AB"
+        },
+        "right": {
+         "style": "dotted",
+         "widthPt": 1,
+         "color": "#1864AB"
+        },
+        "bottom": {
+         "style": "dotted",
+         "widthPt": 1,
+         "color": "#1864AB"
+        },
+        "left": {
+         "style": "dotted",
+         "widthPt": 1,
+         "color": "#1864AB"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "굵은 선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 3,
+         "color": "#2B8A3E"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 3,
+         "color": "#2B8A3E"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 3,
+         "color": "#2B8A3E"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 3,
+         "color": "#2B8A3E"
+        }
+       }
+      }
+     ],
+     "heightPt": 36,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "위만 굵게"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 3,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "아래만 이중"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "double",
+         "widthPt": 2.25,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "왼쪽 없음"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "none",
+         "widthPt": 0,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "오른쪽 파선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "dashed",
+         "widthPt": 1.5,
+         "color": "#E8590C"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "굵고 가는 선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "thick-thin",
+         "widthPt": 3,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "thick-thin",
+         "widthPt": 3,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "thick-thin",
+         "widthPt": 3,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "thick-thin",
+         "widthPt": 3,
+         "color": "#000000"
+        }
+       }
+      }
+     ],
+     "heightPt": 36,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "대각선 \\"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "diagDown": {
+         "style": "solid",
+         "widthPt": 0.75,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "대각선 /"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "diagUp": {
+         "style": "solid",
+         "widthPt": 0.75,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "X 대각선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "diagDown": {
+         "style": "solid",
+         "widthPt": 0.75,
+         "color": "#000000"
+        },
+        "diagUp": {
+         "style": "solid",
+         "widthPt": 0.75,
+         "color": "#000000"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "색 대각선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 0.5,
+         "color": "#000000"
+        },
+        "diagDown": {
+         "style": "dashed",
+         "widthPt": 1,
+         "color": "#C92A2A"
+        }
+       }
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "배경+선"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "bg": "#FFF9DB",
+       "border": {
+        "top": {
+         "style": "solid",
+         "widthPt": 1.5,
+         "color": "#E67700"
+        },
+        "right": {
+         "style": "solid",
+         "widthPt": 1.5,
+         "color": "#E67700"
+        },
+        "bottom": {
+         "style": "solid",
+         "widthPt": 1.5,
+         "color": "#E67700"
+        },
+        "left": {
+         "style": "solid",
+         "widthPt": 1.5,
+         "color": "#E67700"
+        }
+       }
+      }
+     ],
+     "heightPt": 36,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "3. 세로쓰기, 정렬, 여백, 고정 높이",
+     "bold": true,
+     "sizePt": 10
+    }
+   ],
+   "spaceBeforePt": 10,
+   "spaceAfterPt": 4,
+   "keepNext": true
+  },
+  {
+   "t": "table",
+   "widthPt": 481.9,
+   "colPt": [
+    36,
+    148.6,
+    148.6,
+    148.7
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "세로 글"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "rowspan": 3,
+       "textDir": "vertical",
+       "bg": "#EDF2FF",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "위 정렬"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "top"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "가운데 정렬"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "아래 정렬"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "bottom"
+      }
+     ],
+     "heightPt": 54,
+     "heightRule": "exact"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "여백 크게"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "padPt": {
+        "t": 10,
+        "r": 20,
+        "b": 10,
+        "l": 20
+       },
+       "bg": "#F8F9FA"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "한 칸에 두 줄"
+          },
+          {
+           "br": true
+          },
+          {
+           "text": "두 번째 줄"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "오른쪽 정렬"
+          }
+         ],
+         "align": "right"
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 40,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "세로쓰기 칸"
+          }
+         ],
+         "align": "center"
+        }
+       ],
+       "textDir": "vertical",
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "exact 높이 18pt, 글이 넘침: 이 칸의 글은 정해진 높이보다 길어서 한글과 워드가 다르게 잘라낼 수 있다."
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": ""
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 18,
+     "heightRule": "exact"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "4. 중첩 표",
+     "bold": true,
+     "sizePt": 10
+    }
+   ],
+   "spaceBeforePt": 10,
+   "spaceAfterPt": 4,
+   "keepNext": true
+  },
+  {
+   "t": "table",
+   "widthPt": 481.9,
+   "colPt": [
+    120,
+    361.9
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "중첩 표가 든 칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "bg": "#F1F3F5"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "바깥 칸의 글 앞"
+          }
+         ]
+        },
+        {
+         "t": "table",
+         "widthPt": 210,
+         "colPt": [
+          70,
+          70,
+          70
+         ],
+         "rows": [
+          {
+           "cells": [
+            {
+             "blocks": [
+              {
+               "t": "p",
+               "runs": [
+                {
+                 "text": "안 1"
+                }
+               ],
+               "align": "center",
+               "lineSpacing": {
+                "mode": "percent",
+                "value": 130
+               }
+              }
+             ],
+             "vAlign": "middle",
+             "bg": "#E7F5FF"
+            },
+            {
+             "blocks": [
+              {
+               "t": "p",
+               "runs": [
+                {
+                 "text": "안 2"
+                }
+               ],
+               "align": "center",
+               "lineSpacing": {
+                "mode": "percent",
+                "value": 130
+               }
+              }
+             ],
+             "vAlign": "middle",
+             "bg": "#E7F5FF"
+            },
+            {
+             "blocks": [
+              {
+               "t": "p",
+               "runs": [
+                {
+                 "text": "안 3"
+                }
+               ],
+               "align": "center",
+               "lineSpacing": {
+                "mode": "percent",
+                "value": 130
+               }
+              }
+             ],
+             "vAlign": "middle",
+             "bg": "#E7F5FF"
+            }
+           ],
+           "heightPt": 20,
+           "heightRule": "atLeast"
+          },
+          {
+           "cells": [
+            {
+             "blocks": [
+              {
+               "t": "p",
+               "runs": [
+                {
+                 "text": "안 4"
+                }
+               ],
+               "align": "center",
+               "lineSpacing": {
+                "mode": "percent",
+                "value": 130
+               }
+              }
+             ],
+             "vAlign": "middle",
+             "colspan": 2
+            },
+            {
+             "blocks": [
+              {
+               "t": "p",
+               "runs": [
+                {
+                 "text": "안 5"
+                }
+               ],
+               "align": "center",
+               "lineSpacing": {
+                "mode": "percent",
+                "value": 130
+               }
+              }
+             ],
+             "vAlign": "middle"
+            }
+           ],
+           "heightPt": 20,
+           "heightRule": "atLeast"
+          }
+         ],
+         "border": {
+          "style": "solid",
+          "widthPt": 0.5,
+          "color": "#000000"
+         },
+         "padPt": {
+          "t": 1,
+          "r": 3,
+          "b": 1,
+          "l": 3
+         }
+        },
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "바깥 칸의 글 뒤"
+          }
+         ]
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 40,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "일반 칸"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "중첩 표 아래 행: 중첩 표가 있어도 바깥 열 폭은 그대로여야 한다."
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "heightPt": 28,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  },
+  {
+   "t": "p",
+   "runs": [
+    {
+     "text": "아래 표는 새 쪽에서 시작한다. 제목 두 행이 반복되고, 5행짜리 세로 병합이 쪽 경계를 가로지른다."
+    }
+   ],
+   "pageBreakBefore": true,
+   "spaceAfterPt": 6,
+   "keepNext": true
+  },
+  {
+   "t": "table",
+   "widthPt": 481.9,
+   "colPt": [
+    60,
+    90,
+    100,
+    231.9
+   ],
+   "rows": [
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "rowspan": 2,
+       "bg": "#DDE3F5"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "식별"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "colspan": 2,
+       "bg": "#DDE3F5"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "설명"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "rowspan": 2,
+       "bg": "#DDE3F5"
+      }
+     ],
+     "header": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "번호"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "bg": "#DDE3F5"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이름"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "bg": "#DDE3F5"
+      }
+     ],
+     "header": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 1 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 2 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 3 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 4 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 6 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 7 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 1"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 8 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "9"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 9"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 9 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "10"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 10"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "11"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 11"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 11 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "12"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 12"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 12 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "13"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 13"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 13 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "14"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 14"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 14 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "15"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 15"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 2"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "16"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 16"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 16 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "17"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 17"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 17 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "18"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 18"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 18 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "19"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 19"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 19 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "20"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 20"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "21"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 21"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 21 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "22"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 22"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 22 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 3"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "23"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 23"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 23 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "쪽 경계를 가로지르는 5행 병합"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle",
+       "rowspan": 5,
+       "bg": "#FFF3BF"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "24"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 24"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 24 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "25"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 25"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "26"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 26"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 26 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "27"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 27"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 27 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "28"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 28"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 28 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "29"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 29"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 29 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "30"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 30"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "31"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 31"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 31 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 4"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "32"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 32"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 32 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "33"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 33"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 33 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "34"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 34"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 34 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "35"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 35"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "36"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 36"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 36 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "37"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 37"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 37 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "38"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 38"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 38 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "39"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 39"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 39 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 5"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "40"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 40"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "41"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 41"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 41 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "42"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 42"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 42 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "43"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 43"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 43 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "44"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 44"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 44 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "45"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 45"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "46"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 46"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 46 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "47"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 47"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 47 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 6"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "48"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 48"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 48 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "49"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 49"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 49 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "50"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 50"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "51"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 51"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 51 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "52"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 52"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 52 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "53"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 53"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 53 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "54"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 54"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 54 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "55"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 55"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 7"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "56"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 56"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 56 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "57"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 57"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 57 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "58"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 58"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 58 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "59"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 59"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 59 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "60"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 60"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "이 행은 여러 줄이 되도록 일부러 긴 설명을 넣는다. 한 행이 쪽 경계에서 반으로 갈라지지 않아야 하며, 제목 행이 다음 쪽 위에 다시 나와야 한다."
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "61"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 61"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 61 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "62"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 62"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 62 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "63"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 63"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 63 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    },
+    {
+     "cells": [
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "묶음 8"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "64"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "항목 64"
+          }
+         ],
+         "align": "center",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      },
+      {
+       "blocks": [
+        {
+         "t": "p",
+         "runs": [
+          {
+           "text": "행 64 설명"
+          }
+         ],
+         "align": "justify",
+         "lineSpacing": {
+          "mode": "percent",
+          "value": 130
+         }
+        }
+       ],
+       "vAlign": "middle"
+      }
+     ],
+     "cantSplit": true,
+     "heightPt": 22,
+     "heightRule": "atLeast"
+    }
+   ],
+   "border": {
+    "style": "solid",
+    "widthPt": 0.5,
+    "color": "#000000"
+   },
+   "padPt": {
+    "t": 2,
+    "r": 5.4,
+    "b": 2,
+    "l": 5.4
+   }
+  }
+ ],
+ "assets": {}
+}
