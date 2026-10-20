@@ -482,7 +482,9 @@ async function handleFormUpload(req, res, ctx) {
 
 async function handleGeneralUpload(req, res) {
   const usage = String(req.body?.usage || req.query.usage || 'general')
-  if (!req.user && !PUBLIC_USAGES.includes(usage)) {
+  // 사이트 관리자(req.user)뿐 아니라 구글 로그인한 DAH Docs 사용자(req.publicUser)도 문서에 넣을 이미지를 올릴 수 있다.
+  // 문서 파일(hwp, pdf 등)은 아래에서 계속 관리자만 허용한다.
+  if (!req.user && !req.publicUser && !PUBLIC_USAGES.includes(usage)) {
     return res.status(403).json({ error: 'login required for this upload usage', allowed: PUBLIC_USAGES })
   }
   if (req.file.size > DEFAULT_MAX_BYTES) {

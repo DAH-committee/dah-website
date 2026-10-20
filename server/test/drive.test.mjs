@@ -17,6 +17,9 @@ import assert from 'node:assert/strict'
 import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import sharp from 'sharp'
+import fs from 'node:fs'
+import path from 'node:path'
+import { UPLOADS_DIR } from '../src/routes/upload.js'
 import { createApp } from '../src/app.js'
 import {
   ensureFolderPath,
@@ -912,4 +915,20 @@ test('(25) 이름이 같은 폴더가 이미 두 개면 가장 먼저 만들어�
   assert.equal(result.folderId, 'id-1')
   assert.equal(result.duplicates.length, 1)
   assert.deepEqual(result.duplicates[0].ids, ['id-1', 'id-2'])
+})
+
+test('(문서 이미지) 구글 로그인 사용자는 문서용 이미지를 올릴 수 있고, 문서 파일과 비로그인 업로드는 막힌다', async () => {
+  const savedBlob = process.env.BLOB_READ_WRITE_TOKEN
+  delete process.env.BLOB_READ_WRITE_TOKEN
+  const app = createApp({ db: { query: async () => ({ rows: [] }) } })
+  const ok = await request(app).post('/upload').set('Cookie', publicCookie()).field('usage', 'general').attach('file', PNG, 'shot.png')
+  assert.equal(ok.status, 201)
+  assert.match(ok.body.url, /\/uploads\/general\/.+\.webp$/)
+  const local = ok.body.url.split('/uploads/')[1]
+  if (local) fs.rmSync(path.join(UPLOADS_DIR, local), { force: true })
+  const doc = await request(app).post('/upload').set('Cookie', publicCookie()).field('usage', 'general').attach('file', Buffer.from('%PDF-1.4'), 'a.pdf')
+  assert.equal(doc.status, 403)
+  const anon = await request(app).post('/upload').field('usage', 'general').attach('file', PNG, 'shot.png')
+  assert.equal(anon.status, 403)
+  if (savedBlob) process.env.BLOB_READ_WRITE_TOKEN = savedBlob
 })

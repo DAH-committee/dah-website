@@ -3,7 +3,7 @@
 // 열람: 관리자 로그인(manager 이상) 또는 열람 비밀번호. 편집·댓글·탭 관리: 관리자 로그인.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { confirmDialog, promptDialog } from '../../components/common/AppDialog'
+import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import AccountMenu, { AVATAR_PURPLE, useMe } from '../../components/common/AccountMenu'
 import ShareDialog, { useShareIcon } from '../../components/common/ShareDialog'
 import NoAccess from '../../components/common/NoAccess'
@@ -500,6 +500,7 @@ export default function HandoverDoc() {
   const [lightbox, setLightbox] = useState(null)
   const [linkBubble, setLinkBubble] = useState(null)
   const [sizeDraft, setSizeDraft] = useState('11')
+  const insertImageRef = useRef(null) // useEditor 안의 붙여넣기·드롭 처리가 최신 insertImage를 부르도록
   const [toast, setToast] = useState('')
   const [, force] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -623,6 +624,26 @@ export default function HandoverDoc() {
       ],
       content: doc ? doc.content || doc.content_html || '<p></p>' : '',
       editable: false,
+      // 캡처 붙여넣기(⌘V)와 파일 끌어다 놓기: 이미지 파일이면 업로드해서 넣는다.
+      editorProps: {
+        handlePaste: (view, event) => {
+          if (!view.editable) return false
+          const files = [...(event.clipboardData?.files || [])].filter((f) => /^image\//.test(f.type))
+          if (!files.length) return false
+          event.preventDefault()
+          ;(async () => { for (const f of files) await insertImageRef.current?.(f) })()
+          return true
+        },
+        handleDrop: (view, event, _slice, moved) => {
+          if (moved || !view.editable) return false
+          const files = [...(event.dataTransfer?.files || [])].filter((f) => /^image\//.test(f.type))
+          if (!files.length) return false
+          event.preventDefault()
+          const at = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos
+          ;(async () => { for (const f of files) await insertImageRef.current?.(f, at) })()
+          return true
+        },
+      },
       onUpdate: ({ editor: ed, transaction }) => {
         refreshOutline(ed)
         if (!ed.isEditable || !transaction?.docChanged) return
@@ -906,10 +927,23 @@ export default function HandoverDoc() {
     else editor.chain().focus().extendMarkRange('link').setLink({ href: /^https?:|^mailto:|^\//.test(url) ? url : `https://${url}` }).run()
   }
 
-  async function insertImage(file) {
-    const r = await api.upload(file, { usage: 'general' })
-    editor.chain().focus().setImage({ src: r.url }).run()
+  // 이미지 넣기: 툴바 버튼, 붙여넣기(캡처 ⌘V), 끌어다 놓기가 모두 이 함수를 쓴다.
+  // 실패하면 이유를 알려 준다(예전에는 조용히 아무 일도 일어나지 않았다).
+  async function insertImage(file, pos) {
+    if (!file || !/^image\//.test(file.type || '') && !/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name || '')) return
+    if (file.size > 20 * 1024 * 1024) { await alertDialog({ message: '이미지는 20MB 이하만 넣을 수 있습니다.' }); return }
+    try {
+      const r = await api.upload(file, { usage: 'general' })
+      if (!r?.url) throw new Error('업로드 응답에 주소가 없습니다')
+      const chain = editor.chain().focus()
+      if (typeof pos === 'number') chain.insertContentAt(pos, { type: 'image', attrs: { src: r.url } }).run()
+      else chain.setImage({ src: r.url }).run()
+    } catch (err) {
+      const why = err?.status === 401 || err?.status === 403 ? '로그인이 풀렸거나 권한이 없습니다. 다시 로그인한 뒤 시도하세요.' : (err?.message || '알 수 없는 오류')
+      await alertDialog({ message: `이미지를 올리지 못했습니다. ${why}` })
+    }
   }
+  insertImageRef.current = insertImage
 
   async function insertSecret() {
     const label = await promptDialog({ title: '비밀값 추가', label: '이름 (예: 공식 Gmail 비밀번호)', confirmLabel: '다음' })
@@ -1264,7 +1298,7 @@ export default function HandoverDoc() {
         <TB icon={MessageSquarePlus} label="댓글 추가 (⌘⌥M)" onClick={startComment} disabled={!canEdit} />
         <label className={`gd-tb${editing ? '' : ' is-disabled'}`} title="이미지 삽입">
           <ImagePlus size={18} strokeWidth={1.8} />
-          <input id="gd-img-input" type="file" accept="image/*" hidden disabled={!editing} onChange={(e) => e.target.files[0] && insertImage(e.target.files[0])} />
+          <input id="gd-img-input" type="file" accept="image/*" hidden disabled={!editing} onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) insertImage(f) }} />
         </label>
         <TB icon={KeyRound} label="비밀값 삽입" onClick={insertSecret} disabled={!editing} />
         <span className="gd-sep" />
