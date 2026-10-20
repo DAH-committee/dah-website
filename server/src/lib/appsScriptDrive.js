@@ -177,6 +177,7 @@ export function createAppsScriptDriveClient({ url, secret, fetchImpl, timeoutMs 
           fileId,
           type: requestBody.type || 'anyone',
           role: requestBody.role || 'reader',
+          emailAddress: requestBody.emailAddress || '',
         })
         return { data }
       },

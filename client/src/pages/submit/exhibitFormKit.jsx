@@ -195,8 +195,8 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
 
 /**
  * 원본 파일 업로드 필드 — 과목을 먼저 고르지 않으면 잠긄다. 여러 파일을 차례대로 올릴 수
- * 있고, 올린 파일은 원본 그대로(변환 없이) Google Drive에 저장된다(서버 upload.js
- * context='exhibition-original' 경로). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
+ * 있고, 올린 파일은 원본 그대로 보관되며 제출 뒤 Google Drive로 자동 정리된다(PDF는 인쇄용 폴더,
+ * 이미지는 과목별 채점 폴더. 서버 lib/exhibitionPipeline.js). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
  */
 export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false }) {
   const inputRef = useRef(null)
@@ -295,6 +295,66 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       />
     </QuestionCard>
   )
+}
+
+const MAX_WORK_LINKS = 3
+
+/** 작품 링크(선택, 최대 3개). 전시회 웹사이트의 작품 페이지에 버튼으로 노출된다 */
+export function WorkLinksField({ links, onChange, disabled = false }) {
+  const rows = links.length ? links : []
+  const update = (i, key) => (e) => onChange(rows.map((l, j) => (j === i ? { ...l, [key]: e.target.value } : l)))
+  const bad = (u) => u.trim() && !/^https?:\/\/\S+$/i.test(u.trim())
+  return (
+    <QuestionCard label="작품 링크 (선택)" hint="프로토타입, 웹사이트, 영상 등 작품을 볼 수 있는 주소. 전시회 웹사이트 작품 페이지에 함께 표시됩니다">
+      {rows.map((l, i) => (
+        <div key={i} className="flex min-w-0 flex-wrap items-center gap-8">
+          <input
+            className={`${inputCls} max-w-[180px]`}
+            value={l.label}
+            onChange={update(i, 'label')}
+            placeholder="이름 (예: 프로토타입)"
+            maxLength={40}
+            disabled={disabled}
+            aria-label={`링크 ${i + 1} 이름`}
+          />
+          <input
+            className={`${inputCls} min-w-0 flex-1`}
+            value={l.url}
+            onChange={update(i, 'url')}
+            placeholder="https://"
+            inputMode="url"
+            disabled={disabled}
+            aria-label={`링크 ${i + 1} 주소`}
+          />
+          {!disabled && (
+            <button
+              type="button"
+              onClick={() => onChange(rows.filter((_, j) => j !== i))}
+              aria-label={`링크 ${i + 1} 제거`}
+              className="inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-meta transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
+            >
+              <Trash2 size={16} aria-hidden="true" />
+            </button>
+          )}
+          {bad(l.url) && <p className="w-full text-caption-m text-state-error">https://로 시작하는 주소를 입력해 주세요</p>}
+        </div>
+      ))}
+      {!disabled && rows.length < MAX_WORK_LINKS && (
+        <button
+          type="button"
+          onClick={() => onChange([...rows, { label: '', url: '' }])}
+          className="inline-flex h-11 w-fit cursor-pointer items-center justify-center gap-8 rounded-sm border border-border-subtle bg-bg-panel px-16 text-small-m font-semibold text-purple-primary transition duration-fast ease-out hover:bg-bg-elev"
+        >
+          링크 추가
+        </button>
+      )}
+    </QuestionCard>
+  )
+}
+
+/** 작품 링크 제출값: 주소가 있는 것만 */
+export function cleanLinks(links) {
+  return (links || []).map((l) => ({ label: String(l.label || '').trim(), url: String(l.url || '').trim() })).filter((l) => /^https?:\/\/\S+$/i.test(l.url))
 }
 
 /** 팀원 목록. 팀원 한 명이 이름, 학번, 전공 밑줄 입력 세 칸이다. 최소 1행 유지 */

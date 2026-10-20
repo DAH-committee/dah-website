@@ -2,6 +2,7 @@
 // 라우트 구성은 12_BACKEND.md 8절 API 계약. DATABASE_URL 미설정 시 /health(및 로컬 업로드 정적
 // 서빙)만 동작하고 나머지는 명확한 JSON 에러(완료 조건).
 import express from 'express'
+import exhibitionSiteRouter from './routes/exhibitionSite.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { isConfigured, setDb } from './db.js'
@@ -32,6 +33,9 @@ export function createApp(options = {}) {
   // 접속 경로: 브라우저 → Vercel(/api 전달) → Render 입구 → 이 서버. 프록시가 두 겹이라 2로 두어야 rate limit이 실제 접속자 IP를 본다
   // (1이면 모든 접속자가 Vercel의 IP 하나로 보여 접수 한도를 서로 나눠 쓰게 된다).
   app.set('trust proxy', 2)
+
+  // 학기별 전시회 사이트(다른 도메인)용 API. 전역 CORS 화이트리스트보다 먼저 붙인다(자체 CORS, Bearer 토큰)
+  app.use('/exhibition-site', exhibitionSiteRouter)
 
   // CORS: 프론트 도메인 화이트리스트 + 쿠키 자격증명 (httpOnly 인증 쿠키)
   app.use(

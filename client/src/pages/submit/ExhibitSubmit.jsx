@@ -32,7 +32,7 @@ import { useAuth } from '../../context/AuthContext'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { EXHIBITION_SUFFIX, exhibitionFullTitle } from '../../data/exhibitionTitle'
 import { isValidPhone } from '../../utils/format'
-import { MemberRows, OriginalFilesField, PhoneInput, SubjectField } from './exhibitFormKit'
+import { MemberRows, OriginalFilesField, PhoneInput, SubjectField, WorkLinksField, cleanLinks } from './exhibitFormKit'
 import {
   DESC_MAX,
   ENTRY_TYPE_LABEL,
@@ -108,6 +108,7 @@ function ExhibitSubmit() {
   const [error, setError] = useState(null)
   // 53_DRIVE_STORAGE(전시회 확장): 원본 파일은 과목을 고른 다월에 Google Drive로 올리다.
   // 파일을 하나니란 올리게 되자마자 과목 선택을 잠금 밖에(거론 폴더 보존).
+  const [workLinks, setWorkLinks] = useState([])
   const [originalFiles, setOriginalFiles] = useState([])
   const [filesUploading, setFilesUploading] = useState(false)
 
@@ -156,6 +157,7 @@ function ExhibitSubmit() {
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
         original_files: originalFiles,
+        links: cleanLinks(workLinks),
       }
       const fields = isTeam
         ? {
@@ -367,6 +369,8 @@ function ExhibitSubmit() {
               </span>
             </MiniField>
           </QuestionCard>
+
+          <WorkLinksField links={workLinks} onChange={setWorkLinks} />
 
           {error && (
             <p role="alert" className="px-4 text-small-m text-state-error">

@@ -1,6 +1,7 @@
 // DAH API 서버 진입점. 앱 구성은 src/app.js(createApp), DB는 src/db.js. 12_BACKEND.md 참조.
 import 'dotenv/config'
 import { createApp } from './app.js'
+import { runAutoTasks } from './lib/exhibitionPipeline.js'
 import { isConfigured, ensurePublicAuthSchema, ensureDriveSchema, ensureSheetStateSchema, ensureHandoverSchema } from './db.js'
 
 const PORT = process.env.PORT || 4000
@@ -20,4 +21,12 @@ app.listen(PORT, async () => {
   await ensureSheetStateSchema()
   await ensureHandoverSchema()
   console.log('[dah-server] google drive 저장소 스키마 확인 완료')
+  // 전시회 자동 작업: 드라이브 재전송, 수정 마감 뒤 채점기준표와 교수님 공유. EXHIBIT_AUTO=off면 끈다
+  if (process.env.EXHIBIT_AUTO !== 'off') {
+    const tick = () => runAutoTasks().then((r) => {
+      if (r?.sync?.synced || r?.sync?.failed || r?.rubrics || r?.share?.shared?.length) console.log('[exhibit-auto]', JSON.stringify(r))
+    }).catch((err) => console.error('[exhibit-auto] 실패:', err.message))
+    setTimeout(tick, 60 * 1000)
+    setInterval(tick, 10 * 60 * 1000)
+  }
 })

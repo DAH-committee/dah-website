@@ -71,7 +71,7 @@ function doPost(e) {
       case 'get':
         return json(getMeta(body.fileId));
       case 'share':
-        return json(share(body.fileId, body.type, body.role));
+        return json(share(body.fileId, body.type, body.role, body.emailAddress));
       case 'trash':
         return json(trash(body.fileId));
       case 'createSheet':
@@ -181,11 +181,15 @@ function getMeta(fileId) {
   };
 }
 
-/** 기본은 제한 공유다. 사이트에서 "링크 보기 허용"을 고른 파일만 이 함수가 호출된다 */
-function share(fileId, type, role) {
-  var file = DriveApp.getFileById(fileId);
+/** 기본은 제한 공유다. 'anyone'은 링크 보기, 'user'는 이메일 주소 한 명에게(채점 폴더·채점기준표를 교수님께) 공유한다 */
+function share(fileId, type, role, emailAddress) {
+  var item;
+  try { item = DriveApp.getFileById(fileId); } catch (e) { item = DriveApp.getFolderById(fileId); }
   if (type === 'anyone') {
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, role === 'writer' ? DriveApp.Permission.EDIT : DriveApp.Permission.VIEW);
+    item.setSharing(DriveApp.Access.ANYONE_WITH_LINK, role === 'writer' ? DriveApp.Permission.EDIT : DriveApp.Permission.VIEW);
+  } else if (type === 'user' && emailAddress) {
+    if (role === 'writer') item.addEditor(String(emailAddress));
+    else item.addViewer(String(emailAddress));
   }
   return { ok: true, id: fileId };
 }

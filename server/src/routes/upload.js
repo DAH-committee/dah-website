@@ -48,6 +48,7 @@ import {
   uploadToConnection,
 } from '../lib/driveConnections.js'
 import { wrap } from './content.js'
+import { fileKind, makeWebVersion, randomPart, storePublic } from '../lib/exhibitionPipeline.js'
 
 const router = Router()
 
@@ -177,16 +178,6 @@ async function handleExhibitionUpload(req, res) {
     throw httpError('선택한 과목이 등록된 과목 목록에 없습니다. 다시 선택해 주세요.', 422, { code: 'course_not_allowed' })
   }
 
-  const { rows } = await query('SELECT drive_connection_id FROM exhibition_settings WHERE id = 1', [])
-  const connectionId = rows[0]?.drive_connection_id
-  if (!connectionId) {
-    throw httpError(
-      '전시회 원본 저장소가 아직 설정되지 않았습니다. 관리자에게 알려주세요.',
-      409,
-      { code: 'connection_none' }
-    )
-  }
-
   const ext = extOf(req.file.originalname)
   if (BLOCKED_EXTS.includes(ext)) throw httpError(`blocked file type: .${ext}`, 400)
   const mimeLooksImage = Boolean(req.file.mimetype?.startsWith('image/'))
@@ -200,30 +191,24 @@ async function handleExhibitionUpload(req, res) {
   const key = exhibitionUploadKey({ email: req.publicUser.email, course, buffer: req.file.buffer, originalname: req.file.originalname })
   const existing = await findUploadByKey(key)
   if (existing && existing.status !== 'deleted') {
-    return res.status(200).json({ ...uploadResponse(existing), idempotent: true })
+    return res.status(200).json({ ...uploadResponse(existing), webUrl: existing.web_url || null, idempotent: true })
   }
 
-  const connection = await resolveConnection({ connectionId })
-  const { rootFolderId } = resolveRootFolderId({ connection, formSettings: {} })
-  if (!rootFolderId) {
-    throw httpError('전시회 원본 저장소의 루트 폴더가 지정되지 않았습니다. 관리자에게 알려주세요.', 409, { code: 'root_missing' })
-  }
-  const { folderId } = await ensurePath({ connection, rootFolderId, segments: [course, '원본'] })
-
+  // 원본은 사이트 저장소에 바이트 그대로 보관한다. 드라이브 복사는 제출 뒤 exhibitionPipeline이 맡는다
+  // (드라이브 연결이 없거나 느려도 학생 접수가 막히지 않도록).
   const originalName = decodeOriginalName(path.basename(req.file.originalname || 'file'))
   const contentType = contentTypeFor(ext, req.file.mimetype)
-  const storedName = `${sanitizeBaseName(originalName)}_${crypto.randomUUID().slice(0, 8)}.${ext || 'bin'}`
+  const stem = randomPart()
+  const storedName = `${sanitizeBaseName(originalName)}_${stem.slice(-8)}.${ext || 'bin'}`
+  const baseUrl = `${req.protocol}://${req.get('host')}`
+  const blobUrl = await storePublic(`exhibition/original/${stem}/${storedName}`, req.file.buffer, contentType, baseUrl)
 
-  const saved = await uploadToConnection({
-    connection,
-    folderId,
-    buffer: req.file.buffer,
-    filename: storedName,
-    mimeType: contentType,
-    shareMode: 'restricted', // 전시회 원본은 기본적으로 제한됨(학생 개인정보 포함)
-    originalName,
-    properties: { course, submitter: req.publicUser.email },
-  })
+  const kind = fileKind(originalName, contentType)
+  let web = null
+  if (kind === 'image') {
+    const v = await makeWebVersion(req.file.buffer)
+    if (v) web = { url: await storePublic(`exhibition/web/${stem}.webp`, v.buffer, 'image/webp', baseUrl), meta: v.meta }
+  }
 
   const row = await insertUpload({
     formId: null,
@@ -231,18 +216,22 @@ async function handleExhibitionUpload(req, res) {
     publicUserId: req.publicUser.id,
     submitterEmail: req.publicUser.email,
     idempotencyKey: key,
-    storage: 'google-drive',
+    storage: process.env.BLOB_READ_WRITE_TOKEN ? 'blob' : 'local',
     purpose: 'original',
-    connectionId: connection.id || null,
-    driveFileId: saved.id,
-    fileUrl: saved.url,
-    folderId,
+    connectionId: null,
+    driveFileId: null,
+    fileUrl: blobUrl,
+    folderId: null,
     originalName,
-    storedName: saved.name,
-    mime: saved.type,
-    bytes: saved.bytes,
+    storedName,
+    mime: contentType,
+    bytes: req.file.size,
   })
-  return res.status(201).json({ ...uploadResponse(row), format: ext, path: [course, '원본'] })
+  await query(
+    'UPDATE form_file_uploads SET blob_url = $2, web_url = $3, web_meta = $4, drive_kind = $5 WHERE id = $1',
+    [row.id, blobUrl, web?.url || null, web ? JSON.stringify(web.meta) : null, kind]
+  )
+  return res.status(201).json({ ...uploadResponse({ ...row, file_url: blobUrl }), format: ext, kind, webUrl: web?.url || null })
 }
 
 // ── 폼 업로드 ──────────────────────────────────────────────

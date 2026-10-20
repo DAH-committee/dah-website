@@ -30,7 +30,7 @@ import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { isValidPhone } from '../../utils/format'
-import { MemberRows, OriginalFilesField, PhoneInput } from './exhibitFormKit'
+import { MemberRows, OriginalFilesField, PhoneInput, WorkLinksField, cleanLinks } from './exhibitFormKit'
 import { DESC_MAX, ENTRY_TYPE_LABEL, formatKst, submitErrorMessage } from './exhibitFormShared'
 
 const EMPTY_MEMBER = { name: '', studentNo: '', major: '' }
@@ -78,6 +78,7 @@ function toMembers(entry) {
  * @param {boolean} showBack 목록으로 돌아가는 동선 노출 여부(접수 2건 이상)
  */
 function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, onSaved }) {
+  const [workLinks, setWorkLinks] = useState(() => (Array.isArray(entry.fields?.links) ? entry.fields.links : []))
   const [form, setForm] = useState(() => toForm(entry))
   const [members, setMembers] = useState(() => toMembers(entry))
   const [originalFiles, setOriginalFiles] = useState(() => toOriginalFiles(entry))
@@ -123,6 +124,7 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
         phone: form.phone.trim(),
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
+        links: cleanLinks(workLinks),
         original_files: originalFiles,
       }
       const fields = isTeam
@@ -236,6 +238,8 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
           </span>
         </MiniField>
       </QuestionCard>
+
+      <WorkLinksField links={workLinks} onChange={setWorkLinks} disabled={!canEdit} />
 
       {error && (
         <p role="alert" className="px-4 text-small-m text-state-error">

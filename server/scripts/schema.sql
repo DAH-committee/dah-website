@@ -437,3 +437,41 @@ CREATE TABLE IF NOT EXISTS form_file_uploads (
 CREATE UNIQUE INDEX IF NOT EXISTS uq_form_file_uploads_idem ON form_file_uploads (idempotency_key);
 CREATE INDEX IF NOT EXISTS idx_form_file_uploads_form ON form_file_uploads (form_id, status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_form_file_uploads_url ON form_file_uploads (file_url);
+
+
+-- 전시회 자동화 (scripts/migrate-exhibit-auto.mjs와 같은 내용)
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS blob_url TEXT;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_url TEXT;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS web_meta JSONB;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_status TEXT;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_error TEXT;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_url TEXT;
+ALTER TABLE form_file_uploads ADD COLUMN IF NOT EXISTS drive_kind TEXT;
+CREATE INDEX IF NOT EXISTS idx_form_file_uploads_drive ON form_file_uploads (drive_status) WHERE drive_status IS NOT NULL;
+CREATE TABLE IF NOT EXISTS exhibition_awards (
+  id             SERIAL PRIMARY KEY,
+  semester_label TEXT NOT NULL,
+  rank           TEXT NOT NULL CHECK (rank IN ('grand','excellence')),
+  slot           INTEGER NOT NULL DEFAULT 0,
+  entry_id       INTEGER NOT NULL,
+  course         TEXT NOT NULL,
+  created_by     TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_course ON exhibition_awards (semester_label, course);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_slot ON exhibition_awards (semester_label, rank, slot);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_exhibition_awards_entry ON exhibition_awards (semester_label, entry_id);
+CREATE TABLE IF NOT EXISTS exhibition_rubrics (
+  id             SERIAL PRIMARY KEY,
+  semester_label TEXT NOT NULL,
+  course         TEXT NOT NULL,
+  sheet_id       TEXT,
+  sheet_url      TEXT,
+  folder_id      TEXT,
+  folder_url     TEXT,
+  entry_ids      JSONB NOT NULL DEFAULT '[]',
+  shared_with    JSONB NOT NULL DEFAULT '[]',
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_exhibition_rubrics_sem ON exhibition_rubrics (semester_label, course);

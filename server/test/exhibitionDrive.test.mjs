@@ -14,13 +14,19 @@ process.env.GOOGLE_DRIVE_REDIRECT_URI = 'http://localhost:4000/auth/google/drive
 delete process.env.DATABASE_URL
 delete process.env.GOOGLE_DRIVE_REFRESH_TOKEN
 
-import { test } from 'node:test'
+import { test, before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import request from 'supertest'
+import sharp from 'sharp'
 import jwt from 'jsonwebtoken'
 import { createApp } from '../src/app.js'
 import { setDriveClientFactory, resetDriveClientFactory } from '../src/lib/googleDrive.js'
 import { seal } from '../src/lib/secretBox.js'
+
+// 원본 보관은 Blob 토큰이 없으면 로컬 uploads 폴더에 한다(테스트는 로컬)
+const savedBlobToken = process.env.BLOB_READ_WRITE_TOKEN
+before(() => { delete process.env.BLOB_READ_WRITE_TOKEN })
+after(() => { if (savedBlobToken) process.env.BLOB_READ_WRITE_TOKEN = savedBlobToken })
 
 function fakeDrive() {
   let seq = 0
@@ -202,6 +208,7 @@ const useDrive = (client) => {
   return () => resetDriveClientFactory()
 }
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3])
+const REAL_PNG = await sharp({ create: { width: 40, height: 60, channels: 3, background: '#7157d9' } }).png().toBuffer()
 
 test('(E1) 저장된 과목 목록 안의 값만 원본 업로드 경로가 된다', async () => {
   const db = makeDb()
@@ -223,15 +230,17 @@ test('(E1) 저장된 과목 목록 안의 값만 원본 업로드 경로가 된�
     .set('Cookie', publicCookie())
     .field('context', 'exhibition-original')
     .field('course', '디자인씽킹')
-    .attach('file', PNG, '작품 원본.png')
+    .attach('file', REAL_PNG, '작품 원본.png')
   assert.equal(good.status, 201)
-  assert.deepEqual(good.body.path, ['디자인씽킹', '원본'])
   assert.equal(good.body.type, 'image/png')
-  assert.equal(good.body.bytes, PNG.length) // 원본 무변환
+  assert.equal(good.body.bytes, REAL_PNG.length) // 원본 무변환
+  assert.equal(good.body.kind, 'image')
+  assert.match(good.body.webUrl || '', /\.webp$/) // 전시 사이트용 WebP 자동 생성
+  assert.equal(drive.calls.create, 0) // 드라이브 복사는 제출 뒤에 한다
   restore()
 })
 
-test('(E2) 저장소가 지정되지 않으면 409로 막힌다', async () => {
+test('(E2) 드라이브 저장소가 없어도 원본 업로드는 막히지 않는다(제출 뒤 대기열)', async () => {
   const db = makeDb({ connectionId: null })
   const restore = useDrive(fakeDrive())
   const app = createApp({ db: { query: db.query } })
@@ -241,8 +250,8 @@ test('(E2) 저장소가 지정되지 않으면 409로 막힌다', async () => {
     .field('context', 'exhibition-original')
     .field('course', '디자인씽킹')
     .attach('file', PNG, 'a.png')
-  assert.equal(res.status, 409)
-  assert.equal(res.body.error.includes('저장소'), true)
+  assert.equal(res.status, 201)
+  restore()
 })
 
 test('(E3) 비로그인은 원본을 올릴 수 없다', async () => {

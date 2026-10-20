@@ -10,6 +10,7 @@ import { requireSubmitterAuth as requirePublicAuth } from '../middleware/publicA
 import { submitLimiter } from '../middleware/rateLimit.js'
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
 import { attachExhibitionUploads } from '../lib/driveConnections.js'
+import { markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -52,6 +53,24 @@ function validImages(images) {
 }
 
 const MAX_ORIGINAL_FILES = 10
+
+// 작품 링크(선택): 전시 사이트에 노출한다. http(s)만, 최대 3개
+const MAX_WORK_LINKS = 3
+export function sanitizeLinks(links) {
+  if (!Array.isArray(links)) return []
+  return links
+    .map((l) => ({ label: String(l?.label || '').trim().slice(0, 40), url: String(l?.url || '').trim().slice(0, 500) }))
+    .filter((l) => /^https?:\/\/[^\s]+$/i.test(l.url))
+    .map((l) => ({ label: l.label || '작품 링크', url: l.url }))
+    .slice(0, MAX_WORK_LINKS)
+}
+
+// 제출·수정 뒤 원본을 드라이브로 보낸다. 응답을 기다리게 하지 않고, 실패해도 자동 작업이 다시 보낸다
+function queueDriveSync(entryId, urls, opts) {
+  markEntryFilesForSync(entryId, urls, opts)
+    .then(() => syncEntryToDrive(entryId))
+    .catch((err) => console.error('[submit/exhibition] 드라이브 전송 대기(자동 재시도):', err.message))
+}
 
 // 53_DRIVE_STORAGE(전시회 확장): 원본 파일 목록 형태 검증. url·name만 받고 나머지는 무시한다
 // (폴더 ID·연결 ID 같은 값을 클라이언트가 직접 보내도 서버는 밑지 않는다).
@@ -152,7 +171,7 @@ router.post(
       return res.status(400).json({ error: 'course must be one of the registered subjects' })
     }
 
-    const mergedFields = fields ? { ...fields, original_files: sanitizeOriginalFiles(fields.original_files) } : fields
+    const mergedFields = fields ? { ...fields, original_files: sanitizeOriginalFiles(fields.original_files), links: sanitizeLinks(fields.links) } : fields
     const { rows } = await query(
       `INSERT INTO exhibition_entries (semester_label, entry_type, fields, email, images, public_user_id)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -180,6 +199,7 @@ router.post(
     } catch (err) {
       console.error('[submit/exhibition] 업로드 상태 전환 실패(접수는 정상):', err.message)
     }
+    queueDriveSync(entry.id, (mergedFields?.original_files || []).map((f) => f.url))
 
     // 확인 메일은 접수와 독립. 실패해도 접수 응답은 성공하고 SMTP 미설정이면 조용히 스킵된다.
     sendExhibitionConfirmation(entry).catch((err) =>
@@ -239,6 +259,10 @@ router.put(
     if (fields?.original_files !== undefined) {
       mergedFields.original_files = sanitizeOriginalFiles(fields.original_files)
     }
+    if (fields?.links !== undefined) mergedFields.links = sanitizeLinks(fields.links)
+    // 작품명·이름이 바뀌면 드라이브 파일 이름도 바뀌어야 하므로 다시 보낸다
+    const nameKey = (f) => JSON.stringify([f?.work_title, f?.name, f?.student_no, f?.team_name, f?.members])
+    const resend = nameKey(entry.fields) !== nameKey(mergedFields)
 
     const updated = await query(
       `UPDATE exhibition_entries
@@ -257,6 +281,7 @@ router.put(
     } catch (err) {
       console.error('[submit/exhibition] 업로드 상태 전환 실패(수정은 정상):', err.message)
     }
+    queueDriveSync(entry.id, (mergedFields.original_files || []).map((f) => f.url), { resend })
     res.json({ entry: updated.rows[0] })
   })
 )
