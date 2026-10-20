@@ -6,7 +6,7 @@
 //   POST   /admin/sheets/export-google          표를 연결된 드라이브에 구글 시트로 만들기
 // 접수 전체 초기화(DELETE /admin/exhibition/entries, owner)는 adminExtra.js에 그대로 있다.
 import { Router } from 'express'
-import { syncEntryToDrive } from '../lib/exhibitionPipeline.js'
+import { markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
 import { query } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { wrap } from './content.js'
@@ -58,6 +58,17 @@ router.put(
     if (!Object.keys(patch).length && email === null && semester === null) {
       return res.status(400).json({ error: 'nothing to update' })
     }
+    // 수상작의 과목을 바꾸면 '과목당 1개' 규칙이 깨지지 않는지 먼저 본다
+    const { rows: beforeRows } = await query('SELECT semester_label, fields FROM exhibition_entries WHERE id = $1', [id])
+    const before = beforeRows[0]
+    const newCourse = patch.course !== undefined ? String(patch.course).trim() : null
+    if (before && newCourse !== null && newCourse !== String(before.fields?.course || '').trim()) {
+      const { rows: clash } = await query(
+        'SELECT 1 FROM exhibition_awards a WHERE a.semester_label = $1 AND a.course = $2 AND a.entry_id <> $3 AND EXISTS (SELECT 1 FROM exhibition_awards b WHERE b.entry_id = $3)',
+        [before.semester_label, newCourse, id]
+      )
+      if (clash.length) return res.status(409).json({ error: '바꾸려는 과목에 이미 수상작이 있습니다. 시상을 먼저 정리하세요' })
+    }
     const { rows } = await query(
       `UPDATE exhibition_entries
        SET fields = COALESCE(fields, '{}'::jsonb) || $1::jsonb,
@@ -69,6 +80,13 @@ router.put(
       [JSON.stringify(patch), email, semester, id]
     )
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
+    if (newCourse !== null) await query('UPDATE exhibition_awards SET course = $2 WHERE entry_id = $1', [id, newCourse])
+    // 작품명, 이름, 과목이 바뀌면 드라이브 파일 이름과 폴더도 바뀌어야 하므로 다시 보낸다
+    if (Object.keys(patch).some((k) => ['work_title', 'name', 'student_no', 'team_name', 'course'].includes(k)) || semester !== null) {
+      markEntryFilesForSync(id, (rows[0].fields?.original_files || []).map((f) => f.url), { resend: true })
+        .then(() => syncEntryToDrive(id))
+        .catch((err) => console.error('[entries/edit] 드라이브 재전송 대기:', err.message))
+    }
     res.json({ entry: rows[0] })
   })
 )

@@ -187,6 +187,8 @@ router.delete(
   requireAuth,
   requireRole('owner'),
   wrap(async (req, res) => {
+    // 드라이브 사본은 원칙대로 남기고, 시상 기록만 함께 지운다(지운 접수를 가리키는 시상이 남지 않도록)
+    await query('DELETE FROM exhibition_awards', [])
     const result = await query('DELETE FROM exhibition_entries', [])
     res.json({ ok: true, deleted: result.rowCount ?? 0 })
   })

@@ -61,3 +61,14 @@ test('WebP 변환: 긴 변 2400px 이하, 대표색 산출', async () => {
   assert.match(v.meta.keycolor, /^#[0-9a-f]{6}$/)
   assert.equal(await makeWebVersion(Buffer.from('%PDF-1.4')), null)
 })
+
+test('교차검토 반영: 학생 입력은 수식으로 실행되지 않고, 같은 키 작업은 차례로 실행된다', async () => {
+  const { textCell, withLock } = await import('../src/lib/exhibitionPipeline.js')
+  assert.equal(textCell('=IMPORTXML("http://x")'), '\'=IMPORTXML("http://x")')
+  assert.equal(textCell('+1'), "'+1")
+  assert.equal(textCell('보통 제목'), '보통 제목')
+  const order = []
+  const job = (n, ms) => withLock('k', async () => { order.push(`s${n}`); await new Promise((r) => setTimeout(r, ms)); order.push(`e${n}`) })
+  await Promise.all([job(1, 30), job(2, 1), job(3, 1)])
+  assert.deepEqual(order, ['s1', 'e1', 's2', 'e2', 's3', 'e3'])
+})

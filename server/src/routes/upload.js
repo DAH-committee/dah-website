@@ -188,11 +188,13 @@ async function handleExhibitionUpload(req, res) {
     throw httpError(`파일이 너무 큽니다. 최대 ${Math.round(DRIVE_MAX_BYTES / (1024 * 1024))}MB`, 413)
   }
 
-  const key = exhibitionUploadKey({ email: req.publicUser.email, course, buffer: req.file.buffer, originalname: req.file.originalname })
+  let key = exhibitionUploadKey({ email: req.publicUser.email, course, buffer: req.file.buffer, originalname: req.file.originalname })
   const existing = await findUploadByKey(key)
-  if (existing && existing.status !== 'deleted') {
+  // 같은 파일 재시도(아직 제출 전)만 기존 기록을 돌려준다. 이미 다른 접수에 붙었거나 뺀 파일을 다시 올리면 새 기록으로 받는다
+  if (existing && existing.status === 'pending') {
     return res.status(200).json({ ...uploadResponse(existing), webUrl: existing.web_url || null, idempotent: true })
   }
+  if (existing) key = `${key}:${randomPart()}`
 
   // 원본은 사이트 저장소에 바이트 그대로 보관한다. 드라이브 복사는 제출 뒤 exhibitionPipeline이 맡는다
   // (드라이브 연결이 없거나 느려도 학생 접수가 막히지 않도록).
@@ -227,6 +229,10 @@ async function handleExhibitionUpload(req, res) {
     mime: contentType,
     bytes: req.file.size,
   })
+  // 같은 파일이 동시에 두 번 들어와 다른 요청이 먼저 기록했다면 그 기록을 그대로 돌려준다(먼저 쓴 쪽을 덮지 않는다)
+  if (row.file_url !== blobUrl) {
+    return res.status(200).json({ ...uploadResponse(row), webUrl: row.web_url || null, idempotent: true })
+  }
   await query(
     'UPDATE form_file_uploads SET blob_url = $2, web_url = $3, web_meta = $4, drive_kind = $5 WHERE id = $1',
     [row.id, blobUrl, web?.url || null, web ? JSON.stringify(web.meta) : null, kind]

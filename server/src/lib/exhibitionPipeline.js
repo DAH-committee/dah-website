@@ -45,9 +45,28 @@ function hex(n) {
 }
 
 /** 전시 사이트용 WebP(긴 변 2400px)와 대표색. 이미지가 아니거나 해석에 실패하면 null */
-export async function makeWebVersion(buffer) {
+// 큰 포스터 여러 장이 동시에 들어와도 메모리가 넘치지 않도록 변환은 동시에 2개까지만 한다.
+// 픽셀 한도는 sharp 기본값(약 2.7억 화소, A2 600dpi 포스터도 들어간다)을 그대로 쓴다.
+let webSlots = 2
+const webWaiters = []
+async function withWebSlot(fn) {
+  if (webSlots === 0) await new Promise((r) => webWaiters.push(r))
+  webSlots--
   try {
-    const { data, info } = await sharp(buffer, { limitInputPixels: false, failOn: 'none' })
+    return await fn()
+  } finally {
+    webSlots++
+    webWaiters.shift()?.()
+  }
+}
+
+export async function makeWebVersion(buffer) {
+  return withWebSlot(() => makeWebVersionNow(buffer))
+}
+
+async function makeWebVersionNow(buffer) {
+  try {
+    const { data, info } = await sharp(buffer, { failOn: 'none' })
       .rotate()
       .resize({ width: WEB_MAX, height: WEB_MAX, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 82 })
@@ -198,19 +217,38 @@ async function fetchBuffer(url) {
   return Buffer.from(await res.arrayBuffer())
 }
 
+/** 휴지통 이동. 성공했거나 이미 없는 파일이면 ok, 그 밖의 실패는 error를 돌려줘 다시 시도하게 한다 */
 async function trashDriveFile(drive, fileId) {
-  if (!fileId) return
+  if (!fileId) return { ok: true }
   try {
     await drive.files.update({ fileId, requestBody: { trashed: true }, supportsAllDrives: true })
-  } catch {
-    /* 이미 지워졌으면 그대로 둔다 */
+    return { ok: true }
+  } catch (err) {
+    const gone = err?.status === 404 || err?.code === 404 || /not found|찾을 수 없/i.test(String(err?.message || ''))
+    return gone ? { ok: true } : { ok: false, error: String(err?.message || err).slice(0, 300) }
   }
+}
+
+// ── 잠금: 같은 접수(또는 같은 학기 채점표)는 한 번에 하나씩만 처리한다 ──
+// 제출 직후 전송, 10분 자동 작업, 관리자 수동 전송이 겹쳐도 같은 파일을 두 번 올리지 않는다(서버 1대 기준).
+const locks = new Map()
+export function withLock(key, fn) {
+  const prev = locks.get(key) || Promise.resolve()
+  const run = prev.catch(() => {}).then(fn)
+  const tail = run.catch(() => {})
+  locks.set(key, tail)
+  tail.then(() => { if (locks.get(key) === tail) locks.delete(key) })
+  return run
 }
 
 // ── 드라이브 복사 ───────────────────────────────────────────
 
 /** 접수 1건의 원본을 드라이브로 보낸다. 연결이 없으면 queued로 남긴다 */
-export async function syncEntryToDrive(entryId, { target: injected, drive: injectedDrive } = {}) {
+export function syncEntryToDrive(entryId, opts = {}) {
+  return withLock(`entry:${entryId}`, () => syncEntryNow(entryId, opts))
+}
+
+async function syncEntryNow(entryId, { target: injected, drive: injectedDrive } = {}) {
   const { rows: er } = await query('SELECT * FROM exhibition_entries WHERE id = $1', [entryId])
   const entry = er[0]
   const { rows: uploads } = await query(
@@ -237,9 +275,15 @@ export async function syncEntryToDrive(entryId, { target: injected, drive: injec
 
   // 접수에서 빠진 파일은 드라이브 사본도 휴지통으로
   for (const u of uploads.filter((x) => x.status === 'detached' && x.drive_status === 'synced')) {
-    await trashDriveFile(drive, u.drive_file_id)
-    await query("UPDATE form_file_uploads SET drive_status = 'trashed', updated_at = now() WHERE id = $1", [u.id])
-    result.trashed++
+    const t = await trashDriveFile(drive, u.drive_file_id)
+    if (t.ok) {
+      await query("UPDATE form_file_uploads SET drive_status = 'trashed', drive_error = NULL, updated_at = now() WHERE id = $1", [u.id])
+      result.trashed++
+    } else {
+      // synced로 남겨 다음 자동 작업에서 다시 지운다
+      await query('UPDATE form_file_uploads SET drive_error = $2, updated_at = now() WHERE id = $1', [u.id, `휴지통 이동 실패: ${t.error}`])
+      result.failed++
+    }
   }
   if (!entry) return result
 
@@ -255,7 +299,12 @@ export async function syncEntryToDrive(entryId, { target: injected, drive: injec
     for (const [i, u] of list.entries()) {
       if (u.drive_status === 'synced') continue
       try {
-        if (u.drive_file_id && u.drive_status === 'queued') await trashDriveFile(drive, u.drive_file_id) // 수정으로 다시 보내는 경우 예전 사본 정리
+        if (u.drive_file_id && u.drive_status === 'queued') {
+          // 수정으로 다시 보내는 경우: 예전 사본을 먼저 지우고, 실패하면 새로 올리지 않고 다음에 다시 시도한다
+          const t = await trashDriveFile(drive, u.drive_file_id)
+          if (!t.ok) throw new Error(`예전 사본 정리 실패: ${t.error}`)
+          await query('UPDATE form_file_uploads SET drive_file_id = NULL WHERE id = $1', [u.id])
+        }
         const buffer = await fetchBuffer(u.blob_url)
         const { folderId } = await ensurePath({ connection: target.connection, rootFolderId: target.rootFolderId, segments: driveSegments(entry, kind), drive })
         const saved = await uploadToConnection({
@@ -269,15 +318,27 @@ export async function syncEntryToDrive(entryId, { target: injected, drive: injec
           originalName: u.original_name,
           properties: { course: entry.fields?.course || '', entry: String(entry.id), kind },
         })
-        await query(
+        const { rows: now } = await query(
           `UPDATE form_file_uploads
               SET drive_status = 'synced', drive_error = NULL, drive_file_id = $2, drive_url = $3, folder_id = $4, drive_kind = $5, updated_at = now()
-            WHERE id = $1`,
+            WHERE id = $1
+            RETURNING status`,
           [u.id, saved.id, saved.url, folderId, kind]
         )
+        // 올리는 사이에 학생이 파일을 뺐거나 접수가 지워졌으면 방금 올린 사본을 바로 정리한다
+        if (now[0]?.status !== 'attached') {
+          const t = await trashDriveFile(drive, saved.id)
+          if (t.ok) await query("UPDATE form_file_uploads SET drive_status = 'trashed' WHERE id = $1", [u.id])
+        }
         result.synced++
       } catch (err) {
-        await query("UPDATE form_file_uploads SET drive_status = 'error', drive_error = $2, updated_at = now() WHERE id = $1", [u.id, String(err.message || err).slice(0, 300)])
+        // Apps Script 한도(기본 30MB)를 넘는 파일은 다시 시도해도 실패하므로 따로 표시하고 재시도하지 않는다
+        const oversize = err?.code === 'apps_script_too_large'
+        await query('UPDATE form_file_uploads SET drive_status = $3, drive_error = $2, updated_at = now() WHERE id = $1', [
+          u.id,
+          String(err.message || err).slice(0, 300),
+          oversize ? 'oversize' : 'error',
+        ])
         result.failed++
       }
     }
@@ -304,15 +365,32 @@ export async function markEntryFilesForSync(entryId, urls, { resend = false } = 
 }
 
 /** 대기·실패 건 일괄 재전송 */
+/** 제출은 됐는데 첨부 처리가 일시 오류로 빠진 원본을 다시 붙인다(접수의 original_files에 주소가 있는 pending 업로드) */
+export async function reconcileAttachments() {
+  const { rowCount } = await query(
+    `UPDATE form_file_uploads u
+        SET status = 'attached', response_id = e.id, attached_at = now(), drive_status = COALESCE(u.drive_status, 'queued'), updated_at = now()
+       FROM exhibition_entries e
+      WHERE u.form_id IS NULL AND u.field_id = 'exhibition_original' AND u.status = 'pending'
+        AND e.fields->'original_files' @> jsonb_build_array(jsonb_build_object('url', u.file_url))
+        AND (u.public_user_id IS NULL OR e.public_user_id IS NULL OR u.public_user_id = e.public_user_id)`
+  )
+  return rowCount || 0
+}
+
 export async function syncPendingAll({ limit = 50, semester = null } = {}) {
+  await reconcileAttachments()
+  // 지워진 접수(LEFT JOIN으로 e가 없음)의 드라이브 사본 정리도 포함한다. 오래 기다린 건부터 처리해 실패 건이 순서를 막지 않게 한다
   const { rows } = await query(
-    `SELECT DISTINCT u.response_id AS id
+    `SELECT u.response_id AS id, min(u.updated_at) AS t
        FROM form_file_uploads u
-       JOIN exhibition_entries e ON e.id = u.response_id
-      WHERE u.form_id IS NULL AND u.field_id = 'exhibition_original' AND u.blob_url IS NOT NULL
+       LEFT JOIN exhibition_entries e ON e.id = u.response_id
+      WHERE u.form_id IS NULL AND u.field_id = 'exhibition_original' AND u.blob_url IS NOT NULL AND u.response_id IS NOT NULL
         AND ((u.status = 'attached' AND COALESCE(u.drive_status, 'queued') IN ('queued', 'error'))
           OR (u.status = 'detached' AND u.drive_status = 'synced'))
-        AND ($2::text IS NULL OR e.semester_label = $2)
+        AND ($2::text IS NULL OR e.id IS NULL OR e.semester_label = $2)
+      GROUP BY u.response_id
+      ORDER BY t ASC
       LIMIT $1`,
     [limit, semester]
   )
@@ -341,7 +419,8 @@ export async function driveStatus(semester) {
     queued: by.queued?.n || 0,
     synced: by.synced?.n || 0,
     failed: by.error?.n || 0,
-    lastError: by.error?.err || '',
+    oversize: by.oversize?.n || 0,
+    lastError: by.error?.err || by.oversize?.err || '',
   }
 }
 
@@ -374,11 +453,17 @@ export function groupByCourse(entries, order = []) {
 // ── 채점기준표 ──────────────────────────────────────────────
 
 /** 과목 시트: 1행 PNG 폴더 링크, 3행 머리글, 4행부터 작품. 총점은 수식 */
+/** 학생이 쓴 글이 =, +, -, @로 시작하면 시트에서 수식으로 실행되지 않게 글자로 고정한다 */
+export function textCell(v) {
+  const s = String(v ?? '').trim()
+  return /^[=+\-@]/.test(s) ? `'${s}` : s
+}
+
 export function rubricValues({ course, entries, folderUrl, startNo = 1 }) {
   const rows = [['채점용 PNG 폴더', folderUrl || ''], [], RUBRIC_HEADER]
   entries.forEach((e, i) => {
     const r = rows.length + 1
-    rows.push([String(startNo + i), String(e.fields?.work_title || '').trim(), course, representativeLabel(e), '', '', '', '', `=IF(COUNT(E${r}:H${r})=0,"",SUM(E${r}:H${r}))`, ''])
+    rows.push([String(startNo + i), textCell(e.fields?.work_title), textCell(course), textCell(representativeLabel(e)), '', '', '', '', `=IF(COUNT(E${r}:H${r})=0,"",SUM(E${r}:H${r}))`, ''])
   })
   return rows
 }
@@ -389,7 +474,7 @@ export function masterRubricValues(groups) {
   for (const [course, list] of groups) {
     for (const e of list) {
       const r = rows.length + 1
-      rows.push([String(no++), String(e.fields?.work_title || '').trim(), course, representativeLabel(e), '', '', '', '', `=IF(COUNT(E${r}:H${r})=0,"",SUM(E${r}:H${r}))`, ''])
+      rows.push([String(no++), textCell(e.fields?.work_title), textCell(course), textCell(representativeLabel(e)), '', '', '', '', `=IF(COUNT(E${r}:H${r})=0,"",SUM(E${r}:H${r}))`, ''])
     }
   }
   return rows
@@ -404,7 +489,11 @@ export async function listRubrics(semester) {
 }
 
 /** 과목별 채점기준표 생성. 이미 있는 과목은 force가 아니면 건너뛴다(채점 중인 시트를 덮지 않기 위해) */
-export async function buildRubrics({ semester, force = false, target: injected, drive: injectedDrive } = {}) {
+export function buildRubrics(opts = {}) {
+  return withLock(`rubric:${opts.semester}`, () => buildRubricsNow(opts))
+}
+
+async function buildRubricsNow({ semester, force = false, target: injected, drive: injectedDrive } = {}) {
   const target = injected || (await exhibitionDriveConnection())
   if (!target) {
     const err = new Error('전시회 구글 드라이브가 연결되지 않았습니다. 전공 사이트 관리자 화면의 저장소 설정에서 먼저 연결해 주세요.')
@@ -477,7 +566,11 @@ async function grant(drive, fileId, email, role) {
 }
 
 /** 과목 PNG 폴더는 보기, 채점기준표는 편집 권한으로 교수님께 공유. 이미 공유한 주소는 건너뛴다 */
-export async function shareWithProfessors({ semester, target: injected, drive: injectedDrive } = {}) {
+export function shareWithProfessors(opts = {}) {
+  return withLock(`rubric:${opts.semester}`, () => shareNow(opts))
+}
+
+async function shareNow({ semester, target: injected, drive: injectedDrive } = {}) {
   const target = injected || (await exhibitionDriveConnection())
   if (!target) {
     const err = new Error('전시회 구글 드라이브가 연결되지 않았습니다.')
@@ -530,8 +623,9 @@ export async function runAutoTasks({ now = new Date() } = {}) {
       const target = await exhibitionDriveConnection()
       const status = await driveStatus(semester)
       if (target && status.queued === 0 && status.failed === 0) {
-        const existing = await listRubrics(semester)
-        if (!existing.length) out.rubrics = await buildRubrics({ semester, target })
+        // 이미 만든 과목은 건너뛰고 빠진 과목(지난번 실패 포함)만 만든다
+        const r = await buildRubrics({ semester, target })
+        if (r.created.length || r.master) out.rubrics = r
         out.share = await shareWithProfessors({ semester, target })
       }
     }
