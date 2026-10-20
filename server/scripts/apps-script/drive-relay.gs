@@ -19,6 +19,10 @@
  * 5. 사이트 관리 → 저장소 · Google Drive → "Apps Script 연결 추가"에 주소와 2번의 비밀키를 넣는다.
  * 6. "연결 점검"을 눌러 계정 이메일과 루트 폴더가 보이면 끝이다.
  *
+ * ── 30MB를 넘는 큰 파일 ───────────────────────────────────────────────────
+ * 편집기 왼쪽 서비스(+)에서 "Drive API"(v3)를 추가하고 새 버전으로 다시 배포한다. 큰 파일은 이 스크립트를 거치지 않고
+ * Drive로 직접 올라간다. 추가하지 않으면 30MB 이하 파일만 정리되고, 큰 파일은 '대기'로 남았다가 배포 뒤 자동으로 올라간다.
+ *
  * ── 접수 확인 메일과 매일 백업 (같은 스크립트가 함께 처리한다) ─────────────
  * 이 두 기능을 쓰려면 위 배포 순서의 3번에서 "새 버전"으로 다시 배포하고, 권한 승인 창에서
  * 메일 보내기, 스프레드시트, 외부 요청 권한을 허용한다. 배포 주소(.../exec)는 바뀌지 않는다.
@@ -68,6 +72,8 @@ function doPost(e) {
         return json(createFolder(body.parentId, body.name));
       case 'upload':
         return json(upload(body));
+      case 'startResumable':
+        return json(startResumable(body));
       case 'get':
         return json(getMeta(body.fileId));
       case 'share':
@@ -150,6 +156,40 @@ function upload(body) {
     size: String(file.getSize()),
     webViewLink: file.getUrl(),
   };
+}
+
+/**
+ * 30MB를 넘는 큰 파일용. 파일 본문은 이 스크립트를 거치지 않는다.
+ * Drive에 '이어 올리기 세션'만 만들고 그 주소를 돌려주면, 사이트 서버가 그 주소로 조각씩 직접 올린다.
+ * 이 기능을 쓰려면 편집기 왼쪽 서비스(+)에서 "Drive API"를 추가하고 새 버전으로 다시 배포한다.
+ */
+function startResumable(body) {
+  folderById(body.parentId); // 폴더가 있는지 먼저 확인한다(없으면 예외 → 404)
+  var res = UrlFetchApp.fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,mimeType,size,webViewLink',
+    {
+      method: 'post',
+      contentType: 'application/json; charset=UTF-8',
+      headers: {
+        Authorization: 'Bearer ' + ScriptApp.getOAuthToken(),
+        'X-Upload-Content-Type': String(body.mimeType || 'application/octet-stream'),
+        'X-Upload-Content-Length': String(body.size)
+      },
+      payload: JSON.stringify({
+        name: String(body.name || 'file'),
+        parents: [String(body.parentId)],
+        description: body.description ? String(body.description) : undefined
+      }),
+      muteHttpExceptions: true
+    }
+  );
+  if (res.getResponseCode() !== 200) {
+    throw new Error('Drive 이어 올리기를 시작하지 못했습니다 (' + res.getResponseCode() + '): ' + res.getContentText().slice(0, 200));
+  }
+  var headers = res.getAllHeaders();
+  var location = headers['Location'] || headers['location'];
+  if (!location) throw new Error('이어 올리기 주소를 받지 못했습니다.');
+  return { sessionUri: location };
 }
 
 function getMeta(fileId) {

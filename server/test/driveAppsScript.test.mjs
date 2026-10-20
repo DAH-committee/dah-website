@@ -187,17 +187,46 @@ test('(A8) 일시적 5xx는 재시도 후 성공한다', async () => {
   assert.ok(thrown)
 })
 
-test('(A9) 상한을 넘는 파일은 Drive까지 가지 않고 413으로 막는다', async () => {
+test('(A9) 30MB를 넘는 파일은 릴레이를 거치지 않고 Drive 이어 올리기로 조각씩 올라가며, 바이트가 그대로다', async () => {
+  const relay = fakeRelay()
+  const session = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&upload_id=abc'
+  const received = []
+  const fetchImpl = async (url, options) => {
+    if (url === session) {
+      const m = /bytes (\d+)-(\d+)\/(\d+)/.exec(options.headers['Content-Range'])
+      received.push({ start: Number(m[1]), end: Number(m[2]), body: Buffer.from(options.body) })
+      const last = Number(m[2]) + 1 === Number(m[3])
+      return last
+        ? { status: 200, text: async () => '', json: async () => ({ id: 'BIG1', name: 'big.zip', mimeType: 'application/zip', size: m[3] }) }
+        : { status: 308, text: async () => '' }
+    }
+    const body = JSON.parse(options.body)
+    if (body.action === 'startResumable') {
+      assert.equal(body.size, 31 * 1024 * 1024)
+      return { ok: true, status: 200, text: async () => JSON.stringify({ sessionUri: session }) }
+    }
+    return relay.fetchImpl(url, options)
+  }
+  const drive = createAppsScriptDriveClient({ url: URL_OK, secret: relay.secret, fetchImpl })
+  const { folderId } = await ensureFolderPath(drive, { rootFolderId: 'ROOT', segments: ['원본'] })
+  const big = Buffer.alloc(31 * 1024 * 1024, 7)
+  big[5] = 1; big[big.length - 3] = 9
+  const saved = await uploadFile(drive, { folderId, buffer: big, filename: 'big.zip', mimeType: 'application/zip' })
+  assert.equal(saved.id, 'BIG1')
+  assert.equal(relay.calls.filter((c) => c.action === 'upload').length, 0)
+  assert.ok(received.length >= 4)
+  assert.equal(Buffer.compare(Buffer.concat(received.map((r) => r.body)), big), 0)
+  assert.ok(received.every((r) => (r.end + 1 - r.start) % (256 * 1024) === 0 || r.end + 1 === big.length))
+})
+
+test('(A9-2) 릴레이가 옛 버전이면 큰 파일은 재배포 안내 오류(재시도 대상)로 남는다', async () => {
   const relay = fakeRelay()
   const drive = createAppsScriptDriveClient({ url: URL_OK, secret: relay.secret, fetchImpl: relay.fetchImpl })
   const { folderId } = await ensureFolderPath(drive, { rootFolderId: 'ROOT', segments: ['원본'] })
-  const uploadsBefore = relay.calls.filter((c) => c.action === 'upload').length
-  const big = Buffer.alloc(31 * 1024 * 1024, 7) // 기본 상한 30MB 초과
   await assert.rejects(
-    () => uploadFile(drive, { folderId, buffer: big, filename: 'big.zip', mimeType: 'application/zip' }),
-    (err) => err.status === 413
+    () => uploadFile(drive, { folderId, buffer: Buffer.alloc(25 * 1024 * 1024, 1), filename: 'old.pdf', mimeType: 'application/pdf' }),
+    (err) => err.code === 'apps_script_relay_outdated'
   )
-  assert.equal(relay.calls.filter((c) => c.action === 'upload').length, uploadsBefore)
 })
 
 test('(A10) 스트림으로 들어온 본문도 그대로 base64로 옮긴다', async () => {

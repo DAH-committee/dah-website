@@ -14,9 +14,13 @@ import { Readable } from 'node:stream'
 
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
 
-// Apps Script 웹앱이 한 번에 받을 수 있는 요청 크기에는 한계가 있고, base64는 용량을 약 33% 늘린다.
-// 상한을 넘으면 Drive까지 가지 않고 서버에서 명확히 막는다(APPS_SCRIPT_MAX_UPLOAD_MB로 조정).
-const MAX_UPLOAD_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_MAX_UPLOAD_MB) || 30) * 1024 * 1024
+// Apps Script 웹앱이 한 번에 받을 수 있는 요청에는 한계가 있고, base64는 용량을 약 33% 늘린다.
+// 그래서 이 크기까지는 릴레이에 base64로 한 번에 보내고(INLINE), 더 큰 파일은 릴레이에서 Drive의
+// '이어 올리기 주소'만 받아 서버가 그 주소로 직접 조각(8MB)씩 올린다. 그러면 파일 크기가 릴레이를 거치지 않아
+// 30MB 한도가 사라진다. 이어 올리기 주소는 릴레이가 만든 계정 권한으로 열려 있어 토큰 없이 쓰인다.
+const INLINE_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_INLINE_UPLOAD_MB) || 20) * 1024 * 1024
+const CHUNK_BYTES = 32 * 256 * 1024 // 8MB, Drive가 요구하는 256KB의 배수
+const MAX_UPLOAD_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_MAX_UPLOAD_MB) || 500) * 1024 * 1024
 
 export const APPS_SCRIPT_URL_RE = /^https:\/\/script\.google(?:usercontent)?\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/
 
@@ -116,6 +120,60 @@ export function createAppsScriptDriveClient({ url, secret, fetchImpl, timeoutMs 
     return json
   }
 
+  /** 큰 파일: 릴레이가 만든 이어 올리기 주소로 서버가 직접 조각을 올린다 */
+  async function uploadResumable({ parentId, requestBody, media, buffer }) {
+    let started
+    try {
+      started = await call('startResumable', {
+        parentId,
+        name: requestBody.name,
+        mimeType: media.mimeType || 'application/octet-stream',
+        size: buffer.length,
+        description: requestBody.description || '',
+      })
+    } catch (err) {
+      if (/알 수 없는 action/.test(String(err?.message || ''))) {
+        throw httpError(
+          '큰 파일을 보내려면 Apps Script 릴레이를 새 버전으로 다시 배포해야 합니다(drive-relay.gs 최신본). 다시 배포하면 자동으로 이어서 올라갑니다.',
+          409,
+          { code: 'apps_script_relay_outdated' }
+        )
+      }
+      throw err
+    }
+    const sessionUri = String(started.sessionUri || '')
+    if (!/^https:\/\/www\.googleapis\.com\/upload\/drive\//.test(sessionUri)) {
+      throw httpError('릴레이가 이어 올리기 주소를 돌려주지 않았습니다.', 502, { code: 'apps_script_bad_session' })
+    }
+    const total = buffer.length
+    for (let start = 0; start < total; start += CHUNK_BYTES) {
+      const end = Math.min(start + CHUNK_BYTES, total) // 배타적 끝
+      const res = await doFetch(sessionUri, {
+        method: 'PUT',
+        headers: {
+          'Content-Length': String(end - start),
+          'Content-Range': `bytes ${start}-${end - 1}/${total}`,
+        },
+        body: buffer.subarray(start, end),
+        redirect: 'manual',
+      })
+      if (end < total) {
+        if (res.status !== 308) {
+          const text = await res.text().catch(() => '')
+          throw httpError(`큰 파일 업로드 중 오류 (${res.status}) ${text.slice(0, 120)}`, res.status || 502, { code: 'apps_script_resumable_failed' })
+        }
+        continue
+      }
+      if (res.status !== 200 && res.status !== 201) {
+        const text = await res.text().catch(() => '')
+        throw httpError(`큰 파일 업로드 마무리 오류 (${res.status}) ${text.slice(0, 120)}`, res.status || 502, { code: 'apps_script_resumable_failed' })
+      }
+      const file = await res.json()
+      return { id: file.id, name: file.name, mimeType: file.mimeType, size: String(file.size || total), webViewLink: file.webViewLink || `https://drive.google.com/file/d/${file.id}/view` }
+    }
+    throw httpError('큰 파일 업로드가 끝나지 않았습니다.', 502, { code: 'apps_script_resumable_failed' })
+  }
+
   return {
     // 어느 계정으로 저장되는지 확인 — 관리 화면의 "연결 계정"에 그대로 쓰인다
     about: {
@@ -143,6 +201,9 @@ export function createAppsScriptDriveClient({ url, secret, fetchImpl, timeoutMs 
             413,
             { code: 'apps_script_too_large', maxBytes: MAX_UPLOAD_BYTES }
           )
+        }
+        if (buffer.length > INLINE_BYTES) {
+          return { data: await uploadResumable({ parentId, requestBody, media, buffer }) }
         }
         const data = await call('upload', {
           parentId,
