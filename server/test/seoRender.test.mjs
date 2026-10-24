@@ -48,3 +48,36 @@ test('(S3) 경로 정규화와 이스케이프', () => {
   assert.equal(normalizePath(''), '/')
   assert.equal(esc('<a href="x">&'), '&lt;a href=&quot;x&quot;&gt;&amp;')
 })
+
+import { aboutHtml, ciHtml, homeHtml } from '../src/lib/seoRender.js'
+
+const FB = {
+  aboutCopy: { ko: { what: '기본 소개', whyStatement: '기본 이유', whyLead: '기본 리드', missionKr: '기본 미션', vision: [{ title: '기본 비전', desc: '기본 설명' }] } },
+  history: [{ date: '2017.03.01.', text: '설립' }, { date: '2024.09.01.', text: '취임' }],
+  ci: { intro: '기본 CI 소개\n\n둘째 문단', elements: [{ title: 'D', text: '열린 곡선' }], colors: [{ name: '보라', hex: '#815FD7', use: '대표색' }], slogan: '기본 슬로건' },
+  tracks: [{ no: 'TRACK 01', name: '디자인 트랙', summary: '요약', keywords: ['경험', 'AI'] }],
+  hero: { eyebrow: 'SINCE 2017', titleEn: ['DIGITAL ARTS', '& HUMANITIES'], subKr: '부제', body: '본문' },
+}
+
+test('(S4) 전공소개: 관리자 화면에서 저장한 문구와 연혁이 코드 기본값보다 우선한다', () => {
+  const base = aboutHtml(FB, {})
+  assert.ok(base.includes('기본 소개') && base.includes('기본 비전'))
+  assert.ok(base.indexOf('2024.09.01.') < base.indexOf('2017.03.01.'), '연혁은 최신순')
+  const edited = aboutHtml(FB, { aboutContent: { ko: { what: '관리자가 고친 소개', vision: [{ title: '새 비전', desc: '새 설명' }] } }, aboutHistory: [{ date: '2026.10.01.', text: '새 소식' }] })
+  assert.ok(edited.includes('관리자가 고친 소개') && !edited.includes('기본 소개'))
+  assert.ok(edited.includes('새 비전') && !edited.includes('기본 비전'))
+  assert.ok(edited.includes('새 소식') && !edited.includes('설립'))
+  assert.ok(edited.includes('기본 이유'), '저장하지 않은 항목은 기본값 유지')
+})
+
+test('(S5) CI: DB 값이 기본값 위에 필드 단위로 덮이고, 글은 이스케이프된다', () => {
+  assert.ok(ciHtml(FB, null).includes('기본 슬로건'))
+  const h = ciHtml(FB, { slogan: '<script>x</script>새 슬로건' })
+  assert.ok(h.includes('&lt;script&gt;x&lt;/script&gt;새 슬로건') && !h.includes('기본 슬로건'))
+  assert.ok(h.includes('열린 곡선') && h.includes('#815FD7'), '고치지 않은 항목은 기본값 유지')
+})
+
+test('(S6) 메인: 히어로와 트랙이 들어간다', () => {
+  const h = homeHtml(FB)
+  assert.ok(h.includes('<h1>DIGITAL ARTS &amp; HUMANITIES</h1>') && h.includes('TRACK 01 디자인 트랙') && h.includes('경험, AI'))
+})

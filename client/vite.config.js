@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { seoPlugin } from './scripts/vite-seo-plugin.mjs'
 
 // 37_OG: index.html의 %SITE_URL% 치환.
 // 카카오톡 등 공유 크롤러는 JS를 실행하지 않으므로 og:image·og:url이 정적 HTML에
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      seoPlugin({ siteUrl }),
       {
         name: 'dah-html-site-url',
         transformIndexHtml: (html) => html.replaceAll('%SITE_URL%', siteUrl),

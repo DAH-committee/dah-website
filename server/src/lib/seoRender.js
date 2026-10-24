@@ -9,28 +9,19 @@
 //   3) #root 안에 실제 본문(사람이 보는 화면과 같은 내용)을 넣어 돌려준다.
 // 브라우저가 이 HTML을 받아도 #root는 React가 다시 그리므로 사용자 화면은 달라지지 않는다.
 //
-// 내용 출처: 관리자 화면에서 고치는 글(전시, 공모전, 특강, 공지, 자료, 동아리, 교수진, 교육과정, 운영위원회, 학생 성과, 진로 등)은
-// 전부 DB에서 읽어 항상 최신이다. 코드에 본문이 들어 있는 페이지(메인, 전공소개 연혁, CI, 개인정보, 약관)만
-// server/src/data/seoStatic.json(화면에서 뽑은 본문)을 쓴다. 그 페이지의 글을 코드에서 바꿨을 때만 스냅샷을 다시 만든다.
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
+// 내용 출처(모두 자동으로 최신):
+//  - 관리자 화면에서 고치는 글(전시, 공모전, 특강, 공지, 자료, 동아리, 교수진, 교육과정, 운영위원회, 학생 성과, 진로)은 DB에서 바로 읽는다.
+//  - 전공소개(소개 문구, 연혁)와 CI는 "코드의 기본값 + 관리자 화면에서 저장한 값"을 화면과 같은 규칙으로 합친다.
+//    코드의 기본값, 페이지 제목·설명은 배포 때 자동으로 만들어지는 seo-fallback.json(client/scripts/vite-seo-plugin.mjs)에서 읽는다.
+//    그래서 복사본을 따로 갱신할 일이 없다.
 import { getTypeConfig } from '../content-config.js'
 import { runList, runGetOne } from '../routes/content.js'
 import { query } from '../db.js'
 import { normalizeVisibility } from '../routes/settings.js'
 import { NAV } from './seoNav.js'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 export const SITE_URL = (process.env.SEO_SITE_URL || 'https://dah-hallym.vercel.app').replace(/\/+$/, '')
 const SITE_NAME = '한림대학교 디지털인문예술전공'
-
-let STATIC = {}
-try {
-  STATIC = JSON.parse(readFileSync(join(__dirname, '../data/seoStatic.json'), 'utf8'))
-} catch {
-  STATIC = {}
-}
 
 // 목록 경로 → 콘텐츠 유형
 const SECTIONS = {
@@ -142,6 +133,22 @@ function safeJson(s) {
   } catch {
     return null
   }
+}
+
+// 배포 때 자동으로 만들어지는 기본값(제목·설명, 전공소개 기본 문구, 연혁, CI 기본값, 트랙)
+let fbCache = { json: null, at: 0 }
+async function loadFallback() {
+  if (fbCache.json && Date.now() - fbCache.at < 10 * 60 * 1000) return fbCache.json
+  try {
+    const res = await fetch(`${SITE_URL}/seo-fallback.json`, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'dah-seo-render' } })
+    if (res.ok && (res.headers.get('content-type') || '').includes('json')) {
+      fbCache = { json: await res.json(), at: Date.now() }
+      return fbCache.json
+    }
+  } catch {
+    /* 마지막으로 받은 것을 쓴다 */
+  }
+  return fbCache.json || { pages: {}, aboutCopy: { ko: {} }, history: [], ci: {}, tracks: [], hero: {} }
 }
 
 // ── index.html 껍데기 ─────────────────────────────────────────────
@@ -256,7 +263,7 @@ const LIVE = {
   '/students/council': { types: ['council'] },
   '/students/achievements': { types: ['achievement'] },
   '/students/careers': { types: ['careers', 'portfolios'], heading: { careers: '졸업생 진로', portfolios: '포트폴리오' } },
-  '/students/portfolios': { types: ['portfolios'] },
+  '/students/portfolios': { types: ['portfolios'], title: `재학생 포트폴리오 | ${SITE_NAME}`, description: `${SITE_NAME} 재학생 포트폴리오를 소개합니다.` },
 }
 const SKIP_KEY = /^(id|sort|has_bg|published|pinned|status|created_at|updated_at|created_by|seed_key|type|hex|depts_id|hwp_url|attachments|gallery|tag)$|(_url|url|image|img|logo|poster|photo|picture|src|href|link)$/i
 const NAME_KEYS = ['title_ko', 'title', 'name', 'grad_name', 'company', 'year_label']
@@ -316,6 +323,67 @@ async function liveSection(path, hidden) {
   return parts.join('')
 }
 
+// ── 전공소개·CI: 코드 기본값 + 관리자 화면 저장값을 화면(About.jsx, CI.jsx)과 같은 규칙으로 합친다 ──
+const para = (text) =>
+  String(text || '')
+    .split(/\n{2,}/)
+    .map((t) => (t.trim() ? `<p>${esc(t.trim())}</p>` : ''))
+    .join('')
+
+export function aboutHtml(fb, settings = {}) {
+  const base = fb.aboutCopy?.ko || {}
+  const saved = settings.aboutContent?.ko
+  const copy = {
+    ...base,
+    ...(saved && typeof saved === 'object' ? saved : {}),
+    vision: Array.isArray(saved?.vision) && saved.vision.length > 0 ? saved.vision : base.vision || [],
+  }
+  const items = Array.isArray(settings.aboutHistory) && settings.aboutHistory.length > 0 ? settings.aboutHistory : fb.history || []
+  const sorted = [...items].sort((a, b) => String(b.date).localeCompare(String(a.date)))
+  return (
+    `<h1>전공소개</h1>` +
+    `<h2>What is DAH</h2>${para(copy.what)}` +
+    `<h2>Why DAH</h2>${para(copy.whyStatement)}${para(copy.whyLead)}` +
+    `<h2>Mission &amp; Vision</h2>${para(copy.missionKr)}` +
+    (copy.vision || []).map((v) => `<h3>${esc(v.title)}</h3>${para(v.desc)}`).join('') +
+    (sorted.length ? `<h2>연혁</h2><ol>${sorted.map((h) => `<li>${esc(h.date)} ${esc(h.text)}</li>`).join('')}</ol>` : '')
+  )
+}
+
+export function ciHtml(fb, body) {
+  const src = { ...(fb.ci || {}), ...(body && typeof body === 'object' ? body : {}) }
+  const list = (v) => (Array.isArray(v) ? v : [])
+  return (
+    `<h1>CI</h1>` +
+    (src.symbol ? `<img src="${esc(abs(src.symbol))}" alt="한림대학교 디지털인문예술전공 CI 심벌">` : '') +
+    para(src.intro) +
+    (list(src.elements).length ? `<h2>구성요소</h2>${list(src.elements).map((e) => `<h3>${esc(e.title)}</h3>${para(e.text)}`).join('')}` : '') +
+    (list(src.logoGuide).length ? `<h2>로고 색상 규정</h2><ul>${list(src.logoGuide).map((l) => `<li>${esc(l.title)}</li>`).join('')}</ul>${para(src.logoGuideNote)}` : '') +
+    (list(src.signatures).length ? `<h2>시그니처</h2><ul>${list(src.signatures).map((l) => `<li>${esc(l.title)}</li>`).join('')}</ul>` : '') +
+    (list(src.colors).length ? `<h2>전용색상</h2><dl>${list(src.colors).map((c) => `<dt>${esc(c.name)} ${esc(c.hex)}</dt><dd>${esc(c.use)}</dd>`).join('')}</dl>${para(src.colorsNote)}` : '') +
+    (src.motifNote ? `<h2>그래픽 모티브</h2>${para(src.motifNote)}` : '') +
+    (src.slogan ? `<h2>슬로건</h2><p>${esc(src.slogan)}</p>${para(src.sloganNote)}` : '') +
+    (list(src.downloads).length ? `<h2>다운로드</h2><ul>${list(src.downloads).map((d) => (d.url ? `<li><a href="${esc(d.url)}">${esc(d.label)}</a></li>` : `<li>${esc(d.label)}</li>`)).join('')}</ul>` : '')
+  )
+}
+
+export function homeHtml(fb) {
+  const h = fb.hero || {}
+  return (
+    `<h1>${esc((h.titleEn || []).join(' '))}</h1><p>${esc(h.eyebrow)}</p><h2>${esc(h.subKr)}</h2><p>${esc(h.body)}</p>` +
+    (fb.tracks || []).map((t) => `<section><h2>${esc(t.no)} ${esc(t.name)}</h2><p>${esc(t.summary)}</p><p>${esc((t.keywords || []).join(', '))}</p></section>`).join('')
+  )
+}
+
+async function readSettings(keys) {
+  try {
+    const { rows } = await query('SELECT key, value FROM site_settings WHERE key = ANY($1::text[])', [keys])
+    return Object.fromEntries(rows.map((r) => [r.key, r.value]))
+  } catch {
+    return {}
+  }
+}
+
 async function hiddenTypes() {
   try {
     const { rows } = await query("SELECT value FROM site_settings WHERE key = 'contentVisibility'", [])
@@ -341,7 +409,8 @@ export function normalizePath(raw) {
 
 export async function renderPage(rawPath) {
   const path = normalizePath(rawPath)
-  const shell = await loadShell()
+  const [shell, fb] = await Promise.all([loadShell(), loadFallback()])
+  const pages = fb.pages || {}
   const canonical = abs(path)
   const ldBase = (graph) => ({ '@context': 'https://schema.org', '@graph': graph })
 
@@ -350,7 +419,7 @@ export async function renderPage(rawPath) {
   if (section) {
     const hidden = await hiddenTypes()
     if (hidden[section.type] === false) return { status: 404, html: applyMeta(shell, { title: SITE_NAME, description: '', canonical: abs('/'), bodyInner: '<h1>페이지를 찾을 수 없습니다</h1>', noindex: true }) }
-    const meta = STATIC[path] || {}
+    const meta = pages[path] || {}
     const { items } = await runList(getTypeConfig(section.type), { page: 1, pageSize: 100 })
     const list = (items || [])
       .map((it) => {
@@ -410,39 +479,27 @@ export async function renderPage(rawPath) {
     }
   }
 
-  // 3) 고정 페이지: 관리자 화면에서 고치는 페이지는 DB에서 읽고(실패·빈 값이면 스냅샷), 코드에 든 페이지는 스냅샷
-  const st = STATIC[path]
+  // 3) 고정 페이지: 전부 자동으로 최신(코드 기본값은 배포 때, 관리자 화면 값은 요청 때)
+  const st = pages[path] || (LIVE[path]?.title ? { title: LIVE[path].title, description: LIVE[path].description } : null)
   if (st) {
-    if (LIVE[path]) {
-      const live = await liveSection(path, await hiddenTypes())
-      const plain = (h) => String(h || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().length
-      // DB 글이 화면 본문의 절반에도 못 미치면(본문 대부분이 코드에 있는 페이지) 화면 스냅샷이 더 충실하다
-      if (live && plain(live) >= plain(st.html) * 0.5) {
-        const h1 = /<h1>(.*?)<\/h1>/.exec(st.html || '')?.[1] || st.title.split(' | ')[0]
-        const description = st.description || `${SITE_NAME}의 안내 페이지입니다.`
-        return {
-          status: 200,
-          html: applyMeta(shell, {
-            title: st.title,
-            description,
-            canonical,
-            jsonLd: ldBase([breadcrumb([{ name: '홈', path: '/' }, { name: st.title.split(' | ')[0], path }])]),
-            bodyInner: `<h1>${h1}</h1><p>${esc(description)}</p>${live}`,
-          }),
-        }
-      }
-    }
     const description = st.description || `${SITE_NAME}의 안내 페이지입니다.`
-    const graph = path === '/' ? st.jsonLd?.['@graph'] || [] : [breadcrumb([{ name: '홈', path: '/' }, { name: st.title.split(' | ')[0], path }])]
+    const heading = st.title.split(' | ')[0]
+    const crumbs = path === '/' ? null : breadcrumb([{ name: '홈', path: '/' }, { name: heading, path }])
+    let inner = ''
+    if (path === '/') inner = homeHtml(fb)
+    else if (path === '/about') inner = aboutHtml(fb, await readSettings(['aboutContent', 'aboutHistory']))
+    else if (path === '/about/ci') {
+      const hidden = await hiddenTypes()
+      const row = hidden.ci === false ? null : await runGetOne(getTypeConfig('ci'), 1).catch(() => null)
+      inner = ciHtml(fb, row?.body)
+    } else if (LIVE[path]) {
+      const live = await liveSection(path, await hiddenTypes())
+      if (live) inner = `<h1>${esc(heading)}</h1><p>${esc(description)}</p>${live}`
+    }
+    if (!inner) inner = `<h1>${esc(heading)}</h1><p>${esc(description)}</p>`
     return {
       status: 200,
-      html: applyMeta(shell, {
-        title: st.title,
-        description,
-        canonical,
-        jsonLd: ldBase(graph.map((g) => JSON.parse(JSON.stringify(g).split('"__SITE__').join(`"${SITE_URL}`)))),
-        bodyInner: st.html.replace(/(href|src)="\/(?!\/)/g, `$1="${SITE_URL}/`).replace(new RegExp(`(href)="${SITE_URL}/`, 'g'), '$1="/'),
-      }),
+      html: applyMeta(shell, { title: st.title, description, canonical, jsonLd: ldBase(path === '/' ? st.jsonLd?.['@graph'] || [] : [crumbs]), bodyInner: inner }),
     }
   }
 
