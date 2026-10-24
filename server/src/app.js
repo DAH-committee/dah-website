@@ -33,6 +33,7 @@ import easterEggRoutes from './routes/easterEgg.js'
 import hwpxRoutes from './routes/hwpx.js'
 import hwpFilesRoutes from './routes/hwpFiles.js'
 import mcpRoutes from './routes/mcp.js'
+import seoRoutes from './routes/seo.js'
 
 export function createApp(options = {}) {
   if ('db' in options) setDb(options.db)
@@ -42,6 +43,8 @@ export function createApp(options = {}) {
   // (1이면 모든 접속자가 Vercel의 IP 하나로 보여 접수 한도를 서로 나눠 쓰게 된다).
   app.set('trust proxy', 2)
   app.use(mcpRoutes) // MCP 커넥터(/mcp, /.well-known/oauth-*): 자체 CORS·본문 해석을 쓰므로 전역 설정보다 앞에 둔다. 다른 경로는 그냥 지나간다
+
+  app.use(seoRoutes) // 크롤러용 HTML(/seo/page)
 
   // 학기별 전시회 사이트(다른 도메인)용 API. 전역 CORS 화이트리스트보다 먼저 붙인다(자체 CORS, Bearer 토큰)
   app.use('/exhibition-site', exhibitionSiteRouter)

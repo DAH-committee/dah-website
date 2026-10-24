@@ -1,6 +1,28 @@
 {
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-InspectionTool|GoogleOther|AdsBot-Google|bingbot|BingPreview|msnbot|Yeti|NaverBot|Naverbot|Daumoa|Daum|kakaotalk|KAKAOTALK|facebookexternalhit|Facebot|Twitterbot|Slackbot|LinkedInBot|Discordbot|TelegramBot|WhatsApp|Applebot|DuckDuckBot|Zumbot|PetalBot|Embedly|Pinterestbot|SkypeUriPreview|Slurp).*"
+        }
+      ],
+      "destination": "https://dah-website-72a4.onrender.com/seo/page?path=/"
+    },
+    {
+      "source": "/:path((?:about|curriculum|programs|students|showcase|news|resources|privacy|terms)(?:/.*)?)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-InspectionTool|GoogleOther|AdsBot-Google|bingbot|BingPreview|msnbot|Yeti|NaverBot|Naverbot|Daumoa|Daum|kakaotalk|KAKAOTALK|facebookexternalhit|Facebot|Twitterbot|Slackbot|LinkedInBot|Discordbot|TelegramBot|WhatsApp|Applebot|DuckDuckBot|Zumbot|PetalBot|Embedly|Pinterestbot|SkypeUriPreview|Slurp).*"
+        }
+      ],
+      "destination": "https://dah-website-72a4.onrender.com/seo/page?path=/:path"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://dah-website-72a4.onrender.com/:path*"
     },
