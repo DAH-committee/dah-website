@@ -18,6 +18,7 @@ import { getTypeConfig } from '../content-config.js'
 import { runList, runGetOne } from '../routes/content.js'
 import { query } from '../db.js'
 import { normalizeVisibility } from '../routes/settings.js'
+import { NAV } from './seoNav.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export const SITE_URL = (process.env.SEO_SITE_URL || 'https://dah-hallym.vercel.app').replace(/\/+$/, '')
@@ -40,22 +41,6 @@ const SECTIONS = {
   '/students/clubs': { type: 'club', label: '동아리', h1: '동아리' },
   '/showcase': { type: 'showcase', label: '쇼케이스', h1: '쇼케이스' },
 }
-
-const NAV = [
-  ['/about', '전공소개'],
-  ['/about/people', '교수진·멘토'],
-  ['/curriculum', '교육과정'],
-  ['/programs/exhibitions', '프로젝트 전시회'],
-  ['/programs/contests', '공모전'],
-  ['/programs/lectures', '특강'],
-  ['/news', '공지사항'],
-  ['/students/council', '운영위원회'],
-  ['/students/clubs', '동아리'],
-  ['/students/achievements', '학생 성과'],
-  ['/students/careers', '졸업생 진로'],
-  ['/showcase', '쇼케이스'],
-  ['/resources', '자료실'],
-]
 
 export const esc = (s) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -167,9 +152,11 @@ async function loadShell() {
   try {
     const res = await fetch(`${SITE_URL}/index.html`, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'dah-seo-render' } })
     const text = await res.text()
-    if (res.ok && text.includes('<div id="root"') && !text.includes('data-seo-prerender')) {
-      shellCache = { html: text, at: Date.now() }
-      return text
+    if (res.ok && text.includes('<div id="root"')) {
+      // index.html에 미리 넣어 둔 메인 페이지용 본문 블록은 경로별 본문으로 갈아 끼우므로 걷어 낸다
+      const clean = text.replace(/<!--seo-start-->[\s\S]*?<!--seo-end-->/, '')
+      shellCache = { html: clean, at: Date.now() }
+      return clean
     }
   } catch {
     /* 아래 폴백 */

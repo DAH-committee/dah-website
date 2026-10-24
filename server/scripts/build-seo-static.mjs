@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { NAV } from '../src/lib/seoNav.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const src = readFileSync(resolve(here, '../../client/src/data/seo.js'), 'utf8').replace(/import\.meta\.env\.VITE_SITE_URL/g, "'https://dah-hallym.vercel.app'")
@@ -29,3 +30,20 @@ for (const [path, s] of Object.entries(snaps)) {
 }
 writeFileSync(resolve(here, '../src/data/seoStatic.json'), JSON.stringify(out))
 console.log('seoStatic.json:', Object.keys(out).length, '개 경로,', Object.values(out).filter((v) => v.html).length, '개에 본문')
+
+// 메인 페이지(/)는 Vercel이 index.html 파일을 그대로 내주므로 크롤러 전용 전달이 적용되지 않는다.
+// 그래서 메인 본문과 주요 메뉴 링크를 index.html의 #root 안(React가 켜지면 바로 교체됨)에 직접 넣는다.
+const esc = (v) => String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const nav = `<nav aria-label="주요 메뉴"><ul>${NAV.map(([p, l]) => `<li><a href="${p}">${esc(l)}</a></li>`).join('')}</ul></nav>`
+const home = out['/']?.html || ''
+const block = `<!--seo-start--><main class="seo-sr" data-seo-prerender="home"><header><a href="/">한림대학교 디지털인문예술전공</a>${nav}</header>${home.replace(/(href|src)="https:\/\/dah-hallym\.vercel\.app\//g, '$1="/')}</main><!--seo-end-->`
+const indexPath = resolve(here, '../../client/index.html')
+let idx = readFileSync(indexPath, 'utf8')
+if (/<div id="root">[\s\S]*?<\/div>\s*<script type="module"/.test(idx)) {
+  idx = idx.replace(/<div id="root">[\s\S]*?<\/div>(\s*<script type="module")/, (_, tail) => `<div id="root">${block}</div>${tail}`)
+  if (!idx.includes('.seo-sr')) {
+    idx = idx.replace('</head>', '  <style>.seo-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>\n</head>')
+  }
+  writeFileSync(indexPath, idx)
+  console.log('client/index.html 메인 본문 블록 갱신:', block.length, '자')
+}
