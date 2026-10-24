@@ -9,8 +9,9 @@
 //   3) #root 안에 실제 본문(사람이 보는 화면과 같은 내용)을 넣어 돌려준다.
 // 브라우저가 이 HTML을 받아도 #root는 React가 다시 그리므로 사용자 화면은 달라지지 않는다.
 //
-// 내용 출처: 목록·상세(전시, 공모전, 특강, 공지, 자료, 동아리, 쇼케이스)는 DB에서 읽어 항상 최신이다.
-// 소개·교육과정 같은 고정 페이지는 server/src/data/seoStatic.json(화면에서 뽑은 본문)을 쓴다.
+// 내용 출처: 관리자 화면에서 고치는 글(전시, 공모전, 특강, 공지, 자료, 동아리, 교수진, 교육과정, 운영위원회, 학생 성과, 진로 등)은
+// 전부 DB에서 읽어 항상 최신이다. 코드에 본문이 들어 있는 페이지(메인, 전공소개 연혁, CI, 개인정보, 약관)만
+// server/src/data/seoStatic.json(화면에서 뽑은 본문)을 쓴다. 그 페이지의 글을 코드에서 바꿨을 때만 스냅샷을 다시 만든다.
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -244,6 +245,77 @@ function itemDescription(it, section) {
   return oneLine(`${parts.join(' ')}${lead ? `. ${lead}` : ''}. ${SITE_NAME}`, 170)
 }
 
+// 관리자 화면에서 고치는 고정 페이지(소개 자료, 교육과정, 교수진, 운영위원회 등)도 DB에서 바로 읽는다.
+// 값 구조가 제각각이라 범용 변환기로 "사람이 읽는 글"만 뽑는다. 주소·이미지·내부 번호는 뺀다.
+const LIVE = {
+  '/about/people': { types: ['professors', 'mentors'], heading: { professors: '교수진', mentors: '산업 멘토' } },
+  '/curriculum': { types: ['curriculum'] },
+  '/curriculum/codesharing': { types: ['codesharing'] },
+  '/curriculum/nanodegree': { types: ['nanodegree'] },
+  '/about/ci': { types: ['ci'] },
+  '/students/council': { types: ['council'] },
+  '/students/achievements': { types: ['achievement'] },
+  '/students/careers': { types: ['careers', 'portfolios'], heading: { careers: '졸업생 진로', portfolios: '포트폴리오' } },
+  '/students/portfolios': { types: ['portfolios'] },
+}
+const SKIP_KEY = /^(id|sort|has_bg|published|pinned|status|created_at|updated_at|created_by|seed_key|type|hex|depts_id|hwp_url|attachments|gallery|tag)$|(_url|url|image|img|logo|poster|photo|picture|src|href|link)$/i
+const NAME_KEYS = ['title_ko', 'title', 'name', 'grad_name', 'company', 'year_label']
+
+function genericHtml(v, depth = 0) {
+  if (v == null || typeof v === 'boolean') return ''
+  if (typeof v === 'number') return `<span>${v}</span>`
+  if (typeof v === 'string') {
+    const t = v.trim()
+    if (!t || /^(https?:\/\/|\/|#[0-9a-f]{3,8}$)/i.test(t)) return ''
+    const j = t.startsWith('{') ? safeJson(t) : null
+    if (j && j.type === 'doc') return renderNode(j)
+    return depth === 0 ? `<p>${esc(t)}</p>` : esc(t)
+  }
+  if (Array.isArray(v)) {
+    const items = v.map((x) => genericHtml(x, depth + 1)).filter(Boolean)
+    return items.length ? `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>` : ''
+  }
+  if (typeof v === 'object') {
+    if (v.type === 'doc') return renderNode(v)
+    const keys = Object.keys(v).filter((k) => !SKIP_KEY.test(k))
+    const nameKey = NAME_KEYS.find((k) => typeof v[k] === 'string' && v[k].trim() && keys.includes(k))
+    const head = nameKey ? `<h3>${esc(v[nameKey])}</h3>` : ''
+    const rest = keys
+      .filter((k) => k !== nameKey)
+      .map((k) => genericHtml(v[k], depth + 1))
+      .filter(Boolean)
+      .map((x) => (x.startsWith('<') ? x : `<p>${x}</p>`))
+      .join('')
+    return head + rest
+  }
+  return ''
+}
+
+async function liveSection(path, hidden) {
+  const def = LIVE[path]
+  if (!def) return ''
+  const parts = []
+  for (const type of def.types) {
+    if (hidden[type] === false) continue
+    const cfg = getTypeConfig(type)
+    if (!cfg) continue
+    let rows = []
+    try {
+      if (cfg.singleton) {
+        const one = await runGetOne(cfg, 1)
+        rows = one ? [one] : []
+      } else {
+        rows = (await runList(cfg, { page: 1, pageSize: 100 })).items || []
+      }
+    } catch {
+      rows = []
+    }
+    const body = rows.map((r) => `<article>${genericHtml(r)}</article>`).join('')
+    if (body.replace(/<[^>]+>/g, '').trim()) parts.push(`${def.heading?.[type] ? `<h2>${esc(def.heading[type])}</h2>` : ''}${body}`)
+  }
+  return parts.join('')
+}
+
 async function hiddenTypes() {
   try {
     const { rows } = await query("SELECT value FROM site_settings WHERE key = 'contentVisibility'", [])
@@ -338,9 +410,28 @@ export async function renderPage(rawPath) {
     }
   }
 
-  // 3) 고정 페이지(소개, 교육과정 등)와 홈
+  // 3) 고정 페이지: 관리자 화면에서 고치는 페이지는 DB에서 읽고(실패·빈 값이면 스냅샷), 코드에 든 페이지는 스냅샷
   const st = STATIC[path]
   if (st) {
+    if (LIVE[path]) {
+      const live = await liveSection(path, await hiddenTypes())
+      const plain = (h) => String(h || '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().length
+      // DB 글이 화면 본문의 절반에도 못 미치면(본문 대부분이 코드에 있는 페이지) 화면 스냅샷이 더 충실하다
+      if (live && plain(live) >= plain(st.html) * 0.5) {
+        const h1 = /<h1>(.*?)<\/h1>/.exec(st.html || '')?.[1] || st.title.split(' | ')[0]
+        const description = st.description || `${SITE_NAME}의 안내 페이지입니다.`
+        return {
+          status: 200,
+          html: applyMeta(shell, {
+            title: st.title,
+            description,
+            canonical,
+            jsonLd: ldBase([breadcrumb([{ name: '홈', path: '/' }, { name: st.title.split(' | ')[0], path }])]),
+            bodyInner: `<h1>${h1}</h1><p>${esc(description)}</p>${live}`,
+          }),
+        }
+      }
+    }
     const description = st.description || `${SITE_NAME}의 안내 페이지입니다.`
     const graph = path === '/' ? st.jsonLd?.['@graph'] || [] : [breadcrumb([{ name: '홈', path: '/' }, { name: st.title.split(' | ')[0], path }])]
     return {

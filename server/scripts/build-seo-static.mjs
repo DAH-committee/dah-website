@@ -4,7 +4,8 @@
 // 스냅샷은 실제 화면(main)에 보이는 글을 단순 HTML로 뽑은 것이다: { "/about": { "html": "..." }, ... }
 // 소개·교육과정처럼 코드에 들어 있는 글이 바뀌면 스냅샷을 다시 뽑아 이 스크립트를 실행한다.
 //   node scripts/build-seo-static.mjs <스냅샷.json>
-// 공지·전시·공모전 같은 DB 글은 이 파일이 필요 없다(서버가 DB에서 바로 읽는다).
+// 관리자 화면에서 고치는 글(공지, 전시, 공모전, 교수진, 교육과정, 운영위원회, 학생 성과 등)은 서버가 DB에서 바로 읽으므로
+// 스냅샷을 다시 만들 필요가 없다. 코드에 본문이 든 페이지(메인, 전공소개, CI, 개인정보, 약관)를 코드로 바꿨을 때만 다시 만든다.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
