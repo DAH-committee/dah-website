@@ -185,11 +185,13 @@ function ExhibitSubmit() {
         <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec">{copy.onboardingLead}</p>
       )}
       <ScheduleInline rows={schedule} />
-      <div>
-        <Button variant="ghost" href="/submit">
-          내 접수 목록
-        </Button>
-      </div>
+      {step === 'form' && (
+        <div>
+          <Button variant="ghost" href="/submit">
+            내 접수 목록
+          </Button>
+        </div>
+      )}
     </HeaderCard>
   )
 
