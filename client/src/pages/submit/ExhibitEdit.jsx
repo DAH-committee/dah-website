@@ -313,6 +313,11 @@ function ExhibitEdit({ mode = 'info' }) {
     <RespondentPage>
       <HeaderCard title={isFilesMode ? '작품 제출' : '접수 내역 확인과 수정'}>
         <ScheduleInline rows={schedule} />
+        <div>
+          <Button variant="ghost" href="/submit">
+            처음 화면
+          </Button>
+        </div>
       </HeaderCard>
 
       {(settingsLoading || authLoading) && (
@@ -328,7 +333,7 @@ function ExhibitEdit({ mode = 'info' }) {
             title="구글 로그인 후 확인"
             description="접수에 사용한 구글 계정으로 로그인하면 본인 접수 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
           >
-            <Button variant="ghost" href="/submit">
+            <Button variant="ghost" href="/submit/new">
               새로 접수하기
             </Button>
           </LoginCard>
@@ -368,7 +373,7 @@ function ExhibitEdit({ mode = 'info' }) {
             <NoticeCard
               title="접수 내역 없음"
               actions={
-                <Button variant="secondary" href="/submit">
+                <Button variant="secondary" href="/submit/new">
                   새로 접수
                 </Button>
               }

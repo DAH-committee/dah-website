@@ -1,4 +1,4 @@
-// /submit — 전시회 접수 (12_BACKEND 5절, 구글 폼 대체)
+// /submit/new — 전시회 접수 폼 (12_BACKEND 5절, 구글 폼 대체). 처음 화면은 /submit(ExhibitHub)
 // 기간 판정 최종 권한은 서버(403) — settings/public.exhibition.is_submit_period는 UX 안내용.
 // 33_PHASE18 Y2-3/Y2-4: 같은 라우트 안에서 온보딩(intro) → 폼(form) → 완료(done) 단계로 진행한다.
 //   (App.jsx 라우트를 건드리지 않기 위해 단계는 컴포넌트 state로만 관리)
@@ -185,33 +185,11 @@ function ExhibitSubmit() {
         <p className="whitespace-pre-line text-body-m leading-relaxed text-text-sec">{copy.onboardingLead}</p>
       )}
       <ScheduleInline rows={schedule} />
-      <details className="group border-t border-border-subtle pt-12">
-        <summary className="cursor-pointer list-none text-small-m font-semibold text-text-sec transition-colors duration-fast ease-out hover:text-purple-primary">
-          접수 방법과 유의사항 <span className="text-text-meta group-open:hidden">펼치기</span>
-          <span className="hidden text-text-meta group-open:inline">접기</span>
-        </summary>
-        <div className="mt-12 flex flex-col gap-16">
-          <ol className="flex flex-col gap-12">
-            {copy.steps.map((s, i) => (
-              <li key={s.title} className="flex min-w-0 gap-12 text-small-m">
-                <span className="w-16 shrink-0 font-semibold text-purple-primary">{i + 1}</span>
-                <span className="flex min-w-0 flex-col gap-4">
-                  <span className="font-semibold text-text-pri">{s.title}</span>
-                  <span className="leading-relaxed text-text-sec">{s.desc}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <ul className="flex flex-col gap-8 border-t border-border-subtle pt-12">
-            {copy.notes.map((note) => (
-              <li key={note} className="flex min-w-0 gap-12 text-small-m leading-relaxed text-text-sec">
-                <span aria-hidden="true" className="mt-8 h-4 w-4 shrink-0 rounded-full bg-text-meta" />
-                <span className="min-w-0">{note}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </details>
+      <div>
+        <Button variant="ghost" href="/submit">
+          처음 화면
+        </Button>
+      </div>
     </HeaderCard>
   )
 
@@ -294,7 +272,7 @@ function ExhibitSubmit() {
           <LoginCard
             title="구글 로그인 후 접수"
             description="전시회 접수는 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정의 이메일이 접수 이메일로 기록되고, 접수 후 수정도 같은 계정으로 합니다."
-            next="/submit"
+            next="/submit/new"
           />
         </div>
       )}
