@@ -21,7 +21,7 @@ export const EXHIBITION_COPY_DEFAULT = {
       },
       {
         title: '작품 제출',
-        desc: '접수 마감 뒤 작품 제출 기간에 같은 구글 계정으로 로그인해 작품 원본 파일을 올립니다.',
+        desc: '접수 마감 뒤 작품 제출 기간에 같은 구글 계정으로 로그인해 작품 파일을 올립니다.',
       },
     ],
     notesTitle: '유의사항',

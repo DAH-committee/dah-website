@@ -243,7 +243,7 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
     <QuestionCard
       id={id}
       error={fieldError}
-      label="원본 파일"
+      label="작품 파일"
       required
       hint={
         locked
@@ -289,7 +289,7 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
           className="inline-flex h-11 cursor-pointer items-center justify-center gap-8 whitespace-nowrap rounded-sm border border-border-subtle bg-bg-panel px-16 text-small-m font-semibold text-purple-primary transition duration-fast ease-out hover:bg-bg-elev focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-border-focus disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Upload size={16} aria-hidden="true" />
-          {busy ? '업로드 중' : '원본 파일 추가'}
+          {busy ? '업로드 중' : '파일 추가'}
         </button>
         {busy && (
           <span className="text-small-m text-text-meta">업로드 중</span>
