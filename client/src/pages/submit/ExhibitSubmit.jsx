@@ -255,8 +255,8 @@ function ExhibitSubmit() {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  setForm(INITIAL_FORM)
-                  setMembers([{ ...EMPTY_MEMBER }])
+                  // 신청자 정보(이름, 학번, 전공, 연락처, 팀 구성)는 그대로 두고 과목과 작품 정보만 비운다
+                  setForm((prev) => ({ ...prev, course: '', workTitle: '', workDesc: '' }))
                   setAttempted(false)
                   setError(null)
                   setStep('form')
