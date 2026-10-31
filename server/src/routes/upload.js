@@ -194,6 +194,14 @@ function exhibitionUploadKey({ email, course, buffer, originalname }) {
 
 async function handleExhibitionUpload(req, res) {
   if (!req.publicUser) throw httpError('google login required', 401)
+  // 작품 파일은 작품 제출 기간(files_open~edit_close)에만 받는다
+  const { rows: exRows } = await query('SELECT submit_close, files_open, edit_close FROM exhibition_settings WHERE id = 1', [])
+  const exRow = exRows[0]
+  const opensAt = exRow && (exRow.files_open || exRow.submit_close)
+  const nowTs = new Date()
+  if (!opensAt || !exRow.edit_close || nowTs < new Date(opensAt) || nowTs > new Date(exRow.edit_close)) {
+    throw httpError('지금은 작품 파일을 올릴 수 있는 기간이 아닙니다.', 403, { code: 'files_not_open' })
+  }
   const course = String(req.body?.course || '').trim()
   if (!course) throw httpError('먼저 참가 과목을 선택해야 파일을 업로드할 수 있습니다.', 422, { code: 'course_not_selected' })
   const courseOk = await resolveExhibitionCourse(course)

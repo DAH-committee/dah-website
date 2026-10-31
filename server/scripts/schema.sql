@@ -176,6 +176,8 @@ CREATE TABLE IF NOT EXISTS exhibition_settings (
   submit_open         TIMESTAMPTZ,
   submit_close        TIMESTAMPTZ,
   edit_close          TIMESTAMPTZ,
+  -- 작품 제출(원본 파일) 시작. 비어 있으면 접수 마감 직후. 마감은 edit_close.
+  files_open          TIMESTAMPTZ,
   form_schema         JSONB,
   header_visible      BOOLEAN NOT NULL DEFAULT TRUE,
   button_mode         TEXT NOT NULL DEFAULT 'header' CHECK (button_mode IN ('header', 'floating')),

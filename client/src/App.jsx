@@ -292,6 +292,7 @@ function App() {
               <Route path="/showcase/submit" element={<ShowcaseSubmit />} />
               <Route path="/submit" element={<ExhibitSubmit />} />
               <Route path="/submit/edit" element={<ExhibitEdit />} />
+              <Route path="/submit/files" element={<ExhibitEdit mode="files" />} />
               {/* 39_FORM_BUILDER P2: 자체 폼(공개). 제목·안내문·필드는 전부 DB */}
               <Route path="/forms/:slug" element={<FormPage />} />
 

@@ -51,9 +51,9 @@ export function QuestionCard({ label, required = false, hint, error, children, a
       {hint && <span className="text-small-m text-text-meta">{hint}</span>}
       {children}
       {error && (
-        <span role="alert" className="flex items-center gap-8 text-small-m text-state-error">
-          <AlertCircle size={16} aria-hidden="true" className="shrink-0" />
-          {error}
+        <span role="alert" className="flex items-start gap-8 text-small-m text-state-error">
+          <AlertCircle size={16} aria-hidden="true" className="mt-2 shrink-0" />
+          <span className="whitespace-pre-line">{error}</span>
         </span>
       )}
     </Tag>

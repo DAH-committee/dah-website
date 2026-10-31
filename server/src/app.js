@@ -123,7 +123,8 @@ export function createApp(options = {}) {
       return res.status(400).json({ error: 'invalid JSON body' })
     }
     if (err.status && err.status < 500) {
-      return res.status(err.status).json({ error: err.message })
+      // 클라이언트가 문구가 아니라 코드로 분기할 수 있게 문자열 code가 있으면 함께 보낸다(예: files_not_open)
+      return res.status(err.status).json(typeof err.code === 'string' ? { error: err.message, code: err.code } : { error: err.message })
     }
     console.error('[dah-server] unhandled error:', err)
     res.status(500).json({ error: 'internal server error' })

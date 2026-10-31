@@ -262,6 +262,9 @@ button.gd-tab__chev:hover { background: rgba(68, 71, 70, 0.12); }
 .gd-page td:first-child, .gd-page th:first-child { white-space: nowrap; }
 .gd-secret, .gd-secret * { white-space: nowrap !important; word-break: normal !important; }
 .gd-secret__val { min-width: 0; }
+/* 표 셀보다 칩이 넓으면 버튼 줄이 아래로 내려가 셀 안에 들어가게 한다(옆 칸을 덮어 눌리지 않던 문제) */
+.gd-page td .gd-secret, .gd-page th .gd-secret { flex-wrap: wrap; max-width: 100%; box-sizing: border-box; row-gap: 0; }
+.gd-page td .gd-secret__label, .gd-page th .gd-secret__label { flex: 0 1 auto; min-width: 0; }
 .gd-banner { animation: gd-fade 6s forwards; pointer-events: none; }
 @keyframes gd-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 

@@ -1,5 +1,5 @@
 // ExhibitionAdmin.jsx — 전시회 접수 시스템 관리 (12_BACKEND 5절, admin+)
-// 일정(exhibition_settings: submit_open·submit_close·edit_close) 편집 + 접수 현황 요약(건수·시트 바로가기).
+// 일정(exhibition_settings: submit_open·submit_close·files_open·edit_close) 편집 + 접수 현황 요약(건수·시트 바로가기).
 // Y3-1(33_PHASE18): 접수 버튼 노출 스위치를 이 화면에서도 직접 조작하고(기존에는 사이트 설정
 // 안에만 있었다), 접수 폼이 읽는 과목 목록(1·2학기)을 여기서 관리한다.
 // 과목 목록 저장 위치: site_settings.exhibitionSubjects → GET /settings/public에
@@ -50,7 +50,7 @@ function ExhibitionAdmin() {
   // total은 서버가 전체 COUNT로 계산하므로 페이지 크기와 무관하다.
   const entries = useApi('/admin/exhibition/entries', { params: { page: 1, pageSize: 1 } })
 
-  const [form, setForm] = useState({ submit_open: '', submit_close: '', edit_close: '' })
+  const [form, setForm] = useState({ submit_open: '', submit_close: '', files_open: '', edit_close: '' })
   const [hydrated, setHydrated] = useState(false)
   const [busy, setBusy] = useState(false)
   const [saveError, setSaveError] = useState(null)
@@ -144,6 +144,7 @@ function ExhibitionAdmin() {
       setForm({
         submit_open: toLocalInput(exhibition.submit_open),
         submit_close: toLocalInput(exhibition.submit_close),
+        files_open: toLocalInput(exhibition.files_open),
         edit_close: toLocalInput(exhibition.edit_close),
       })
       setHeaderVisible(exhibition.header_visible !== false)
@@ -282,6 +283,7 @@ function ExhibitionAdmin() {
         exhibition: {
           submit_open: fromLocalInput(form.submit_open),
           submit_close: fromLocalInput(form.submit_close),
+          files_open: fromLocalInput(form.files_open),
           edit_close: fromLocalInput(form.edit_close),
         },
       })
@@ -321,14 +323,17 @@ function ExhibitionAdmin() {
           )}
         </div>
         {settings.error && <ErrorText>{settings.error.message}</ErrorText>}
-        <div className="grid grid-cols-1 gap-16 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-16 md:grid-cols-4">
           <Field label="접수 시작">
             <DateInput withTime value={form.submit_open} onChange={set('submit_open')} />
           </Field>
           <Field label="접수 마감" hint="이후 신규 접수 차단">
             <DateInput withTime value={form.submit_close} onChange={set('submit_close')} />
           </Field>
-          <Field label="수정 마감" hint="이후 신규·수정 전면 차단">
+          <Field label="작품 제출 시작" hint="이 시각부터 수정 마감까지 작품 파일 제출 가능">
+            <DateInput withTime value={form.files_open} onChange={set('files_open')} />
+          </Field>
+          <Field label="수정 마감" hint="이후 수정·작품 제출 전면 차단">
             <DateInput withTime value={form.edit_close} onChange={set('edit_close')} />
           </Field>
         </div>

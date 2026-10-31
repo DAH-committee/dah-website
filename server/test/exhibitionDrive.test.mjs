@@ -86,7 +86,7 @@ const CONNECTION = {
   refresh_token_enc: seal('token'),
 }
 
-function makeDb({ subjects = ['디자인씽킹', 'UX 디자인'], connectionId = 5, entries = [] } = {}) {
+function makeDb({ subjects = ['디자인씽킹', 'UX 디자인'], connectionId = 5, entries = [], filesOpen = true } = {}) {
   const state = {
     entries: [...entries],
     bindings: [],
@@ -182,7 +182,17 @@ function makeDb({ subjects = ['디자인씽킹', 'UX 디자인'], connectionId =
       return { rows: [row] }
     }
     if (q.includes('FROM exhibition_settings WHERE id = 1') && !q.includes('drive_connection_id')) {
-      return { rows: [{ submit_open: '2026-01-01T00:00:00.000Z', submit_close: '2030-01-01T00:00:00.000Z', edit_close: '2030-01-01T00:00:00.000Z' }] }
+      // 접수 기간은 열려 있고, 작품 제출(files_open)은 filesOpen 옵션으로 열고 닫는다
+      return { rows: [{ submit_open: '2026-01-01T00:00:00.000Z', submit_close: '2030-01-01T00:00:00.000Z', files_open: filesOpen ? '2026-01-02T00:00:00.000Z' : '2029-06-01T00:00:00.000Z', edit_close: '2030-01-01T00:00:00.000Z' }] }
+    }
+    if (q.startsWith('SELECT * FROM exhibition_entries WHERE id')) {
+      return { rows: state.entries.filter((e) => e.id === params[0]) }
+    }
+    if (q.startsWith('UPDATE exhibition_entries SET fields')) {
+      const row = state.entries.find((e) => e.id === params[2])
+      row.fields = JSON.parse(params[0])
+      row.updated_at = new Date().toISOString()
+      return { rows: [row] }
     }
     if (q.startsWith('DELETE FROM exhibition_entries')) {
       const n = state.entries.length
@@ -267,12 +277,31 @@ test('(E3) 비로그인은 원본을 올릴 수 없다', async () => {
   restore()
 })
 
-test('(E4) 접수 제출 시 업로드가 pending에서 attached로 바뀐다', async () => {
+const INFO_FIELDS = {
+  name: '학생',
+  student_no: '20260001',
+  major: '디지털인문예술',
+  phone: '010-1234-5678',
+  course: '디자인씽킹',
+  work_title: '작품명',
+  work_desc: '설명',
+}
+
+test('(E4) 작품 제출 기간에 수정으로 올린 파일이 pending에서 attached로 바뀐다', async () => {
   const db = makeDb()
   const drive = fakeDrive()
   const restore = useDrive(drive)
   const app = createApp({ db: { query: db.query } })
 
+  // 1단계: 접수는 파일 없이 정보만 받는다
+  const submitted = await request(app)
+    .post('/submit/exhibition')
+    .set('Cookie', publicCookie())
+    .send({ entry_type: 'solo', fields: INFO_FIELDS })
+  assert.equal(submitted.status, 201)
+  assert.deepEqual(submitted.body.entry.fields.original_files, [])
+
+  // 2단계: 작품 제출 기간에 파일을 올리고 같은 접수에 붙인다
   const up = await request(app)
     .post('/upload')
     .set('Cookie', publicCookie())
@@ -281,27 +310,62 @@ test('(E4) 접수 제출 시 업로드가 pending에서 attached로 바뀐다', 
     .attach('file', PNG, '작품.png')
   assert.equal(db.uploads[0].status, 'pending')
 
-  const submitted = await request(app)
-    .post('/submit/exhibition')
+  const saved = await request(app)
+    .put('/submit/exhibition')
     .set('Cookie', publicCookie())
-    .send({
-      entry_type: 'solo',
-      fields: {
-        name: '학생',
-        student_no: '20260001',
-        major: '디지털인문예술',
-        phone: '010-1234-5678',
-        course: '디자인씽킹',
-        work_title: '작품명',
-        work_desc: '설명',
-        original_files: [{ url: up.body.url, name: '작품.png' }],
-      },
-    })
-  assert.equal(submitted.status, 201)
+    .send({ id: submitted.body.entry.id, fields: { original_files: [{ url: up.body.url, name: '작품.png' }] } })
+  assert.equal(saved.status, 200)
   assert.equal(db.uploads[0].status, 'attached')
   assert.equal(db.uploads[0].response_id, submitted.body.entry.id)
-  assert.deepEqual(submitted.body.entry.fields.original_files, [{ url: up.body.url, name: '작품.png' }])
+  assert.deepEqual(saved.body.entry.fields.original_files, [{ url: up.body.url, name: '작품.png' }])
   restore()
+})
+
+test('(E10) 접수 단계에서는 파일이 담긴 접수를 받지 않는다', async () => {
+  const db = makeDb()
+  const app = createApp({ db: { query: db.query } })
+  const res = await request(app)
+    .post('/submit/exhibition')
+    .set('Cookie', publicCookie())
+    .send({ entry_type: 'solo', fields: { ...INFO_FIELDS, original_files: [{ url: 'https://example.test/a.png', name: 'a.png' }] } })
+  assert.equal(res.status, 403)
+  assert.equal(res.body.code, 'files_not_open')
+  assert.equal(db.entries.length, 0)
+})
+
+test('(E11) 작품 제출 기간 전에는 원본 업로드가 403이다', async () => {
+  const db = makeDb({ filesOpen: false })
+  const app = createApp({ db: { query: db.query } })
+  const res = await request(app)
+    .post('/upload')
+    .set('Cookie', publicCookie())
+    .field('context', 'exhibition-original')
+    .field('course', '디자인씽킹')
+    .attach('file', PNG, 'a.png')
+  assert.equal(res.status, 403)
+  assert.equal(res.body.code, 'files_not_open')
+  assert.equal(db.uploads.length, 0)
+})
+
+test('(E12) 작품 제출 기간 전에는 파일 변경 저장이 막히고 글자 수정은 된다', async () => {
+  const db = makeDb({
+    filesOpen: false,
+    entries: [{ id: 7, fields: { ...INFO_FIELDS, original_files: [] }, email: 'student@dah.test', public_user_id: 42 }],
+  })
+  const app = createApp({ db: { query: db.query } })
+  const blocked = await request(app)
+    .put('/submit/exhibition')
+    .set('Cookie', publicCookie())
+    .send({ id: 7, fields: { original_files: [{ url: 'https://example.test/a.png', name: 'a.png' }] } })
+  assert.equal(blocked.status, 403)
+  assert.equal(blocked.body.code, 'files_not_open')
+
+  const textOnly = await request(app)
+    .put('/submit/exhibition')
+    .set('Cookie', publicCookie())
+    .send({ id: 7, fields: { work_title: '새 작품명' } })
+  assert.equal(textOnly.status, 200)
+  assert.equal(textOnly.body.entry.fields.work_title, '새 작품명')
 })
 
 test('(E5) 제출 시 과목 임의값은 400으로 거부된다', async () => {

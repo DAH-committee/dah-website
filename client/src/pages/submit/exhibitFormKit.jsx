@@ -160,7 +160,7 @@ export function PhoneInput({ value, onChange, ...rest }) {
  * K3-5: 일반 사용자는 학기를 고르지 않는다. 어드민이 지정한 현재 학기(defaultSemester)에 해당하는
  * 과목만 보여 준다. 학기 태그가 없는 과목(semester null)만 있는 경우는 필터 없이 전부 보여 준다.
  */
-export function SubjectField({ subjects, value, onChange, defaultSemester, disabled = false, disabledHint }) {
+export function SubjectField({ subjects, value, onChange, defaultSemester, disabled = false, disabledHint, error, id }) {
   const semesters = [...new Set(subjects.filter((s) => s.semester).map((s) => String(s.semester)))].sort()
   const semester = semesters.includes(String(defaultSemester)) ? String(defaultSemester) : (semesters[0] ?? '')
   const visible = semesters.length === 0 ? subjects : subjects.filter((s) => String(s.semester) === semester)
@@ -168,13 +168,13 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
 
   if (subjects.length === 0) {
     return (
-      <QuestionCard label="과목" required hint={hint}>
+      <QuestionCard id={id} label="과목" required hint={hint} error={error}>
         <ShortInput required disabled={disabled} value={value} onChange={(event) => onChange(event.target.value)} placeholder="과목명" />
       </QuestionCard>
     )
   }
   return (
-    <QuestionCard label="과목" required hint={hint}>
+    <QuestionCard id={id} label="과목" required hint={hint} error={error}>
       {visible.length === 0 ? (
         <p className="text-small-m text-text-meta">등록된 과목이 없습니다</p>
       ) : (
@@ -198,7 +198,7 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
  * 있고, 올린 파일은 원본 그대로 보관되며 제출 뒤 Google Drive로 자동 정리된다(PDF는 인쇄용 폴더,
  * 이미지는 과목별 채점 폴더. 서버 lib/exhibitionPipeline.js). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
  */
-export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false }) {
+export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false, fieldError, id }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -231,9 +231,11 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
 
   return (
     <QuestionCard
+      id={id}
+      error={fieldError}
       label="원본 파일"
       required
-      hint={locked ? '과목을 먼저 선택해 주세요' : '작품 원본이 그대로 보관됩니다. 올린 뒤에는 과목을 바꿀 수 없습니다'}
+      hint={locked ? '과목을 먼저 선택해 주세요' : '작품 원본이 그대로 보관됩니다'}
     >
       {files.length > 0 && (
         <ul className="flex flex-col gap-8">
@@ -390,7 +392,8 @@ function scheduleRows(exhibition) {
   return [
     { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
     { label: '접수 마감', value: formatKst(exhibition?.submit_close) },
-    { label: '수정 마감', value: formatKst(exhibition?.edit_close) },
+    { label: '작품 제출 시작', value: formatKst(exhibition?.files_open) },
+    { label: '수정과 작품 제출 마감', value: formatKst(exhibition?.edit_close) },
   ].filter((row) => row.value)
 }
 

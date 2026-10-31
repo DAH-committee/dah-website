@@ -31,8 +31,7 @@ import { useTitle } from '../../hooks/useTitle'
 import { useAuth } from '../../context/AuthContext'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { EXHIBITION_SUFFIX, exhibitionFullTitle } from '../../data/exhibitionTitle'
-import { isValidPhone } from '../../utils/format'
-import { MemberRows, OriginalFilesField, PhoneInput, SubjectField, WorkLinksField, cleanLinks } from './exhibitFormKit'
+import { MemberRows, PhoneInput, SubjectField } from './exhibitFormKit'
 import {
   DESC_MAX,
   ENTRY_TYPE_LABEL,
@@ -41,6 +40,9 @@ import {
   resolveOrdinal,
   resolveSubjects,
   submitErrorMessage,
+  FIELD_IDS,
+  collectFormErrors,
+  scrollToFirstError,
 } from './exhibitFormShared'
 
 const EMPTY_MEMBER = { name: '', studentNo: '', major: '' }
@@ -106,46 +108,29 @@ function ExhibitSubmit() {
   const [members, setMembers] = useState([{ ...EMPTY_MEMBER }])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
-  // 53_DRIVE_STORAGE(전시회 확장): 원본 파일은 과목을 고른 다월에 Google Drive로 올리다.
-  // 파일을 하나니란 올리게 되자마자 과목 선택을 잠금 밖에(거론 폴더 보존).
-  const [workLinks, setWorkLinks] = useState([])
-  const [originalFiles, setOriginalFiles] = useState([])
-  const [filesUploading, setFilesUploading] = useState(false)
 
   const set = (key) => (event) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }))
   const setValue = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }))
   const isTeam = form.entryType === 'team'
-  const identityComplete = isTeam
-    ? Boolean(form.teamName.trim()) && members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
-    : Boolean(form.name.trim() && form.studentNo.trim() && form.major.trim())
-  const canSubmit =
-    identityComplete &&
-    isValidPhone(form.phone) &&
-    Boolean(form.course.trim() && form.workTitle.trim() && form.workDesc.trim()) &&
-    originalFiles.length > 0 &&
-    !filesUploading
+  // 접수 버튼은 항상 눌린다. 누르면 빠진 칸을 표시하고 가장 위 칸으로 올라간다(구글 폼 방식).
+  const [attempted, setAttempted] = useState(false)
+  const allErrors = collectFormErrors({
+    isTeam,
+    form,
+    members,
+    courseRequired: true,
+    checkFiles: false, // 접수에서는 파일을 받지 않는다. 작품 파일은 작품 제출 기간에 따로 올린다
+  })
+  const fieldErrors = attempted ? allErrors : {}
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    if (!canSubmit || submitting) return
-    if (!isValidPhone(form.phone)) {
-      setError('연락처를 010-0000-0000 형식으로 모두 입력해 주세요')
-      return
-    }
-    if (!form.course.trim()) {
-      setError('과목을 선택해 주세요')
-      return
-    }
-    if (originalFiles.length === 0) {
-      setError('작품 원본 파일을 하나 이상 올려 주세요')
-      return
-    }
-    if (
-      isTeam &&
-      !members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
-    ) {
-      setError('팀원 이름, 학번, 전공을 모두 입력해 주세요')
+    if (submitting) return
+    if (Object.keys(allErrors).length > 0) {
+      setAttempted(true)
+      setError(null)
+      scrollToFirstError(allErrors)
       return
     }
     setSubmitting(true)
@@ -156,8 +141,6 @@ function ExhibitSubmit() {
         course: form.course.trim(),
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
-        original_files: originalFiles,
-        links: cleanLinks(workLinks),
       }
       const fields = isTeam
         ? {
@@ -191,7 +174,8 @@ function ExhibitSubmit() {
   const schedule = [
     { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
     { label: '접수 마감', value: formatKst(exhibition?.submit_close) },
-    { label: '수정 마감', value: formatKst(exhibition?.edit_close) },
+    { label: '작품 제출 시작', value: formatKst(exhibition?.files_open) },
+    { label: '수정과 작품 제출 마감', value: formatKst(exhibition?.edit_close) },
   ]
 
   // 맨 위 제목 카드: 전시회 이름, 안내 한 문단, 일정, 접어 둔 접수 안내
@@ -268,8 +252,23 @@ function ExhibitSubmit() {
           title="접수 완료"
           actions={
             <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setForm(INITIAL_FORM)
+                  setMembers([{ ...EMPTY_MEMBER }])
+                  setAttempted(false)
+                  setError(null)
+                  setStep('form')
+                }}
+              >
+                작품 하나 더 신청
+              </Button>
               <Button variant="secondary" href="/submit/edit">
                 접수 내역 확인과 수정
+              </Button>
+              <Button variant="secondary" href="/submit/files">
+                작품 제출
               </Button>
               <Button variant="secondary" href="/">
                 홈으로 이동
@@ -277,8 +276,9 @@ function ExhibitSubmit() {
             </>
           }
         >
-          전시회 출품이 접수되었습니다. 내용 수정은 접수에 사용한 구글 계정으로 로그인해 가능합니다
-          {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}.
+          신청이 접수되었습니다. 작품명과 작품 설명은 접수에 사용한 구글 계정으로 로그인해 수정 마감까지 고칠 수 있습니다
+          {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}. 작품 파일은 작품 제출 기간에 같은 계정으로
+          올려 주세요{formatKst(exhibition?.files_open) ? ` (작품 제출 시작: ${formatKst(exhibition?.files_open)})` : ''}.
         </NoticeCard>
       )}
 
@@ -300,14 +300,14 @@ function ExhibitSubmit() {
       )}
 
       {step === 'form' && !authLoading && user && (
-        <form key="account" onSubmit={handleSubmit} className="page-fade flex min-w-0 flex-col gap-12">
+        <form key="account" noValidate onSubmit={handleSubmit} className="page-fade flex min-w-0 flex-col gap-12">
           <AccountStrip user={user} onLogout={logout} />
 
           <QuestionCard label="참가 유형" required>
             <RadioList name="entry_type" options={ENTRY_TYPE_OPTIONS} value={form.entryType} onChange={setValue('entryType')} />
           </QuestionCard>
 
-          <QuestionCard label="신청자" required>
+          <QuestionCard id={FIELD_IDS.applicant} label="신청자" required error={fieldErrors.applicant}>
             {isTeam ? (
               <>
                 <MiniField label="팀명" required>
@@ -351,13 +351,11 @@ function ExhibitSubmit() {
             value={form.course}
             onChange={setValue('course')}
             defaultSemester={currentSemester}
-            disabled={originalFiles.length > 0}
-            disabledHint="원본 파일을 올린 뒤에는 과목을 바꿀 수 없습니다. 바꾸려면 올린 파일을 먼저 제거하세요."
+            id={FIELD_IDS.course}
+            error={fieldErrors.course}
           />
 
-          <OriginalFilesField files={originalFiles} onChange={setOriginalFiles} course={form.course} onUploadingChange={setFilesUploading} />
-
-          <QuestionCard label="작품 정보" required>
+          <QuestionCard id={FIELD_IDS.work} label="작품 정보" required error={fieldErrors.work}>
             <MiniField label="작품명" required>
               <ShortInput required value={form.workTitle} onChange={set('workTitle')} placeholder="작품 제목" />
               {copy.workTitleHint && <span className="text-caption-m text-text-meta">{copy.workTitleHint}</span>}
@@ -370,7 +368,6 @@ function ExhibitSubmit() {
             </MiniField>
           </QuestionCard>
 
-          <WorkLinksField links={workLinks} onChange={setWorkLinks} />
 
           {error && (
             <p role="alert" className="px-4 text-small-m text-state-error">
@@ -378,7 +375,7 @@ function ExhibitSubmit() {
             </p>
           )}
           <SubmitRow>
-            <PrimarySubmit busy={submitting} disabled={!canSubmit}>
+            <PrimarySubmit busy={submitting}>
               {submitting ? '접수 중' : '접수'}
             </PrimarySubmit>
           </SubmitRow>

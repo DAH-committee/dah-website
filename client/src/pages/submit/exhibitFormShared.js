@@ -1,3 +1,4 @@
+import { isValidPhone } from '../../utils/format'
 // 전시회 접수 공용 상수·헬퍼 (12_BACKEND 5절) — JSX 없는 모듈(fast refresh 분리)
 // 제출자 신원은 로그인한 구글 계정이다(41_AUTH_CONTRACT) — 이 모듈은 신원 값을 다루지 않는다.
 // 기간 판정의 최종 권한은 서버(403) — settings/public 플래그는 UX 안내용.
@@ -118,3 +119,60 @@ export function semesterDesc(semester) {
   const s = String(semester)
   return /학기/.test(s) ? s : `${s}학기`
 }
+
+// 접수·수정 폼의 칸 id. 카드마다 하나씩이고, 오류가 있으면 이 순서로 가장 위 칸으로 이동한다.
+export const FIELD_IDS = {
+  applicant: 'exhibit-field-applicant',
+  course: 'exhibit-field-course',
+  files: 'exhibit-field-files',
+  work: 'exhibit-field-work',
+}
+
+function filesError({ filesUploading, fileCount }) {
+  if (filesUploading) return { files: '파일을 올리는 중입니다. 올리기가 끝나면 다시 눌러 주세요' }
+  if (fileCount === 0) return { files: '작품 원본 파일을 하나 이상 올려 주세요' }
+  return {}
+}
+
+/**
+ * 접수·저장 버튼을 눌렀을 때 칸별로 빠진 내용을 모은다. 비어 있는 객체면 통과.
+ * 값은 칸(카드)에 붙일 오류 문장이다. 키 순서가 화면 위에서 아래 순서다.
+ */
+export function collectFormErrors({ isTeam, form, members, courseRequired, filesUploading, fileCount, checkInfo = true, checkFiles = true }) {
+  const errors = {}
+  if (!checkInfo) return checkFiles ? filesError({ filesUploading, fileCount }) : errors
+  const lacksOf = (name, studentNo, major) =>
+    [!String(name || '').trim() && '이름', !String(studentNo || '').trim() && '학번', !String(major || '').trim() && '전공'].filter(Boolean)
+  const applicant = []
+  if (isTeam) {
+    if (!form.teamName.trim()) applicant.push('팀명을 입력해 주세요')
+    members.forEach((m, i) => {
+      const lacks = lacksOf(m.name, m.studentNo, m.major)
+      if (lacks.length) applicant.push(`팀원 ${i + 1}의 ${lacks.join(', ')}을 입력해 주세요`)
+    })
+  } else {
+    const lacks = lacksOf(form.name, form.studentNo, form.major)
+    if (lacks.length) applicant.push(`${lacks.join(', ')}을 입력해 주세요`)
+  }
+  if (!isValidPhone(form.phone)) applicant.push('연락처를 010-0000-0000 형식으로 입력해 주세요')
+  if (applicant.length) errors.applicant = applicant.join('\n')
+  if (courseRequired && !String(form.course || '').trim()) errors.course = '과목을 선택해 주세요'
+  if (checkFiles) Object.assign(errors, filesError({ filesUploading, fileCount }))
+  const work = []
+  if (!form.workTitle.trim()) work.push('작품명을 입력해 주세요')
+  if (!form.workDesc.trim()) work.push('작품 설명을 입력해 주세요')
+  if (work.length) errors.work = work.join('\n')
+  return errors
+}
+
+/** 오류가 있는 가장 위 칸으로 부드럽게 올라가 첫 빈 입력에 커서를 둔다 */
+export function scrollToFirstError(errors) {
+  const key = Object.keys(FIELD_IDS).find((k) => errors[k])
+  const el = key ? document.getElementById(FIELD_IDS[key]) : null
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  const inputs = Array.from(el.querySelectorAll('input:not([type=radio]):not([type=file]):not([type=hidden]),textarea'))
+  const target = inputs.find((i) => !i.value) || inputs[0] || el.querySelector('button')
+  target?.focus({ preventScroll: true })
+}
+

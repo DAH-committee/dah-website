@@ -8,7 +8,7 @@ import { wrap } from './content.js'
 
 const router = Router()
 
-const EXHIBITION_COLS = ['submit_open', 'submit_close', 'edit_close', 'form_schema', 'header_visible', 'button_mode', 'drive_connection_id']
+const EXHIBITION_COLS = ['submit_open', 'submit_close', 'files_open', 'edit_close', 'form_schema', 'header_visible', 'button_mode', 'drive_connection_id']
 
 // Y3-1(33_PHASE18): 접수 폼 과목 목록. site_settings.exhibitionSubjects에 저장한다.
 // 형태: [{ name: 'UX디자인', semester: 1 }] — semester는 1|2(학기 구분). 잘못된 값은 걸러낸다.
@@ -80,10 +80,15 @@ function computeExhibitionState(row, subjects = [], ordinal = null, currentSemes
     Boolean(row.submit_open && row.edit_close) &&
     now >= new Date(row.submit_open) &&
     now <= new Date(row.edit_close)
+  // 작품 제출 기간: files_open(없으면 접수 마감)부터 수정 마감까지
+  const filesOpen = row.files_open || row.submit_close
+  const isFilesPeriod = Boolean(filesOpen && row.edit_close) && now >= new Date(filesOpen) && now <= new Date(row.edit_close)
   return {
     submit_open: row.submit_open,
     submit_close: row.submit_close,
+    files_open: filesOpen,
     edit_close: row.edit_close,
+    is_files_period: isFilesPeriod,
     header_visible: row.header_visible,
     button_mode: row.button_mode,
     // Y3-1: 접수 폼(Y2-4-8)이 읽는 과목 목록. settings.exhibitionSubjects와 동일 값이며

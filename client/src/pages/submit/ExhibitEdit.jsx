@@ -1,3 +1,5 @@
+// /submit/edit — 전시회 접수 확인과 수정, /submit/files — 작품 제출(원본 파일). 같은 화면을 mode로 나눈다.
+// 수정(info)은 수정 마감까지 언제나 가능하고, 작품 파일(files)은 작품 제출 기간에만 올린다.
 // /submit/edit — 전시회 접수 확인과 수정 (12_BACKEND 5절 · 41_AUTH_CONTRACT)
 // 구글 로그인 → GET /submit/exhibition/mine(본인 접수 목록 + 서버 시계 기준 수정 마감 판정)
 // → 1건이면 바로 수정 화면, 여러 건이면 선택 → PUT /submit/exhibition → 완료.
@@ -29,9 +31,8 @@ import { api, useApi } from '../../hooks/useApi'
 import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
-import { isValidPhone } from '../../utils/format'
-import { MemberRows, OriginalFilesField, PhoneInput, WorkLinksField, cleanLinks } from './exhibitFormKit'
-import { DESC_MAX, ENTRY_TYPE_LABEL, formatKst, submitErrorMessage } from './exhibitFormShared'
+import { MemberRows, OriginalFilesField, PhoneInput } from './exhibitFormKit'
+import { DESC_MAX, ENTRY_TYPE_LABEL, FIELD_IDS, collectFormErrors, formatKst, scrollToFirstError, submitErrorMessage } from './exhibitFormShared'
 
 const EMPTY_MEMBER = { name: '', studentNo: '', major: '' }
 
@@ -77,8 +78,10 @@ function toMembers(entry) {
  * @param {string} email     로그인 계정 이메일(항목에 이메일이 없을 때 표시용)
  * @param {boolean} showBack 목록으로 돌아가는 동선 노출 여부(접수 2건 이상)
  */
-function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, onSaved }) {
-  const [workLinks, setWorkLinks] = useState(() => (Array.isArray(entry.fields?.links) ? entry.fields.links : []))
+function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, copy, showBack, onBack, onSaved }) {
+  const isFilesMode = mode === 'files'
+  // 이 화면에서 저장할 수 있는지: 수정은 수정 기간, 작품 제출은 작품 제출 기간
+  const canSave = isFilesMode ? canSubmitFiles : canEdit
   const [form, setForm] = useState(() => toForm(entry))
   const [members, setMembers] = useState(() => toMembers(entry))
   const [originalFiles, setOriginalFiles] = useState(() => toOriginalFiles(entry))
@@ -90,42 +93,44 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
     setForm((prev) => ({ ...prev, [key]: event.target.value }))
   const setValue = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }))
   const isTeam = entry.entry_type === 'team'
-  const identityComplete = isTeam
-    ? Boolean(form.teamName.trim()) && members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
-    : Boolean(form.name.trim() && form.studentNo.trim() && form.major.trim())
-  const canSave =
-    canEdit &&
-    identityComplete &&
-    isValidPhone(form.phone) &&
-    Boolean(form.workTitle.trim() && form.workDesc.trim()) &&
-    originalFiles.length > 0 &&
-    !filesUploading
+  // 저장 버튼은 항상 눌린다. 누르면 빠진 칸을 표시하고 가장 위 칸으로 올라간다(구글 폼 방식).
+  const [attempted, setAttempted] = useState(false)
+  const allErrors = collectFormErrors({
+    isTeam,
+    form,
+    members,
+    courseRequired: false,
+    filesUploading,
+    fileCount: originalFiles.length,
+    checkInfo: !isFilesMode,
+    checkFiles: isFilesMode,
+  })
+  const fieldErrors = attempted ? allErrors : {}
 
   const handleSave = async (event) => {
     event.preventDefault()
-    if (!canSave || busy) return
-    if (!isValidPhone(form.phone)) {
-      setError('연락처를 010-0000-0000 형식으로 모두 입력해 주세요')
-      return
-    }
-    if (
-      isTeam &&
-      !members.every((m) => m.name.trim() && m.studentNo.trim() && m.major.trim())
-    ) {
-      setError('팀원 이름, 학번, 전공을 모두 입력해 주세요')
+    if (busy || !canSave) return
+    if (Object.keys(allErrors).length > 0) {
+      setAttempted(true)
+      setError(null)
+      scrollToFirstError(allErrors)
       return
     }
     setBusy(true)
     setError(null)
     try {
+      if (isFilesMode) {
+        // 작품 제출: 원본 파일 목록만 보낸다
+        await api.put('/submit/exhibition', { id: entry.id, entry_type: entry.entry_type, fields: { original_files: originalFiles } })
+        onSaved()
+        return
+      }
       const common = {
         // 과목은 readonly — 서버가 무시하지만 원본 값을 그대로 되돌려 보낸다
         course: entry.fields?.course ?? '',
         phone: form.phone.trim(),
         work_title: form.workTitle.trim(),
         work_desc: form.workDesc.trim(),
-        links: cleanLinks(workLinks),
-        original_files: originalFiles,
       }
       const fields = isTeam
         ? {
@@ -158,16 +163,23 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
   }
 
   return (
-    <form onSubmit={handleSave} className="flex min-w-0 flex-col gap-12">
+    <form noValidate onSubmit={handleSave} className="flex min-w-0 flex-col gap-12">
       <div className="flex flex-wrap items-center justify-between gap-12 px-4">
-        <p className="text-small-m font-semibold text-text-pri">접수 내용 수정</p>
+        <p className="text-small-m font-semibold text-text-pri">{isFilesMode ? '작품 제출' : '접수 내용 수정'}</p>
         {showBack && <TextButton onClick={onBack}>목록으로</TextButton>}
       </div>
 
-      {!canEdit && (
+      {!isFilesMode && !canEdit && (
         <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
           수정 마감이 지나 저장할 수 없습니다. 접수 내용 확인만 가능합니다
           {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}.
+        </p>
+      )}
+      {isFilesMode && !canSubmitFiles && (
+        <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
+          {exhibition?.files_open && new Date() < new Date(exhibition.files_open)
+            ? `작품 제출은 ${formatKst(exhibition.files_open)}부터 가능합니다.`
+            : `작품 제출 기간이 끝났습니다${formatKst(exhibition?.edit_close) ? ` (마감: ${formatKst(exhibition?.edit_close)})` : ''}.`}
         </p>
       )}
 
@@ -176,10 +188,12 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
           <ReadOnlyRow label="참가 유형" value={ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type} />
           <ReadOnlyRow label="이메일" value={entry.email ?? email} />
           <ReadOnlyRow label="과목" value={entry.fields?.course} />
+          {isFilesMode && <ReadOnlyRow label="작품명" value={entry.fields?.work_title} />}
         </dl>
       </QuestionCard>
 
-      <QuestionCard label="신청자" required>
+      {!isFilesMode && (
+      <QuestionCard id={FIELD_IDS.applicant} label="신청자" required error={fieldErrors.applicant}>
         {isTeam ? (
           <>
             <MiniField label="팀명" required>
@@ -217,16 +231,22 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
           <PhoneInput value={form.phone} onChange={setValue('phone')} className="max-w-[240px]" />
         </MiniField>
       </QuestionCard>
+      )}
 
+      {isFilesMode && (
       <OriginalFilesField
         files={originalFiles}
         onChange={setOriginalFiles}
         course={entry.fields?.course}
         onUploadingChange={setFilesUploading}
-        disabled={!canEdit}
+        disabled={!canSubmitFiles}
+        id={FIELD_IDS.files}
+        fieldError={fieldErrors.files}
       />
+      )}
 
-      <QuestionCard label="작품 정보" required>
+      {!isFilesMode && (
+      <QuestionCard id={FIELD_IDS.work} label="작품 정보" required error={fieldErrors.work}>
         <MiniField label="작품명" required>
           <ShortInput required value={form.workTitle} onChange={set('workTitle')} />
           {copy.workTitleHint && <span className="text-caption-m text-text-meta">{copy.workTitleHint}</span>}
@@ -238,8 +258,7 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
           </span>
         </MiniField>
       </QuestionCard>
-
-      <WorkLinksField links={workLinks} onChange={setWorkLinks} disabled={!canEdit} />
+      )}
 
       {error && (
         <p role="alert" className="px-4 text-small-m text-state-error">
@@ -248,15 +267,16 @@ function EntryForm({ entry, canEdit, exhibition, email, copy, showBack, onBack, 
       )}
       <SubmitRow>
         <PrimarySubmit busy={busy} disabled={!canSave}>
-          {busy ? '저장 중' : '수정 저장'}
+          {busy ? '저장 중' : isFilesMode ? '작품 제출' : '수정 저장'}
         </PrimarySubmit>
       </SubmitRow>
     </form>
   )
 }
 
-function ExhibitEdit() {
-  useTitle('전시회 접수 확인과 수정')
+function ExhibitEdit({ mode = 'info' }) {
+  const isFilesMode = mode === 'files'
+  useTitle(isFilesMode ? '전시회 작품 제출' : '전시회 접수 확인과 수정')
   const { data: settingsRes, loading: settingsLoading } = useApi('/settings/public')
   const exhibition = settingsRes?.exhibition ?? null
   // 53: 작품명 안내 등 편집 가능한 문구는 접수 폼과 같은 DB 값을 읽는다
@@ -276,6 +296,7 @@ function ExhibitEdit() {
   const entries = Array.isArray(mineRes?.entries) ? mineRes.entries : []
   // 서버 시계 기준 수정 가능 여부 — mine 응답으로만 판단한다(클라 계산 금지)
   const canEdit = mineRes?.can_edit !== false
+  const canSubmitFiles = mineRes?.can_submit_files === true
   // 접수가 1건이면 목록 단계를 건너뛰고 바로 수정 화면. 선택은 파생값이라 effect가 필요 없다.
   const selected =
     entries.find((entry) => entry.id === selectedId) ??
@@ -284,12 +305,13 @@ function ExhibitEdit() {
   const schedule = [
     { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
     { label: '접수 마감', value: formatKst(exhibition?.submit_close) },
-    { label: '수정 마감', value: formatKst(exhibition?.edit_close) },
+    { label: '작품 제출 시작', value: formatKst(exhibition?.files_open) },
+    { label: '수정과 작품 제출 마감', value: formatKst(exhibition?.edit_close) },
   ]
 
   return (
     <RespondentPage>
-      <HeaderCard title="접수 내역 확인과 수정">
+      <HeaderCard title={isFilesMode ? '작품 제출' : '접수 내역 확인과 수정'}>
         <ScheduleInline rows={schedule} />
       </HeaderCard>
 
@@ -319,7 +341,7 @@ function ExhibitEdit() {
 
           {done ? (
             <NoticeCard
-              title="수정 완료"
+              title={isFilesMode ? '작품 제출 완료' : '수정 완료'}
               actions={
                 <>
                   <Button variant="secondary" href="/programs/exhibitions">
@@ -331,8 +353,8 @@ function ExhibitEdit() {
                 </>
               }
             >
-              접수 내용이 수정되었습니다.
-              {formatKst(exhibition?.edit_close) ? ` 수정은 ${formatKst(exhibition?.edit_close)}까지 가능합니다.` : ''}
+              {isFilesMode ? '작품 파일이 제출되었습니다.' : '접수 내용이 수정되었습니다.'}
+              {formatKst(exhibition?.edit_close) ? ` ${isFilesMode ? '파일은' : '수정은'} ${formatKst(exhibition?.edit_close)}까지 바꿀 수 있습니다.` : ''}
             </NoticeCard>
           ) : mineLoading ? (
             <p className="px-4 text-small-m text-text-meta" aria-live="polite">
@@ -359,6 +381,8 @@ function ExhibitEdit() {
               key={selected.id}
               entry={selected}
               canEdit={canEdit}
+              canSubmitFiles={canSubmitFiles}
+              mode={mode}
               exhibition={exhibition}
               email={user.email}
               showBack={entries.length > 1}

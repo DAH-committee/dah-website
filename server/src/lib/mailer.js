@@ -52,6 +52,9 @@ export async function sendExhibitionConfirmation(entry) {
     '',
     '수정 마감 이후에는 내용을 바꿀 수 없으니 기간 안에 확인해 주세요.',
     '',
+    '작품 파일은 접수 마감 뒤 작품 제출 기간에 아래 링크에서 같은 구글 계정으로 올려 주세요.',
+    `${clientOrigin()}/submit/files`,
+    '',
     '한림대학교 디지털인문예술전공',
   ].join('\n')
 

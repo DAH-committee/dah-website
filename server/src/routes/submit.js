@@ -32,6 +32,18 @@ function within(now, from, to) {
   return now >= new Date(from) && now <= new Date(to)
 }
 
+// 작품 제출(원본 파일) 기간: files_open(없으면 접수 마감)부터 수정 마감까지. 접수 기간에는 열리지 않는다.
+export function filesWindowOpen(settings, now = new Date()) {
+  if (!settings) return false
+  return within(now, settings.files_open || settings.submit_close, settings.edit_close)
+}
+
+const sameUrlSet = (a, b) => {
+  const x = (a || []).map((f) => f.url).sort().join('\n')
+  const y = (b || []).map((f) => f.url).sort().join('\n')
+  return x === y
+}
+
 // submit_open 기준 학기 라벨 산출 (예: 2026-11 → '2026-2')
 function semesterLabelFrom(settings) {
   if (!settings?.submit_open) return null
@@ -171,7 +183,11 @@ router.post(
       return res.status(400).json({ error: 'course must be one of the registered subjects' })
     }
 
-    const mergedFields = fields ? { ...fields, original_files: sanitizeOriginalFiles(fields.original_files), links: sanitizeLinks(fields.links) } : fields
+    // 접수에서는 작품 파일을 받지 않는다. 파일은 작품 제출 기간(files_open~edit_close)에 따로 올린다.
+    if (Array.isArray(fields?.original_files) && fields.original_files.length > 0) {
+      return res.status(403).json({ error: 'files are submitted separately', code: 'files_not_open' })
+    }
+    const mergedFields = fields ? { ...fields, original_files: [], links: sanitizeLinks(fields.links) } : fields
     const { rows } = await query(
       `INSERT INTO exhibition_entries (semester_label, entry_type, fields, email, images, public_user_id)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -257,7 +273,16 @@ router.put(
       }
     }
     if (fields?.original_files !== undefined) {
-      mergedFields.original_files = sanitizeOriginalFiles(fields.original_files)
+      const nextFiles = sanitizeOriginalFiles(fields.original_files)
+      // 파일이 바뀌는 저장은 작품 제출 기간에만 받는다(글자 수정은 수정 마감까지)
+      if (!sameUrlSet(entry.fields?.original_files, nextFiles) && !filesWindowOpen(req.exhibitionSettings)) {
+        return res.status(403).json({
+          error: 'file submission period closed',
+          code: 'files_not_open',
+          schedule: { files_open: req.exhibitionSettings.files_open || req.exhibitionSettings.submit_close, edit_close: req.exhibitionSettings.edit_close },
+        })
+      }
+      mergedFields.original_files = nextFiles
     }
     if (fields?.links !== undefined) mergedFields.links = sanitizeLinks(fields.links)
     // 작품명·이름이 바뀌면 드라이브 파일 이름도 바뀌어야 하므로 다시 보낸다
@@ -315,6 +340,8 @@ router.get(
     res.json({
       entries: rows.map(stripSensitive),
       can_edit: Boolean(settings) && within(now, settings.submit_open, settings.edit_close),
+      can_submit_files: filesWindowOpen(settings, now),
+      files_open: settings ? settings.files_open || settings.submit_close : null,
       edit_close: settings?.edit_close ?? null,
       submit_close: settings?.submit_close ?? null,
     })
