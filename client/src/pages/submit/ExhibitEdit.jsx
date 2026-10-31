@@ -9,6 +9,7 @@
 // can_edit로 UI를 잠그고 실제 저장 차단은 PUT의 403이 담당한다.
 // readonly: 참가 유형·과목·이메일 — 서버가 변경을 무시하므로 클라도 자물쇠로 표시만.
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { ChevronRight, Plus } from 'lucide-react'
 import Button from '../../components/common/Button'
 import {
@@ -32,7 +33,8 @@ import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
 import { MemberRows, OriginalFilesField, PhoneInput } from './exhibitFormKit'
-import { DESC_MAX, ENTRY_TYPE_LABEL, FIELD_IDS, collectFormErrors, formatKst, scrollToFirstError, submitErrorMessage } from './exhibitFormShared'
+import { EXHIBITION_SUFFIX, exhibitionFullTitle } from '../../data/exhibitionTitle'
+import { DESC_MAX, ENTRY_TYPE_LABEL, FIELD_IDS, collectFormErrors, formatKst, resolveOrdinal, scrollToFirstError, submitErrorMessage } from './exhibitFormShared'
 
 const EMPTY_MEMBER = { name: '', studentNo: '', major: '' }
 
@@ -165,7 +167,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
   return (
     <form noValidate onSubmit={handleSave} className="flex min-w-0 flex-col gap-12">
       <div className="flex flex-wrap items-center justify-between gap-12 px-4">
-        <p className="text-small-m font-semibold text-text-pri">{isFilesMode ? '작품 제출' : '접수 내용 수정'}</p>
+        <span />
         {showBack && <TextButton onClick={onBack}>목록으로</TextButton>}
       </div>
 
@@ -274,11 +276,15 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
   )
 }
 
-function ExhibitEdit({ mode = 'info' }) {
+// /submit — 전시회 접수의 첫 화면. 로그인 → 내 접수 목록(없으면 새 접수 화면) → 접수 선택 → 수정 또는 작품 제출.
+// /submit/edit, /submit/files는 예전 안내 메일 링크용 별칭이다.
+function ExhibitEdit({ mode: initialMode = 'info' }) {
+  const [mode, setMode] = useState(initialMode)
   const isFilesMode = mode === 'files'
-  useTitle(isFilesMode ? '전시회 작품 제출' : '전시회 접수 확인과 수정')
+  useTitle('전시회 접수')
   const { data: settingsRes, loading: settingsLoading } = useApi('/settings/public')
   const exhibition = settingsRes?.exhibition ?? null
+  const exhibitionName = exhibitionFullTitle(resolveOrdinal(settingsRes)) || EXHIBITION_SUFFIX
   // 53: 작품명 안내 등 편집 가능한 문구는 접수 폼과 같은 DB 값을 읽는다
   const copy = exhibitionCopy(settingsRes?.settings?.exhibitionCopy, 'ko')
   // 공개 제출자 신원 — 스태프 로그인(useAuth)과 다른 신원 클래스다(41_AUTH_CONTRACT)
@@ -288,6 +294,7 @@ function ExhibitEdit({ mode = 'info' }) {
     data: mineRes,
     loading: mineLoading,
     error: mineError,
+    refetch: refetchMine,
   } = useApi(user ? '/submit/exhibition/mine' : null)
 
   const [selectedId, setSelectedId] = useState(null)
@@ -311,13 +318,8 @@ function ExhibitEdit({ mode = 'info' }) {
 
   return (
     <RespondentPage>
-      <HeaderCard title={isFilesMode ? '작품 제출' : '접수 내역 확인과 수정'}>
+      <HeaderCard title={exhibitionName}>
         <ScheduleInline rows={schedule} />
-        <div>
-          <Button variant="ghost" href="/submit">
-            처음 화면
-          </Button>
-        </div>
       </HeaderCard>
 
       {(settingsLoading || authLoading) && (
@@ -330,13 +332,10 @@ function ExhibitEdit({ mode = 'info' }) {
       {!settingsLoading && !authLoading && !user && (
         <div key="guest" className="page-fade min-w-0">
           <LoginCard
-            title="구글 로그인 후 확인"
-            description="접수에 사용한 구글 계정으로 로그인하면 본인 접수 내역을 불러와 수정 마감 전까지 고칠 수 있습니다."
-          >
-            <Button variant="ghost" href="/submit/new">
-              새로 접수하기
-            </Button>
-          </LoginCard>
+            title="구글 로그인"
+            description={'접수와 수정, 작품 제출은 같은 구글 계정으로 합니다.\n로그인하면 접수한 작품을 골라 고치거나 파일을 제출할 수 있고,\n접수한 작품이 없으면 바로 새 접수를 시작합니다.'}
+            next="/submit"
+          />
         </div>
       )}
 
@@ -348,20 +347,22 @@ function ExhibitEdit({ mode = 'info' }) {
             <NoticeCard
               title={isFilesMode ? '작품 제출 완료' : '수정 완료'}
               actions={
-                <>
-                  <Button variant="secondary" href="/programs/exhibitions">
-                    전시회 페이지로
-                  </Button>
-                  <Button variant="secondary" href="/">
-                    홈으로 이동
-                  </Button>
-                </>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setDone(false)
+                    setSelectedId(null)
+                    refetchMine()
+                  }}
+                >
+                  접수 목록으로
+                </Button>
               }
             >
               {isFilesMode ? '작품 파일이 제출되었습니다.' : '접수 내용이 수정되었습니다.'}
               {formatKst(exhibition?.edit_close) ? ` ${isFilesMode ? '파일은' : '수정은'} ${formatKst(exhibition?.edit_close)}까지 바꿀 수 있습니다.` : ''}
             </NoticeCard>
-          ) : mineLoading ? (
+          ) : mineLoading || (!mineRes && !mineError) ? (
             <p className="px-4 text-small-m text-text-meta" aria-live="polite">
               접수 내역 불러오는 중
             </p>
@@ -370,20 +371,25 @@ function ExhibitEdit({ mode = 'info' }) {
               {submitErrorMessage(mineError)}
             </p>
           ) : entries.length === 0 ? (
-            <NoticeCard
-              title="접수 내역 없음"
-              actions={
-                <Button variant="secondary" href="/submit/new">
-                  새로 접수
-                </Button>
-              }
-            >
-              이 계정으로 등록된 접수 내역이 없습니다.
-            </NoticeCard>
+            exhibition?.is_submit_period === false ? (
+              <NoticeCard title="접수 내역 없음">이 계정으로 접수한 작품이 없고, 지금은 접수 기간이 아닙니다. 위 일정을 확인해 주세요.</NoticeCard>
+            ) : (
+              // 처음 오는 사람은 목록 없이 바로 새 접수 화면으로 간다
+              <Navigate to="/submit/new" replace />
+            )
           ) : selected ? (
+            <>
+            <div className="flex flex-wrap items-center gap-12">
+              <Button variant={isFilesMode ? 'secondary' : 'primary'} arrow={false} onClick={() => setMode('info')}>
+                접수 내용 수정
+              </Button>
+              <Button variant={isFilesMode ? 'primary' : 'secondary'} arrow={false} onClick={() => setMode('files')}>
+                작품 제출
+              </Button>
+            </div>
             <EntryForm
               copy={copy}
-              key={selected.id}
+              key={`${selected.id}-${mode}`}
               entry={selected}
               canEdit={canEdit}
               canSubmitFiles={canSubmitFiles}
@@ -394,9 +400,17 @@ function ExhibitEdit({ mode = 'info' }) {
               onBack={() => setSelectedId(null)}
               onSaved={() => setDone(true)}
             />
+            </>
           ) : (
             <div className="flex flex-col gap-12">
-              <p className="px-4 text-small-m font-semibold text-text-pri">접수 목록</p>
+              <div className="flex flex-wrap items-center justify-between gap-12 px-4">
+                <p className="text-small-m font-semibold text-text-pri">내가 접수한 작품 ({entries.length})</p>
+                {exhibition?.is_submit_period !== false && (
+                  <Button variant="primary" arrow={false} href="/submit/new">
+                    새로 접수
+                  </Button>
+                )}
+              </div>
               <ul className="flex flex-col gap-12">
                 {entries.map((entry) => (
                   <li key={entry.id} className="min-w-0">
@@ -408,7 +422,7 @@ function ExhibitEdit({ mode = 'info' }) {
                       <span className="flex min-w-0 flex-col gap-4">
                         <span className="truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
                         <span className="text-small-m text-text-meta">
-                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, entry.created_at ? String(entry.created_at).slice(0, 10) : '']
+                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length ? `작품 파일 ${entry.fields.original_files.length}개 제출` : '작품 파일 미제출']
                             .filter(Boolean)
                             .join(', ')}
                         </span>

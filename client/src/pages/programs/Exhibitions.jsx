@@ -192,7 +192,7 @@ function Exhibitions() {
                 <Button variant="primary" href="/submit">
                   전시회 접수
                 </Button>
-                <Button variant="secondary" href="/submit/edit">
+                <Button variant="secondary" href="/submit">
                   접수 내역 확인·수정
                 </Button>
               </div>

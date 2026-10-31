@@ -187,7 +187,7 @@ function ExhibitSubmit() {
       <ScheduleInline rows={schedule} />
       <div>
         <Button variant="ghost" href="/submit">
-          처음 화면
+          내 접수 목록
         </Button>
       </div>
     </HeaderCard>
@@ -210,8 +210,8 @@ function ExhibitSubmit() {
         <NoticeCard
           title="접수 기간이 아닙니다"
           actions={
-            <Button variant="secondary" href="/submit/edit">
-              접수 내역 확인과 수정
+            <Button variant="secondary" href="/submit">
+              내 접수 목록
             </Button>
           }
         >
@@ -229,34 +229,14 @@ function ExhibitSubmit() {
         <NoticeCard
           title="접수 완료"
           actions={
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  // 신청자 정보(이름, 학번, 전공, 연락처, 팀 구성)는 그대로 두고 과목과 작품 정보만 비운다
-                  setForm((prev) => ({ ...prev, course: '', workTitle: '', workDesc: '' }))
-                  setAttempted(false)
-                  setError(null)
-                  setStep('form')
-                }}
-              >
-                작품 하나 더 신청
-              </Button>
-              <Button variant="secondary" href="/submit/edit">
-                접수 내역 확인과 수정
-              </Button>
-              <Button variant="secondary" href="/submit/files">
-                작품 제출
-              </Button>
-              <Button variant="secondary" href="/">
-                홈으로 이동
-              </Button>
-            </>
+            <Button variant="primary" href="/submit">
+              내 접수 목록으로
+            </Button>
           }
         >
-          신청이 접수되었습니다. 작품명과 작품 설명은 접수에 사용한 구글 계정으로 로그인해 수정 마감까지 고칠 수 있습니다
-          {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}. 작품 파일은 작품 제출 기간에 같은 계정으로
-          올려 주세요{formatKst(exhibition?.files_open) ? ` (작품 제출 시작: ${formatKst(exhibition?.files_open)})` : ''}.
+          <span className="block whitespace-pre-line break-keep [text-wrap:balance]">
+            {`작품이 접수되었습니다.\n작품명과 설명은 ${formatKst(exhibition?.edit_close) ? `${formatKst(exhibition?.edit_close)}까지` : '수정 마감까지'} 접수 목록에서 고칠 수 있습니다.\n작품 파일은 ${formatKst(exhibition?.files_open) ? `${formatKst(exhibition?.files_open)}부터` : '작품 제출 기간에'} 같은 목록에서 올려 주세요.`}
+          </span>
         </NoticeCard>
       )}
 
@@ -271,7 +251,7 @@ function ExhibitSubmit() {
         <div key="guest" className="page-fade min-w-0">
           <LoginCard
             title="구글 로그인 후 접수"
-            description="전시회 접수는 구글 계정으로 로그인한 뒤 진행합니다. 로그인한 계정의 이메일이 접수 이메일로 기록되고, 접수 후 수정도 같은 계정으로 합니다."
+            description={'접수는 구글 계정으로 로그인한 뒤 시작합니다.\n로그인한 계정의 이메일이 접수 이메일로 기록되고,\n수정과 작품 제출도 같은 계정으로 합니다.'}
             next="/submit/new"
           />
         </div>

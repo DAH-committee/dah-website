@@ -182,7 +182,7 @@ export function LoginCard({ title, description, next, children }) {
   return (
     <Card className="flex flex-col gap-16">
       <h2 className="text-body-l-m font-bold text-text-pri md:text-body-l-d">{title}</h2>
-      {description && <p className="text-body-m leading-relaxed text-text-sec">{description}</p>}
+      {description && <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec [text-wrap:balance]">{description}</p>}
       <div className="flex flex-wrap items-center gap-16">
         <GoogleLoginButton next={next} />
         {children}

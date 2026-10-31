@@ -34,7 +34,6 @@ import Portfolios from './pages/students/Portfolios'
 import ShowcaseGrid from './pages/showcase/ShowcaseGrid'
 import ShowcaseDetail from './pages/showcase/ShowcaseDetail'
 import ShowcaseSubmit from './pages/showcase/ShowcaseSubmit'
-import ExhibitHub from './pages/submit/ExhibitHub'
 import ExhibitSubmit from './pages/submit/ExhibitSubmit'
 import ExhibitEdit from './pages/submit/ExhibitEdit'
 import FormPage from './pages/forms/FormPage'
@@ -291,7 +290,7 @@ function App() {
 
               {/* 제출·접수 플로우 (국문만, 폼 문안 원문 보존) — 상담은 위 PUBLIC_ROUTES로 이동 */}
               <Route path="/showcase/submit" element={<ShowcaseSubmit />} />
-              <Route path="/submit" element={<ExhibitHub />} />
+              <Route path="/submit" element={<ExhibitEdit />} />
               <Route path="/submit/new" element={<ExhibitSubmit />} />
               <Route path="/submit/edit" element={<ExhibitEdit />} />
               <Route path="/submit/files" element={<ExhibitEdit mode="files" />} />
