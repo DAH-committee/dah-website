@@ -104,6 +104,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
     courseRequired: false,
     filesUploading,
     fileCount: originalFiles.length,
+    fileNames: originalFiles.map((f) => f.name || f.url),
     checkInfo: !isFilesMode,
     checkFiles: isFilesMode,
   })

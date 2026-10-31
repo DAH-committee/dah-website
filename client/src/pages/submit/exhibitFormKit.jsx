@@ -204,27 +204,37 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
   const [error, setError] = useState(null)
   const locked = disabled || !course || !course.trim()
 
+  // 한 번에 여러 파일을 골라도 차례로 올린다. 올라간 파일은 그때그때 목록에 더한다.
   const handleFile = async (event) => {
-    const file = event.target.files && event.target.files[0]
+    const picked = Array.from(event.target.files || [])
     event.target.value = ''
-    if (!file || locked) return
-    if (files.length >= MAX_ORIGINAL_FILES) {
+    if (!picked.length || locked) return
+    const room = MAX_ORIGINAL_FILES - files.length
+    if (room <= 0) {
       setError(`파일은 최대 ${MAX_ORIGINAL_FILES}개까지 올릴 수 있습니다.`)
       return
     }
+    const queue = picked.slice(0, room)
     setBusy(true)
     setError(null)
     onUploadingChange?.(true)
-    try {
-      const res = await api.upload(file, { context: 'exhibition-original', course })
-      if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
-      onChange([...files, { url: res.url, name: res.name || file.name }])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setBusy(false)
-      onUploadingChange?.(false)
+    let current = files
+    const failed = []
+    for (const file of queue) {
+      try {
+        const res = await api.upload(file, { context: 'exhibition-original', course })
+        if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
+        current = [...current, { url: res.url, name: res.name || file.name }]
+        onChange(current)
+      } catch (err) {
+        failed.push(`${file.name}: ${err.message}`)
+      }
     }
+    const skipped = picked.length - queue.length
+    const notes = [...failed, skipped > 0 && `파일은 최대 ${MAX_ORIGINAL_FILES}개까지라 ${skipped}개는 올리지 않았습니다.`].filter(Boolean)
+    if (notes.length) setError(notes.join('\n'))
+    setBusy(false)
+    onUploadingChange?.(false)
   }
 
   const remove = (idx) => onChange(files.filter((_, i) => i !== idx))
@@ -235,7 +245,11 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       error={fieldError}
       label="원본 파일"
       required
-      hint={locked ? '과목을 먼저 선택해 주세요' : '작품 원본이 그대로 보관됩니다'}
+      hint={
+        locked
+          ? '과목을 먼저 선택해 주세요'
+          : `오프라인 전시용 PDF와 온라인 전시용 PNG를 모두 올립니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지 여러 개 올릴 수 있습니다.`
+      }
     >
       {files.length > 0 && (
         <ul className="flex flex-col gap-8">
@@ -282,13 +296,14 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
         )}
       </div>
       {error && (
-        <p role="alert" className="text-caption-m text-state-error">
+        <p role="alert" className="whitespace-pre-line text-caption-m text-state-error">
           {error}
         </p>
       )}
       <input
         ref={inputRef}
         type="file"
+        multiple
         accept={ORIGINAL_FILE_ACCEPT}
         onChange={handleFile}
         className="hidden"

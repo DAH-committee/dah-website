@@ -128,9 +128,15 @@ export const FIELD_IDS = {
   work: 'exhibit-field-work',
 }
 
-function filesError({ filesUploading, fileCount }) {
+// 작품 제출은 오프라인 전시용 PDF와 온라인 웹전시용 PNG를 모두 받는다. 파일은 여러 개 올릴 수 있다.
+function filesError({ filesUploading, fileCount, fileNames = [] }) {
   if (filesUploading) return { files: '파일을 올리는 중입니다. 올리기가 끝나면 다시 눌러 주세요' }
-  if (fileCount === 0) return { files: '작품 원본 파일을 하나 이상 올려 주세요' }
+  if (fileCount === 0) return { files: '오프라인 전시용 PDF와 온라인 전시용 PNG를 모두 올려 주세요' }
+  const hasPdf = fileNames.some((n) => /\.pdf$/i.test(String(n)))
+  const hasPng = fileNames.some((n) => /\.png$/i.test(String(n)))
+  if (!hasPdf && !hasPng) return { files: '오프라인 전시용 PDF와 온라인 전시용 PNG가 모두 필요합니다' }
+  if (!hasPdf) return { files: '오프라인 전시용 PDF도 올려 주세요' }
+  if (!hasPng) return { files: '온라인 전시용 PNG도 올려 주세요' }
   return {}
 }
 
@@ -138,9 +144,9 @@ function filesError({ filesUploading, fileCount }) {
  * 접수·저장 버튼을 눌렀을 때 칸별로 빠진 내용을 모은다. 비어 있는 객체면 통과.
  * 값은 칸(카드)에 붙일 오류 문장이다. 키 순서가 화면 위에서 아래 순서다.
  */
-export function collectFormErrors({ isTeam, form, members, courseRequired, filesUploading, fileCount, checkInfo = true, checkFiles = true }) {
+export function collectFormErrors({ isTeam, form, members, courseRequired, filesUploading, fileCount, fileNames, checkInfo = true, checkFiles = true }) {
   const errors = {}
-  if (!checkInfo) return checkFiles ? filesError({ filesUploading, fileCount }) : errors
+  if (!checkInfo) return checkFiles ? filesError({ filesUploading, fileCount, fileNames }) : errors
   const lacksOf = (name, studentNo, major) =>
     [!String(name || '').trim() && '이름', !String(studentNo || '').trim() && '학번', !String(major || '').trim() && '전공'].filter(Boolean)
   const applicant = []
@@ -157,7 +163,7 @@ export function collectFormErrors({ isTeam, form, members, courseRequired, files
   if (!isValidPhone(form.phone)) applicant.push('연락처를 010-0000-0000 형식으로 입력해 주세요')
   if (applicant.length) errors.applicant = applicant.join('\n')
   if (courseRequired && !String(form.course || '').trim()) errors.course = '과목을 선택해 주세요'
-  if (checkFiles) Object.assign(errors, filesError({ filesUploading, fileCount }))
+  if (checkFiles) Object.assign(errors, filesError({ filesUploading, fileCount, fileNames }))
   const work = []
   if (!form.workTitle.trim()) work.push('작품명을 입력해 주세요')
   if (!form.workDesc.trim()) work.push('작품 설명을 입력해 주세요')
