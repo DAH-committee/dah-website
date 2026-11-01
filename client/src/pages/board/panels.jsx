@@ -5,6 +5,7 @@ import { COLORS } from './palette'
 import { TEMPLATES, buildTemplate } from './templates'
 import { boundsOf } from './geometry'
 import { itemLine } from './exporters'
+import { formatDateTime24 } from '../../utils/format'
 
 /** 바깥을 누르거나 Esc를 누르면 닫히는 떠 있는 상자 */
 export function useDismiss(open, onClose, ref) {
@@ -242,7 +243,7 @@ export function ShortcutHelp({ mod, onClose }) {
 const when = (iso) => {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return formatDateTime24(d, { year: false })
 }
 
 export function CommentsPanel({ canvas, focusId, selectedId, me, canEdit, onAdd, onResolve, onDelete, onJump, onClose }) {

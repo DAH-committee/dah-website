@@ -11,6 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import SheetWorkspace from '../../components/admin/sheet/SheetWorkspace'
 import { api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
+import { formatDateTime24 } from '../../utils/format'
 
 const POLL_MS = 20000
 
@@ -318,7 +319,7 @@ function EntriesSheet() {
       sheets={sheets}
       loading={loading}
       error={error}
-      updatedAt={updatedAt ? new Date(updatedAt).toLocaleString('ko-KR') : ''}
+      updatedAt={updatedAt ? formatDateTime24(updatedAt) : ''}
       onRefresh={load}
       onEditCell={onEditCell}
       onInsertRow={onInsertRow}

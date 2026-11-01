@@ -6,6 +6,7 @@ import { api, useApi } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import { useTitle } from '../../hooks/useTitle'
 import { EmptyNote, ErrorText, GhostButton, PageHead, PrimaryButton } from '../../components/admin/FormControls'
+import { formatDateTime24 } from '../../utils/format'
 
 function HyunhoEasterEggAdmin() {
   useTitle('주현호 이스터에그')
@@ -64,7 +65,7 @@ function HyunhoEasterEggAdmin() {
                 <div><dt className="font-mono text-caption-m text-text-meta">이름</dt><dd className="text-text-pri">{item.name}</dd></div>
                 <div><dt className="font-mono text-caption-m text-text-meta">학번</dt><dd className="text-text-pri">{item.student_no}</dd></div>
                 <div><dt className="font-mono text-caption-m text-text-meta">전화번호</dt><dd className="text-text-pri">{item.phone}</dd></div>
-                <div><dt className="font-mono text-caption-m text-text-meta">발견 시각</dt><dd className="text-text-sec">{new Date(item.created_at).toLocaleString('ko-KR')}</dd></div>
+                <div><dt className="font-mono text-caption-m text-text-meta">발견 시각</dt><dd className="text-text-sec">{formatDateTime24(item.created_at)}</dd></div>
               </dl>
             </li>
           ))}

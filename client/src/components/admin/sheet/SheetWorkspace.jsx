@@ -26,6 +26,7 @@ import { Link } from 'react-router-dom'
 import { SheetsIcon } from '../../../pages/workspace/icons'
 import SheetMenuBar from './SheetMenuBar'
 import { createEvaluator } from './formula'
+import { formatDateTime24 } from '../../../utils/format'
 import {
   ALIGN_CLASS, FILL_COLORS, FONT_SIZES, TEXT_COLORS, ZOOMS, a1, colLetter, download, normalizeSheetUi,
   numericSum, parseTsv, rangeName, toCsv, toSpreadsheetML, toTsv,
@@ -1086,7 +1087,7 @@ export default function SheetWorkspace({
             </p>
             {lastEdit ? (
               <button type="button" className="sh-lastedit" onClick={() => setJump(lastEdit)} title="수정한 칸으로 이동">
-                {lastEdit.by} 님이 마지막으로 수정 · {new Date(lastEdit.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                {lastEdit.by} 님이 마지막으로 수정 · {formatDateTime24(lastEdit.at, { year: false })}
               </button>
             ) : (
               updatedAt && <p className="text-caption-m text-reading-textMeta">마지막 갱신 {updatedAt}</p>

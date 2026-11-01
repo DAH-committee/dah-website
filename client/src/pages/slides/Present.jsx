@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, MonitorPlay, RotateCcw, X } from 'lucide-react'
 import SlideView from './SlideView'
 import { SLIDE_H, SLIDE_W, magicMatches, resolveColor } from './deckCore'
+import { formatTime24 } from '../../utils/format'
 
 const stepsOf = (slide) => [...new Set((slide?.elements || []).filter((e) => e.anim).map((e) => e.anim.order || 1))].sort((a, b) => a - b)
 
@@ -70,7 +71,7 @@ function PresenterView({ slides, theme, idx, step, steps, onGo, onNext, onPrev, 
           {idx + 1} / {slides.length}
           {steps.length > 0 && ` (효과 ${step}/${steps.length})`}
         </span>
-        <span className="sl-presenter__clock">{new Date(now).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span>
+        <span className="sl-presenter__clock">{formatTime24(now)}</span>
       </div>
       <div className="sl-presenter__main">
         <div>

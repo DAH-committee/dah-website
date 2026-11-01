@@ -14,6 +14,7 @@ import { listProviders } from '../../components/ai/aiClient'
 import './workspace.css'
 import './members.css'
 import './mcpConnect.css'
+import { formatDateTime24 } from '../../utils/format'
 
 const PROVIDERS = [
   {
@@ -286,7 +287,7 @@ function McpCard() {
             <details className="mcp-log">
               <summary>최근 활동 {log.length}건</summary>
               <ul>
-                {log.map((r, i) => <li key={i}><span>{new Date(r.at).toLocaleString('ko-KR')}</span><span>{r.client_name || '앱'}</span><code>{r.tool}</code><span>{r.ok ? '성공' : '실패'}</span></li>)}
+                {log.map((r, i) => <li key={i}><span>{formatDateTime24(r.at)}</span><span>{r.client_name || '앱'}</span><code>{r.tool}</code><span>{r.ok ? '성공' : '실패'}</span></li>)}
               </ul>
               <small>도구 이름과 시각만 기록하며 파일 내용은 저장하지 않습니다.</small>
             </details>

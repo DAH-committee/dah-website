@@ -14,6 +14,7 @@ import { createSheetTools } from './aiSheetTools'
 import { QUICK_ACTIONS, buildSystemPrompt } from './aiSheetPrompts'
 
 import { useMcpRelay } from '../../components/ai/mcpRelay'
+import { formatDateTime24 } from '../../utils/format'
 // AI 창(공용 AiPanel). 파일이 없으면 빈 객체라 빌드가 깨지지 않고 AI 단추도 숨긴다.
 const AI_PANEL = import.meta.glob('../../components/ai/AiPanel.jsx')
 const AI_LOADER = Object.values(AI_PANEL)[0]
@@ -75,7 +76,7 @@ export default function SheetEditor() {
       setCanEdit(r.canEdit === true)
       setLastEdit(r.last_edit || null)
       latest.current = content
-      setUpdatedAt(new Date(r.item.updated_at).toLocaleString('ko-KR'))
+      setUpdatedAt(formatDateTime24(r.item.updated_at))
       setError('')
       document.title = `${r.item.title} | 디인예 워크스페이스`
     } catch (e) {
@@ -95,7 +96,7 @@ export default function SheetEditor() {
     clearTimeout(timer.current)
     if (!latest.current) return
     await api.put(`/workspace/sheets/${id}`, { content: latest.current })
-    setUpdatedAt(new Date().toLocaleString('ko-KR'))
+    setUpdatedAt(formatDateTime24(new Date()))
   }, [id])
 
   const commit = useCallback(

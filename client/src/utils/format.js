@@ -51,3 +51,40 @@ export function semesterLabelOf(item) {
   if (!item) return null
   return item.semester_label || semesterOf(item.event_start || item.start_date || item.created_at)
 }
+
+// ── 시각 표기: 오전, 오후 없이 24시간제로 쓴다 (00시, 14시 30분, 23시 59분) ──
+function kstParts(value, timeZone = 'Asia/Seoul') {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+  const out = {}
+  new Intl.DateTimeFormat('ko-KR', {
+    timeZone,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  })
+    .formatToParts(date)
+    .forEach((part) => {
+      out[part.type] = part.value
+    })
+  return out
+}
+
+/** 시각만: 정각이면 "00시", 아니면 "23시 59분" */
+export function formatTime24(value, timeZone) {
+  const p = kstParts(value, timeZone)
+  if (!p) return ''
+  const hour = String(p.hour).padStart(2, '0')
+  return p.minute === '00' ? `${hour}시` : `${hour}시 ${p.minute}분`
+}
+
+/** 날짜와 시각: "2026년 11월 2일 00시", 연도를 빼면 "11월 2일 00시" */
+export function formatDateTime24(value, { timeZone, year = true } = {}) {
+  const p = kstParts(value, timeZone)
+  if (!p) return ''
+  const day = `${p.month}월 ${p.day}일`
+  return `${year ? `${p.year}년 ` : ''}${day} ${formatTime24(value, timeZone)}`
+}

@@ -34,6 +34,7 @@ import {
 } from '../../components/admin/FormControls'
 import GoogleDriveIcon from '../../components/common/GoogleDriveIcon'
 import { confirmDialog } from '../../components/common/AppDialog'
+import { formatDateTime24 } from '../../utils/format'
 
 const CARD = 'flex min-w-0 flex-col gap-24 rounded-md border border-border-subtle bg-bg-panel p-24 md:p-32'
 const H3 = 'text-body-l-m font-bold text-text-pri md:text-body-l-d'
@@ -54,7 +55,7 @@ function formatDate(value) {
   if (!value) return '기록 없음'
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return '기록 없음'
-  return d.toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' })
+  return formatDateTime24(d)
 }
 
 function formatBytes(bytes) {

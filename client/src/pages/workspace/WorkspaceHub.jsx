@@ -17,6 +17,7 @@ import WorkspaceToggle from '../../components/layout/WorkspaceToggle'
 import { alertDialog, confirmDialog, promptDialog } from '../../components/common/AppDialog'
 import { ICONS, KINDS } from './icons'
 import './workspace.css'
+import { formatTime24 } from '../../utils/format'
 
 const FORM_SETTINGS = {
   accept_start: '', accept_end: '', edit_end: '', require_google_auth: true, confirmation_mail: true, max_responses: '',
@@ -113,8 +114,7 @@ function fmtDate(iso, prefixToday = false) {
   const d = new Date(iso)
   const n = new Date()
   if (d.toDateString() === n.toDateString()) {
-    const h = d.getHours()
-    return `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${String(d.getMinutes()).padStart(2, '0')}`
+    return formatTime24(d)
   }
   return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`
 }

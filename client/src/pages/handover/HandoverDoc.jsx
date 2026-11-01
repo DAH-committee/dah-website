@@ -54,6 +54,7 @@ import { getKnowledge } from '../../components/ai/knowledge'
 
 // AI 창(공용 패널)은 다른 담당이 만든다. 파일이 아직 없어도 이 화면이 빌드되도록 glob 으로 느슨하게 불러온다.
 import { useMcpRelay } from '../../components/ai/mcpRelay'
+import { formatDateTime24, formatTime24 } from '../../utils/format'
 const AI_PANEL_LOADERS = import.meta.glob('../../components/ai/AiPanel.jsx')
 const AiPanelLazy = AI_PANEL_LOADERS['../../components/ai/AiPanel.jsx']
   ? lazy(() => AI_PANEL_LOADERS['../../components/ai/AiPanel.jsx']().then((m) => ({ default: m.default || m.AiPanel })))
@@ -125,8 +126,7 @@ const colorOf = () => AVATAR_PURPLE
 function fmtTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
-  const h = d.getHours()
-  return `${h < 12 ? '오전' : '오후'} ${h % 12 === 0 ? 12 : h % 12}:${String(d.getMinutes()).padStart(2, '0')} ${d.getMonth() + 1}월 ${d.getDate()}일`
+  return `${formatTime24(d)} ${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
 function linkify(text) {
@@ -451,8 +451,7 @@ function HistoryPanel({ versions, selId, latestId, onSelect, onRestore, onRename
             <h3>{g.label}</h3>
             {g.items.map((v) => {
               const t = new Date(v.updated_at)
-              const hh = t.getHours()
-              const time = `${t.getMonth() + 1}월 ${t.getDate()}일 ${hh < 12 ? '오전' : '오후'} ${hh % 12 === 0 ? 12 : hh % 12}:${String(t.getMinutes()).padStart(2, '0')}`
+              const time = formatDateTime24(t, { year: false })
               return (
                 <div key={v.id} className={`gd-ver${selId === v.id ? ' is-on' : ''}`} onClick={() => onSelect(v)}>
                   <div className="gd-ver__main">

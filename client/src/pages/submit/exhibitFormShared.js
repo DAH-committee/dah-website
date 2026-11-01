@@ -1,4 +1,4 @@
-import { isValidPhone } from '../../utils/format'
+import { formatDateTime24, isValidPhone } from '../../utils/format'
 // 전시회 접수 공용 상수·헬퍼 (12_BACKEND 5절) — JSX 없는 모듈(fast refresh 분리)
 // 제출자 신원은 로그인한 구글 계정이다(41_AUTH_CONTRACT) — 이 모듈은 신원 값을 다루지 않는다.
 // 기간 판정의 최종 권한은 서버(403) — settings/public 플래그는 UX 안내용.
@@ -11,19 +11,9 @@ export const inputCls =
   'w-full min-w-0 rounded-md border border-border-subtle bg-bg-panel px-16 py-12 text-body-m text-text-pri placeholder:text-text-meta transition-colors duration-fast ease-out enabled:hover:border-border-strong focus:border-border-strong focus:outline-none disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-bg-elev disabled:text-text-disabled read-only:cursor-default read-only:bg-bg-elev read-only:text-text-meta aria-[invalid=true]:border-state-error md:text-body-d'
 export const labelCls = 'text-small-m font-semibold text-text-pri md:text-small-d'
 
-const kstFormat = new Intl.DateTimeFormat('ko-KR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Asia/Seoul',
-})
-
 export function formatKst(iso) {
   if (!iso) return null
-  const date = new Date(iso)
-  return Number.isNaN(date.getTime()) ? null : kstFormat.format(date)
+  return formatDateTime24(iso) || null
 }
 
 /** B1 에러 계약({error, hint?}) → 사용자 문구. 401은 로그인 만료, 403은 기간 밖, 429는 rate limit. */
