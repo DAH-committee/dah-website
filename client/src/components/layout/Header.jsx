@@ -295,11 +295,11 @@ function Header() {
           })}
         </nav>
 
-        {/* 36_MOBILE_HEADER: lg 미만 헤더 바는 [로고][햄버거] 2개로 고정한다.
+        {/* 36_MOBILE_HEADER: lg 미만 헤더 바는 [로고][접수 버튼][햄버거]로 구성한다(접수 버튼은 접수 기간에만).
             접수 버튼·KR/EN 토글·설정 아이콘은 전부 lg 이상에서만 렌더하고,
             모바일에서는 아래 시트 안으로 옮겼다 — 로그인·접수 노출 조합과 무관하게
             바에 들어가는 요소 수가 변하지 않으므로 겹침·넘침이 구조적으로 불가능하다. */}
-        <div onMouseEnter={close} className="flex shrink-0 items-center gap-16">
+        <div onMouseEnter={close} className="flex shrink-0 items-center gap-8 lg:gap-16">
           {/* H10: 접수 기간 중 헤더 접수 버튼 (button_mode=header) — 데스크탑 전용 */}
           {/* 38_UI_FIX_BATCH: CTA와 KR/EN 토글이 컨테이너 gap 16px로 붙어 보인다.
               컨테이너 gap을 키우면 나머지 유틸 쌍까지 벌어지므로 이 요소에만 우측 마진(lg:mr-8)을
@@ -347,6 +347,17 @@ function Header() {
             >
               {t('actions.login')}
             </button>
+          )}
+          {/* 모바일 접수 버튼: 햄버거 바로 왼쪽. 바에는 [로고][접수][햄버거]만 들어가고,
+              접수 버튼은 글자 길이가 고정이라 로그인 상태와 무관하게 겹치지 않는다. */}
+          {showSubmit && submitMode === 'header' && (
+            <Link
+              to="/submit"
+              className="inline-flex h-32 shrink-0 items-center gap-4 whitespace-nowrap rounded-sm bg-bg-invert px-12 text-small-m font-semibold text-text-invert transition-opacity duration-fast ease-out hover:opacity-90 lg:hidden"
+            >
+              <CalendarCheck size={14} aria-hidden="true" />
+              {t('actions.submitExhibition')}
+            </Link>
           )}
           {/* Y1-2: 햄버거 — 우측 유틸의 마지막. lg 이상은 메가메뉴가 담당하므로 미노출 */}
           <button
