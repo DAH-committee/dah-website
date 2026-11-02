@@ -431,3 +431,14 @@ test('(E9) 같은 원본을 다시 올려도 idempotent 하게 처리된다', as
   assert.equal(db.uploads.length, 1)
   restore()
 })
+
+test('(E13) 학교 메일이 아닌 일반 구글 계정(ws_only)도 전시회 접수 목록을 볼 수 있고 쇼케이스 제출은 막힌다', async () => {
+  const db = makeDb()
+  const app = createApp({ db: { query: db.query } })
+  const token = jwt.sign({ sub: 77, email: 'friend@gmail.com', name: '친구', ws: true, kind: 'public', type: 'access' }, 'test-secret', { expiresIn: '15m' })
+  const cookie = `dah_pub_access=${token}`
+  const mine = await request(app).get('/submit/exhibition/mine').set('Cookie', cookie)
+  assert.equal(mine.status, 200)
+  const showcase = await request(app).post('/submit/showcase').set('Cookie', cookie).send({})
+  assert.equal(showcase.status, 403)
+})
