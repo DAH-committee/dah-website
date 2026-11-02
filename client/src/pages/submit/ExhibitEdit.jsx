@@ -280,8 +280,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
 // /submit — 전시회 접수의 첫 화면. 로그인 → 내 접수 목록(없으면 새 접수 화면) → 접수 선택 → 수정 또는 작품 제출.
 // /submit/edit, /submit/files는 예전 안내 메일 링크용 별칭이다.
 function ExhibitEdit({ mode: initialMode = 'info' }) {
-  const [mode, setMode] = useState(initialMode)
-  const isFilesMode = mode === 'files'
+  const [requestedMode, setMode] = useState(initialMode)
   useTitle('전시회 접수')
   const { data: settingsRes, loading: settingsLoading } = useApi('/settings/public')
   const exhibition = settingsRes?.exhibition ?? null
@@ -305,6 +304,9 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
   // 서버 시계 기준 수정 가능 여부 — mine 응답으로만 판단한다(클라 계산 금지)
   const canEdit = mineRes?.can_edit !== false
   const canSubmitFiles = mineRes?.can_submit_files === true
+  // 작품 제출은 작품 제출 시작 시각(서버 시계 기준) 전에는 화면 자체를 열지 않는다. 주소로 들어와도 접수 수정 화면으로 보낸다.
+  const mode = requestedMode === 'files' && canSubmitFiles ? 'files' : 'info'
+  const isFilesMode = mode === 'files'
   // 접수가 1건이면 목록 단계를 건너뛰고 바로 수정 화면. 선택은 파생값이라 effect가 필요 없다.
   const selected =
     entries.find((entry) => entry.id === selectedId) ??
@@ -384,9 +386,15 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
               <Button variant={isFilesMode ? 'secondary' : 'primary'} arrow={false} onClick={() => setMode('info')}>
                 접수 내용 수정
               </Button>
-              <Button variant={isFilesMode ? 'primary' : 'secondary'} arrow={false} onClick={() => setMode('files')}>
-                작품 제출
-              </Button>
+              {canSubmitFiles ? (
+                <Button variant={isFilesMode ? 'primary' : 'secondary'} arrow={false} onClick={() => setMode('files')}>
+                  작품 제출
+                </Button>
+              ) : (
+                <span className="text-small-m text-text-meta">
+                  작품 제출은 {formatKst(exhibition?.files_open) ? `${formatKst(exhibition?.files_open)}부터` : '제출 기간에'} 열립니다
+                </span>
+              )}
             </div>
             <EntryForm
               copy={copy}
@@ -423,7 +431,7 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
                       <span className="flex min-w-0 flex-col gap-4">
                         <span className="truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
                         <span className="text-small-m text-text-meta">
-                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length ? `작품 파일 ${entry.fields.original_files.length}개 제출` : '작품 파일 미제출']
+                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, canSubmitFiles ? (Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length ? `작품 파일 ${entry.fields.original_files.length}개 제출` : '작품 파일 미제출') : '작품 제출 전']
                             .filter(Boolean)
                             .join(', ')}
                         </span>

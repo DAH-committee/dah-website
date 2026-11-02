@@ -9,7 +9,7 @@ import { query } from '../db.js'
 import { requireSubmitterAuth as requirePublicAuth, requirePublicAuth as requireExhibitionAuth } from '../middleware/publicAuth.js'
 // 전시회 접수는 학생 대부분이 학교 메일 대신 개인 구글 계정을 쓰므로 로그인한 모든 구글 계정을 받는다.
 // 쇼케이스 제출은 기존대로 한림대 메일이나 등록 계정만 받는다.
-import { submitLimiter } from '../middleware/rateLimit.js'
+import { submitLimiter, exhibitionIpLimiter, exhibitionUserLimiter } from '../middleware/rateLimit.js'
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
 import { attachExhibitionUploads } from '../lib/driveConnections.js'
 import { markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
@@ -165,9 +165,10 @@ async function ownsEntry(entry, user) {
 
 router.post(
   '/exhibition',
-  submitLimiter,
+  exhibitionIpLimiter,
   requireWindow('submit'),
   requireExhibitionAuth,
+  exhibitionUserLimiter,
   wrap(async (req, res) => {
     const { entry_type, fields, images } = req.body || {}
     if (!['solo', 'team'].includes(entry_type)) return res.status(400).json({ error: 'entry_type must be solo or team' })
@@ -230,9 +231,10 @@ router.post(
 
 router.put(
   '/exhibition',
-  submitLimiter,
+  exhibitionIpLimiter,
   requireWindow('edit'),
   requireExhibitionAuth,
+  exhibitionUserLimiter,
   wrap(async (req, res) => {
     const { id, fields, images } = req.body || {}
     if (!Number.isInteger(id)) return res.status(400).json({ error: 'entry id required' })

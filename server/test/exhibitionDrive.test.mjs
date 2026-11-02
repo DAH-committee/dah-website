@@ -442,3 +442,17 @@ test('(E13) 학교 메일이 아닌 일반 구글 계정(ws_only)도 전시회 �
   const showcase = await request(app).post('/submit/showcase').set('Cookie', cookie).send({})
   assert.equal(showcase.status, 403)
 })
+
+test('(E14) 같은 계정이 작품을 12건 연속 접수해도 모두 접수된다(IP당 10회 제한에 걸리지 않는다)', async () => {
+  const db = makeDb()
+  const app = createApp({ db: { query: db.query } })
+  const cookie = publicCookie('multi@gmail.com', 900)
+  for (let i = 1; i <= 12; i++) {
+    const res = await request(app)
+      .post('/submit/exhibition')
+      .set('Cookie', cookie)
+      .send({ entry_type: 'solo', fields: { ...INFO_FIELDS, work_title: `작품 ${i}` } })
+    assert.equal(res.status, 201, `${i}번째 접수 상태`)
+  }
+  assert.equal(db.entries.length, 12)
+})
