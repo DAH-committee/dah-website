@@ -109,6 +109,32 @@ function ExhibitSubmit() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
 
+  // 이미 접수한 적이 있으면 가장 최근 접수의 신청자 정보(참가 유형, 이름, 학번, 전공, 팀명, 팀원, 연락처)를 채워 둔다.
+  // 과목과 작품 정보는 작품마다 다르므로 비워 둔다. 값은 한 번만 채우고 이후 입력은 건드리지 않는다.
+  const { data: mineRes } = useApi(user ? '/submit/exhibition/mine' : null)
+  const [prefilled, setPrefilled] = useState(false)
+  const [hasPrefill, setHasPrefill] = useState(false)
+  if (!prefilled && mineRes) {
+    setPrefilled(true)
+    const last = Array.isArray(mineRes.entries) ? mineRes.entries[0] : null
+    if (last) {
+      const f = last.fields ?? {}
+      setForm((prev) => ({
+        ...prev,
+        entryType: last.entry_type === 'team' ? 'team' : 'solo',
+        name: f.name ?? '',
+        studentNo: f.student_no ?? '',
+        major: f.major ?? '',
+        teamName: f.team_name ?? '',
+        phone: f.phone ?? '',
+      }))
+      if (Array.isArray(f.members) && f.members.length) {
+        setMembers(f.members.map((m) => ({ name: m?.name ?? '', studentNo: m?.student_no ?? '', major: m?.major ?? '' })))
+      }
+      setHasPrefill(true)
+    }
+  }
+
   const set = (key) => (event) =>
     setForm((prev) => ({ ...prev, [key]: event.target.value }))
   const setValue = (key) => (value) => setForm((prev) => ({ ...prev, [key]: value }))
@@ -267,7 +293,13 @@ function ExhibitSubmit() {
             <RadioList name="entry_type" options={ENTRY_TYPE_OPTIONS} value={form.entryType} onChange={setValue('entryType')} />
           </QuestionCard>
 
-          <QuestionCard id={FIELD_IDS.applicant} label="신청자" required error={fieldErrors.applicant}>
+          <QuestionCard
+            id={FIELD_IDS.applicant}
+            label="신청자"
+            required
+            hint={hasPrefill ? '이전 접수의 신청자 정보를 불러왔습니다. 달라진 부분이 있으면 고쳐 주세요.' : undefined}
+            error={fieldErrors.applicant}
+          >
             {isTeam ? (
               <>
                 <MiniField label="팀명" required>
