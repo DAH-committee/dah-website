@@ -307,10 +307,8 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
   // 작품 제출은 작품 제출 시작 시각(서버 시계 기준) 전에는 화면 자체를 열지 않는다. 주소로 들어와도 접수 수정 화면으로 보낸다.
   const mode = requestedMode === 'files' && canSubmitFiles ? 'files' : 'info'
   const isFilesMode = mode === 'files'
-  // 접수가 1건이면 목록 단계를 건너뛰고 바로 수정 화면. 선택은 파생값이라 effect가 필요 없다.
-  const selected =
-    entries.find((entry) => entry.id === selectedId) ??
-    (entries.length === 1 ? entries[0] : null)
+  // 접수가 1건이어도 목록을 먼저 보여 준다. 그래야 '새로 접수' 버튼이 항상 보이고 작품마다 따로 접수할 수 있다.
+  const selected = entries.find((entry) => entry.id === selectedId) ?? null
 
   const schedule = [
     { label: '접수 시작', value: formatKst(exhibition?.submit_open) },
@@ -405,7 +403,7 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
               mode={mode}
               exhibition={exhibition}
               email={user.email}
-              showBack={entries.length > 1}
+              showBack
               onBack={() => setSelectedId(null)}
               onSaved={() => setDone(true)}
             />
