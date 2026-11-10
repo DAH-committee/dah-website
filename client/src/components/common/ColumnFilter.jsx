@@ -116,8 +116,6 @@ function ColumnFilter({
     setOpen(false)
   }
 
-  const SORT_BTN =
-    'flex flex-1 cursor-pointer items-center justify-center gap-4 rounded-sm px-8 py-8 text-caption-m transition-colors duration-fast ease-out'
 
   return (
     <>
