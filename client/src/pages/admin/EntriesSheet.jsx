@@ -182,6 +182,16 @@ function EntriesSheet() {
     return () => clearInterval(timer)
   }, [load])
 
+  // 접수 순서 번호: 접수일시가 이른 순서로 1, 2, 3 ...
+  const seqById = useMemo(() => {
+    const sorted = [...rows].sort((a, b) => {
+      const ta = new Date(a.created_at).getTime() || 0
+      const tb = new Date(b.created_at).getTime() || 0
+      return ta - tb || Number(a.id) - Number(b.id)
+    })
+    return new Map(sorted.map((r, i) => [r.id, i + 1]))
+  }, [rows])
+
   // 접수 현황 열: 고정 열 + fields(jsonb)의 실제 키(FIELD_ORDER 순서)
   const entryColumns = useMemo(() => {
     const dynamic = []
@@ -190,13 +200,21 @@ function EntriesSheet() {
       const f = row.fields && typeof row.fields === 'object' ? row.fields : {}
       for (const key of Object.keys(f)) {
         if (seen.has(key)) continue
+        // 작품 링크는 이제 받지 않는다. 예전 접수에 값이 있을 때만 열을 보여 준다.
+        if (key === 'links' && !rows.some((r) => Array.isArray(r.fields?.links) && r.fields.links.length > 0)) continue
         seen.add(key)
         dynamic.push({
           key: `fields.${key}`,
           label: FIELD_LABELS[key] || key,
           width: COLUMN_WIDTH[`fields.${key}`],
           get:
-            key === 'original_files'
+            key === 'members'
+              ? (r) =>
+                  membersOf(r)
+                    .map((m) => cellText(m?.name).trim())
+                    .filter(Boolean)
+                    .join(', ')
+            : key === 'original_files'
               ? (r) =>
                   (Array.isArray(r.fields?.original_files) ? r.fields.original_files : [])
                     .map((file) => file?.name || file?.url || '')
@@ -210,7 +228,8 @@ function EntriesSheet() {
     }
     dynamic.sort((a, b) => a.order - b.order)
     return [
-      { key: 'id', label: '번호', width: COLUMN_WIDTH.id, get: (r) => String(r.id) },
+      // 번호는 접수 순서(먼저 접수한 건이 1번)다. 데이터베이스 번호는 삭제와 시험 접수 때문에 12번 같은 값에서 시작해 쓰지 않는다.
+      { key: 'id', label: '번호', width: COLUMN_WIDTH.id, get: (r) => String(seqById.get(r.id) ?? '') },
       { key: 'created_at', label: '접수일시', width: COLUMN_WIDTH.created_at, get: (r) => formatDateTime(r.created_at) },
       { key: 'updated_at', label: '수정일시', width: COLUMN_WIDTH.updated_at, get: (r) => formatDateTime(r.updated_at) },
       { key: 'semester_label', label: '학기', width: COLUMN_WIDTH.semester_label, get: (r) => cellText(r.semester_label), patch: (value) => ({ semester_label: value }) },
@@ -218,7 +237,7 @@ function EntriesSheet() {
       { key: 'email', label: '이메일', width: COLUMN_WIDTH.email, get: (r) => cellText(r.email), patch: (value) => ({ email: value }) },
       ...dynamic,
     ]
-  }, [rows])
+  }, [rows, seqById])
 
   // 접수자 정보 행 (B1-9): 접수 1건 = 1행인 원본을 "사람 단위"로 집계한다.
   // 동일인 식별 키: 이메일 1순위, 없으면 학번+이름. 원본 데이터는 변형하지 않고 뷰만 만든다.
