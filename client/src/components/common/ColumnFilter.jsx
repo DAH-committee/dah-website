@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowDown, ArrowUp, Check, ListFilter, Search, X } from 'lucide-react'
+import { Check, ListFilter, Search } from 'lucide-react'
 
 // ColumnFilter.jsx — G1(37_SHEET_ROADMAP) 구글 시트식 컬럼 헤더 필터.
 //
@@ -18,8 +18,7 @@ import { ArrowDown, ArrowUp, Check, ListFilter, Search, X } from 'lucide-react'
 // 구글 시트처럼 체크박스를 고르는 동안에는 표가 움직이지 않고, "확인"을 누르면 한 번에 적용된다.
 // "취소"나 바깥 클릭, Esc는 고른 내용을 버린다. values는 호출하는 쪽에서 다른 열 필터를 거친 값만 넘긴다.
 
-const PANEL_MAX_H = 320
-const SEARCH_THRESHOLD = 8 // 값이 이보다 많으면 검색창 노출
+const PANEL_MAX_H = 440
 
 function ColumnFilter({
   label,
@@ -51,7 +50,7 @@ function ColumnFilter({
     if (!el) return
     const r = el.getBoundingClientRect()
     // 우측·하단 화면 밖으로 나가지 않게 보정
-    const width = 240
+    const width = 280
     const left = Math.min(Math.max(8, r.left), window.innerWidth - width - 8)
     const top = Math.min(r.bottom + 4, window.innerHeight - PANEL_MAX_H - 8)
     setRect({ top: Math.max(8, top), left, width })
@@ -151,77 +150,60 @@ function ColumnFilter({
             style={{ top: rect.top, left: rect.left, width: rect.width }}
             className="fixed z-[110] flex flex-col rounded-sm border border-reading-hairline bg-reading-surface shadow-glass"
           >
-            {/* 정렬 */}
-            <div className="flex gap-4 border-b border-reading-hairline p-8">
-              <button
-                type="button"
-                onClick={() => onSortChange?.(sort === 'asc' ? null : 'asc')}
-                aria-pressed={sort === 'asc'}
-                className={`${SORT_BTN} ${
-                  sort === 'asc'
-                    ? 'bg-reading-accent text-reading-surface'
-                    : 'text-reading-text hover:bg-reading-subtle'
-                }`}
-              >
-                <ArrowUp size={14} aria-hidden="true" />
-                오름차순
-              </button>
-              <button
-                type="button"
-                onClick={() => onSortChange?.(sort === 'desc' ? null : 'desc')}
-                aria-pressed={sort === 'desc'}
-                className={`${SORT_BTN} ${
-                  sort === 'desc'
-                    ? 'bg-reading-accent text-reading-surface'
-                    : 'text-reading-text hover:bg-reading-subtle'
-                }`}
-              >
-                <ArrowDown size={14} aria-hidden="true" />
-                내림차순
-              </button>
+            {/* 정렬: 구글 시트처럼 한 줄씩 */}
+            <div className="flex flex-col border-b border-reading-hairline py-4">
+              {[
+                ['asc', '정렬, 오름차순'],
+                ['desc', '정렬, 내림차순'],
+              ].map(([dir, text]) => (
+                <button
+                  key={dir}
+                  type="button"
+                  onClick={() => onSortChange?.(sort === dir ? null : dir)}
+                  aria-pressed={sort === dir}
+                  className={`flex w-full cursor-pointer items-center gap-8 px-16 py-8 text-left text-caption-m transition-colors duration-fast ease-out hover:bg-reading-subtle ${
+                    sort === dir ? 'font-semibold text-reading-accent' : 'text-reading-text'
+                  }`}
+                >
+                  {sort === dir ? <Check size={12} aria-hidden="true" /> : <span className="w-12" aria-hidden="true" />}
+                  {text}
+                </button>
+              ))}
             </div>
 
-            {/* 검색 (값이 많을 때만) */}
-            {values.length > SEARCH_THRESHOLD && (
-              <div className="flex items-center gap-8 border-b border-reading-hairline px-12 py-8">
-                <Search size={14} aria-hidden="true" className="shrink-0 text-reading-textMeta" />
-                <input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="값 검색"
-                  aria-label={`${label} 값 검색`}
-                  className="w-full min-w-0 bg-transparent text-caption-m text-reading-text outline-none placeholder:text-reading-textMeta"
-                />
-              </div>
-            )}
-
-            {/* 전체 선택·해제 */}
-            <div className="flex gap-4 border-b border-reading-hairline p-8">
-              <button
-                type="button"
-                onClick={selectShown}
-                className="flex-1 cursor-pointer rounded-sm px-8 py-4 text-caption-m text-reading-accent transition-colors duration-fast ease-out hover:bg-reading-subtle"
-              >
-                전체 선택
-              </button>
-              <button
-                type="button"
-                onClick={clearShown}
-                className="flex-1 cursor-pointer rounded-sm px-8 py-4 text-caption-m text-reading-textMeta transition-colors duration-fast ease-out hover:bg-reading-subtle"
-              >
-                전체 해제
-              </button>
+            {/* 값별 필터링 */}
+            <p className="px-16 pt-8 text-caption-m font-semibold text-reading-text">값별 필터링</p>
+            <div className="flex items-center justify-between gap-8 px-16 py-8 text-caption-m">
+              <span className="flex items-center gap-4">
+                <button type="button" onClick={selectShown} className="cursor-pointer text-reading-accent underline underline-offset-2">
+                  {shown.length}개 모두 선택
+                </button>
+                <span className="text-reading-textMeta" aria-hidden="true">-</span>
+                <button type="button" onClick={clearShown} className="cursor-pointer text-reading-accent underline underline-offset-2">
+                  지우기
+                </button>
+              </span>
+              <span className="text-reading-textMeta" aria-live="polite">
+                {values.filter((v) => draft.has(v)).length}개 표시 중
+              </span>
             </div>
 
-            <p className="border-b border-reading-hairline px-12 py-4 text-caption-m text-reading-textMeta" aria-live="polite">
-              {values.length}개 중 {values.filter((v) => draft.has(v)).length}개 선택
-            </p>
+            {/* 검색 */}
+            <div className="mx-16 mb-8 flex items-center gap-8 rounded-sm border border-reading-hairline px-8 py-4">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label={`${label} 값 검색`}
+                className="w-full min-w-0 bg-transparent text-caption-m text-reading-text outline-none"
+              />
+              <Search size={14} aria-hidden="true" className="shrink-0 text-reading-textMeta" />
+            </div>
 
-            {/* 값 목록 */}
-            <ul className="min-h-0 flex-1 overflow-y-auto p-4" style={{ maxHeight: PANEL_MAX_H - 120 }}>
+            {/* 값 목록: 체크한 값에만 체크 표시 */}
+            <ul className="min-h-0 flex-1 overflow-y-auto px-8" style={{ maxHeight: PANEL_MAX_H - 120 }}>
               {shown.length === 0 && (
-                <li className="px-12 py-8 text-caption-m text-reading-textMeta">값이 없습니다</li>
+                <li className="px-8 py-8 text-caption-m text-reading-textMeta">값이 없습니다</li>
               )}
               {shown.map((v) => {
                 const on = isChecked(v)
@@ -234,15 +216,8 @@ function ColumnFilter({
                       onClick={() => toggle(v)}
                       className="flex w-full cursor-pointer items-center gap-8 rounded-sm px-8 py-8 text-left text-caption-m text-reading-text transition-colors duration-fast ease-out hover:bg-reading-subtle"
                     >
-                      <span
-                        aria-hidden="true"
-                        className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-sm border ${
-                          on
-                            ? 'border-reading-accent bg-reading-accent text-reading-surface'
-                            : 'border-reading-hairline'
-                        }`}
-                      >
-                        {on && <Check size={12} />}
+                      <span aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center text-reading-accent">
+                        {on && <Check size={14} />}
                       </span>
                       <span className="min-w-0 truncate">{String(v) || '(빈 셀)'}</span>
                     </button>
@@ -251,21 +226,19 @@ function ColumnFilter({
               })}
             </ul>
 
-            <div className="flex justify-end gap-8 border-t border-reading-hairline p-8">
+            <div className="flex justify-end gap-8 border-t border-reading-hairline p-12">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex cursor-pointer items-center gap-4 rounded-sm px-12 py-4 text-caption-m text-reading-textMeta transition-colors duration-fast ease-out hover:bg-reading-subtle"
+                className="cursor-pointer rounded-sm border border-reading-hairline px-16 py-8 text-caption-m text-reading-text transition-colors duration-fast ease-out hover:bg-reading-subtle"
               >
-                <X size={12} aria-hidden="true" />
                 취소
               </button>
               <button
                 type="button"
                 onClick={apply}
-                className="flex cursor-pointer items-center gap-4 rounded-sm bg-reading-accent px-12 py-4 text-caption-m font-semibold text-reading-surface transition-opacity duration-fast ease-out hover:opacity-90"
+                className="cursor-pointer rounded-sm bg-reading-accent px-16 py-8 text-caption-m font-semibold text-reading-surface transition-opacity duration-fast ease-out hover:opacity-90"
               >
-                <Check size={12} aria-hidden="true" />
                 확인
               </button>
             </div>
