@@ -15,6 +15,8 @@ import { ArrowDown, ArrowUp, Check, ListFilter, Search, X } from 'lucide-react'
 //
 // 값 계약: selected가 null이면 "전체"(필터 없음), Set이면 그 값만 통과.
 //   onChange(nextSelectedOrNull) / onSortChange('asc'|'desc'|null)
+// 구글 시트처럼 체크박스를 고르는 동안에는 표가 움직이지 않고, "확인"을 누르면 한 번에 적용된다.
+// "취소"나 바깥 클릭, Esc는 고른 내용을 버린다. values는 호출하는 쪽에서 다른 열 필터를 거친 값만 넘긴다.
 
 const PANEL_MAX_H = 320
 const SEARCH_THRESHOLD = 8 // 값이 이보다 많으면 검색창 노출
@@ -33,11 +35,10 @@ function ColumnFilter({
   const [rect, setRect] = useState(null)
   const [query, setQuery] = useState('')
 
-  const active = selected instanceof Set && selected.size !== values.length
-  const isChecked = useCallback(
-    (v) => !(selected instanceof Set) || selected.has(v),
-    [selected]
-  )
+  // 선택 중인 값(확인을 누르기 전). 패널을 열 때 현재 적용된 선택으로 채운다.
+  const [draft, setDraft] = useState(() => new Set())
+  const active = selected instanceof Set && values.some((v) => !selected.has(v))
+  const isChecked = useCallback((v) => draft.has(v), [draft])
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -82,10 +83,38 @@ function ColumnFilter({
   }, [open, place])
 
   const toggle = (v) => {
-    const base = selected instanceof Set ? new Set(selected) : new Set(values)
-    if (base.has(v)) base.delete(v)
-    else base.add(v)
-    onChange?.(base.size === values.length ? null : base)
+    setDraft((prev) => {
+      const next = new Set(prev)
+      if (next.has(v)) next.delete(v)
+      else next.add(v)
+      return next
+    })
+  }
+
+  const openPanel = () => {
+    place()
+    setQuery('')
+    setDraft(new Set(values.filter((v) => !(selected instanceof Set) || selected.has(v))))
+  }
+
+  // 검색어가 있으면 보이는 값만, 없으면 전체 값을 한꺼번에 고르거나 해제한다
+  const selectShown = () =>
+    setDraft((prev) => {
+      const next = new Set(prev)
+      shown.forEach((v) => next.add(v))
+      return next
+    })
+  const clearShown = () =>
+    setDraft((prev) => {
+      const next = new Set(prev)
+      shown.forEach((v) => next.delete(v))
+      return next
+    })
+
+  const apply = () => {
+    const all = values.every((v) => draft.has(v))
+    onChange?.(all ? null : new Set(values.filter((v) => draft.has(v))))
+    setOpen(false)
   }
 
   const SORT_BTN =
@@ -100,10 +129,7 @@ function ColumnFilter({
         aria-expanded={open}
         aria-label={`${label} 필터·정렬`}
         onClick={() => {
-          if (!open) {
-            place()
-            setQuery('')
-          }
+          if (!open) openPanel()
           setOpen((v) => !v)
         }}
         className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-sm transition-colors duration-fast ease-out md:h-24 md:w-24 ${
@@ -174,19 +200,23 @@ function ColumnFilter({
             <div className="flex gap-4 border-b border-reading-hairline p-8">
               <button
                 type="button"
-                onClick={() => onChange?.(null)}
+                onClick={selectShown}
                 className="flex-1 cursor-pointer rounded-sm px-8 py-4 text-caption-m text-reading-accent transition-colors duration-fast ease-out hover:bg-reading-subtle"
               >
                 전체 선택
               </button>
               <button
                 type="button"
-                onClick={() => onChange?.(new Set())}
+                onClick={clearShown}
                 className="flex-1 cursor-pointer rounded-sm px-8 py-4 text-caption-m text-reading-textMeta transition-colors duration-fast ease-out hover:bg-reading-subtle"
               >
                 전체 해제
               </button>
             </div>
+
+            <p className="border-b border-reading-hairline px-12 py-4 text-caption-m text-reading-textMeta" aria-live="polite">
+              {values.length}개 중 {values.filter((v) => draft.has(v)).length}개 선택
+            </p>
 
             {/* 값 목록 */}
             <ul className="min-h-0 flex-1 overflow-y-auto p-4" style={{ maxHeight: PANEL_MAX_H - 120 }}>
@@ -214,21 +244,29 @@ function ColumnFilter({
                       >
                         {on && <Check size={12} />}
                       </span>
-                      <span className="min-w-0 truncate">{String(v) || '(빈 값)'}</span>
+                      <span className="min-w-0 truncate">{String(v) || '(빈 셀)'}</span>
                     </button>
                   </li>
                 )
               })}
             </ul>
 
-            <div className="flex justify-end border-t border-reading-hairline p-8">
+            <div className="flex justify-end gap-8 border-t border-reading-hairline p-8">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="flex cursor-pointer items-center gap-4 rounded-sm px-12 py-4 text-caption-m text-reading-textMeta transition-colors duration-fast ease-out hover:bg-reading-subtle"
               >
                 <X size={12} aria-hidden="true" />
-                닫기
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={apply}
+                className="flex cursor-pointer items-center gap-4 rounded-sm bg-reading-accent px-12 py-4 text-caption-m font-semibold text-reading-surface transition-opacity duration-fast ease-out hover:opacity-90"
+              >
+                <Check size={12} aria-hidden="true" />
+                확인
               </button>
             </div>
           </div>,

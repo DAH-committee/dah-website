@@ -281,12 +281,19 @@ export default function SheetWorkspace({
   const filterValues = useMemo(() => {
     const map = {}
     for (const col of columns) {
+      // 다른 열에서 걸러진 행의 값은 목록에서 뺀다(구글 시트와 같음). 이 열 자신의 선택은 목록에 영향을 주지 않는다.
+      let list = sheet.rows
+      for (const other of columns) {
+        if (other.key === col.key) continue
+        const picked = filters[other.key]
+        if (picked instanceof Set) list = list.filter((r) => picked.has(other.get(r)))
+      }
       const set = new Set()
-      for (const row of sheet.rows) set.add(col.get(row))
+      for (const row of list) set.add(col.get(row))
       map[col.key] = [...set].sort((a, b) => a.localeCompare(b, 'ko'))
     }
     return map
-  }, [columns, sheet.rows])
+  }, [columns, sheet.rows, filters])
 
   const visibleRows = useMemo(() => {
     const keyword = q.trim().toLowerCase()

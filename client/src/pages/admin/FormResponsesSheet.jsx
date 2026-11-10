@@ -194,16 +194,22 @@ function FormResponsesSheet() {
   )
 
   // 필터 후보값은 그 컬럼의 고유값(구글 시트 방식).
-  // 필터 적용 전 rows 기준이라 "전체 해제" 후에도 후보값이 남아 되돌릴 수 있다.
+  // 다른 열의 필터에 걸러진 행의 값은 목록에서 뺀다. 이 열 자신의 선택은 목록에 영향을 주지 않아 "전체 해제" 후에도 되돌릴 수 있다.
   const filterValues = useMemo(() => {
     const map = {}
     for (const col of columns) {
+      let list = rows
+      for (const other of columns) {
+        if (other.key === col.key) continue
+        const picked = filters[other.key]
+        if (picked instanceof Set) list = list.filter((r) => picked.has(other.get(r)))
+      }
       const set = new Set()
-      for (const row of rows) set.add(col.get(row))
+      for (const row of list) set.add(col.get(row))
       map[col.key] = [...set].sort((a, b) => a.localeCompare(b, 'ko'))
     }
     return map
-  }, [columns, rows])
+  }, [columns, rows, filters])
 
   const visibleRows = useMemo(() => {
     const keyword = q.trim().toLowerCase()
