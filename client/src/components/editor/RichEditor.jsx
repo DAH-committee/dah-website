@@ -47,6 +47,9 @@ function stripPastedStyles(html) {
     .replace(/\s(?:style|class|face|color|lang|align|width|height)="[^"]*"/gi, '')
 }
 
+// 툴바를 누를 때 선택 위치로 페이지가 되돌아 스크롤되지 않게 한다(tiptap focus 기본값은 선택 위치로 스크롤)
+const KEEP_SCROLL = { scrollIntoView: false }
+
 // 에디터 내부 콘텐츠 스타일 — 래퍼의 arbitrary variant로만 지정 (전역 CSS 유출 금지)
 const CONTENT_WRAP = [
   'rounded-md border border-border-subtle bg-bg-panel px-16 py-12 transition duration-fast ease-out focus-within:border-border-strong',
@@ -174,12 +177,12 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
       if (!canApplyLink) return
       if (!url) {
         // URL을 비우면 기존 링크 해제
-        editor.chain().focus().extendMarkRange('link').unsetLink().run()
+        editor.chain().focus(null, KEEP_SCROLL).extendMarkRange('link').unsetLink().run()
       } else if (!hasSelection && !onExistingLink) {
         // 선택 없음 — 표시 이름 텍스트를 삽입하고 링크 적용
         editor
           .chain()
-          .focus()
+          .focus(null, KEEP_SCROLL)
           .insertContent({
             type: 'text',
             text: linkText.trim(),
@@ -187,7 +190,7 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
           })
           .run()
       } else {
-        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+        editor.chain().focus(null, KEEP_SCROLL).extendMarkRange('link').setLink({ href: url }).run()
       }
       setUrlMode(null)
       setUrlValue('')
@@ -196,13 +199,13 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
     }
     // 임베드 3종 판별 — 유튜브 / 피그마 / 구글 슬라이드
     if (/(?:youtube\.com|youtu\.be)\//.test(url)) {
-      editor.chain().focus().setYoutubeVideo({ src: url }).run()
+      editor.chain().focus(null, KEEP_SCROLL).setYoutubeVideo({ src: url }).run()
     } else if (/figma\.com\/(?:file|proto|design|board|slides)\//.test(url)) {
-      editor.chain().focus().insertContent({ type: 'figma', attrs: { src: url } }).run()
+      editor.chain().focus(null, KEEP_SCROLL).insertContent({ type: 'figma', attrs: { src: url } }).run()
     } else if (/docs\.google\.com\/presentation\/d\//.test(url)) {
       editor
         .chain()
-        .focus()
+        .focus(null, KEEP_SCROLL)
         .insertContent({ type: 'googleSlides', attrs: { src: url } })
         .run()
     } else {
@@ -223,7 +226,7 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
       const res = await api.upload(file)
       const src = res?.url
       if (!src) throw new Error('업로드 응답에 url이 없습니다.')
-      editor.chain().focus().setImage({ src, alt: file.name }).run()
+      editor.chain().focus(null, KEEP_SCROLL).setImage({ src, alt: file.name }).run()
     } catch (err) {
       setUrlError(err.message)
     } finally {
@@ -239,26 +242,31 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
       <div
         role="toolbar"
         aria-label="서식 도구"
-        className="flex flex-wrap items-center gap-4 rounded-sm border border-glass-line bg-glass-bg px-12 py-4 backdrop-blur-glass-mobile"
+        // 긴 글을 고르는 동안에도 볼드 같은 도구가 화면 위에 남도록 사이트 머리글 아래에 고정한다
+        className="sticky top-[88px] z-20 flex flex-wrap items-center gap-4 rounded-sm border border-glass-line bg-bg-panel px-12 py-4"
+        // 버튼을 눌러도 본문 선택이 풀리지 않게 한다(입력칸은 그대로 눌린다)
+        onMouseDown={(e) => {
+          if (!(e.target instanceof HTMLElement) || !e.target.closest('input, textarea, select')) e.preventDefault()
+        }}
       >
         <ToolButton
           label="볼드"
           active={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleBold().run()}
         >
           <Bold size={16} />
         </ToolButton>
         <ToolButton
           label="이탤릭"
           active={editor.isActive('italic')}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleItalic().run()}
         >
           <Italic size={16} />
         </ToolButton>
         <ToolButton
           label="밑줄"
           active={editor.isActive('underline')}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleUnderline().run()}
         >
           <UnderlineIcon size={16} />
         </ToolButton>
@@ -266,14 +274,14 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
         <ToolButton
           label="제목 2"
           active={editor.isActive('heading', { level: 2 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleHeading({ level: 2 }).run()}
         >
           <Heading2 size={16} />
         </ToolButton>
         <ToolButton
           label="제목 3"
           active={editor.isActive('heading', { level: 3 })}
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleHeading({ level: 3 }).run()}
         >
           <Heading3 size={16} />
         </ToolButton>
@@ -281,14 +289,14 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
         <ToolButton
           label="불릿 리스트"
           active={editor.isActive('bulletList')}
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleBulletList().run()}
         >
           <List size={16} />
         </ToolButton>
         <ToolButton
           label="번호 리스트"
           active={editor.isActive('orderedList')}
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleOrderedList().run()}
         >
           <ListOrdered size={16} />
         </ToolButton>
@@ -296,13 +304,13 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
         <ToolButton
           label="인용"
           active={editor.isActive('blockquote')}
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).toggleBlockquote().run()}
         >
           <Quote size={16} />
         </ToolButton>
         <ToolButton
           label="구분선"
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          onClick={() => editor.chain().focus(null, KEEP_SCROLL).setHorizontalRule().run()}
         >
           <Minus size={16} />
         </ToolButton>
@@ -325,7 +333,7 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
           label="표 삽입"
           active={inTable}
           onClick={() =>
-            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            editor.chain().focus(null, KEEP_SCROLL).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
           }
         >
           <TableIcon size={16} />
@@ -342,19 +350,19 @@ function RichEditor({ value, onChange, placeholder = '내용 입력' }) {
             <ToolDivider />
             <ToolButton
               label="행 추가"
-              onClick={() => editor.chain().focus().addRowAfter().run()}
+              onClick={() => editor.chain().focus(null, KEEP_SCROLL).addRowAfter().run()}
             >
               <Rows3 size={16} />
             </ToolButton>
             <ToolButton
               label="열 추가"
-              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              onClick={() => editor.chain().focus(null, KEEP_SCROLL).addColumnAfter().run()}
             >
               <Columns3 size={16} />
             </ToolButton>
             <ToolButton
               label="표 삭제"
-              onClick={() => editor.chain().focus().deleteTable().run()}
+              onClick={() => editor.chain().focus(null, KEEP_SCROLL).deleteTable().run()}
             >
               <Trash2 size={16} />
             </ToolButton>
