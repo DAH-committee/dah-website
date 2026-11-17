@@ -114,19 +114,16 @@ export function semesterDesc(semester) {
 export const FIELD_IDS = {
   applicant: 'exhibit-field-applicant',
   course: 'exhibit-field-course',
-  files: 'exhibit-field-files',
   work: 'exhibit-field-work',
+  files: 'exhibit-field-files',
 }
 
-// 작품 제출은 오프라인 전시용 PDF와 온라인 웹전시용 PNG를 모두 받는다. 파일은 여러 개 올릴 수 있다.
+// 필수 파일은 웹 게시용 PNG 하나 이상이다. 오프라인 전시에 인쇄할 PDF와 그 밖의 파일은 선택이다.
 function filesError({ filesUploading, fileCount, fileNames = [] }) {
   if (filesUploading) return { files: '파일을 올리는 중입니다. 올리기가 끝나면 다시 눌러 주세요' }
-  if (fileCount === 0) return { files: '오프라인 전시용 PDF와 온라인 전시용 PNG를 모두 올려 주세요' }
-  const hasPdf = fileNames.some((n) => /\.pdf$/i.test(String(n)))
   const hasPng = fileNames.some((n) => /\.png$/i.test(String(n)))
-  if (!hasPdf && !hasPng) return { files: '오프라인 전시용 PDF와 온라인 전시용 PNG가 모두 필요합니다' }
-  if (!hasPdf) return { files: '오프라인 전시용 PDF도 올려 주세요' }
-  if (!hasPng) return { files: '온라인 전시용 PNG도 올려 주세요' }
+  if (fileCount === 0) return { files: '웹전시에 올라갈 PNG를 올려 주세요' }
+  if (!hasPng) return { files: 'PNG 파일이 하나 이상 필요합니다. 웹전시와 평가는 PNG로 합니다' }
   return {}
 }
 
@@ -153,11 +150,12 @@ export function collectFormErrors({ isTeam, form, members, courseRequired, files
   if (!isValidPhone(form.phone)) applicant.push('연락처를 010-0000-0000 형식으로 입력해 주세요')
   if (applicant.length) errors.applicant = applicant.join('\n')
   if (courseRequired && !String(form.course || '').trim()) errors.course = '과목을 선택해 주세요'
-  if (checkFiles) Object.assign(errors, filesError({ filesUploading, fileCount, fileNames }))
+  
   const work = []
   if (!form.workTitle.trim()) work.push('작품명을 입력해 주세요')
   if (!form.workDesc.trim()) work.push('작품 설명을 입력해 주세요')
   if (work.length) errors.work = work.join('\n')
+  if (checkFiles) Object.assign(errors, filesError({ filesUploading, fileCount, fileNames }))
   return errors
 }
 

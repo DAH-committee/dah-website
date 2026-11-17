@@ -1,5 +1,5 @@
-// /submit/edit — 전시회 접수 확인과 수정, /submit/files — 작품 제출(원본 파일). 같은 화면을 mode로 나눈다.
-// 수정(info)은 수정 마감까지 언제나 가능하고, 작품 파일(files)은 작품 제출 기간에만 올린다.
+// /submit — 접수한 작품 하나의 내용 확인, 수정, 작품 파일 제출을 한 폼에서 한다(구글 폼처럼 제출 버튼 하나).
+// 접수 내용은 수정 마감까지 고칠 수 있고, 작품 파일 칸은 작품 제출 기간(files_open)부터 열린다.
 // /submit/edit — 전시회 접수 확인과 수정 (12_BACKEND 5절 · 41_AUTH_CONTRACT)
 // 구글 로그인 → GET /submit/exhibition/mine(본인 접수 목록 + 서버 시계 기준 수정 마감 판정)
 // → 1건이면 바로 수정 화면, 여러 건이면 선택 → PUT /submit/exhibition → 완료.
@@ -80,10 +80,9 @@ function toMembers(entry) {
  * @param {string} email     로그인 계정 이메일(항목에 이메일이 없을 때 표시용)
  * @param {boolean} showBack 목록으로 돌아가는 동선 노출 여부(접수 2건 이상)
  */
-function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, copy, showBack, onBack, onSaved }) {
-  const isFilesMode = mode === 'files'
-  // 이 화면에서 저장할 수 있는지: 수정은 수정 기간, 작품 제출은 작품 제출 기간
-  const canSave = isFilesMode ? canSubmitFiles : canEdit
+function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, showBack, onBack, onSaved }) {
+  // 저장은 수정 마감까지 가능하다(서버도 같은 기준). 파일 칸만 작품 제출 기간부터 열린다.
+  const canSave = canEdit
   const [form, setForm] = useState(() => toForm(entry))
   const [members, setMembers] = useState(() => toMembers(entry))
   const [originalFiles, setOriginalFiles] = useState(() => toOriginalFiles(entry))
@@ -105,8 +104,9 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
     filesUploading,
     fileCount: originalFiles.length,
     fileNames: originalFiles.map((f) => f.name || f.url),
-    checkInfo: !isFilesMode,
-    checkFiles: isFilesMode,
+    checkInfo: true,
+    // 작품 제출 기간에는 웹 게시용 PNG가 필수다. 기간 전에는 파일 칸이 없다.
+    checkFiles: canSubmitFiles,
   })
   const fieldErrors = attempted ? allErrors : {}
 
@@ -122,12 +122,6 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
     setBusy(true)
     setError(null)
     try {
-      if (isFilesMode) {
-        // 작품 제출: 원본 파일 목록만 보낸다
-        await api.put('/submit/exhibition', { id: entry.id, entry_type: entry.entry_type, fields: { original_files: originalFiles } })
-        onSaved()
-        return
-      }
       const common = {
         // 과목은 readonly — 서버가 무시하지만 원본 값을 그대로 되돌려 보낸다
         course: entry.fields?.course ?? '',
@@ -151,13 +145,15 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
             major: form.major.trim(),
             ...common,
           }
+      // 작품 제출 기간이면 파일 목록을 접수 내용과 함께 보낸다
+      if (canSubmitFiles) fields.original_files = originalFiles
       // 소유 검증은 서버가 로그인 계정으로 한다 — 본문에 신원 정보를 싣지 않는다
       await api.put('/submit/exhibition', {
         id: entry.id,
         entry_type: entry.entry_type,
         fields,
       })
-      onSaved()
+      onSaved({ hasFiles: canSubmitFiles, filesOpen: canSubmitFiles })
     } catch (err) {
       setError(submitErrorMessage(err))
     } finally {
@@ -172,30 +168,20 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
         {showBack && <TextButton onClick={onBack}>목록으로</TextButton>}
       </div>
 
-      {!isFilesMode && !canEdit && (
+      {!canEdit && (
         <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
           수정 마감이 지나 저장할 수 없습니다. 접수 내용 확인만 가능합니다
           {formatKst(exhibition?.edit_close) ? ` (수정 마감: ${formatKst(exhibition?.edit_close)})` : ''}.
         </p>
       )}
-      {isFilesMode && !canSubmitFiles && (
-        <p role="alert" className="px-4 text-small-m leading-relaxed text-state-error">
-          {exhibition?.files_open && new Date() < new Date(exhibition.files_open)
-            ? `작품 제출은 ${formatKst(exhibition.files_open)}부터 가능합니다.`
-            : `작품 제출 기간이 끝났습니다${formatKst(exhibition?.edit_close) ? ` (마감: ${formatKst(exhibition?.edit_close)})` : ''}.`}
-        </p>
-      )}
-
       <QuestionCard>
         <dl className="flex flex-col gap-8">
           <ReadOnlyRow label="참가 유형" value={ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type} />
           <ReadOnlyRow label="이메일" value={entry.email ?? email} />
           <ReadOnlyRow label="과목" value={entry.fields?.course} />
-          {isFilesMode && <ReadOnlyRow label="작품명" value={entry.fields?.work_title} />}
         </dl>
       </QuestionCard>
 
-      {!isFilesMode && (
       <QuestionCard id={FIELD_IDS.applicant} label="신청자" required error={fieldErrors.applicant}>
         {isTeam ? (
           <>
@@ -234,21 +220,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
           <PhoneInput value={form.phone} onChange={setValue('phone')} className="max-w-[240px]" />
         </MiniField>
       </QuestionCard>
-      )}
 
-      {isFilesMode && (
-      <OriginalFilesField
-        files={originalFiles}
-        onChange={setOriginalFiles}
-        course={entry.fields?.course}
-        onUploadingChange={setFilesUploading}
-        disabled={!canSubmitFiles}
-        id={FIELD_IDS.files}
-        fieldError={fieldErrors.files}
-      />
-      )}
-
-      {!isFilesMode && (
       <QuestionCard id={FIELD_IDS.work} label="작품 정보" required error={fieldErrors.work}>
         <MiniField label="작품명" required>
           <ShortInput required value={form.workTitle} onChange={set('workTitle')} />
@@ -261,6 +233,24 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
           </span>
         </MiniField>
       </QuestionCard>
+
+      {canSubmitFiles ? (
+        <>
+          <OriginalFilesField
+            files={originalFiles}
+            onChange={setOriginalFiles}
+            course={entry.fields?.course}
+            onUploadingChange={setFilesUploading}
+            disabled={!canEdit}
+            id={FIELD_IDS.files}
+            fieldError={fieldErrors.files}
+          />
+        </>
+      ) : (
+        <QuestionCard
+          label="작품 파일"
+          hint={`작품 파일은 ${formatKst(exhibition?.files_open) ? `${formatKst(exhibition?.files_open)}부터` : '작품 제출 기간부터'} 이 화면에서 올릴 수 있습니다. 그때 PNG를 올려 주세요.`}
+        />
       )}
 
       {error && (
@@ -270,7 +260,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
       )}
       <SubmitRow>
         <PrimarySubmit busy={busy} disabled={!canSave}>
-          {busy ? '저장 중' : isFilesMode ? '작품 제출' : '수정 저장'}
+          {busy ? '제출 중' : '제출'}
         </PrimarySubmit>
       </SubmitRow>
     </form>
@@ -279,8 +269,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, mode, exhibition, email, co
 
 // /submit — 전시회 접수의 첫 화면. 로그인 → 내 접수 목록(없으면 새 접수 화면) → 접수 선택 → 수정 또는 작품 제출.
 // /submit/edit, /submit/files는 예전 안내 메일 링크용 별칭이다.
-function ExhibitEdit({ mode: initialMode = 'info' }) {
-  const [requestedMode, setMode] = useState(initialMode)
+function ExhibitEdit() {
   useTitle('전시회 접수')
   const { data: settingsRes, loading: settingsLoading } = useApi('/settings/public')
   const exhibition = settingsRes?.exhibition ?? null
@@ -299,14 +288,12 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
 
   const [selectedId, setSelectedId] = useState(null)
   const [done, setDone] = useState(false)
+  const [doneInfo, setDoneInfo] = useState({ hasFiles: false, filesOpen: false })
 
   const entries = Array.isArray(mineRes?.entries) ? mineRes.entries : []
   // 서버 시계 기준 수정 가능 여부 — mine 응답으로만 판단한다(클라 계산 금지)
   const canEdit = mineRes?.can_edit !== false
   const canSubmitFiles = mineRes?.can_submit_files === true
-  // 작품 제출은 작품 제출 시작 시각(서버 시계 기준) 전에는 화면 자체를 열지 않는다. 주소로 들어와도 접수 수정 화면으로 보낸다.
-  const mode = requestedMode === 'files' && canSubmitFiles ? 'files' : 'info'
-  const isFilesMode = mode === 'files'
   // 접수가 1건이어도 목록을 먼저 보여 준다. 그래야 '새로 접수' 버튼이 항상 보이고 작품마다 따로 접수할 수 있다.
   const selected = entries.find((entry) => entry.id === selectedId) ?? null
 
@@ -346,22 +333,36 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
 
           {done ? (
             <NoticeCard
-              title={isFilesMode ? '작품 제출 완료' : '수정 완료'}
+              title="제출 완료"
               actions={
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setDone(false)
-                    setSelectedId(null)
-                    refetchMine()
-                  }}
-                >
-                  접수 목록으로
-                </Button>
+                <>
+                  <Button
+                    variant="primary"
+                    arrow={false}
+                    onClick={() => {
+                      setDone(false)
+                    }}
+                  >
+                    다시 수정
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setDone(false)
+                      setSelectedId(null)
+                    }}
+                  >
+                    접수 목록으로
+                  </Button>
+                </>
               }
             >
-              {isFilesMode ? '작품 파일이 제출되었습니다.' : '접수 내용이 수정되었습니다.'}
-              {formatKst(exhibition?.edit_close) ? ` ${isFilesMode ? '파일은' : '수정은'} ${formatKst(exhibition?.edit_close)}까지 바꿀 수 있습니다.` : ''}
+              {doneInfo.hasFiles
+                ? '접수 내용과 작품 파일이 제출되었습니다.'
+                : doneInfo.filesOpen
+                  ? '접수 내용이 저장되었습니다. 작품 파일은 아직 제출되지 않았습니다.'
+                  : `접수 내용이 저장되었습니다. 작품 파일은 ${formatKst(exhibition?.files_open) ?? '작품 제출 기간'}부터 올릴 수 있습니다.`}
+              {formatKst(exhibition?.edit_close) ? ` ${formatKst(exhibition?.edit_close)}까지 같은 화면에서 다시 고쳐 제출할 수 있습니다.` : ''}
             </NoticeCard>
           ) : mineLoading || (!mineRes && !mineError) ? (
             <p className="px-4 text-small-m text-text-meta" aria-live="polite">
@@ -379,35 +380,22 @@ function ExhibitEdit({ mode: initialMode = 'info' }) {
               <Navigate to="/submit/new" replace />
             )
           ) : selected ? (
-            <>
-            <div className="flex flex-wrap items-center gap-12">
-              <Button variant={isFilesMode ? 'secondary' : 'primary'} arrow={false} onClick={() => setMode('info')}>
-                접수 내용 수정
-              </Button>
-              {canSubmitFiles ? (
-                <Button variant={isFilesMode ? 'primary' : 'secondary'} arrow={false} onClick={() => setMode('files')}>
-                  작품 제출
-                </Button>
-              ) : (
-                <span className="text-small-m text-text-meta">
-                  작품 제출은 {formatKst(exhibition?.files_open) ? `${formatKst(exhibition?.files_open)}부터` : '제출 기간에'} 열립니다
-                </span>
-              )}
-            </div>
             <EntryForm
               copy={copy}
-              key={`${selected.id}-${mode}`}
+              key={`${selected.id}-${selected.updated_at ?? ''}`}
               entry={selected}
               canEdit={canEdit}
               canSubmitFiles={canSubmitFiles}
-              mode={mode}
               exhibition={exhibition}
               email={user.email}
               showBack
               onBack={() => setSelectedId(null)}
-              onSaved={() => setDone(true)}
+              onSaved={(info) => {
+                setDoneInfo(info ?? { hasFiles: false, filesOpen: false })
+                refetchMine()
+                setDone(true)
+              }}
             />
-            </>
           ) : (
             <div className="flex flex-col gap-12">
               <div className="flex flex-wrap items-center justify-between gap-12 px-4">

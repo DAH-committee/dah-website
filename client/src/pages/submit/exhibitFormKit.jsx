@@ -248,7 +248,7 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       hint={
         locked
           ? '과목을 먼저 선택해 주세요'
-          : `오프라인 전시용 PDF와 온라인 전시용 PNG를 모두 올립니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지 여러 개 올릴 수 있습니다.`
+          : `웹전시와 평가에 쓰이는 PNG는 필수입니다. 오프라인 전시에 인쇄할 PDF와 그 밖의 파일은 선택입니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지, 파일 하나당 100MB 이내로 올릴 수 있습니다.`
       }
     >
       {files.length > 0 && (

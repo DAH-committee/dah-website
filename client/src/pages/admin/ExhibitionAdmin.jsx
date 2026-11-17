@@ -24,8 +24,6 @@ import {
   Toggle,
   DateInput,
 } from '../../components/admin/FormControls'
-import { useAuth } from '../../context/AuthContext'
-import { confirmDialog } from '../../components/common/AppDialog'
 
 // ISO ↔ datetime-local 변환 (로컬 시간대 기준 편집, 저장 시 ISO)
 function toLocalInput(iso) {
@@ -81,8 +79,6 @@ function ExhibitionAdmin() {
 
   // 53_DRIVE_STORAGE(전시회 확장): 원본 파일을 보낼 Drive 연결. 연결 목록은 저장소 화면이
   // 관리하고, 여기서는 "이 전시회 접수가 어떤 연결을 쓰는가"만 고른다.
-  const { user } = useAuth()
-  const isOwner = user?.role === 'owner'
   const driveStatus = useApi('/admin/drive/status')
   const driveSetting = useApi('/admin/exhibition/drive')
   const [driveConnectionId, setDriveConnectionId] = useState('')
@@ -90,8 +86,6 @@ function ExhibitionAdmin() {
   const [driveBusy, setDriveBusy] = useState(false)
   const [driveSaved, setDriveSaved] = useState(false)
   const [driveError, setDriveError] = useState(null)
-  const [clearBusy, setClearBusy] = useState(false)
-  const [clearMessage, setClearMessage] = useState(null)
 
   useEffect(() => {
     if (driveHydrated || !driveSetting.data) return
@@ -117,22 +111,6 @@ function ExhibitionAdmin() {
       setDriveError(err.hint ? `${err.message} (${err.hint})` : err.message)
     } finally {
       setDriveBusy(false)
-    }
-  }
-
-  // 테스트 접수 초기화 — owner 전용. Drive 안의 파일은 지우지 않는다(업로드 기록도 남는다).
-  const clearEntries = async () => {
-    if (!await confirmDialog({ message: '접수 내역을 전부 삭제합니다. Drive에 올라간 파일은 지워지지 않습니다. 계속할까요?', tone: 'danger', confirmLabel: '삭제' })) return
-    setClearBusy(true)
-    setClearMessage(null)
-    try {
-      const res = await api.del('/admin/exhibition/entries')
-      setClearMessage(`접수 ${res.deleted}건을 삭제했습니다. Drive 파일은 그대로 있습니다.`)
-      entries.refetch()
-    } catch (err) {
-      setClearMessage(err.message)
-    } finally {
-      setClearBusy(false)
     }
   }
 
@@ -365,20 +343,6 @@ function ExhibitionAdmin() {
         <p className="font-mono text-caption-m text-text-meta">
           {entries.loading ? '불러오는 중' : `현재 접수 ${total}건`}
         </p>
-        {isOwner && (
-          <div className="flex flex-wrap items-center gap-12 border-t border-glass-line pt-16">
-            <GhostButton onClick={clearEntries} disabled={clearBusy || total === 0}>
-              <Trash2 size={16} aria-hidden="true" />
-              {clearBusy ? '삭제 중' : '접수 내역 전체 삭제'}
-            </GhostButton>
-            <span className="text-caption-m text-text-meta">
-              테스트 접수를 정리할 때 씁니다. Drive에 올라간 파일은 지워지지 않습니다.
-            </span>
-          </div>
-        )}
-        {clearMessage && (
-          <p className="font-mono text-caption-m text-text-meta">{clearMessage}</p>
-        )}
       </div>
 
       {/* 53_DRIVE_STORAGE(전시회 확장): 접수 원본 파일이 저장될 Google Drive 연결 */}
