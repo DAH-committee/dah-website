@@ -147,6 +147,33 @@ function CodeSharing() {
           </Reveal>
         </Container>
 
+        {/* 04, 05 위 안내 — 두 유형은 따로 인정하고 합쳐서 최대 18학점 */}
+        {(recognizedCourses.length > 0 || departments.length > 0) && (
+          <Container as="section" className="pt-section-m md:pt-section-d">
+            <Reveal>
+              <h2 className="max-w-4xl text-h3-m font-bold leading-snug tracking-display text-text-pri md:text-h3-d">
+                {t('codesharing.limitTitle')}
+              </h2>
+              <p className="mt-16 max-w-lead text-body-m leading-relaxed text-text-sec md:text-body-d">
+                {t('codesharing.limitLead')}
+              </p>
+              <div className="mt-32 grid gap-16 md:mt-40 md:grid-cols-3 md:gap-24">
+                {[
+                  { label: t('codesharing.recognizedType'), value: t('codesharing.limitMax'), note: t('codesharing.limitRecognizedNote') },
+                  { label: t('codesharing.creditType'), value: t('codesharing.limitMax'), note: t('codesharing.limitCreditNote') },
+                  { label: t('codesharing.limitTotalLabel'), value: t('codesharing.limitTotal'), note: t('codesharing.limitTotalNote'), total: true },
+                ].map((c) => (
+                  <div key={c.label} className={`flex flex-col gap-8 rounded-glass p-24 md:p-32 ${c.total ? 'bg-glass-strong' : 'bg-glass-bg'}`}>
+                    <p className="break-keep text-small-m font-semibold text-text-sec md:text-small-d">{c.label}</p>
+                    <p className="text-h2-m font-extrabold leading-snug tracking-display text-text-pri md:text-h2-d">{c.value}</p>
+                    <p className="break-keep text-small-m leading-relaxed text-text-meta md:text-small-d">{c.note}</p>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </Container>
+        )}
+
         {/* 04 타과교과목 인정형 코드쉐어링 — 최대 9학점 안내 + 교과목 표 */}
         {recognizedCourses.length > 0 && (
           <Container as="section" className="pt-section-m md:pt-section-d">
