@@ -86,6 +86,8 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
   const [form, setForm] = useState(() => toForm(entry))
   const [members, setMembers] = useState(() => toMembers(entry))
   const [originalFiles, setOriginalFiles] = useState(() => toOriginalFiles(entry))
+  // 이미 파일을 제출한 접수는 파일을 모두 지우고 저장할 수 없다. 파일이 없던 접수는 접수 내용만 고쳐 저장할 수 있다.
+  const [hadFiles] = useState(() => toOriginalFiles(entry).length > 0)
   const [filesUploading, setFilesUploading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -105,8 +107,8 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
     fileCount: originalFiles.length,
     fileNames: originalFiles.map((f) => f.name || f.url),
     checkInfo: true,
-    // 작품 제출 기간에는 웹 게시용 PNG가 필수다. 기간 전에는 파일 칸이 없다.
-    checkFiles: canSubmitFiles,
+    // 파일을 올리려면 웹 게시용 PNG가 필요하다. 파일을 올리지 않으면 접수 내용만 저장한다.
+    checkFiles: canSubmitFiles && (originalFiles.length > 0 || hadFiles || filesUploading),
   })
   const fieldErrors = attempted ? allErrors : {}
 
@@ -145,15 +147,16 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
             major: form.major.trim(),
             ...common,
           }
-      // 작품 제출 기간이면 파일 목록을 접수 내용과 함께 보낸다
-      if (canSubmitFiles) fields.original_files = originalFiles
+      // 파일이 있거나 이미 제출한 적이 있으면 파일 목록을 접수 내용과 함께 보낸다
+      const sendFiles = canSubmitFiles && (originalFiles.length > 0 || hadFiles)
+      if (sendFiles) fields.original_files = originalFiles
       // 소유 검증은 서버가 로그인 계정으로 한다 — 본문에 신원 정보를 싣지 않는다
       await api.put('/submit/exhibition', {
         id: entry.id,
         entry_type: entry.entry_type,
         fields,
       })
-      onSaved({ hasFiles: canSubmitFiles, filesOpen: canSubmitFiles })
+      onSaved({ hasFiles: sendFiles && originalFiles.length > 0, filesOpen: canSubmitFiles })
     } catch (err) {
       setError(submitErrorMessage(err))
     } finally {
@@ -242,6 +245,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
             course={entry.fields?.course}
             onUploadingChange={setFilesUploading}
             disabled={!canEdit}
+            required={false}
             id={FIELD_IDS.files}
             fieldError={fieldErrors.files}
           />

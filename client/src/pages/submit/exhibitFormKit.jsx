@@ -198,7 +198,7 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
  * 있고, 올린 파일은 원본 그대로 보관되며 제출 뒤 Google Drive로 자동 정리된다(PDF는 인쇄용 폴더,
  * 이미지는 과목별 채점 폴더. 서버 lib/exhibitionPipeline.js). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
  */
-export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false, fieldError, id }) {
+export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false, required = true, fieldError, id }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -244,11 +244,11 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       id={id}
       error={fieldError}
       label="작품 파일"
-      required
+      required={required}
       hint={
         locked
           ? '과목을 먼저 선택해 주세요'
-          : `웹전시와 평가에 쓰이는 PNG는 필수입니다. 오프라인 전시에 인쇄할 PDF와 그 밖의 파일은 선택입니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지, 파일 하나당 100MB 이내로 올릴 수 있습니다.`
+          : `작품 파일을 올릴 때는 웹전시와 평가에 쓰이는 PNG가 꼭 있어야 합니다. 오프라인 전시에 인쇄할 PDF와 그 밖의 파일은 선택입니다. 작품 정보만 고칠 때는 파일을 올리지 않아도 됩니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지, 파일 하나당 100MB 이내로 올릴 수 있습니다.`
       }
     >
       {files.length > 0 && (
