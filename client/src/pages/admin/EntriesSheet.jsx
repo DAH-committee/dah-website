@@ -90,6 +90,15 @@ const COLUMN_WIDTH = {
   person_name: 120,
   person_phone: 140,
   person_subjects: 320,
+  sum_course: 280,
+  sum_works: 130,
+  sum_solo: 90,
+  sum_team: 90,
+  sum_people: 110,
+  sum_files: 130,
+  sum_png: 110,
+  sum_pdf: 110,
+  sum_nofiles: 130,
 }
 
 function cellText(value) {
@@ -146,7 +155,7 @@ function firstPersonField(row, keys) {
 // 이 화면에서 고칠 수 없는 칸: 파일 목록과 팀원 목록은 구조가 있는 값이라 접수 폼에서만 고친다.
 const READ_ONLY_FIELDS = new Set(['original_files', 'members'])
 
-const SHEET_LABELS = { entries: '접수 현황', people: '접수자 정보' }
+const SHEET_LABELS = { entries: '접수 현황', people: '접수자 정보', summary: '과목별 현황' }
 
 function EntriesSheet() {
   useTitle('접수 관리 시트')
@@ -287,6 +296,54 @@ function EntriesSheet() {
     []
   )
 
+
+  // 과목별 현황: 접수 건을 과목으로 묶어 작품 수, 개인과 팀, 참여 인원, 파일 제출 상황을 센다.
+  // 참여 인원은 팀원까지 풀어서 같은 사람(학번과 이름이 같음)을 한 번만 센다.
+  const summaryRows = useMemo(() => {
+    const blank = () => ({ works: 0, solo: 0, team: 0, files: 0, png: 0, pdf: 0, people: new Set() })
+    const byCourse = new Map()
+    const total = blank()
+    const hasExt = (list, re) => list.some((f) => re.test(String(f?.name || f?.url || '')))
+    for (const row of rows) {
+      const course = cellText(row.fields?.course).trim() || cellText(row.fields?.subject).trim() || '(과목 없음)'
+      const c = byCourse.get(course) || blank()
+      byCourse.set(course, c)
+      const files = Array.isArray(row.fields?.original_files) ? row.fields.original_files : []
+      const people = membersOf(row).length
+        ? membersOf(row).map((m) => `${cellText(m?.student_no).trim()}|${cellText(m?.name).trim()}`)
+        : [`${cellText(row.fields?.student_no).trim()}|${cellText(row.fields?.name).trim()}`]
+      for (const t of [c, total]) {
+        t.works += 1
+        if (row.entry_type === 'team') t.team += 1
+        else t.solo += 1
+        if (files.length) t.files += 1
+        if (hasExt(files, /\.png$/i)) t.png += 1
+        if (hasExt(files, /\.pdf$/i)) t.pdf += 1
+        people.forEach((p) => t.people.add(p))
+      }
+    }
+    const toRow = (id, label, t) => ({
+      id, label, works: t.works, solo: t.solo, team: t.team, people: t.people.size, files: t.files, png: t.png, pdf: t.pdf, nofiles: t.works - t.files,
+    })
+    const list = [...byCourse.entries()].sort((a, b) => b[1].works - a[1].works || a[0].localeCompare(b[0], 'ko')).map(([name, t]) => toRow(`course:${name}`, name, t))
+    return rows.length ? [...list, toRow('total', '전체 합계 (인원은 중복 제외)', total)] : []
+  }, [rows])
+
+  const summaryColumns = useMemo(
+    () => [
+      { key: 'sum_course', label: '과목', width: COLUMN_WIDTH.sum_course, get: (r) => r.label },
+      { key: 'sum_works', label: '접수 작품', width: COLUMN_WIDTH.sum_works, get: (r) => String(r.works) },
+      { key: 'sum_solo', label: '개인', width: COLUMN_WIDTH.sum_solo, get: (r) => String(r.solo) },
+      { key: 'sum_team', label: '팀', width: COLUMN_WIDTH.sum_team, get: (r) => String(r.team) },
+      { key: 'sum_people', label: '참여 인원', width: COLUMN_WIDTH.sum_people, get: (r) => String(r.people) },
+      { key: 'sum_files', label: '파일 제출 작품', width: COLUMN_WIDTH.sum_files, get: (r) => String(r.files) },
+      { key: 'sum_png', label: 'PNG 제출', width: COLUMN_WIDTH.sum_png, get: (r) => String(r.png) },
+      { key: 'sum_pdf', label: 'PDF 제출', width: COLUMN_WIDTH.sum_pdf, get: (r) => String(r.pdf) },
+      { key: 'sum_nofiles', label: '파일 미제출', width: COLUMN_WIDTH.sum_nofiles, get: (r) => String(r.nofiles) },
+    ],
+    []
+  )
+
   // 칸 수정: 서버에 저장하고 돌려받은 행으로 바꿔 끼운다
   const onEditCell = useCallback(async (row, col, value) => {
     const body = col.patch?.(value)
@@ -314,8 +371,9 @@ function EntriesSheet() {
     () => [
       { id: 'entries', label: SHEET_LABELS.entries, columns: entryColumns, rows, editable: true, allowCustom: true, unit: '건' },
       { id: 'people', label: SHEET_LABELS.people, columns: peopleColumns, rows: peopleRows, editable: false, allowCustom: false, unit: '명' },
+      { id: 'summary', label: SHEET_LABELS.summary, columns: summaryColumns, rows: summaryRows, editable: false, allowCustom: false, unit: '행' },
     ],
-    [entryColumns, peopleColumns, rows, peopleRows]
+    [entryColumns, peopleColumns, summaryColumns, rows, peopleRows, summaryRows]
   )
 
   // DAH Sheet와 같은 "마지막으로 수정" 표시와 이동
