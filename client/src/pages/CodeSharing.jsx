@@ -17,7 +17,7 @@ import { motion } from '../styles/tokens'
 //     저장이 화면에 반영되지 않던 버그). KR 편집 콘텐츠는 DB, EN은 감수 시드 대역 우선.
 // P2-1: 3개 유형(대체형/인정형/학점인정형)과 졸업인증 기준을 표·태그·목록으로 제시.
 
-const HWP_HREF = '/files/codesharing-form.hwp'
+const HWP_HREF = '/files/codesharing.hwp'
 
 function CodeSharing() {
   const { lang, t } = useLang()
@@ -98,10 +98,10 @@ function CodeSharing() {
             <p className="mt-16 max-w-lead text-body-m leading-relaxed text-text-sec md:text-body-d">
               {note}
             </p>
-            {/* 글래스 다운로드 버튼 — 파일 슬롯 예약(파일명 고정: codesharing-form.hwp) */}
+            {/* 글래스 다운로드 버튼 — 파일 슬롯 예약(파일명 고정: codesharing.hwp) */}
             <a
               href={hwpHref}
-              download
+              download="코드쉐어링_신청서.hwp"
               className="mt-32 inline-flex h-11 cursor-pointer items-center gap-8 rounded-glass border border-glass-line bg-glass-bg px-24 text-body-m font-semibold text-text-pri backdrop-blur-glass-mobile transition-colors duration-fast ease-out hover:bg-glass-strong md:h-48 md:backdrop-blur-glass md:text-body-d"
             >
               <Download size={16} aria-hidden="true" />
