@@ -9,6 +9,7 @@ import { useApi } from '../hooks/useApi'
 import { useTitle } from '../hooks/useTitle'
 import { useLang } from '../i18n/LangContext'
 import { majorCompassResource } from '../data/majorCompass'
+import { annualReportResource } from '../data/annualReportResource'
 
 const PAGE_SIZE = 10
 
@@ -16,6 +17,12 @@ const MAJOR_COMPASS = {
   ...majorCompassResource,
   no: '—',
   to: '/resources/major-compass',
+}
+
+const ANNUAL_REPORT = {
+  ...annualReportResource,
+  no: '—',
+  to: '/resources/annual-report-2026',
 }
 
 function toRow(post, no, isEn) {
@@ -48,8 +55,10 @@ function Resources() {
   const remoteRows = (data?.items ?? []).map((post, idx) =>
     toRow(post, remoteTotal - (page - 1) * pageSize - idx, isEn)
   )
-  const includeCompass = page === 1 && (!q || MAJOR_COMPASS.title.includes(q))
-  const rows = [...(includeCompass ? [MAJOR_COMPASS] : []), ...remoteRows]
+  // 고정 공개 자료(애뉴얼 리포트, 전공 나침반)는 첫 페이지 맨 위에 둔다
+  const fixedRows = page === 1 ? [ANNUAL_REPORT, MAJOR_COMPASS].filter((r) => !q || r.title.includes(q)) : []
+  const includeCompass = fixedRows.length > 0
+  const rows = [...fixedRows.map((r) => (isEn && r.title_en ? { ...r, title: r.title_en } : r)), ...remoteRows]
   // CMS 게시물 수와 페이지네이션은 서버 값만 사용한다. 고정 소개 자료는 첫 페이지의 안내 행이다.
   const total = remoteTotal
 

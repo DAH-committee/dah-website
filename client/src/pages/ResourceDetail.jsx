@@ -14,6 +14,7 @@ import { useSeo, plainText } from '../hooks/useSeo'
 import { breadcrumbJsonLd, SITE_NAME } from '../data/seo'
 import { useLang, KoreanOnlyBadge } from '../i18n/LangContext'
 import { majorCompassResource } from '../data/majorCompass'
+import { annualReportResource } from '../data/annualReportResource'
 
 const ATTACH_LINK =
   'inline-flex min-h-11 items-center gap-4 rounded-sm border border-border-subtle bg-bg-base px-12 py-8 text-caption-m text-text-sec transition duration-fast ease-out hover:border-border-strong hover:bg-glass-strong hover:text-text-pri md:min-h-0'
@@ -47,9 +48,11 @@ function ResourceDetail() {
   const { id } = useParams()
   const { lang, t } = useLang()
   const isMajorCompass = id === MAJOR_COMPASS_ID
-  const { data, loading } = useApi(isMajorCompass ? null : `/content/resource/${id}`)
+  const isAnnualReport = id === annualReportResource.id
+  const isFixed = isMajorCompass || isAnnualReport
+  const { data, loading } = useApi(isFixed ? null : `/content/resource/${id}`)
 
-  const post = isMajorCompass ? majorCompassResource : itemOf(data)
+  const post = isMajorCompass ? majorCompassResource : isAnnualReport ? annualReportResource : itemOf(data)
 
   // R1(27_I18N): EN 모드는 영문 본문·제목 우선(자료실은 영문 필수 — 없으면 국문 폴백 뱃지)
   const isEn = lang === 'en'
@@ -109,7 +112,7 @@ function ResourceDetail() {
           <article className="mx-auto flex min-w-0 max-w-container flex-col gap-24">
             <div className="flex flex-wrap items-center gap-12">
               {koFallback && <KoreanOnlyBadge />}
-              {!isMajorCompass && <EditPencil type="resource" to={`/admin/posts/resource/${id}/edit`} />}
+              {!isFixed && <EditPencil type="resource" to={`/admin/posts/resource/${id}/edit`} />}
             </div>
 
             <div className="rounded-glass border border-glass-line bg-bg-elev p-24 shadow-glass md:p-40 lg:p-48">
@@ -152,6 +155,13 @@ function ResourceDetail() {
               {body ? (
                 <div className="max-w-4xl pt-32 md:pt-40">
                   <RichBody body={body} />
+                  {isAnnualReport && (
+                    <div className="mt-32 flex flex-wrap gap-12">
+                      <Button variant="primary" href="/annual-report">
+                        {isEn ? 'Open the report' : '리포트 보기'}
+                      </Button>
+                    </div>
+                  )}
                   {isMajorCompass && (
                     <div className="mt-32 flex flex-wrap gap-12">
                       <Button variant="primary" href="/major-compass">
