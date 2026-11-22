@@ -48,7 +48,8 @@ import {
   uploadToConnection,
 } from '../lib/driveConnections.js'
 import { wrap } from './content.js'
-import { fileKind, makeWebVersion, randomPart, storePublic } from '../lib/exhibitionPipeline.js'
+import { fileKind, randomPart, scheduleWebVersion, storePublic } from '../lib/exhibitionPipeline.js'
+import { admitUpload } from '../lib/uploadLoad.js'
 
 const router = Router()
 
@@ -236,12 +237,8 @@ async function handleExhibitionUpload(req, res) {
   const baseUrl = `${req.protocol}://${req.get('host')}`
   const blobUrl = await storePublic(`exhibition/original/${stem}/${storedName}`, req.file.buffer, contentType, baseUrl)
 
+  // 웹 전시용 변환은 여기서 하지 않는다. 원본을 저장하고 기록한 뒤 바로 응답하고, 변환은 뒤에서 가장 나중 순서로 한다
   const kind = fileKind(originalName, contentType)
-  let web = null
-  if (kind === 'image') {
-    const v = await makeWebVersion(req.file.buffer)
-    if (v) web = { url: await storePublic(`exhibition/web/${stem}.webp`, v.buffer, 'image/webp', baseUrl), meta: v.meta }
-  }
 
   const row = await insertUpload({
     formId: null,
@@ -265,10 +262,12 @@ async function handleExhibitionUpload(req, res) {
     return res.status(200).json({ ...uploadResponse(row), webUrl: row.web_url || null, idempotent: true })
   }
   await query(
-    'UPDATE form_file_uploads SET blob_url = $2, web_url = $3, web_meta = $4, drive_kind = $5 WHERE id = $1',
-    [row.id, blobUrl, web?.url || null, web ? JSON.stringify(web.meta) : null, kind]
+    'UPDATE form_file_uploads SET blob_url = $2, drive_kind = $3 WHERE id = $1',
+    [row.id, blobUrl, kind]
   )
-  return res.status(201).json({ ...uploadResponse({ ...row, file_url: blobUrl }), format: ext, kind, webUrl: web?.url || null })
+  res.status(201).json({ ...uploadResponse({ ...row, file_url: blobUrl }), format: ext, kind, webUrl: null })
+  if (kind === 'image') scheduleWebVersion(row.id)
+  return
 }
 
 // ── 폼 업로드 ──────────────────────────────────────────────
@@ -575,6 +574,7 @@ router.post(
   optionalPublicAuth,
   uploadTokenAuth,
   anonLimit,
+  admitUpload,
   upload.single('file'),
   wrap(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'file field required (multipart/form-data)' })

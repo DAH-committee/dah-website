@@ -16,6 +16,7 @@ import sharp from 'sharp'
 import { query } from '../db.js'
 import { resolveConnection, resolveRootFolderId, ensurePath, uploadToConnection, driveFor } from './driveConnections.js'
 import { createGoogleSheet } from './sheetExport.js'
+import { activeUploads } from './uploadLoad.js'
 
 export const PRINT_FOLDER = '인쇄용 PDF'
 export const GRADE_FOLDER = '채점용 PNG'
@@ -88,8 +89,18 @@ async function makeWebVersionNow(buffer) {
 export async function storePublic(name, buffer, contentType, baseUrl = '') {
   if (process.env.BLOB_READ_WRITE_TOKEN) {
     const { put } = await import('@vercel/blob')
-    const blob = await put(`dah/${name}`, buffer, { access: 'public', contentType, token: process.env.BLOB_READ_WRITE_TOKEN })
-    return blob.url
+    // 원본을 받는 일이 가장 중요하므로 저장소가 잠깐 흔들려도 서버 안에서 세 번까지 다시 시도한다
+    let lastErr
+    for (let i = 0; i < 3; i++) {
+      try {
+        const blob = await put(`dah/${name}`, buffer, { access: 'public', contentType, token: process.env.BLOB_READ_WRITE_TOKEN })
+        return blob.url
+      } catch (err) {
+        lastErr = err
+        await new Promise((r) => setTimeout(r, 400 * 2 ** i))
+      }
+    }
+    throw lastErr
   }
   const filePath = path.join(LOCAL_DIR, name)
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
@@ -99,6 +110,88 @@ export async function storePublic(name, buffer, contentType, baseUrl = '') {
 
 export function randomPart() {
   return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
+}
+
+// ── 웹 전시용 변환(가장 뒤로 미룸) ─────────────────────────────
+// 업로드 요청 안에서 하지 않는다. 원본이 저장되고 기록되면 학생 요청은 바로 끝나고, 변환은 업로드가 없을 때
+// 한 번에 한 장씩 원본을 저장소에서 다시 읽어 만든다. 서버가 다시 켜져도 보충 작업이 빠진 건을 채운다.
+const webQueue = []
+let webPumping = false
+const nap = (ms) => new Promise((r) => setTimeout(r, ms))
+
+async function buildWebVersionFor(uploadId) {
+  const { rows } = await query(
+    `SELECT id, blob_url, drive_kind, web_url, web_meta FROM form_file_uploads
+      WHERE id = $1 AND form_id IS NULL AND field_id = 'exhibition_original'`,
+    [uploadId]
+  )
+  const u = rows[0]
+  if (!u || u.web_url || !u.blob_url || u.drive_kind !== 'image') return false
+  let v = null
+  try {
+    const res = await fetch(u.blob_url)
+    if (res.ok) v = await makeWebVersion(Buffer.from(await res.arrayBuffer()))
+  } catch {
+    v = null
+  }
+  if (!v) {
+    const tries = Number(u.web_meta?.failed || 0) + 1
+    await query('UPDATE form_file_uploads SET web_meta = $2, updated_at = now() WHERE id = $1', [u.id, JSON.stringify({ failed: tries })])
+    return false
+  }
+  const url = await storePublic(`exhibition/web/${randomPart()}.webp`, v.buffer, 'image/webp')
+  await query('UPDATE form_file_uploads SET web_url = $2, web_meta = $3, updated_at = now() WHERE id = $1 AND web_url IS NULL', [
+    u.id,
+    url,
+    JSON.stringify(v.meta),
+  ])
+  return true
+}
+
+async function pumpWeb() {
+  if (webPumping) return
+  webPumping = true
+  try {
+    while (webQueue.length) {
+      if (activeUploads() > 0) {
+        await nap(15_000) // 업로드가 끝날 때까지 양보
+        continue
+      }
+      const id = webQueue.shift()
+      try {
+        await buildWebVersionFor(id)
+      } catch (err) {
+        console.error('[exhibit-web] 변환 실패(보충 작업이 다시 시도):', err.message)
+      }
+      await nap(500)
+    }
+  } finally {
+    webPumping = false
+  }
+}
+
+/** 업로드 응답을 보낸 뒤 호출한다. 기다리지 않는다 */
+export function scheduleWebVersion(uploadId) {
+  if (!webQueue.includes(uploadId)) webQueue.push(uploadId)
+  pumpWeb().catch(() => {})
+}
+
+/** 10분 작업에서: 웹용 이미지가 아직 없는 원본을 업로드가 잠잠할 때 몇 장씩 채운다 */
+export async function backfillWebVersions({ limit = 8 } = {}) {
+  const { rows } = await query(
+    `SELECT id FROM form_file_uploads
+      WHERE form_id IS NULL AND field_id = 'exhibition_original' AND drive_kind = 'image'
+        AND blob_url IS NOT NULL AND web_url IS NULL AND status IN ('pending', 'attached')
+        AND COALESCE((web_meta->>'failed')::int, 0) < 3
+      ORDER BY id LIMIT $1`,
+    [limit]
+  )
+  let built = 0
+  for (const { id } of rows) {
+    if (activeUploads() > 0) break
+    if (await buildWebVersionFor(id)) built++
+  }
+  return { pending: rows.length, built }
 }
 
 // ── 스키마 (서버 부팅 시 멱등 적용, scripts/migrate-exhibit-auto.mjs와 공유) ──
@@ -245,7 +338,21 @@ export function withLock(key, fn) {
 
 /** 접수 1건의 원본을 드라이브로 보낸다. 연결이 없으면 queued로 남긴다 */
 export function syncEntryToDrive(entryId, opts = {}) {
-  return withLock(`entry:${entryId}`, () => syncEntryNow(entryId, opts))
+  return withLock(`entry:${entryId}`, () => withDriveSlot(() => syncEntryNow(entryId, opts)))
+}
+
+// 드라이브 정리는 한 번에 한 건만 한다(원본을 저장소에서 다시 읽어 메모리를 쓰므로 겹치면 서버가 버거워진다)
+let driveBusy = false
+const driveWaiters = []
+async function withDriveSlot(fn) {
+  if (driveBusy) await new Promise((r) => driveWaiters.push(r))
+  driveBusy = true
+  try {
+    return await fn()
+  } finally {
+    driveBusy = false
+    driveWaiters.shift()?.()
+  }
 }
 
 async function syncEntryNow(entryId, { target: injected, drive: injectedDrive } = {}) {
@@ -614,7 +721,9 @@ export async function runAutoTasks({ now = new Date() } = {}) {
   if (autoRunning) return { skipped: 'running' }
   autoRunning = true
   try {
-    const out = { sync: await syncPendingAll({ limit: 30 }) }
+    // 업로드가 몰려 있으면 드라이브 정리는 다음 턴으로 미룬다(원본 수신이 먼저)
+    const busy = activeUploads() > 0
+    const out = { sync: busy ? { skipped: 'uploads_active' } : await syncPendingAll({ limit: 30 }) }
     const { rows: st } = await query('SELECT submit_open, edit_close FROM exhibition_settings WHERE id = 1')
     const s = st[0]
     if (s?.submit_open && s?.edit_close && now > new Date(s.edit_close)) {
@@ -629,6 +738,7 @@ export async function runAutoTasks({ now = new Date() } = {}) {
         out.share = await shareWithProfessors({ semester, target })
       }
     }
+    if (activeUploads() === 0) out.web = await backfillWebVersions()
     return out
   } finally {
     autoRunning = false

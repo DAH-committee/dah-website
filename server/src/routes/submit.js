@@ -13,6 +13,7 @@ import { submitLimiter, exhibitionIpLimiter, exhibitionUserLimiter } from '../mi
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
 import { attachExhibitionUploads } from '../lib/driveConnections.js'
 import { markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
+import { activeUploads } from '../lib/uploadLoad.js'
 import { wrap } from './content.js'
 
 const router = Router()
@@ -82,7 +83,8 @@ export function sanitizeLinks(links) {
 // 제출·수정 뒤 원본을 드라이브로 보낸다. 응답을 기다리게 하지 않고, 실패해도 자동 작업이 다시 보낸다
 function queueDriveSync(entryId, urls, opts) {
   markEntryFilesForSync(entryId, urls, opts)
-    .then(() => syncEntryToDrive(entryId))
+    // 업로드가 몰려 있으면 바로 정리하지 않고 10분 작업에 맡긴다(원본 수신이 먼저)
+    .then(() => (activeUploads() > 0 ? null : syncEntryToDrive(entryId)))
     .catch((err) => console.error('[submit/exhibition] 드라이브 전송 대기(자동 재시도):', err.message))
 }
 

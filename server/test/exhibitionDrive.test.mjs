@@ -245,7 +245,7 @@ test('(E1) 저장된 과목 목록 안의 값만 원본 업로드 경로가 된�
   assert.equal(good.body.type, 'image/png')
   assert.equal(good.body.bytes, REAL_PNG.length) // 원본 무변환
   assert.equal(good.body.kind, 'image')
-  assert.match(good.body.webUrl || '', /\.webp$/) // 전시 사이트용 WebP 자동 생성
+  assert.equal(good.body.webUrl, null) // 웹 전시용 변환은 응답 뒤 가장 나중 순서로 한다(원본 수신이 먼저)
   assert.equal(drive.calls.create, 0) // 드라이브 복사는 제출 뒤에 한다
   restore()
 })
