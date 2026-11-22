@@ -721,7 +721,7 @@
   display: grid;
   grid-template-columns: 58px 1fr;
   gap: 14px;
-  padding: 16px 0;
+  padding: 13px 0;
   border-bottom: 1px solid var(--line);
 }
 .ap-acl__g {
@@ -1204,4 +1204,586 @@
 }
 .ap-grid.is-dense .ap-cell small {
   font-size: 7.5px;
+}
+
+/* ===== 격자와 글자 체계 (2026.11 개정) =====
+   쪽은 600 x 800. 바깥 여백은 좌우 44, 위 48, 아래 64.
+   본문 폭 512를 12열로 나눈다. 열 28, 사이 16, 열 간격 44. 모든 요소의 왼쪽 끝은 44의 배수에 놓는다.
+   세로는 4px 기준선. 행간은 4의 배수 px로 정하고 위아래 간격은 8의 배수로 둔다.
+   자간은 크기마다 따로 정한다. 큰 글자일수록 좁힌다.
+   줄바꿈은 어절 단위(keep-all)로 하고 문단은 pretty, 제목과 짧은 줄은 balance로 마지막 줄에 한두 어절만 남지 않게 한다. */
+.ap-sheet {
+  --pitch: 44px;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+}
+.ap-sheet p,
+.ap-sheet li,
+.ap-sheet dd,
+.ap-sheet td,
+.ap-sheet small,
+.ap-sheet em {
+  text-wrap: pretty;
+}
+.ap-sheet h1,
+.ap-sheet h2,
+.ap-sheet h3,
+.ap-sheet strong,
+.ap-sheet th,
+.ap-sheet figcaption,
+.ap-title,
+.ap-sub {
+  text-wrap: balance;
+}
+.ap-in {
+  padding: 48px 44px 64px;
+  gap: 16px;
+}
+.ap-folio {
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: -0.005em;
+}
+.ap-head {
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom-width: 2px;
+}
+.ap-title {
+  font-size: 26px;
+  line-height: 32px;
+  letter-spacing: -0.035em;
+}
+.ap-sub {
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+}
+.ap-h3 {
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.025em;
+  margin-top: 8px;
+}
+.ap-h3 em {
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0;
+}
+.ap-body,
+.ap-prose {
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+}
+.ap-prose {
+  gap: 8px;
+}
+.ap-note {
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: -0.008em;
+  padding-top: 8px;
+}
+/* 목록: 점 없이 줄만 쌓는다. 글자는 0열에서 시작한다 */
+.ap-bullets {
+  gap: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+}
+.ap-bullets li {
+  padding-left: 0;
+}
+.ap-bullets li::before {
+  content: none;
+}
+/* 표: 열 너비는 컴포넌트가 44의 배수로 바꿔 준다. 셀 안쪽 오른쪽 여백 16은 열 사이 간격과 같다 */
+.ap-table {
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+  border-top-width: 2px;
+}
+.ap-table th {
+  padding: 6px 16px 6px 0;
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0;
+}
+.ap-table td {
+  padding: 6px 16px 6px 0;
+}
+.ap-table.is-small {
+  font-size: 11px;
+}
+.ap-table.is-small td {
+  padding: 4px 16px 4px 0;
+}
+.ap-table.is-small th {
+  padding: 4px 16px 4px 0;
+}
+.ap-def > div {
+  grid-template-columns: 88px 1fr;
+  gap: 0;
+  font-size: 12px;
+  line-height: 20px;
+}
+.ap-numbered {
+  gap: 24px;
+}
+.ap-numbered li {
+  grid-template-columns: 44px 1fr;
+  gap: 0;
+}
+.ap-numbered li > span {
+  font-size: 11px;
+  line-height: 20px;
+  padding-top: 0;
+}
+.ap-numbered strong,
+.ap-steps strong,
+.ap-vision strong {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.022em;
+}
+.ap-numbered p,
+.ap-steps p,
+.ap-vision p {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+}
+.ap-steps li {
+  grid-template-columns: 44px 1fr;
+  gap: 0;
+}
+.ap-steps li > span {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+}
+/* 연표: 날짜는 0열부터 3열, 내용은 3열에서 시작. 세로선과 점을 두지 않고 가는 줄로 나눈다 */
+.ap-timeline {
+  border-left: 0;
+  margin-left: 0;
+  border-top: 2px solid var(--strong);
+}
+.ap-timeline li {
+  grid-template-columns: 132px 1fr;
+  gap: 0;
+  padding: 6px 0;
+  font-size: 12px;
+  line-height: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.ap-timeline li::before {
+  content: none;
+}
+.ap-timeline time {
+  font-size: 11px;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+/* 사진과 화면 캡처: 테두리 없이 면으로만 구분한다 */
+.ap-photo--shot {
+  border: 0;
+  background: var(--tint);
+}
+.ap-photo figcaption {
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  line-height: 16px;
+}
+.ap-stackp {
+  gap: 16px;
+}
+.ap-cell {
+  gap: 4px;
+}
+.ap-cell figcaption {
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+}
+.ap-cell small {
+  font-size: 9px;
+  line-height: 12px;
+}
+.ap-stats {
+  border-top-width: 2px;
+  column-gap: 16px;
+}
+.ap-stats div {
+  padding: 8px 0 0;
+}
+.ap-stats b {
+  font-size: 24px;
+  line-height: 32px;
+  letter-spacing: -0.035em;
+}
+.ap-stats span {
+  font-size: 10px;
+  line-height: 16px;
+}
+/* 성과 목록: 등급 칸 2열(72), 내용은 2열 뒤(88)에서 시작. 등급은 테두리 없이 면으로 */
+.ap-acl {
+  border-top-width: 2px;
+}
+.ap-acl li {
+  grid-template-columns: 72px 1fr;
+  gap: 16px;
+  padding: 12px 0;
+}
+.ap-acl__g {
+  border: 0;
+  background: var(--tint);
+  font-size: 10px;
+  line-height: 20px;
+  padding: 0;
+  margin-top: 0;
+}
+.ap-acl strong {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.022em;
+}
+.ap-acl p,
+.ap-acl em {
+  font-size: 11px;
+  line-height: 16px;
+  margin-top: 4px;
+}
+
+/* ===== 격자 정렬 2차: 각 구성 요소의 열과 간격을 12열 격자에 맞춘다 ===== */
+.ap-trk {
+  grid-template-columns: 88px 1fr;
+  gap: 4px 0;
+  font-size: 11px;
+  line-height: 16px;
+}
+.ap-tracks section {
+  padding: 24px 0;
+  gap: 8px;
+}
+.ap-tracks section:first-child {
+  padding-top: 8px;
+}
+.ap-tracks h3 {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.028em;
+}
+.ap-tracks p {
+  font-size: 12px;
+  line-height: 20px;
+}
+.ap-sheet .ap-mission {
+  padding-left: 41px;
+  gap: 16px;
+}
+.ap-sheet .ap-mission__kr {
+  font-size: 24px;
+  line-height: 36px;
+  letter-spacing: -0.035em;
+}
+.ap-sheet .ap-mission__en {
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+}
+.ap-vision {
+  gap: 24px;
+}
+.ap-vision li {
+  grid-template-columns: 88px 1fr;
+  gap: 0;
+}
+.ap-vision li > span {
+  font-size: 40px;
+  line-height: 40px;
+  letter-spacing: -0.04em;
+}
+.ap-vision strong {
+  font-size: 15px;
+  line-height: 24px;
+}
+.ap-vision p {
+  font-size: 12px;
+  line-height: 20px;
+}
+.ap-pull {
+  padding: 16px 44px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 24px;
+  letter-spacing: -0.022em;
+}
+.ap-roster {
+  gap: 16px;
+}
+.ap-roster article {
+  gap: 4px;
+}
+.ap-roster strong {
+  font-size: 13px;
+  line-height: 20px;
+}
+.ap-roster span {
+  font-size: 10px;
+  line-height: 16px;
+}
+.ap-profs {
+  gap: 24px;
+}
+.ap-prof {
+  grid-template-columns: 116px 1fr;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+.ap-prof h3 {
+  font-size: 18px;
+  line-height: 28px;
+  letter-spacing: -0.03em;
+}
+.ap-prof h3 small {
+  margin-left: 8px;
+  font-size: 10px;
+}
+.ap-prof__en {
+  font-size: 11px;
+  line-height: 16px;
+  margin-bottom: 8px;
+}
+.ap-prof dl {
+  grid-template-columns: 88px 1fr;
+  gap: 4px 0;
+  font-size: 11px;
+  line-height: 20px;
+}
+.ap-adjunct {
+  gap: 16px;
+}
+.ap-quote {
+  font-size: 13px;
+  line-height: 24px;
+  letter-spacing: -0.022em;
+}
+.ap-org {
+  border-top-width: 2px;
+}
+.ap-org > div {
+  grid-template-columns: 88px 1fr;
+  padding: 24px 0;
+  font-size: 14px;
+  line-height: 24px;
+}
+.ap-feats {
+  gap: 16px;
+}
+.ap-feats section {
+  padding: 16px 44px;
+  border-radius: 4px;
+  gap: 4px;
+}
+.ap-feats b {
+  font-size: 28px;
+  line-height: 36px;
+  letter-spacing: -0.04em;
+}
+.ap-feats strong {
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.022em;
+}
+.ap-feats p {
+  font-size: 11px;
+  line-height: 16px;
+}
+.ap-awpair {
+  gap: 16px;
+}
+.ap-aw {
+  gap: 24px;
+}
+.ap-aw__tx {
+  gap: 4px;
+}
+.ap-aw__g {
+  padding: 0 8px;
+  border-radius: 4px;
+  border: 0;
+  background: var(--tint);
+  font-size: 10px;
+  line-height: 20px;
+}
+.ap-aw__c {
+  font-size: 10px;
+  line-height: 16px;
+  margin-top: 0;
+}
+.ap-aw__t {
+  font-size: 15px;
+  line-height: 24px;
+  letter-spacing: -0.028em;
+}
+.ap-awone .ap-aw__t {
+  font-size: 17px;
+  line-height: 24px;
+}
+.ap-aw__w {
+  font-size: 11px;
+  line-height: 16px;
+}
+.ap-aw__d {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 18px;
+}
+.ap-awone {
+  grid-template-columns: 248px 1fr !important;
+  gap: 16px !important;
+}
+.ap-clubs {
+  gap: 24px 16px;
+}
+.ap-clubs h3 {
+  font-size: 15px;
+  line-height: 24px;
+}
+.ap-clubs h3 small {
+  font-size: 10px;
+  line-height: 16px;
+}
+.ap-clubs p {
+  font-size: 11px;
+  line-height: 18px;
+}
+.ap-club__top {
+  grid-template-columns: 88px 1fr;
+  gap: 0;
+}
+.ap-club__top p {
+  font-size: 12px;
+  line-height: 20px;
+}
+.ap-club__imgs {
+  grid-template-columns: repeat(3, 160px);
+  gap: 16px;
+}
+.ap-toc li {
+  grid-template-columns: 44px 1fr 44px;
+  gap: 0;
+  padding: 8px 0;
+}
+.ap-toc strong {
+  font-size: 13px;
+  line-height: 20px;
+}
+.ap-toc em {
+  margin-left: 8px;
+}
+.ap-toc p {
+  margin-top: 0;
+  font-size: 10px;
+  line-height: 16px;
+}
+.ap-nano dl > div {
+  grid-template-columns: 88px 1fr;
+  gap: 0;
+  padding: 2px 0;
+  font-size: 10px;
+  line-height: 16px;
+}
+.ap-grid.is-dense .ap-cell figcaption {
+  font-size: 9px;
+  line-height: 12px;
+}
+.ap-grid.is-dense .ap-cell small {
+  font-size: 8px;
+  line-height: 12px;
+}
+
+/* 반점 없이 나열: 이름과 짧은 항목은 간격으로 나누고, 표 칸의 여러 항목은 줄마다 하나씩 */
+.ap-names {
+  display: inline-flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+}
+.ap-line {
+  display: block;
+}
+.ap-sheet td,
+.ap-sub,
+.ap-note,
+.ap-bullets li,
+.ap-numbered p,
+.ap-acl p,
+.ap-feats p,
+.ap-timeline span,
+.ap-photo figcaption {
+  white-space: pre-line;
+}
+.ap-aw__m {
+  display: block;
+  font-weight: 500;
+  color: var(--meta);
+}
+
+/* 학생 성과: 번호 1열(44), 내용 1열 뒤에서 시작. 항목 이름 2열(88) */
+.ap-ach {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-top: 2px solid var(--strong);
+}
+.ap-ach li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.ap-ach__no {
+  font-size: 11px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+.ap-ach strong {
+  display: block;
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: -0.022em;
+  color: var(--strong);
+}
+.ap-ach dl {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 16px;
+  letter-spacing: -0.01em;
+}
+.ap-ach dt {
+  color: var(--meta);
+}
+.ap-ach dd {
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+
+/* 촘촘한 표: 행 위아래 2px, 줄높이 16px(격자 8px 배수) */
+.ap-table.is-dense td,
+.ap-table.is-dense th {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  line-height: 16px;
+}
+.ap-awone.is-narrow {
+  grid-template-columns: 160px 1fr !important;
 }
