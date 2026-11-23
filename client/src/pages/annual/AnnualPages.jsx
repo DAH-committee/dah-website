@@ -3,6 +3,7 @@
 // 사이트 데이터는 라이브 API 스냅샷(siteSnapshot.json, scripts/annual-snapshot.mjs로 갱신)만 쓴다.
 // 트랙 요약과 키워드는 사이트 홈과 교육과정 화면이 직접 렌더하는 data/tracks.js를 그대로 쓴다.
 import snap from './siteSnapshot.json'
+import { history as siteHistory } from '../../data/history'
 import { tracks, codeSharing as csData } from '../../data/tracks'
 import { exAwards } from '../../data/annualAwards'
 import {
@@ -34,7 +35,7 @@ import {
 } from '../../data/annualContent'
 
 const about = snap.settings.about
-const history = snap.settings.history
+const history = siteHistory
 const councils = [...snap.council].sort((a, b) => Number(b.year_label) - Number(a.year_label))
 const council2026 = councils.find((c) => c.year_label === '2026')
 const nanodegree = snap.nanodegree[0].body
@@ -481,7 +482,7 @@ export const pages = [
     alt: '연혁',
     render: () => (
       <>
-        <Head title="연혁" sub="2017년 설립 이후의 주요 기록" />
+        <Head title="연혁" sub="2017년 설립 이후 주요 기록" />
         <ol className="ap-timeline">
           {sortedHistory.map((h) => (
             <li key={h.date + h.text}>
@@ -502,7 +503,7 @@ export const pages = [
     alt: '교과목 편성표 공통기초와 디자인 트랙',
     render: () => (
       <>
-        <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
+        <Head title="교과목 편성표" sub="트랙별 과목 (학점-강의-실습)" />
         <H3>공통기초</H3>
         <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['16%', '16%', '52%', '16%']} dense rows={courseRows('common')} small />
         <H3>디자인 트랙</H3>
@@ -516,7 +517,7 @@ export const pages = [
     alt: '교과목 편성표 AI 트랙과 엔터컬쳐 트랙',
     render: () => (
       <>
-        <Head title="교과목 편성표" sub="트랙별 교과목 편성표 (학점-강의-실습)" />
+        <Head title="교과목 편성표" sub="트랙별 과목 (학점-강의-실습)" />
         <H3>AI 트랙</H3>
         <Table head={['학기', '수준', '과목명', '학점-강의-실습']} cols={['16%', '16%', '52%', '16%']} dense rows={courseRows('ai')} small />
         <H3>엔터컬쳐 트랙</H3>
@@ -686,10 +687,10 @@ export const pages = [
   {
     id: 'council-history',
     ch: 'council',
-    alt: '학생회의 역사',
+    alt: '학생회 역사',
     render: () => (
       <>
-        <Head title="학생회의 역사" sub="2017년 전공 설립과 함께 시작한 학생 조직" />
+        <Head title="학생회 역사" sub="2017년 전공 설립과 함께 시작한 학생 조직" />
         <Table head={['연도', '학생 조직']} cols={['22%', '78%']} rows={councils.map((c) => [c.year_label, c.name])} />
         <p className="ap-note">2017년 전공 설립과 함께 학생 조직이 시작되었습니다.</p>
       </>
@@ -760,7 +761,7 @@ export const pages = [
     alt: '정기 운영 행사 7종',
     render: () => (
       <>
-        <Head title="정기 운영 행사" sub="한 학기의 시작부터 끝까지 운영하는 전공 공식 행사 7종" />
+        <Head title="정기 운영 행사" sub="학기 시작부터 끝까지 운영하는 전공 공식 행사 7종" />
         <Numbered items={regularEvents} />
       </>
     ),
@@ -768,10 +769,10 @@ export const pages = [
   {
     id: 'council-year',
     ch: 'council',
-    alt: '2026년의 흐름',
+    alt: '2026년 흐름',
     render: () => (
       <>
-        <Head title="2026년의 흐름" sub="공지와 행사 일정" />
+        <Head title="2026년 흐름" sub="공지와 행사 일정" />
         <ol className="ap-timeline">
           {yearFlow.map(([d, t]) => (
             <li key={d + t}>
@@ -895,7 +896,7 @@ export const pages = [
     alt: 'DAH 워크스페이스 도구',
     render: () => (
       <>
-        <Head title="DAH 워크스페이스" sub="전공 웹사이트 안의 문서 작업 공간" />
+        <Head title="DAH 워크스페이스" sub="전공 웹사이트 안 문서 작업 공간" />
         <p className="ap-body">운영위원회가 쓰던 구글 독스와 구글 시트를 전공 웹사이트 안으로 옮겼습니다. 위원은 구글 계정으로 로그인해 문서를 만들고 함께 고칩니다.</p>
         <Table head={['도구', '하는 일']} cols={['24%', '76%']} rows={workspaceTools} small />
         <SiteShot k="workspace-docs" cap="DAH Docs 새 문서 화면" h={152} />
@@ -908,7 +909,7 @@ export const pages = [
     alt: 'DAH 워크스페이스 공유와 협업',
     render: () => (
       <>
-        <Head title="공유와 협업" sub="DAH 워크스페이스의 권한과 팀 공간" />
+        <Head title="공유와 협업" sub="DAH 워크스페이스 권한과 팀 공간" />
         <Table head={['항목', '내용']} cols={['24%', '76%']} rows={workspaceShare} />
         <p className="ap-note">운영위원회 인수인계 문서도 DAH Docs로 만들어 다음 위원회에 넘깁니다.</p>
       </>
@@ -990,10 +991,10 @@ export const pages = [
   {
     id: 'ex-archive',
     ch: 'exhibition',
-    alt: '전시회 18회의 기록',
+    alt: '전시회 18회 기록',
     render: () => (
       <>
-        <Head title="전시회 18회의 기록" sub="2017년 2학기 제1회부터 2026년 1학기 제18회까지 전공 최대 행사" />
+        <Head title="전시회 18회 기록" sub="2017년 2학기 제1회부터 2026년 1학기 제18회까지 전공 최대 행사" />
         <Grid cols={6}>
           {exhibitionArchive.map((k) => (
             <Cell key={k} s={`/images/exhibitions/${k}.webp`} cap={k} ratio="3 / 4" />
@@ -1033,7 +1034,7 @@ export const pages = [
           ))}
         </div>
         <Numbered items={exhibition261Concept.points} />
-        <H3>AI 활용과 학생의 기여</H3>
+        <H3>AI 활용과 학생 기여</H3>
         <Table cols={['28%', '72%']} rows={exhibition261Concept.credits} small dense />
       </>
     ),
@@ -1072,8 +1073,8 @@ export const pages = [
       <>
         <Head title="시상식" sub="2026.06.04 18:00 C.square Blue 종강 총회와 함께 진행" />
         <div className="ap-stackp">
-          <Photo s="jongchong/2.webp" h={188} />
           <Photo s="jongchong/1.webp" h={188} />
+          <Photo s="jongchong/2.webp" h={188} />
           <Photo s="jongchong/3.webp" h={188} />
         </div>
       </>
@@ -1085,7 +1086,7 @@ export const pages = [
     alt: '전시 포스터 설치 현장',
     render: () => (
       <>
-        <Head title="전시 현장" sub="전시회 포스터 공모전 수상작이 전시의 얼굴로 활용되었습니다" />
+        <Head title="전시 현장" sub="전시회 포스터 공모전 수상작이 전시 포스터로 쓰였습니다" />
         <Grid cols={2}>
           <Cell s="poster-photos/4.webp" ratio="1 / 1" />
           <Cell s="poster-photos/7.webp" ratio="1 / 1" />
@@ -1181,12 +1182,31 @@ export const pages = [
     ),
   },
   {
+    id: 'ct-char-0',
+    ch: 'contest',
+    alt: '신규 캐릭터 공모전 개요',
+    render: () => (
+      <>
+        <Head title="신규 캐릭터 공모전" sub="2026년 새로 만든 공모전" />
+        <Table
+          cols={['26%', '74%']}
+          rows={[
+            ['일정', ['03.23 접수 시작', '05.02 온라인 투표', '05.08 결과 발표']],
+            ['심사', ['투표 100%', '주전공생과 복수전공생 그리고 교수진 투표 합산']],
+            ['시상', ['1등 30만원', '2등과 3등 각 10만원']],
+            ['출품', '9점'],
+          ]}
+        />
+      </>
+    ),
+  },
+  {
     id: 'ct-char-1',
     ch: 'contest',
     alt: '신규 캐릭터 공모전 1등 디숭이, 2등 디푸',
     render: () => (
       <>
-        <Head title="신규 캐릭터 공모전" sub="2026년 새로 만든 공모전 출품작 9점 중 투표 1등과 2등" />
+        <Head title="신규 캐릭터 공모전" sub="투표 1등과 2등" />
         <AwardPair>
           {characterWorks.slice(0, 2).map((c) => (
             <Award key={c.k} img={`characters/${c.k}.webp`} grade={c.r} line={`온라인 투표 ${c.v}`} title={c.n} who={c.by} major={c.major} desc={`${c.d}${c.note ? ' ' + c.note + '.' : ''}`} />
@@ -1198,24 +1218,13 @@ export const pages = [
   {
     id: 'ct-char-2',
     ch: 'contest',
-    alt: '신규 캐릭터 공모전 3등 도도와 나머지 출품작',
+    alt: '신규 캐릭터 공모전 3등 도도',
     render: () => {
       const c = characterWorks[2]
       return (
         <>
-          <Head title="신규 캐릭터 공모전" sub="투표 3등과 나머지 출품작" />
-          <Table
-            head={['구분', '내용']}
-            cols={['26%', '74%']}
-            rows={[
-              ['일정', ['03.23 접수 시작', '05.02 온라인 투표', '05.08 결과 발표']],
-              ['심사', ['투표 100%', '주전공생과 복수전공생 그리고 교수진 투표 합산']],
-              ['시상', ['1등 30만원', '2등과 3등 각 10만원']],
-            ]}
-            small
-            dense
-          />
-          <div className="ap-awone is-narrow">
+          <Head title="신규 캐릭터 공모전" sub="투표 3등" />
+          <div className="ap-awone">
             <div className="ap-aw__img">
               <Img s={`characters/${c.k}.webp`} alt={`${c.r} ${c.n}`} />
             </div>
@@ -1230,15 +1239,44 @@ export const pages = [
               <p className="ap-aw__d">{c.d}</p>
             </div>
           </div>
-          <H3>그 밖의 출품작 6점</H3>
-          <Grid cols={6} dense>
-            {characterWorks.slice(3).map((x) => (
-              <Cell key={x.k} s={`characters/${x.k}.webp`} ratio="1 / 1.4142" cap={x.n} sub={x.by} contain />
-            ))}
-          </Grid>
         </>
       )
     },
+  },
+  {
+    id: 'ct-char-3',
+    ch: 'contest',
+    alt: '신규 캐릭터 공모전 다른 출품작 6점',
+    render: () => (
+      <>
+        <Head title="신규 캐릭터 공모전" sub="다른 출품작 6점" />
+        <Grid cols={3}>
+          {characterWorks.slice(3).map((x) => (
+            <Cell key={x.k} s={`characters/${x.k}.webp`} ratio="1 / 1.4142" cap={x.n} sub={x.by} contain />
+          ))}
+        </Grid>
+      </>
+    ),
+  },
+  {
+    id: 'ct-poster-0',
+    ch: 'contest',
+    alt: '전시회 포스터 공모전 개요',
+    render: () => (
+      <>
+        <Head title="전시회 포스터 공모전" sub="2026 1학기 프로젝트 전시회 포스터" />
+        <Table
+          head={['구분', '내용']}
+          cols={['26%', '74%']}
+          rows={[
+            ['공모', ['2026학년도 1학기 디지털인문예술전공 전시회 포스터 공모전', '2026.05.02 공지']],
+            ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
+            ['수상', ['최우수상 1점과 우수상 3점', '장려상 1점']],
+            ['활용', '최우수상 포스터는 1학기 전시회의 포스터로 쓰였습니다'],
+          ]}
+        />
+      </>
+    ),
   },
   {
     id: 'ct-poster-1',
@@ -1278,7 +1316,7 @@ export const pages = [
       const a = posterAwards[4]
       return (
         <>
-          <Head title="전시회 포스터 공모전" sub="수상작 5점 중 5" />
+          <Head title="전시회 포스터 공모전" sub="장려상" />
           <div className="ap-awone">
             <div className="ap-aw__img">
               <Img s={a.img} alt={`${a.grade} ${a.title}`} />
@@ -1292,20 +1330,29 @@ export const pages = [
               </p>
             </div>
           </div>
-          <Table
-            head={['구분', '내용']}
-            cols={['26%', '74%']}
-            rows={[
-              ['공모', ['2026학년도 1학기 디지털인문예술전공 전시회 포스터 공모전', '2026.05.02 공지']],
-              ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
-              ['수상', ['최우수상 1점과 우수상 3점', '장려상 1점']],
-              ['활용', '최우수상 포스터는 1학기 전시회의 포스터로 쓰였습니다'],
-            ]}
-            small
-          />
         </>
       )
     },
+  },
+  {
+    id: 'ct-book-0',
+    ch: 'contest',
+    alt: '장서표 디자인 공모전 개요',
+    render: () => (
+      <>
+        <Head title="장서표 디자인 공모전" sub="인제 기적의 도서관" />
+        <Table
+          head={['구분', '내용']}
+          cols={['26%', '74%']}
+          rows={[
+            ['공모', ['2026 강원과 함께 하는 도서관 장서표 디자인 공모전', '2026.05.02 공지']],
+            ['대상 도서관', '인제 기적의 도서관'],
+            ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
+            ['수상', ['최우수상 1점과 우수상 3점', '장려상 1점']],
+          ]}
+        />
+      </>
+    ),
   },
   {
     id: 'ct-book-1',
@@ -1345,7 +1392,7 @@ export const pages = [
       const a = bookplateAwards[4]
       return (
         <>
-          <Head title="장서표 디자인 공모전" sub="수상작 5점 중 5" />
+          <Head title="장서표 디자인 공모전" sub="장려상" />
           <div className="ap-awone">
             <div className="ap-aw__img">
               <Img s={a.img} alt={`${a.grade} ${a.title}`} />
@@ -1359,17 +1406,6 @@ export const pages = [
               </p>
             </div>
           </div>
-          <Table
-            head={['구분', '내용']}
-            cols={['26%', '74%']}
-            rows={[
-              ['공모', ['2026 강원과 함께 하는 도서관 장서표 디자인 공모전', '2026.05.02 공지']],
-              ['대상 도서관', '인제 기적의 도서관'],
-              ['주관', '인문사회 융합인재양성사업단(L-HUSS)'],
-              ['수상', ['최우수상 1점과 우수상 3점', '장려상 1점']],
-            ]}
-            small
-          />
         </>
       )
     },
@@ -1595,7 +1631,7 @@ export const pages = [
     alt: '전공 동아리 4곳',
     render: () => (
       <>
-        <Head title="전공 동아리" sub="4개 분야의 동아리를 학생들이 직접 기획하고 운영하며 다양한 분야의 지식과 역량 축적" />
+        <Head title="전공 동아리" sub="4개 분야 동아리를 학생들이 직접 기획하고 운영합니다" />
         <div className="ap-clubs">
           {clubsInfo.map((c) => (
             <article key={c.id}>
@@ -1741,7 +1777,7 @@ function Toc({ toc }) {
       <Head title="목차" />
       <ol className="ap-toc">
         {toc.map((c) => (
-          <li key={c.id}>
+          <li key={c.id} data-goto={c.page}>
             <span className="ap-toc__no">{c.no}</span>
             <div>
               <strong>

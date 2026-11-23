@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageFlip } from 'page-flip'
 import { manifest } from './annualManifest'
+import links from './annualLinks.json'
 import './annualReport.css'
 
 const RATIO = 4 / 3 // 높이 / 너비
@@ -105,6 +106,7 @@ export default function AnnualReport() {
       flippingTime: 820,
       swipeDistance: 24 * k,
       clickEventForward: false,
+      disableFlipByClick: true, // 쪽을 누르면 쪽 안 링크로 가고, 모서리 끌기와 화살표로 넘긴다
       autoSize: false,
       startPage: curRef.current,
     })
@@ -142,6 +144,83 @@ export default function AnnualReport() {
     const n = Math.max(0, Math.min(total - 1, i))
     f.flip(n)
   }, [total])
+  // 쪽 안 링크: 누른 자리가 링크 영역이면 이동하고, 아니면 누른 쪽 방향으로 한 쪽 넘긴다
+  const hit = useCallback((clientX, clientY) => {
+    const f = flipRef.current
+    const stage = bookRef.current
+    if (!f || !stage || !dims) return null
+    const k = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1)))
+    const node = stage.firstChild
+    const r = node.getBoundingClientRect()
+    const x = (clientX - r.left) * k
+    const y = (clientY - r.top) * k
+    const b = f.getBoundsRect()
+    const idx = f.getCurrentPageIndex()
+    const lastIdx = total - 1
+    let left
+    let right
+    if (dims.single) {
+      left = idx
+      right = null
+    } else if (idx === 0) {
+      left = null
+      right = 0
+    } else {
+      left = idx % 2 === 1 ? idx : idx - 1
+      right = left + 1 <= lastIdx ? left + 1 : null
+    }
+    const pageW = b.pageWidth
+    const spreadLeft = b.left
+    const place = (pi, px) => {
+      const fx = (x - px) / pageW
+      const fy = (y - b.top) / b.height
+      if (fx < 0 || fx > 1 || fy < 0 || fy > 1) return null
+      return { page: pi, fx, fy }
+    }
+    let at = null
+    if (dims.single) at = place(left, b.left)
+    else {
+      if (left !== null) at = place(left, spreadLeft)
+      if (!at && right !== null) at = place(right, spreadLeft + pageW)
+    }
+    return at
+  }, [dims, total])
+
+  const linkAt = useCallback((at) => {
+    if (!at) return null
+    const list = links[String(at.page)] || []
+    // 항목 링크(작은 영역)를 쪽 제목보다 먼저 찾는다: 면적이 작은 것 우선
+    return list
+      .filter((l) => at.fx >= l.x && at.fx <= l.x + l.w && at.fy >= l.y && at.fy <= l.y + l.h)
+      .sort((a, b) => a.w * a.h - b.w * b.h)[0] || null
+  }, [])
+
+  const downRef = useRef(null)
+  const onStageDown = (e) => {
+    downRef.current = { x: e.clientX, y: e.clientY, t: Date.now() }
+  }
+  const onStageMove = (e) => {
+    const el = stageRef.current
+    if (!el) return
+    el.style.cursor = linkAt(hit(e.clientX, e.clientY)) ? 'pointer' : ''
+  }
+  const onStageUp = (e) => {
+    const d = downRef.current
+    downRef.current = null
+    if (!d) return
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 8 || Date.now() - d.t > 600) return // 끌기는 넘김
+    if (e.target.closest?.('.ar-arrow')) return
+    const at = hit(e.clientX, e.clientY)
+    const l = linkAt(at)
+    if (l) {
+      if (typeof l.goto === 'number') go(l.goto)
+      else if (l.href) {
+        if (l.href.startsWith('http')) window.open(l.href, '_blank', 'noopener,noreferrer')
+        else window.open(l.href, '_blank', 'noopener')
+      }
+    }
+  }
+
   const prev = useCallback(() => flipRef.current?.flipPrev('bottom'), [])
   const next = useCallback(() => flipRef.current?.flipNext('bottom'), [])
 
@@ -196,7 +275,7 @@ export default function AnnualReport() {
         </div>
       </header>
 
-      <main className="ar-stage" ref={stageRef}>
+      <main className="ar-stage" ref={stageRef} onPointerDown={onStageDown} onPointerMove={onStageMove} onPointerUp={onStageUp}>
         <div className="ar-book" ref={bookRef} />
         {!ready && <p className="ar-loading">불러오는 중</p>}
         <button type="button" className="ar-arrow ar-arrow--l" onClick={prev} aria-label="이전 쪽" disabled={cur === 0}>
@@ -250,7 +329,16 @@ export default function AnnualReport() {
 
       <ol className="sr-only">
         {manifest.alts.map((a, i) => (
-          <li key={i}>{a}</li>
+          <li key={i}>
+            {a}
+            {(links[String(i)] || [])
+              .filter((l) => l.href)
+              .map((l, k) => (
+                <a key={k} href={l.href}>
+                  {l.label || l.href}
+                </a>
+              ))}
+          </li>
         ))}
       </ol>
     </div>

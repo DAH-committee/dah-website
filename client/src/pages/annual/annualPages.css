@@ -1917,3 +1917,21 @@
   word-break: keep-all;
   text-wrap: balance;
 }
+
+/* 색: 표지를 뺀 모든 쪽은 사이트 기본 브랜드 보라(primary 129 95 215, deep 104 68 196)만 쓴다 */
+.ap-sheet:not(.ap-sheet--cover) {
+  --accent: rgb(var(--dah-purple-primary));
+  --accent-strong: rgb(var(--dah-purple-deep));
+}
+.ap-sheet--opener {
+  background: linear-gradient(158deg, rgb(var(--dah-purple-deep-dark)) 0%, rgb(var(--dah-purple-deep)) 52%, rgb(var(--dah-purple-primary)) 100%);
+}
+.ap-opener__ring--a {
+  background: radial-gradient(circle at 40% 40%, rgb(var(--dah-purple-light) / 0.34), rgb(var(--dah-purple-light) / 0.05) 58%, transparent 70%);
+}
+.ap-opener__ring--b {
+  background: radial-gradient(circle, rgb(var(--dah-purple-mid) / 0.55), transparent 68%);
+}
+.ap-opener__ring--c {
+  background: radial-gradient(circle, rgb(var(--dah-purple-light) / 0.26), transparent 66%);
+}
