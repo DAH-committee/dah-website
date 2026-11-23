@@ -361,12 +361,8 @@ export const pages = [
           <p>한림대학교 디지털인문예술전공 제1대 운영위원회 LUCID는 2026년 한 해의 활동과 성과를 이 리포트에 담았습니다.</p>
           <p>
             2026년 운영위원회는 프로젝트 전시회 두 번과 공모전 다섯 번을 운영했습니다.
-            신규 캐릭터 공모전을 새로 만들었고 전공 웹사이트에서 전시회 접수를 받기 시작했습니다.
+            신규 캐릭터 공모전을 열었고 전공 웹사이트에서 전시회 접수를 받았습니다.
           </p>
-          <p>
-            장 구성은 2025 리포트를 이어받고 2026년에 바뀐 내용을 더했습니다. 인쇄본(PDF)이던 리포트를 웹에서 넘겨 보는 디지털 판으로 바꿨습니다.
-          </p>
-          <p>2학기 전시회와 공모전 결과는 행사가 끝나면 이어서 싣습니다.</p>
           <p className="ap-sign">{reportMeta.council}</p>
         </div>
         <div className="ap-qr">
@@ -534,7 +530,7 @@ export const pages = [
     alt: '2025에서 2026으로 바뀐 교과목 구성',
     render: () => (
       <>
-        <Head title="2025에서 2026으로" sub="2025 리포트와 2026 사이트 기준의 교과목 구성 비교" />
+        <Head title="2025에서 2026으로" sub="2025년과 2026년 교과목 구성 비교" />
         <H3>트랙 명칭</H3>
         <Table
           head={['2025', '2026']}
@@ -775,7 +771,7 @@ export const pages = [
     alt: '2026년의 흐름',
     render: () => (
       <>
-        <Head title="2026년의 흐름" sub="공지와 행사 일정 기준. 12월 일정은 예정" />
+        <Head title="2026년의 흐름" sub="공지와 행사 일정" />
         <ol className="ap-timeline">
           {yearFlow.map(([d, t]) => (
             <li key={d + t}>
@@ -830,7 +826,7 @@ export const pages = [
             ['메뉴', ['전공 소개와 학사 안내', '학과 행사와 학생 활동', '공지사항과 자료실']],
             ['편집', ['권한 4단계', '학생 운영진이 화면에서 바로 내용 수정']],
             ['관리 항목', [`전시회 아카이브 ${snap.exhibitions.length}건`, `학생 성과 ${snap.achievement.length}건`, `동아리 ${snap.club.length}곳과 공지 21건`]],
-            ['개발', ['2026.07.06 개발 시작', '11월 현재 계속 개발']],
+            ['개발', '2026.07.06 개발 시작'],
           ]}
         />
         <SiteShot k="home" cap="전공 웹사이트 첫 화면" h={272} />
@@ -887,7 +883,7 @@ export const pages = [
             '폼 복사로 다음 학기 신청 폼 즉시 생성',
           ]}
         />
-        <H3>올해 새로 생긴 기능</H3>
+        <H3>새 기능</H3>
         <Table head={['기능', '내용']} cols={['28%', '72%']} rows={axNew} />
         <p className="ap-note">전시 원본은 인쇄용 파일 그대로 구글 드라이브에 보관합니다. 웹에는 용량을 줄인 이미지를 따로 만들어 올립니다.</p>
       </>
@@ -902,7 +898,7 @@ export const pages = [
         <Head title="DAH 워크스페이스" sub="전공 웹사이트 안의 문서 작업 공간" />
         <p className="ap-body">운영위원회가 쓰던 구글 독스와 구글 시트를 전공 웹사이트 안으로 옮겼습니다. 위원은 구글 계정으로 로그인해 문서를 만들고 함께 고칩니다.</p>
         <Table head={['도구', '하는 일']} cols={['24%', '76%']} rows={workspaceTools} small />
-        <SiteShot k="workspace-docs" cap="DAH Docs 새 문서 화면" h={176} />
+        <SiteShot k="workspace-docs" cap="DAH Docs 새 문서 화면" h={152} />
       </>
     ),
   },
@@ -945,7 +941,6 @@ export const pages = [
           items={[
             '접수 기간에는 작품 정보만 받고 작품 제출 기간에 파일을 받습니다.',
             '작품이 여러 개이면 작품마다 따로 접수합니다.',
-            '사이트 시각 표기를 24시간제로 통일했습니다.',
           ]}
         />
         <Photo s="site/exhibition-settings.webp" h={144} shot contain />
@@ -1387,7 +1382,7 @@ export const pages = [
     render: () => (
       <>
         <Head title="2026 2학기 포스터 공모전" sub="BEYOND THE KNOWN" />
-        <SiteShot k="contest-poster-262" cap="공모전 사이트 첫 화면" h={160} />
+        <SiteShot k="contest-poster-262" cap="공모전 사이트 첫 화면" h={136} />
         <SiteShot k="contest-poster-262-sky" cap="출품작 20점을 별로 이은 Works in the Sky" h={160} />
         <Table cols={['22%', '78%']} rows={contests262.poster} small />
       </>
@@ -1400,8 +1395,8 @@ export const pages = [
     render: () => (
       <>
         <Head title="2026 2학기 장서표 공모전" sub="제5회 강원과 함께하는 도서관" />
-        <SiteShot k="contest-bookplate-262" cap="공모전 사이트 첫 화면" h={160} />
-        <SiteShot k="contest-bookplate-262-works" cap="공모작 46점 목록" h={160} />
+        <SiteShot k="contest-bookplate-262" cap="공모전 사이트 첫 화면" h={136} />
+        <SiteShot k="contest-bookplate-262-works" cap="공모작 46점 목록" h={136} />
         <Table cols={['22%', '78%']} rows={contests262.bookplate} small />
       </>
     ),
@@ -1416,7 +1411,7 @@ export const pages = [
     render: () => (
       <>
         <Head title="디자인 통일" sub="@hallym_lucid" />
-        <p className="ap-body">모집 공지부터 동아리 홍보까지 모든 게시물을 LUCID 디자인 하나로 맞췄습니다. 게시물 한 장만 보아도 전공 운영위원회 계정임을 알 수 있습니다.</p>
+        <p className="ap-body">모집 공지부터 동아리 홍보까지 모든 게시물을 LUCID 디자인 하나로 맞췄습니다.</p>
         <Grid cols={3}>
           {['insta/recruit-1.webp', 'insta/gaechong-1.webp', 'insta/character-1.webp', 'insta/event-1.webp', 'insta/fair-1.webp', 'insta/closing-1.webp'].map((s) => (
             <Cell key={s} s={s} ratio="3 / 4" />
@@ -1472,8 +1467,8 @@ export const pages = [
             ['미래융합스쿨 교류와 연합 엠티', '미래융합스쿨 학생회와 교류\n연합 엠티에서 전공 동아리 4곳 소개'],
             ['시상식과 1학기 종강 총회', '2026.06.04 C.square Blue\n프로젝트 전시회 시상식과 학기 마무리'],
             ['제2대 위원장과 부위원장 모집', '2026.11.13 ~ 11.20\n전공 웹사이트 신청 폼으로 접수'],
-            ['2학기 프로젝트 전시회', '2026.12.01 ~ 12.03 예정'],
-            ['2학기 종강 총회', '전시 마지막 날 예정'],
+            ['2학기 프로젝트 전시회', '2026.12.01 ~ 12.03'],
+            ['2학기 종강 총회', '전시 마지막 날'],
           ]}
         />
       </>
@@ -1671,7 +1666,6 @@ export const pages = [
         <Head title="맺음말" />
         <div className="ap-prose">
           <p>2026년은 전공 운영이 웹으로 옮겨 간 해입니다.</p>
-          <p>2학기 프로젝트 전시회 결과와 공모전 수상작은 이 리포트에 이어서 싣습니다.</p>
           <p className="ap-sign">{reportMeta.council}</p>
         </div>
         <H3>제작 정보</H3>
@@ -1680,8 +1674,6 @@ export const pages = [
           rows={[
             ['발행', `${reportMeta.org} ${reportMeta.council}`],
             ['형식', '웹에서 넘겨 보는 디지털 판'],
-            ['이전 판', '2025 애뉴얼 리포트(A4 40쪽 PDF)'],
-            ['자료', ['운영위원회 1학기와 2학기 활동 자료', '전공 웹사이트 기록(2026.11.22 기준)']],
           ]}
           small
         />

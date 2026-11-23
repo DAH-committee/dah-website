@@ -1253,7 +1253,7 @@
 .ap-title {
   font-size: 26px;
   line-height: 32px;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 .ap-sub {
   font-size: 11px;
@@ -1425,7 +1425,7 @@
 .ap-stats b {
   font-size: 24px;
   line-height: 32px;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 .ap-stats span {
   font-size: 10px;
@@ -1490,7 +1490,7 @@
 .ap-sheet .ap-mission__kr {
   font-size: 24px;
   line-height: 36px;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
 }
 .ap-sheet .ap-mission__en {
   font-size: 14px;
@@ -1507,7 +1507,7 @@
 .ap-vision li > span {
   font-size: 40px;
   line-height: 40px;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 .ap-vision strong {
   font-size: 15px;
@@ -1594,7 +1594,7 @@
 .ap-feats b {
   font-size: 28px;
   line-height: 36px;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
 }
 .ap-feats strong {
   font-size: 13px;
@@ -1836,7 +1836,7 @@
   font-size: 68px;
   line-height: 1.04;
   font-weight: 200;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.02em;
 }
 .ap-sheet .ap-opener__kr {
   margin-top: 16px;
@@ -1871,4 +1871,49 @@
 }
 .ap-depts .ap-names {
   column-gap: 12px;
+}
+
+/* 글자 사이와 줄 사이: 좁은 자간과 좁은 행간을 쓰지 않는다. 본문 1.7배, 소제목 1.5배, 쪽 제목 1.4배 */
+.ap-sheet p,
+.ap-sheet dd {
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+}
+.ap-sheet td,
+.ap-sheet th,
+.ap-line {
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+.ap-sheet small {
+  letter-spacing: -0.01em;
+}
+.ap-h3 {
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+}
+.ap-title {
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+.ap-sheet .ap-opener__body h2 {
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.ap-table td,
+.ap-table th {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+.ap-numbered {
+  gap: 16px;
+}
+/* 줄바꿈: 어절 단위로 끊고, 문단은 끝줄에 한두 단어만 남지 않게 줄 길이를 고르게 맞춘다 */
+.ap-sheet p,
+.ap-sheet dd,
+.ap-sheet td,
+.ap-sheet li,
+.ap-sheet figcaption {
+  word-break: keep-all;
+  text-wrap: balance;
 }
