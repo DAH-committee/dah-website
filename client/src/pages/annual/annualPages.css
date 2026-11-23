@@ -1822,7 +1822,7 @@
 .ap-opener__body {
   left: 48px;
   right: 48px;
-  top: 480px;
+  top: 400px;
   bottom: auto;
   align-items: flex-start;
   text-align: left;
@@ -1847,7 +1847,8 @@
   align-items: flex-start;
   margin-top: 32px;
   font-size: 12px;
+  line-height: 16px;
   font-weight: 400;
-  gap: 6px;
+  gap: 2px;
   color: rgb(255 255 255 / 0.85);
 }
