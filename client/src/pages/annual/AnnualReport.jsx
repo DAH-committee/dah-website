@@ -142,7 +142,9 @@ export default function AnnualReport() {
     const f = flipRef.current
     if (!f) return
     const n = Math.max(0, Math.min(total - 1, i))
-    f.flip(n)
+    // 목차, 링크, 슬라이더 이동은 넘김 애니메이션 없이 바로 해당 쪽을 펼친다
+    f.turnToPage(n)
+    setCur(n)
   }, [total])
   // 쪽 안 링크: 누른 자리가 링크 영역이면 이동하고, 아니면 누른 쪽 방향으로 한 쪽 넘긴다
   const hit = useCallback((clientX, clientY) => {
@@ -220,6 +222,20 @@ export default function AnnualReport() {
       }
     }
   }
+
+  // 링크 위에서 누르면 쪽 넘김 라이브러리(모서리 클릭 넘김)가 반응하지 않게 이벤트를 먼저 가로챈다
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el) return undefined
+    const guard = (e) => {
+      const pt = e.changedTouches ? e.changedTouches[0] : e
+      if (e.target.closest?.('.ar-arrow')) return
+      if (linkAt(hit(pt.clientX, pt.clientY))) e.stopPropagation()
+    }
+    const types = ['mousedown', 'mouseup', 'touchstart', 'touchend']
+    types.forEach((t) => el.addEventListener(t, guard, true))
+    return () => types.forEach((t) => el.removeEventListener(t, guard, true))
+  }, [hit, linkAt])
 
   const prev = useCallback(() => flipRef.current?.flipPrev('bottom'), [])
   const next = useCallback(() => flipRef.current?.flipNext('bottom'), [])
