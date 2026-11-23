@@ -1,6 +1,6 @@
 {
  "source": "https://dah-website-72a4.onrender.com",
- "fetchedAt": "2026-11-22T05:46:25.829Z",
+ "fetchedAt": "2026-11-23T03:19:23.042Z",
  "professors": [
   {
    "id": 4,
@@ -2046,6 +2046,74 @@
   }
  ],
  "achievement": [
+  {
+   "id": 210,
+   "type": "achievement",
+   "title_ko": "2026 MICE 통합 추계학술대회 최우수상 수상",
+   "title_en": "2026 MICE Integrated Fall Conference – Excellence Award",
+   "body": {
+    "desc": "홍지윤 학생이 2026 한국마이스관광학회에서 개최한 MICE 통합 추계학술대회 \"MICE 인력과 기업가정신\" 에서 최우수상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Ji Yoon Hong received the Excellence Award at the 2026 MICE Integrated Fall Conference, hosted by the Korea MICE Tourism Society.\n\nThe conference was held under the theme “MICE Workforce and Entrepreneurship,” bringing together discussions and presentations on the future of the MICE industry and entrepreneurial perspectives within the field.",
+    "awardees": "홍지윤",
+    "awardeesEn": "Ji Yoon Hong"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-11-22T10:10:35.290Z",
+   "updated_at": "2026-11-22T10:10:35.290Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -7,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
+  {
+   "id": 209,
+   "type": "achievement",
+   "title_ko": "2026 MICE 통합 추계학술대회 장려상 수상",
+   "title_en": "2026 MICE Integrated Fall Conference – Encouragement Award",
+   "body": {
+    "desc": "박채빈 학생이 2026 한국마이스관광학회에서 개최한 MICE 통합 추계학술대회 \"MICE 인력과 기업가정신\" 에서 장려상을 수상했습니다.",
+    "year": 2026,
+    "descEn": "Chae Bin Park received the Encouragement Award at the 2026 MICE Integrated Fall Conference, hosted by the Korea MICE Tourism Society.\n\nThe conference was held under the theme “MICE Workforce and Entrepreneurship,” bringing together discussions and presentations on the future of the MICE industry and entrepreneurial perspectives within the field.",
+    "awardees": "박채빈",
+    "awardeesEn": "Chae Bin Park"
+   },
+   "tag": "2026",
+   "poster_url": null,
+   "gallery": null,
+   "external_url": null,
+   "event_start": null,
+   "event_end": null,
+   "published": true,
+   "pinned": false,
+   "created_at": "2026-11-22T10:09:59.272Z",
+   "updated_at": "2026-11-22T10:10:07.540Z",
+   "attachments": null,
+   "seed_key": null,
+   "sort": -6,
+   "has_bg": false,
+   "body_en": null,
+   "site_url": null,
+   "semester_label": null,
+   "period": null,
+   "host": null,
+   "category": null,
+   "category_etc": null
+  },
   {
    "id": 206,
    "type": "achievement",
