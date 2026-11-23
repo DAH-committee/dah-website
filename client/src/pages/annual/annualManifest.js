@@ -1,6 +1,6 @@
 // 자동 생성: /annual-report/render 가 내보낸 쪽 목록. 쪽 이미지를 다시 구운 뒤 갱신한다.
 export const manifest = {
- "count": 94,
+ "count": 96,
  "chapters": [
   {
    "id": "about",
@@ -21,63 +21,63 @@ export const manifest = {
    "no": "03",
    "en": "Faculty",
    "title": "교수진",
-   "page": 15
+   "page": 17
   },
   {
    "id": "council",
    "no": "04",
    "en": "Council",
    "title": "운영위원회 LUCID",
-   "page": 21
+   "page": 23
   },
   {
    "id": "ax",
    "no": "05",
    "en": "AX",
    "title": "전공 디지털 전환",
-   "page": 29
+   "page": 31
   },
   {
    "id": "exhibition",
    "no": "06",
    "en": "Events",
    "title": "프로젝트 전시회",
-   "page": 41
+   "page": 43
   },
   {
    "id": "contest",
    "no": "07",
    "en": "Contests",
    "title": "공모전",
-   "page": 57
+   "page": 59
   },
   {
    "id": "brand",
    "no": "08",
    "en": "Branding",
    "title": "인스타그램과 브랜딩",
-   "page": 69
+   "page": 71
   },
   {
    "id": "outreach",
    "no": "09",
    "en": "Outreach",
    "title": "행사와 대외 활동",
-   "page": 73
+   "page": 75
   },
   {
    "id": "achievements",
    "no": "10",
    "en": "Achievements",
    "title": "학생 성과",
-   "page": 77
+   "page": 79
   },
   {
    "id": "clubs",
    "no": "11",
    "en": "Activities",
    "title": "전공 동아리",
-   "page": 85
+   "page": 87
   }
  ],
  "alts": [
@@ -96,6 +96,8 @@ export const manifest = {
   "2025에서 2026으로 바뀐 교과목 구성",
   "나노디그리 1",
   "나노디그리 2",
+  "코드쉐어링 안내",
+  "코드쉐어링 인정 교과목과 학과",
   "03 Faculty 교수진",
   "교수진 구성 11명",
   "교수 소개 한수미, 김용수, 김성우",

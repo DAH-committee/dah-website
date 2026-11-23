@@ -3,7 +3,7 @@
 // 사이트 데이터는 라이브 API 스냅샷(siteSnapshot.json, scripts/annual-snapshot.mjs로 갱신)만 쓴다.
 // 트랙 요약과 키워드는 사이트 홈과 교육과정 화면이 직접 렌더하는 data/tracks.js를 그대로 쓴다.
 import snap from './siteSnapshot.json'
-import { tracks } from '../../data/tracks'
+import { tracks, codeSharing as csData } from '../../data/tracks'
 import { exAwards } from '../../data/annualAwards'
 import {
   IMG,
@@ -63,6 +63,7 @@ const H3 = ({ children, en }) => (
 // 표 열 너비: 퍼센트를 본문 12열 격자(열 간격 44px)의 배수로 맞춘다. 마지막 열은 남은 폭을 쓴다.
 const PITCH = 44
 const gridCol = (w) => {
+  if (/px$/.test(String(w))) return w // px로 적은 열은 그대로 쓴다
   const pct = parseFloat(w)
   if (!Number.isFinite(pct)) return w
   return `${Math.max(1, Math.round(((pct / 100) * 528) / PITCH)) * PITCH}px`
@@ -552,9 +553,6 @@ export const pages = [
             ['2학기', ['디자인 씽킹 기초', '스토리텔링 기초', 'AI이해의 기초'], commonNames(2)],
           ]}
         />
-        <H3>코드쉐어링</H3>
-        <p className="ap-body">{codesharing.definition}</p>
-        <p className="ap-note">{codesharing.note.trim()}</p>
       </>
     ),
   },
@@ -595,6 +593,58 @@ export const pages = [
         {nanodegree.programs.slice(2).map((p, i) => (
           <NanoBlock key={p.name} p={p} i={i + 3} />
         ))}
+      </>
+    ),
+  },
+  {
+    id: 'cs-1',
+    ch: 'curriculum',
+    alt: '코드쉐어링 안내',
+    render: () => (
+      <>
+        <Head title="코드쉐어링" sub="타과 교과목 인정 안내" />
+        <p className="ap-body">{codesharing.definition}</p>
+        <p className="ap-note">{codesharing.note.trim()}</p>
+        <H3>승인 절차</H3>
+        <Table cols={['48px', '400px']} rows={codesharing.steps.map((t, i) => [String(i + 1).padStart(2, '0'), t])} small dense />
+        <H3>인정 한도</H3>
+        <p className="ap-body">두 유형을 따로 인정해 최대 18학점까지 가능합니다. 타과교과목 인정형에서 9학점, 학점인정형에서 9학점을 각각 따로 인정받을 수 있습니다.</p>
+        <Table
+          cols={['34%', '66%']}
+          dense
+          rows={[
+            ['교과목 대체형', '없음'],
+            ['타과교과목 인정형', ['최대 9학점', '타과교과목 표의 교과목']],
+            ['학점인정형', ['최대 9학점', '인정 학과의 교과목']],
+            ['두 유형 합계', '최대 18학점'],
+          ]}
+          small
+        />
+        <H3>졸업인증 기준</H3>
+        <Bullets items={csData.graduation} />
+      </>
+    ),
+  },
+  {
+    id: 'cs-2',
+    ch: 'curriculum',
+    alt: '코드쉐어링 인정 교과목과 학과',
+    render: () => (
+      <>
+        <Head title="코드쉐어링" sub="인정 교과목과 인정 학과" />
+        <H3>타과교과목 인정형 교과목</H3>
+        <Table
+          head={['학기', '번호', '과목명', '학점', '전공']}
+          cols={['56px', '56px', '210px', '56px', '120px']}
+          rows={csData.recognizedCourses.map((c) => [c.semester, c.code, c.name, c.credit, c.major])}
+          small
+          dense
+        />
+        <H3>학점인정형 인정 학과</H3>
+        <p className="ap-body">해당 학과의 교과목을 최대 9학점 이내에서 전공으로 인정합니다.</p>
+        <p className="ap-depts">
+          <Names v={snap.codesharing[0].depts || csData.departments} />
+        </p>
       </>
     ),
   },

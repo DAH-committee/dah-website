@@ -18,7 +18,7 @@ export const reportMeta = {
 // 장 구성. 시작 쪽은 AnnualPages의 배열 순서에서 자동으로 계산한다.
 export const chapters = [
   { id: 'about', no: '01', en: 'About Us', title: '전공 소개', items: ['전공 소개', '트랙 소개', '미션', '비전', '연혁'] },
-  { id: 'curriculum', no: '02', en: 'Curriculum', title: '교과목', items: ['교과목 편성표', '2025에서 2026으로', '나노디그리'] },
+  { id: 'curriculum', no: '02', en: 'Curriculum', title: '교과목', items: ['교과목 편성표', '2025에서 2026으로', '나노디그리', '코드쉐어링'] },
   { id: 'faculty', no: '03', en: 'Faculty', title: '교수진', items: ['교수진 구성', '교수 소개'] },
   { id: 'council', no: '04', en: 'Council', title: '운영위원회 LUCID', items: ['학생회의 역사', '운영위원회 LUCID', '조직과 정기 행사', '2026년의 흐름'] },
   { id: 'ax', no: '05', en: 'AX', title: '전공 디지털 전환', items: ['작년과 올해', '전공 웹사이트', '전시회 접수 폼', '신청 폼', 'DAH 워크스페이스', '구글 드라이브 연결', '전시회 운영 자동화'] },

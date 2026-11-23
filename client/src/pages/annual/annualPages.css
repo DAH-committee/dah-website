@@ -1865,3 +1865,10 @@
 .ap-sheet--right .ap-folio {
   flex-direction: row-reverse;
 }
+.ap-depts {
+  font-size: 11px;
+  line-height: 20px;
+}
+.ap-depts .ap-names {
+  column-gap: 12px;
+}
