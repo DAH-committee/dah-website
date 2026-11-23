@@ -1787,3 +1787,67 @@
 .ap-awone.is-narrow {
   grid-template-columns: 160px 1fr !important;
 }
+
+/* 장 표지 2안: 쪽 전체를 보라 그라데이션으로 채우고, 큰 빛 덩어리 셋이 쪽을 가로지르며, 제목은 가는 굵기로 크게.
+   (참고: 한국 연보 제작 사례의 풀블리드 그라데이션 장 표지) */
+.ap-sheet--opener {
+  background: linear-gradient(158deg, rgb(var(--dah-purple-deep)) 0%, #5a3fd1 52%, #8d70f2 100%);
+}
+.ap-opener__ring {
+  border: 0;
+}
+.ap-opener__ring--a {
+  width: 780px;
+  height: 780px;
+  left: -330px;
+  top: -150px;
+  background: radial-gradient(circle at 40% 40%, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.05) 58%, transparent 70%);
+}
+.ap-opener__ring--b {
+  width: 560px;
+  height: 560px;
+  left: auto;
+  right: -230px;
+  top: 232px;
+  background: radial-gradient(circle, rgb(168 140 255 / 0.6), transparent 68%);
+}
+.ap-opener__ring--c {
+  width: 680px;
+  height: 680px;
+  right: auto;
+  left: -150px;
+  bottom: -400px;
+  background: radial-gradient(circle, rgb(255 255 255 / 0.24), transparent 66%);
+}
+.ap-opener__body {
+  left: 48px;
+  right: 48px;
+  top: 480px;
+  bottom: auto;
+  align-items: flex-start;
+  text-align: left;
+}
+.ap-sheet .ap-opener__no {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+.ap-sheet .ap-opener__body h2 {
+  font-size: 68px;
+  line-height: 1.04;
+  font-weight: 200;
+  letter-spacing: -0.045em;
+}
+.ap-sheet .ap-opener__kr {
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.ap-sheet .ap-opener__body ul {
+  align-items: flex-start;
+  margin-top: 32px;
+  font-size: 12px;
+  font-weight: 400;
+  gap: 6px;
+  color: rgb(255 255 255 / 0.85);
+}
