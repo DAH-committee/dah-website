@@ -412,25 +412,26 @@ function ExhibitEdit() {
                 )}
               </div>
               <ul className="flex flex-col gap-12">
-                {entries.map((entry) => (
-                  <li key={entry.id} className="min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(entry.id)}
-                      className="flex w-full cursor-pointer items-center justify-between gap-16 rounded-md border border-border-subtle bg-bg-panel p-20 text-left transition-colors duration-fast ease-out hover:border-border-strong"
-                    >
-                      <span className="flex min-w-0 flex-col gap-4">
-                        <span className="truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
-                        <span className="text-small-m text-text-meta">
-                          {[ENTRY_TYPE_LABEL[entry.entry_type] ?? entry.entry_type, entry.fields?.course, canSubmitFiles ? (Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length ? `작품 파일 ${entry.fields.original_files.length}개 제출` : '작품 파일 미제출') : '작품 제출 전']
-                            .filter(Boolean)
-                            .join(', ')}
+                {entries.map((entry) => {
+                  const filesSubmitted = Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length > 0
+                  return (
+                    <li key={entry.id} className="min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(entry.id)}
+                        className="flex w-full cursor-pointer items-center justify-between gap-16 rounded-md border border-border-subtle bg-bg-panel p-20 text-left transition-colors duration-fast ease-out hover:border-border-strong"
+                      >
+                        <span className="min-w-0 truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
+                        <span className="flex shrink-0 items-center gap-12">
+                          <span className={`inline-flex min-h-40 items-center justify-center rounded-sm px-12 text-body-m font-bold ${filesSubmitted ? 'bg-button-primary text-button-primaryText shadow-btn' : 'bg-state-error text-bg-base'}`}>
+                            {filesSubmitted ? '제출' : '미제출'}
+                          </span>
+                          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                         </span>
-                      </span>
-                      <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
-                    </button>
-                  </li>
-                ))}
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}
