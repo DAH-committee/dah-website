@@ -53,9 +53,23 @@ router.put(
       if (cleaned.error) return res.status(400).json({ error: cleaned.error })
       patch = cleaned.value
     }
+    // 참가 유형과 팀원은 관리자(manager 이상)만 고친다. 팀원은 이름, 전공, 학번만 받고 최대 10명
+    const entryTypeNext = body.entry_type === undefined ? null : body.entry_type
+    if (entryTypeNext !== null && !['solo', 'team'].includes(entryTypeNext)) return res.status(400).json({ error: 'entry_type must be solo or team' })
+    let membersNext = null
+    if (body.members !== undefined) {
+      if (!Array.isArray(body.members) || body.members.length > 10) return res.status(400).json({ error: 'members must be an array of at most 10' })
+      membersNext = body.members.map((m) => ({
+        name: String(m?.name ?? '').trim().slice(0, 60),
+        major: String(m?.major ?? '').trim().slice(0, 100),
+        student_no: String(m?.student_no ?? '').trim().slice(0, 20),
+      }))
+      if (membersNext.some((m) => !m.name)) return res.status(400).json({ error: 'each member needs a name' })
+    }
     const email = body.email === undefined ? null : String(body.email).trim().toLowerCase().slice(0, 200)
     const semester = body.semester_label === undefined ? null : String(body.semester_label).trim().slice(0, 60)
-    if (!Object.keys(patch).length && email === null && semester === null) {
+    if (membersNext !== null) patch.members = membersNext
+    if (!Object.keys(patch).length && email === null && semester === null && entryTypeNext === null) {
       return res.status(400).json({ error: 'nothing to update' })
     }
     // 수상작의 과목을 바꾸면 '과목당 1개' 규칙이 깨지지 않는지 먼저 본다
@@ -74,15 +88,16 @@ router.put(
        SET fields = COALESCE(fields, '{}'::jsonb) || $1::jsonb,
            email = COALESCE($2, email),
            semester_label = COALESCE($3, semester_label),
+           entry_type = COALESCE($5, entry_type),
            updated_at = now()
        WHERE id = $4
        RETURNING ${ENTRY_COLS}`,
-      [JSON.stringify(patch), email, semester, id]
+      [JSON.stringify(patch), email, semester, id, entryTypeNext]
     )
     if (!rows[0]) return res.status(404).json({ error: 'not found' })
     if (newCourse !== null) await query('UPDATE exhibition_awards SET course = $2 WHERE entry_id = $1', [id, newCourse])
     // 작품명, 이름, 과목이 바뀌면 드라이브 파일 이름과 폴더도 바뀌어야 하므로 다시 보낸다
-    if (Object.keys(patch).some((k) => ['work_title', 'name', 'student_no', 'team_name', 'course'].includes(k)) || semester !== null) {
+    if (Object.keys(patch).some((k) => ['work_title', 'name', 'student_no', 'team_name', 'course', 'members'].includes(k)) || semester !== null || entryTypeNext !== null) {
       markEntryFilesForSync(id, (rows[0].fields?.original_files || []).map((f) => f.url), { resend: true })
         .then(() => syncEntryToDrive(id))
         .catch((err) => console.error('[entries/edit] 드라이브 재전송 대기:', err.message))

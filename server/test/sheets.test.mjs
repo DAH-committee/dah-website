@@ -111,3 +111,26 @@ test('구글 시트 만들기: Apps Script 방식은 createSheet를, 로그인 �
   assert.equal(sent.requestBody.mimeType, 'application/vnd.google-apps.spreadsheet')
   assert.equal(sent.media.mimeType, 'text/csv')
 })
+
+test('참가 유형과 팀원은 관리자 요청의 최상위 칸으로만 고치고, 팀원은 이름이 있어야 한다', async () => {
+  let seen = null
+  const app = createApp({
+    db: mockDb((text, params) => {
+      if (text.startsWith('UPDATE exhibition_entries')) {
+        seen = params
+        return { rows: [{ id: 9, fields: {}, entry_type: 'team' }] }
+      }
+    }),
+  })
+  const ok = await request(app)
+    .put('/admin/exhibition/entries/9')
+    .set('Cookie', cookie(MANAGER))
+    .send({ entry_type: 'team', members: [{ name: ' 주현호 ', major: '디지털인문예술전공', student_no: '20222583' }, { name: '송은채', major: '국어국문학전공', student_no: '20241049' }] })
+  assert.equal(ok.status, 200)
+  assert.deepEqual(JSON.parse(seen[0]).members.map((m) => m.name), ['주현호', '송은채'])
+  assert.equal(seen[4], 'team')
+  const bad = await request(app).put('/admin/exhibition/entries/9').set('Cookie', cookie(MANAGER)).send({ members: [{ name: '' }] })
+  assert.equal(bad.status, 400)
+  const badType = await request(app).put('/admin/exhibition/entries/9').set('Cookie', cookie(MANAGER)).send({ entry_type: 'group' })
+  assert.equal(badType.status, 400)
+})
