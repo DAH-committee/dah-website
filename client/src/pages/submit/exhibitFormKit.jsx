@@ -224,7 +224,8 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       try {
         const res = await api.upload(file, { context: 'exhibition-original', course })
         if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
-        current = [...current, { url: res.url, name: res.name || file.name }]
+        // 사용자 접수 화면에는 직접 선택한 원래 이름을 표시한다. 서버 저장명/인코딩 응답은 표시명으로 쓰지 않는다.
+        current = [...current, { url: res.url, name: file.name }]
         onChange(current)
       } catch (err) {
         failed.push(`${file.name}: ${err.message}`)
