@@ -199,7 +199,7 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
  * 있고, 올린 파일은 원본 그대로 보관되며 제출 뒤 Google Drive로 자동 정리된다(PDF는 인쇄용 폴더,
  * 이미지는 과목별 채점 폴더. 서버 lib/exhibitionPipeline.js). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
  */
-export function OriginalFilesField({ files, onChange, course, onUploadingChange, disabled = false, required = true, fieldError, id }) {
+export function OriginalFilesField({ files, onChange, course, entryId, onUploadingChange, disabled = false, required = true, fieldError, id }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
@@ -223,7 +223,7 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
     const failed = []
     for (const file of queue) {
       try {
-        const res = await api.upload(file, { context: 'exhibition-original', course })
+        const res = await api.upload(file, { context: 'exhibition-original', course, ...(entryId ? { entry_id: String(entryId) } : {}) })
         if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
         // 사용자 접수 화면에는 직접 선택한 원래 이름을 표시한다. 서버 저장명/인코딩 응답은 표시명으로 쓰지 않는다.
         current = [...current, { url: res.url, name: file.name }]

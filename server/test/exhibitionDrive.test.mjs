@@ -245,12 +245,18 @@ test('(E1) 저장된 과목 목록 안의 값만 원본 업로드 경로가 된�
   assert.equal(good.body.type, 'image/png')
   assert.equal(good.body.bytes, REAL_PNG.length) // 원본 무변환
   assert.equal(good.body.kind, 'image')
-  assert.equal(good.body.webUrl, null) // 웹 전시용 변환은 응답 뒤 가장 나중 순서로 한다(원본 수신이 먼저)
-  assert.equal(drive.calls.create, 0) // 드라이브 복사는 제출 뒤에 한다
+  assert.equal(good.body.webUrl, null) // 웹 전시용 변환은 마감 뒤 한 번에 한다
+  // 원본은 Blob을 거치지 않고 드라이브의 채점용 PNG/과목 폴더에 바로 들어간다
+  const nodes = [...drive.nodes.values()]
+  const course = nodes.find((n) => n.name === '디자인씽킹')
+  const saved = nodes.find((n) => n.name.startsWith('작품 원본') && n.name.endsWith('.png'))
+  assert.ok(course && saved, '드라이브에 원본이 저장되어야 한다')
+  assert.deepEqual(saved.parents, [course.id])
+  assert.match(good.body.url, /^https:\/\/drive\.google\.com\//)
   restore()
 })
 
-test('(E2) 드라이브 저장소가 없어도 원본 업로드는 막히지 않는다(제출 뒤 대기열)', async () => {
+test('(E2) 원본은 드라이브에 바로 저장하므로, 드라이브 연결이 없으면 503과 안내 문구를 돌려준다', async () => {
   const db = makeDb({ connectionId: null })
   const restore = useDrive(fakeDrive())
   const app = createApp({ db: { query: db.query } })
@@ -260,7 +266,8 @@ test('(E2) 드라이브 저장소가 없어도 원본 업로드는 막히지 않
     .field('context', 'exhibition-original')
     .field('course', '디자인씽킹')
     .attach('file', PNG, 'a.png')
-  assert.equal(res.status, 201)
+  assert.equal(res.status, 503)
+  assert.match(String(res.body.error || ''), /저장소/)
   restore()
 })
 

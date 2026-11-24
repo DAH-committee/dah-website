@@ -40,6 +40,7 @@ import {
   shouldOptimize,
 } from '../lib/formStorage.js'
 import {
+  driveFor,
   ensurePath,
   findUploadByKey,
   insertUpload,
@@ -48,7 +49,7 @@ import {
   uploadToConnection,
 } from '../lib/driveConnections.js'
 import { wrap } from './content.js'
-import { fileKind, randomPart, scheduleWebVersion, storePublic } from '../lib/exhibitionPipeline.js'
+import { driveFileName, driveSegments, exhibitionDriveConnection, fileKind, randomPart } from '../lib/exhibitionPipeline.js'
 import { admitUpload } from '../lib/uploadLoad.js'
 
 const router = Router()
@@ -223,22 +224,68 @@ async function handleExhibitionUpload(req, res) {
   let key = exhibitionUploadKey({ email: req.publicUser.email, course, buffer: req.file.buffer, originalname: req.file.originalname })
   const existing = await findUploadByKey(key)
   // 같은 파일 재시도(아직 제출 전)만 기존 기록을 돌려준다. 이미 다른 접수에 붙었거나 뺀 파일을 다시 올리면 새 기록으로 받는다
-  if (existing && existing.status === 'pending') {
-    return res.status(200).json({ ...uploadResponse(existing), webUrl: existing.web_url || null, idempotent: true })
+  // 예전 Blob 기록은 이제 열리지 않으므로 드라이브에 저장된 기록만 그대로 돌려준다
+  if (existing && existing.status === 'pending' && existing.storage === 'google-drive') {
+    return res.status(200).json({ ...uploadResponse(existing), webUrl: null, idempotent: true })
   }
   if (existing) key = `${key}:${randomPart()}`
 
-  // 원본은 사이트 저장소에 바이트 그대로 보관한다. 드라이브 복사는 제출 뒤 exhibitionPipeline이 맡는다
-  // (드라이브 연결이 없거나 느려도 학생 접수가 막히지 않도록).
+  // 원본은 전시회 구글 드라이브에 바로 저장한다. Vercel Blob(무료 한도)에는 더 이상 쓰지 않는다.
+  // 웹 전시용 변환과 파일 이름 정리는 마감 뒤 한 번에 한다.
   const originalName = decodeOriginalName(path.basename(req.file.originalname || 'file'))
   const contentType = contentTypeFor(ext, req.file.mimetype)
-  const stem = randomPart()
-  const storedName = `${sanitizeBaseName(originalName)}_${stem.slice(-8)}.${ext || 'bin'}`
-  const baseUrl = `${req.protocol}://${req.get('host')}`
-  const blobUrl = await storePublic(`exhibition/original/${stem}/${storedName}`, req.file.buffer, contentType, baseUrl)
-
-  // 웹 전시용 변환은 여기서 하지 않는다. 원본을 저장하고 기록한 뒤 바로 응답하고, 변환은 뒤에서 가장 나중 순서로 한다
   const kind = fileKind(originalName, contentType)
+  const stem = randomPart()
+  const target = await exhibitionDriveConnection()
+  if (!target) {
+    throw httpError('작품 파일 저장소가 연결되어 있지 않습니다. 운영위원회에 알려 주세요.', 503, { code: 'drive_not_connected' })
+  }
+  const entry = await ownedExhibitionEntry(req.body?.entry_id, req.publicUser)
+  const named = entry || {
+    entry_type: 'solo',
+    fields: {
+      course,
+      name: req.publicUser.name || req.publicUser.email,
+      work_title: originalName.replace(/\.[^.]+$/, ''),
+    },
+  }
+  const filename = driveFileName(named, { original_name: originalName }, kind, 0, 1).replace(/(\.[^.]+)$/, `_${stem.slice(-8)}$1`)
+
+  let saved = null
+  let folderId = null
+  let lastErr = null
+  for (let i = 0; i < 3 && !saved; i++) {
+    try {
+      const drive = await driveFor(target.connection)
+      const made = await ensurePath({
+        connection: target.connection,
+        rootFolderId: target.rootFolderId,
+        segments: driveSegments({ fields: { course } }, kind),
+        drive,
+      })
+      folderId = made.folderId
+      saved = await uploadToConnection({
+        connection: target.connection,
+        drive,
+        folderId,
+        buffer: req.file.buffer,
+        filename,
+        mimeType: contentType,
+        shareMode: 'restricted',
+        originalName,
+        properties: { course, kind, uploader: req.publicUser.email || '', ...(entry ? { entry: String(entry.id) } : {}) },
+      })
+    } catch (err) {
+      lastErr = err
+      if (err?.code === 'apps_script_too_large') break
+      await new Promise((r) => setTimeout(r, 800 * 2 ** i))
+    }
+  }
+  if (!saved) {
+    console.error('[upload/exhibition] 드라이브 저장 실패:', lastErr?.message || lastErr)
+    if (lastErr?.code === 'apps_script_too_large') throw httpError('파일이 너무 큽니다. 파일 하나당 100MB 이내로 올려 주세요.', 413)
+    throw httpError('파일 저장이 잠시 원활하지 않습니다. 잠시 뒤 다시 올려 주세요.', 503, { code: 'drive_upload_failed' })
+  }
 
   const row = await insertUpload({
     formId: null,
@@ -246,28 +293,46 @@ async function handleExhibitionUpload(req, res) {
     publicUserId: req.publicUser.id,
     submitterEmail: req.publicUser.email,
     idempotencyKey: key,
-    storage: process.env.BLOB_READ_WRITE_TOKEN ? 'blob' : 'local',
+    storage: 'google-drive',
     purpose: 'original',
-    connectionId: null,
-    driveFileId: null,
-    fileUrl: blobUrl,
-    folderId: null,
+    connectionId: target.connection?.id || null,
+    driveFileId: saved.id,
+    fileUrl: saved.url,
+    folderId,
     originalName,
-    storedName,
+    storedName: saved.name || filename,
     mime: contentType,
     bytes: req.file.size,
   })
-  // 같은 파일이 동시에 두 번 들어와 다른 요청이 먼저 기록했다면 그 기록을 그대로 돌려준다(먼저 쓴 쪽을 덮지 않는다)
-  if (row.file_url !== blobUrl) {
-    return res.status(200).json({ ...uploadResponse(row), webUrl: row.web_url || null, idempotent: true })
+  // 같은 파일이 동시에 두 번 들어와 다른 요청이 먼저 기록했다면 방금 올린 사본은 지우고 먼저 쓴 기록을 돌려준다
+  if (row.file_url !== saved.url) {
+    driveFor(target.connection)
+      .then((d) => d.files.update({ fileId: saved.id, requestBody: { trashed: true }, supportsAllDrives: true }))
+      .catch(() => {})
+    return res.status(200).json({ ...uploadResponse(row), webUrl: null, idempotent: true })
   }
+  // 드라이브에 이미 들어갔으므로 동기화 대상(blob_url)이 아니다. 접수에서 빼면 기존 휴지통 처리 흐름을 그대로 탄다
   await query(
-    'UPDATE form_file_uploads SET blob_url = $2, drive_kind = $3 WHERE id = $1',
-    [row.id, blobUrl, kind]
+    "UPDATE form_file_uploads SET drive_status = 'synced', drive_url = $2, drive_kind = $3, updated_at = now() WHERE id = $1",
+    [row.id, saved.url, kind]
   )
-  res.status(201).json({ ...uploadResponse({ ...row, file_url: blobUrl }), format: ext, kind, webUrl: null })
-  if (kind === 'image') scheduleWebVersion(row.id)
+  res.status(201).json({ ...uploadResponse(row), format: ext, kind, webUrl: null })
   return
+}
+
+/** 업로드와 함께 온 접수 번호가 이 사람 접수일 때만 파일 이름에 쓴다(아니면 null) */
+async function ownedExhibitionEntry(rawId, user) {
+  const id = parseInt(rawId, 10)
+  if (!Number.isInteger(id) || !user) return null
+  try {
+    const { rows } = await query('SELECT id, entry_type, fields, email, public_user_id FROM exhibition_entries WHERE id = $1', [id])
+    const e = rows[0]
+    if (!e) return null
+    if (e.public_user_id != null) return Number(e.public_user_id) === Number(user.id) ? e : null
+    return String(e.email || '').toLowerCase() === String(user.email || '').toLowerCase() ? e : null
+  } catch {
+    return null
+  }
 }
 
 // ── 폼 업로드 ──────────────────────────────────────────────

@@ -126,6 +126,12 @@ export function createApp(options = {}) {
       // 클라이언트가 문구가 아니라 코드로 분기할 수 있게 문자열 code가 있으면 함께 보낸다(예: files_not_open)
       return res.status(err.status).json(typeof err.code === 'string' ? { error: err.message, code: err.code } : { error: err.message })
     }
+    // 저장소 연결 문제처럼 원인을 아는 일시 오류는 학생이 읽을 수 있는 문구와 함께 503으로 돌려준다
+    if (err.status === 503 && typeof err.code === 'string') {
+      console.error('[dah-server] 일시 오류:', err.code, err.message)
+      res.set('Retry-After', '10')
+      return res.status(503).json({ error: err.message, code: err.code })
+    }
     console.error('[dah-server] unhandled error:', err)
     res.status(500).json({ error: 'internal server error' })
   })

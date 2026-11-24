@@ -244,6 +244,7 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
             files={originalFiles}
             onChange={setOriginalFiles}
             course={entry.fields?.course}
+            entryId={entry.id}
             onUploadingChange={setFilesUploading}
             disabled={!canEdit}
             required={false}
