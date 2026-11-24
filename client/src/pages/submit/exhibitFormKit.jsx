@@ -248,9 +248,20 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
       label="작품 파일"
       required={required}
       hint={
-        locked
-          ? '과목을 먼저 선택해 주세요'
-          : `작품 파일을 올릴 때는 웹전시와 평가에 쓰이는 PNG가 꼭 있어야 합니다. 오프라인 전시에 인쇄할 PDF와 그 밖의 파일은 선택입니다. 작품 정보만 고칠 때는 파일을 올리지 않아도 됩니다. 파일은 최대 ${MAX_ORIGINAL_FILES}개까지, 파일 하나당 100MB 이내로 올릴 수 있습니다.`
+        locked ? (
+          '과목을 먼저 선택해 주세요'
+        ) : (
+          <span className="grid grid-cols-[76px_minmax(0,1fr)] gap-x-12 gap-y-4 leading-relaxed">
+            <span className="font-semibold text-text-pri">필수 파일</span>
+            <span>PNG는 웹전시와 평가에 사용합니다.</span>
+            <span className="font-semibold text-text-pri">선택 파일</span>
+            <span>PDF는 오프라인 전시 인쇄용입니다. 그 밖의 파일도 선택입니다.</span>
+            <span className="font-semibold text-text-pri">정보 수정</span>
+            <span>파일 없이 작품 정보만 저장할 수 있습니다.</span>
+            <span className="font-semibold text-text-pri">파일 제한</span>
+            <span>최대 {MAX_ORIGINAL_FILES}개, 파일당 100MB 이내입니다.</span>
+          </span>
+        )
       }
     >
       {files.length > 0 && (
