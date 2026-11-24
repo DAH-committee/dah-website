@@ -312,7 +312,8 @@ export function OriginalFilesField({ files, onChange, course, entryId, onUploadi
               className="flex min-w-0 items-center justify-between gap-12 rounded-sm border border-border-subtle bg-bg-elev px-12 py-8"
             >
               {/* 예전 저장소(Blob) 주소는 열리지 않으므로 링크 없이 이름만 보인다. 파일은 전시회 드라이브에 사본이 있다 */}
-              {/blob\.vercel-storage\.com/.test(f.url) ? (
+              {/* 작품 파일은 운영위원회 드라이브에 비공개로 저장된다. 학생이 눌러도 열리지 않고 액세스 요청만 가므로 링크 없이 이름만 보인다 */}
+              {/blob\.vercel-storage\.com|drive\.google\.com/.test(f.url) ? (
                 <span className="inline-flex min-w-0 items-center gap-8 text-small-m text-text-sec">
                   <Paperclip size={15} aria-hidden="true" className="shrink-0" />
                   <span className="truncate">{displayFileName(f.name) || '제출한 파일'}</span>
