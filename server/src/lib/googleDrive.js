@@ -13,7 +13,8 @@
 // 불가능하다(drive.file은 앱이 만든 파일과 Picker로 고른 파일만 본다 — README 인수인계 절 참고).
 // 기본값은 GOOGLE_DRIVE_SCOPE 환경변수로 바꿀 수 있다.
 import { Readable } from 'node:stream'
-import { google } from 'googleapis'
+// googleapis는 불러오는 것만으로 서버 메모리를 약 100MB 쓴다. 이 사이트의 드라이브는 Apps Script 연결이라 거의 필요 없어서
+// OAuth·서비스 계정 방식을 실제로 쓸 때만 불러온다.
 import { createAppsScriptDriveClient } from './appsScriptDrive.js'
 
 export const DRIVE_SCOPE_FULL = 'https://www.googleapis.com/auth/drive'
@@ -97,6 +98,7 @@ export async function createDriveClient(credentials) {
   if (credentials.mode === 'apps-script') {
     return createAppsScriptDriveClient({ url: credentials.url, secret: credentials.secret })
   }
+  const { google } = await import('googleapis')
   if (credentials.mode === 'service-account') {
     const auth = new google.auth.GoogleAuth({
       credentials: credentials.credentials,

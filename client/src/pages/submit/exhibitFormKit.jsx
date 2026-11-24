@@ -199,10 +199,29 @@ export function SubjectField({ subjects, value, onChange, defaultSemester, disab
  * 있고, 올린 파일은 원본 그대로 보관되며 제출 뒤 Google Drive로 자동 정리된다(PDF는 인쇄용 폴더,
  * 이미지는 과목별 채점 폴더. 서버 lib/exhibitionPipeline.js). 업로드 진행 중에는 제출 버튼을 잠근다(onUploadingChange).
  */
+/** 업로드 실패를 학생이 읽을 수 있는 이유와 다음 행동으로 바꾼다 */
+function friendlyUploadError(err) {
+  const status = err?.status
+  const code = err?.body?.code || ''
+  if (status === 413 || code === 'file_too_large') return '파일이 100MB를 넘어 올릴 수 없습니다. 용량을 줄여 다시 올려 주세요.'
+  if (status === 401) return '로그인이 풀렸습니다. 새로고침한 뒤 다시 로그인하고 올려 주세요.'
+  if (code === 'files_not_open') return '지금은 작품 파일을 올릴 수 있는 기간이 아닙니다.'
+  if (status === 403) return '이 작품의 파일을 올릴 권한이 없습니다. 본인 계정으로 로그인했는지 확인해 주세요.'
+  if (status === 400) return '올릴 수 없는 파일 형식입니다. PNG와 PDF 같은 작품 파일로 올려 주세요.'
+  if (status === 422) return '과목 정보를 확인하지 못했습니다. 새로고침한 뒤 다시 올려 주세요.'
+  if (code === 'upload_busy' || status === 503 || status === 502 || status === 504)
+    return '지금 여러 분이 동시에 올리고 있어 서버가 바쁩니다. 1~2분 뒤 파일을 하나씩 다시 올려 주세요.'
+  if (status === undefined || status === 0 || /Failed to fetch|NetworkError|Load failed/i.test(String(err?.message || '')))
+    return '서버와 연결이 잠시 끊겼습니다. 인터넷 연결을 확인하고 1~2분 뒤 파일을 하나씩 다시 올려 주세요.'
+  return '일시적인 문제로 올리지 못했습니다. 2~3분 뒤 다시 올려 주시고, 계속되면 운영위원회 카카오톡으로 알려 주세요.'
+}
+
 export function OriginalFilesField({ files, onChange, course, entryId, onUploadingChange, disabled = false, required = true, fieldError, id }) {
   const inputRef = useRef(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
+  // 업로드 진행 안내(몇 번째 파일인지, 앞 사람을 기다리는 중인지)
+  const [progress, setProgress] = useState('')
   const locked = disabled || !course || !course.trim()
 
   // 한 번에 여러 파일을 골라도 차례로 올린다. 올라간 파일은 그때그때 목록에 더한다.
@@ -221,21 +240,38 @@ export function OriginalFilesField({ files, onChange, course, entryId, onUploadi
     onUploadingChange?.(true)
     let current = files
     const failed = []
-    for (const file of queue) {
+    // 서버가 몰리거나 잠깐 다시 켜질 때는 오류로 끝내지 않고 같은 파일을 기다렸다가 다시 올린다(최대 약 5분)
+    const transient = (err) => err?.status === 503 || err?.status === 502 || err?.status === 504 || err?.status === 0 || err?.status === undefined || /Failed to fetch|NetworkError|Load failed|network/i.test(String(err?.message || ''))
+    const uploadWithRetry = async (file, label) => {
+      const waits = [5, 8, 10, 15, 20, 30, 30, 45, 60, 60]
+      for (let attempt = 0; ; attempt++) {
+        try {
+          setProgress(attempt === 0 ? `${label} 올리는 중` : `${label} 다시 올리는 중`)
+          return await api.upload(file, { context: 'exhibition-original', course, ...(entryId ? { entry_id: String(entryId) } : {}) })
+        } catch (err) {
+          if (!transient(err) || attempt >= waits.length) throw err
+          setProgress(`다른 분이 올리는 중이라 잠시 기다리는 중입니다. 창을 닫지 말아 주세요. (${label})`)
+          await new Promise((r) => setTimeout(r, waits[attempt] * 1000))
+        }
+      }
+    }
+    for (const [qi, file] of queue.entries()) {
       try {
-        const res = await api.upload(file, { context: 'exhibition-original', course, ...(entryId ? { entry_id: String(entryId) } : {}) })
+        const res = await uploadWithRetry(file, queue.length > 1 ? `${qi + 1}/${queue.length}번째 파일` : '파일')
         if (!res?.url) throw new Error('업로드 응답에 url이 없습니다.')
         // 사용자 접수 화면에는 직접 선택한 원래 이름을 표시한다. 서버 저장명/인코딩 응답은 표시명으로 쓰지 않는다.
         current = [...current, { url: res.url, name: file.name }]
         onChange(current)
       } catch (err) {
-        failed.push(`${file.name}: ${err.message}`)
+        // 개발용 오류 원문은 보여 주지 않는다(서버 기록에는 남는다). 이유와 다음 행동만 알려 준다
+        failed.push(`${file.name}: ${friendlyUploadError(err)}`)
       }
     }
     const skipped = picked.length - queue.length
     const notes = [...failed, skipped > 0 && `파일은 최대 ${MAX_ORIGINAL_FILES}개까지라 ${skipped}개는 올리지 않았습니다.`].filter(Boolean)
     if (notes.length) setError(notes.join('\n'))
     setBusy(false)
+    setProgress('')
     onUploadingChange?.(false)
   }
 
@@ -313,7 +349,7 @@ export function OriginalFilesField({ files, onChange, course, entryId, onUploadi
           {busy ? '업로드 중' : '파일 추가'}
         </button>
         {busy && (
-          <span className="text-small-m text-text-meta">업로드 중</span>
+          <span role="status" aria-live="polite" className="text-small-m text-text-meta">{progress || '업로드 중'}</span>
         )}
       </div>
       {error && (

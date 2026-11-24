@@ -4,9 +4,13 @@
 // 상한을 둔다. 상한을 넘는 요청은 거절하지 않고 앞사람이 끝날 때까지 줄을 세운다.
 
 const MB = 1024 * 1024
-// 무료 서버(512MB)에서 드라이브로 바로 보내는 동안 본문이 두세 배로 늘 수 있어 동시 업로드 합계를 120MB로 낮춘다
-const BUDGET = (Number(process.env.UPLOAD_INFLIGHT_MB) || 120) * MB // 동시에 메모리에 올릴 본문 합계
-const MAX_WAIT_MS = Number(process.env.UPLOAD_QUEUE_WAIT_MS) || 50_000 // 이보다 오래 기다리면 다시 시도 안내
+// 무료 서버(512MB)에서 파일 하나는 받는 동안 크기의 서너 배 메모리를 쓴다. 동시에 받는 본문 합계는 40MB,
+// 동시 업로드는 3개까지로 두고 나머지는 먼저 온 순서대로 기다린다. 현재 메모리가 높으면 더 기다린다.
+const BUDGET = (Number(process.env.UPLOAD_INFLIGHT_MB) || 40) * MB // 동시에 메모리에 올릴 본문 합계
+const MAX_CONCURRENT = Number(process.env.UPLOAD_MAX_CONCURRENT) || 3
+const MEM_LIMIT = (Number(process.env.UPLOAD_MEM_LIMIT_MB) || 380) * MB // 이 값을 넘기지 않게 받는다(서버 한계 512MB)
+// Render 프록시는 100초 안에 응답이 없으면 끊으므로 그 안에서 기다리고, 넘으면 화면이 알아서 다시 시도한다
+const MAX_WAIT_MS = Number(process.env.UPLOAD_QUEUE_WAIT_MS) || 85_000
 const UNKNOWN_SIZE = 20 * MB // content-length가 없을 때 잡는 크기
 
 let inflightBytes = 0
@@ -19,7 +23,9 @@ export function activeUploads() {
 }
 
 function fits(need) {
-  return inflightCount === 0 || inflightBytes + need <= BUDGET
+  if (inflightCount === 0) return true // 혼자일 때는 항상 들어간다(영영 못 들어가는 일 없음)
+  if (inflightCount >= MAX_CONCURRENT || inflightBytes + need > BUDGET) return false
+  return process.memoryUsage.rss() + need * 3 <= MEM_LIMIT
 }
 
 function drain() {
@@ -69,4 +75,24 @@ export function admitUpload(req, res, next) {
     }
   })
   waiters.push(w)
+  ensureTicker()
+}
+
+// 메모리 여유는 업로드가 끝날 때만 바뀌는 게 아니어서, 기다리는 사람이 있으면 1초마다 다시 본다
+let ticker = null
+function ensureTicker() {
+  if (ticker) return
+  ticker = setInterval(() => {
+    drain()
+    if (!waiters.length) {
+      clearInterval(ticker)
+      ticker = null
+    }
+  }, 1000)
+  ticker.unref?.()
+}
+
+/** 줄 상태(관리용). 지금 받는 수, 기다리는 수, 서버 메모리 */
+export function uploadQueueState() {
+  return { active: inflightCount, waiting: waiters.length, inflightMB: Math.round(inflightBytes / MB), rssMB: Math.round(process.memoryUsage.rss() / MB) }
 }

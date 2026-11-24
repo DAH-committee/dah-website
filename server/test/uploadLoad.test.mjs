@@ -62,3 +62,12 @@ test('너무 오래 기다리면 503과 다시 시도 안내를 돌려준다', a
   a.res.emit('close')
   assert.equal(activeUploads(), 0)
 })
+
+test('작은 파일이라도 동시에 3개까지만 받고 넷째는 앞사람이 끝나야 들어간다', () => {
+  const xs = [fake(0.05 * MB), fake(0.05 * MB), fake(0.05 * MB), fake(0.05 * MB)]
+  assert.deepEqual(xs.map((x) => x.admitted()), [true, true, true, false])
+  xs[0].res.emit('close')
+  assert.equal(xs[3].admitted(), true)
+  for (const x of xs.slice(1)) x.res.emit('close')
+  assert.equal(activeUploads(), 0)
+})
