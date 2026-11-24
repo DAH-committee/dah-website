@@ -406,13 +406,13 @@ async function syncEntryNow(entryId, { target: injected, drive: injectedDrive } 
     for (const [i, u] of list.entries()) {
       if (u.drive_status === 'synced') continue
       try {
+        // 원본을 먼저 읽는다. 원본 저장소를 읽을 수 없으면 드라이브의 예전 사본은 그대로 둔다
+        const buffer = await fetchBuffer(u.blob_url)
         if (u.drive_file_id && u.drive_status === 'queued') {
-          // 수정으로 다시 보내는 경우: 예전 사본을 먼저 지우고, 실패하면 새로 올리지 않고 다음에 다시 시도한다
           const t = await trashDriveFile(drive, u.drive_file_id)
           if (!t.ok) throw new Error(`예전 사본 정리 실패: ${t.error}`)
           await query('UPDATE form_file_uploads SET drive_file_id = NULL WHERE id = $1', [u.id])
         }
-        const buffer = await fetchBuffer(u.blob_url)
         const { folderId } = await ensurePath({ connection: target.connection, rootFolderId: target.rootFolderId, segments: driveSegments(entry, kind), drive })
         const saved = await uploadToConnection({
           connection: target.connection,
@@ -464,7 +464,7 @@ export async function markEntryFilesForSync(entryId, urls, { resend = false } = 
   )
   await query(
     `UPDATE form_file_uploads
-        SET drive_status = CASE WHEN $2 OR drive_status IS NULL OR drive_status = 'error' THEN 'queued' ELSE drive_status END,
+        SET drive_status = CASE WHEN drive_status IS NULL OR drive_status = 'error' OR ($2 AND drive_status = 'queued') THEN 'queued' ELSE drive_status END,
             updated_at = now()
       WHERE form_id IS NULL AND field_id = 'exhibition_original' AND response_id = $1 AND status = 'attached' AND blob_url IS NOT NULL`,
     [entryId, Boolean(resend)]
@@ -738,7 +738,7 @@ export async function runAutoTasks({ now = new Date() } = {}) {
         out.share = await shareWithProfessors({ semester, target })
       }
     }
-    if (activeUploads() === 0) out.web = await backfillWebVersions()
+    // 웹 전시용 변환(webp)은 원본 저장소 정지로 자동 작업에서 뺐다. 마감 뒤 드라이브 원본으로 한 번에 만든다
     return out
   } finally {
     autoRunning = false

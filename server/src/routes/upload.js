@@ -235,12 +235,11 @@ async function handleExhibitionUpload(req, res) {
   const originalName = decodeOriginalName(path.basename(req.file.originalname || 'file'))
   const contentType = contentTypeFor(ext, req.file.mimetype)
   const kind = fileKind(originalName, contentType)
-  const stem = randomPart()
   const target = await exhibitionDriveConnection()
   if (!target) {
     throw httpError('작품 파일 저장소가 연결되어 있지 않습니다. 운영위원회에 알려 주세요.', 503, { code: 'drive_not_connected' })
   }
-  const entry = await ownedExhibitionEntry(req.body?.entry_id, req.publicUser)
+  const entry = await ownedExhibitionEntry(req.body?.entry_id, req.publicUser, course)
   const named = entry || {
     entry_type: 'solo',
     fields: {
@@ -249,7 +248,8 @@ async function handleExhibitionUpload(req, res) {
       work_title: originalName.replace(/\.[^.]+$/, ''),
     },
   }
-  const filename = driveFileName(named, { original_name: originalName }, kind, 0, 1).replace(/(\.[^.]+)$/, `_${stem.slice(-8)}$1`)
+  // 드라이브는 같은 이름을 허용하므로 임의 문자를 붙이지 않는다. 이름은 '[과목] 작품명 - 대표(학번)' 규칙 그대로
+  const filename = driveFileName(named, { original_name: originalName }, kind, 0, 1)
 
   let saved = null
   let folderId = null
@@ -320,10 +320,23 @@ async function handleExhibitionUpload(req, res) {
   return
 }
 
-/** 업로드와 함께 온 접수 번호가 이 사람 접수일 때만 파일 이름에 쓴다(아니면 null) */
-async function ownedExhibitionEntry(rawId, user) {
+/** 업로드와 함께 온 접수 번호가 이 사람 접수일 때만 파일 이름에 쓴다.
+ *  번호가 없으면(예전 화면) 이 사람의 같은 과목 접수가 하나뿐일 때 그 접수를 쓴다 */
+async function ownedExhibitionEntry(rawId, user, course = '') {
   const id = parseInt(rawId, 10)
-  if (!Number.isInteger(id) || !user) return null
+  if (!user) return null
+  if (!Number.isInteger(id)) {
+    try {
+      const { rows } = await query(
+        `SELECT id, entry_type, fields, email, public_user_id FROM exhibition_entries
+          WHERE (public_user_id = $1 OR (public_user_id IS NULL AND lower(email) = lower($2))) AND fields->>'course' = $3`,
+        [user.id, user.email || '', course]
+      )
+      return rows.length === 1 ? rows[0] : null
+    } catch {
+      return null
+    }
+  }
   try {
     const { rows } = await query('SELECT id, entry_type, fields, email, public_user_id FROM exhibition_entries WHERE id = $1', [id])
     const e = rows[0]
