@@ -242,16 +242,20 @@ export function OriginalFilesField({ files, onChange, course, entryId, onUploadi
     const failed = []
     // 서버가 몰리거나 잠깐 다시 켜질 때는 오류로 끝내지 않고 같은 파일을 기다렸다가 다시 올린다(최대 약 5분)
     const transient = (err) => err?.status === 503 || err?.status === 502 || err?.status === 504 || err?.status === 0 || err?.status === undefined || /Failed to fetch|NetworkError|Load failed|network/i.test(String(err?.message || ''))
+    // 몰리거나 서버가 잠깐 다시 켜지면 오류로 끝내지 않고, 같은 파일을 차례대로 다시 보내 드라이브에 들어갈 때까지 기다린다.
+    // 마감 전에 시작한 업로드는 서버가 마감 뒤 유예 시간(1시간) 안에도 받으므로 최대 약 70분까지 이어서 시도한다.
     const uploadWithRetry = async (file, label) => {
-      const waits = [5, 8, 10, 15, 20, 30, 30, 45, 60, 60]
+      const startedAt = Date.now()
+      const LIMIT_MS = 70 * 60 * 1000
       for (let attempt = 0; ; attempt++) {
         try {
-          setProgress(attempt === 0 ? `${label} 올리는 중` : `${label} 다시 올리는 중`)
+          setProgress(attempt === 0 ? `${label} 올리는 중` : `${label} 차례가 되어 다시 올리는 중`)
           return await api.upload(file, { context: 'exhibition-original', course, ...(entryId ? { entry_id: String(entryId) } : {}) })
         } catch (err) {
-          if (!transient(err) || attempt >= waits.length) throw err
-          setProgress(`다른 분이 올리는 중이라 잠시 기다리는 중입니다. 창을 닫지 말아 주세요. (${label})`)
-          await new Promise((r) => setTimeout(r, waits[attempt] * 1000))
+          if (!transient(err) || Date.now() - startedAt > LIMIT_MS) throw err
+          const waited = Math.round((Date.now() - startedAt) / 60000)
+          setProgress(`다른 분들이 올리는 중이라 순서대로 기다리고 있습니다. 창을 닫지 말아 주세요. 마감 전에 시작한 파일은 마감 뒤에도 이어서 받습니다. (${label}${waited ? `, ${waited}분째` : ''})`)
+          await new Promise((r) => setTimeout(r, Math.min(30, 5 + attempt * 5) * 1000))
         }
       }
     }

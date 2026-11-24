@@ -40,6 +40,8 @@ function drain() {
 
 /** 업로드 라우트 맨 앞에 둔다. multer가 본문을 읽기 전에 자리를 얻어야 메모리 상한이 지켜진다 */
 export function admitUpload(req, res, next) {
+  // 줄에 서기 전 도착 시각. 마감 판정은 이 시각으로 한다(줄을 기다리다 자정을 넘겨도 늦은 것이 아니다)
+  req.arrivedAt = new Date()
   const declared = Number(req.headers['content-length']) || 0
   const need = Math.min(declared || UNKNOWN_SIZE, BUDGET)
   let held = false

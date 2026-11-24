@@ -18,6 +18,26 @@ import { resolveConnection, resolveRootFolderId, ensurePath, uploadToConnection,
 import { createGoogleSheet } from './sheetExport.js'
 import { activeUploads } from './uploadLoad.js'
 
+// 마감 직전 몰림: 마감 전에 업로드를 시작한 사람은 마감 뒤 이 시간 안에 끝내도 받는다
+export const GRACE_MS = (Number(process.env.EXHIBIT_GRACE_MIN) || 60) * 60 * 1000
+
+/** 이 사람이 마감 전에 작품 파일 업로드를 시작한 적이 있고 지금이 유예 안인가 */
+export async function inDeadlineGrace(user, editClose, now = new Date()) {
+  if (!user || !editClose) return false
+  const close = new Date(editClose)
+  if (now <= close || now.getTime() > close.getTime() + GRACE_MS) return false
+  try {
+    const { rows } = await query(
+      `SELECT 1 FROM exhibit_upload_attempts
+        WHERE (public_user_id = $1 OR lower(email) = lower($2)) AND started_at <= $3 LIMIT 1`,
+      [user.id ?? null, user.email || '', close]
+    )
+    return rows.length > 0
+  } catch {
+    return false
+  }
+}
+
 export const PRINT_FOLDER = '인쇄용 PDF'
 export const GRADE_FOLDER = '채점용 PNG'
 export const OTHER_FOLDER = '기타 원본'
@@ -256,6 +276,21 @@ export const EXHIBIT_AUTO_SCHEMA = [
      updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
    )`,
   'CREATE INDEX IF NOT EXISTS idx_exhibition_rubrics_sem ON exhibition_rubrics (semester_label, course)',
+  // 작품 파일 업로드 시도 기록: 누가 언제 무엇을 올리려 했고 어떻게 끝났는지(성공, 실패 이유, 서버가 꺼져 끝나지 못함)
+  `CREATE TABLE IF NOT EXISTS exhibit_upload_attempts (
+     id             SERIAL PRIMARY KEY,
+     email          TEXT,
+     public_user_id INTEGER,
+     entry_id       INTEGER,
+     course         TEXT,
+     file_name      TEXT,
+     bytes          BIGINT,
+     started_at     TIMESTAMPTZ NOT NULL,
+     finished_at    TIMESTAMPTZ,
+     status         TEXT NOT NULL DEFAULT 'started',
+     reason         TEXT
+   )`,
+  'CREATE INDEX IF NOT EXISTS idx_upload_attempts_email ON exhibit_upload_attempts (lower(email), started_at)',
 ]
 
 export async function ensureExhibitAutoSchema() {
@@ -750,7 +785,7 @@ export async function runAutoTasks({ now = new Date() } = {}) {
     const out = { sync: busy ? { skipped: 'uploads_active' } : await syncPendingAll({ limit: 30 }) }
     const { rows: st } = await query('SELECT submit_open, edit_close FROM exhibition_settings WHERE id = 1')
     const s = st[0]
-    if (s?.submit_open && s?.edit_close && now > new Date(s.edit_close)) {
+    if (s?.submit_open && s?.edit_close && now > new Date(new Date(s.edit_close).getTime() + GRACE_MS)) {
       const d = new Date(s.submit_open)
       const semester = `${d.getFullYear()}-${d.getMonth() + 1 >= 7 ? 2 : 1}`
       const target = await exhibitionDriveConnection()

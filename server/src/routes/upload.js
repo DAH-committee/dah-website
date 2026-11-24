@@ -49,7 +49,7 @@ import {
   uploadToConnection,
 } from '../lib/driveConnections.js'
 import { wrap } from './content.js'
-import { driveFileName, driveSegments, exhibitionDriveConnection, fileKind, randomPart } from '../lib/exhibitionPipeline.js'
+import { driveFileName, driveSegments, exhibitionDriveConnection, fileKind, inDeadlineGrace, randomPart } from '../lib/exhibitionPipeline.js'
 import { admitUpload } from '../lib/uploadLoad.js'
 
 const router = Router()
@@ -194,14 +194,57 @@ function exhibitionUploadKey({ email, course, buffer, originalname }) {
   return `x:${hash.digest('hex')}`
 }
 
+// 시도 기록: 시작할 때 started, 끝나면 ok 또는 failed와 이유. 서버가 꺼지면 started로 남아 누가 끊겼는지 보인다
+async function logAttemptStart(req) {
+  try {
+    const { rows } = await query(
+      `INSERT INTO exhibit_upload_attempts (email, public_user_id, entry_id, course, file_name, bytes, started_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [
+        req.publicUser?.email || null,
+        req.publicUser?.id ?? null,
+        parseInt(req.body?.entry_id, 10) || null,
+        String(req.body?.course || '').slice(0, 100),
+        decodeOriginalName(path.basename(req.file?.originalname || '')).slice(0, 200),
+        req.file?.size ?? null,
+        req.arrivedAt || new Date(),
+      ]
+    )
+    return rows[0]?.id || null
+  } catch {
+    return null
+  }
+}
+async function logAttemptEnd(id, status, reason = null) {
+  if (!id) return
+  try {
+    await query('UPDATE exhibit_upload_attempts SET status = $2, reason = $3, finished_at = now() WHERE id = $1', [id, status, reason ? String(reason).slice(0, 300) : null])
+  } catch {
+    // 기록 실패는 업로드에 영향을 주지 않는다
+  }
+}
+
 async function handleExhibitionUpload(req, res) {
   if (!req.publicUser) throw httpError('google login required', 401)
-  // 작품 파일은 작품 제출 기간(files_open~edit_close)에만 받는다
+  const attemptId = await logAttemptStart(req)
+  try {
+    await handleExhibitionUploadNow(req, res)
+    await logAttemptEnd(attemptId, res.statusCode < 400 ? 'ok' : 'failed', res.statusCode < 400 ? null : `HTTP ${res.statusCode}`)
+  } catch (err) {
+    await logAttemptEnd(attemptId, 'failed', `${err.status || 500} ${err.code || ''} ${err.message || err}`)
+    throw err
+  }
+}
+
+async function handleExhibitionUploadNow(req, res) {
+  // 작품 파일은 작품 제출 기간(files_open~edit_close)에만 받는다.
+  // 마감은 서버에 도착한 시각으로 본다. 마감 전에 업로드를 시작한 사람은 마감 뒤 유예 시간 안이면 받는다
   const { rows: exRows } = await query('SELECT submit_close, files_open, edit_close FROM exhibition_settings WHERE id = 1', [])
   const exRow = exRows[0]
   const opensAt = exRow && (exRow.files_open || exRow.submit_close)
-  const nowTs = new Date()
-  if (!opensAt || !exRow.edit_close || nowTs < new Date(opensAt) || nowTs > new Date(exRow.edit_close)) {
+  const arrived = req.arrivedAt || new Date()
+  const inTime = opensAt && exRow.edit_close && arrived >= new Date(opensAt) && arrived <= new Date(exRow.edit_close)
+  if (!inTime && !(await inDeadlineGrace(req.publicUser, exRow?.edit_close))) {
     throw httpError('지금은 작품 파일을 올릴 수 있는 기간이 아닙니다.', 403, { code: 'files_not_open' })
   }
   const course = String(req.body?.course || '').trim()

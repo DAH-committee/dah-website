@@ -12,7 +12,7 @@ import { requireSubmitterAuth as requirePublicAuth, requirePublicAuth as require
 import { submitLimiter, exhibitionIpLimiter, exhibitionUserLimiter } from '../middleware/rateLimit.js'
 import { sendExhibitionConfirmation } from '../lib/mailer.js'
 import { attachExhibitionUploads } from '../lib/driveConnections.js'
-import { markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
+import { GRACE_MS, inDeadlineGrace, markEntryFilesForSync, syncEntryToDrive } from '../lib/exhibitionPipeline.js'
 import { activeUploads } from '../lib/uploadLoad.js'
 import { wrap } from './content.js'
 
@@ -133,6 +133,12 @@ function requireWindow(kind) {
     const now = new Date()
     // 수정은 edit_close까지 허용 (submit_close 이후부터 edit_close 사이에도 가능)
     const close = isEdit ? settings?.edit_close : settings?.submit_close
+    // 수정 마감 직후 유예 시간 안이면 일단 통과시키고, 로그인 확인 뒤 마감 전에 업로드를 시작한 사람인지 본다
+    if (isEdit && settings?.edit_close && now > new Date(settings.edit_close) && now.getTime() <= new Date(settings.edit_close).getTime() + GRACE_MS) {
+      req.exhibitionSettings = settings
+      req.exhibitionGracePending = true
+      return next()
+    }
     if (!settings || !within(now, settings.submit_open, close)) {
       return res.status(403).json({
         error: isEdit ? 'edit period closed' : 'submission period closed',
@@ -231,11 +237,22 @@ router.post(
   })
 )
 
+// 유예 판정: 마감 전에 작품 파일 업로드를 시작한 사람만 유예 시간 안에 저장할 수 있다
+const requireGraceIfLate = wrap(async (req, res, next) => {
+  if (!req.exhibitionGracePending) return next()
+  if (await inDeadlineGrace(req.publicUser, req.exhibitionSettings?.edit_close)) {
+    req.exhibitionGrace = true
+    return next()
+  }
+  return res.status(403).json({ error: 'edit period closed', code: 'edit_closed', schedule: { edit_close: req.exhibitionSettings?.edit_close } })
+})
+
 router.put(
   '/exhibition',
   exhibitionIpLimiter,
   requireWindow('edit'),
   requireExhibitionAuth,
+  requireGraceIfLate,
   exhibitionUserLimiter,
   wrap(async (req, res) => {
     const { id, fields, images } = req.body || {}
@@ -281,7 +298,7 @@ router.put(
     if (fields?.original_files !== undefined) {
       const nextFiles = sanitizeOriginalFiles(fields.original_files)
       // 파일이 바뀌는 저장은 작품 제출 기간에만 받는다(글자 수정은 수정 마감까지)
-      if (!sameUrlSet(entry.fields?.original_files, nextFiles) && !filesWindowOpen(req.exhibitionSettings)) {
+      if (!sameUrlSet(entry.fields?.original_files, nextFiles) && !filesWindowOpen(req.exhibitionSettings) && !req.exhibitionGrace) {
         return res.status(403).json({
           error: 'file submission period closed',
           code: 'files_not_open',
@@ -343,10 +360,13 @@ router.get(
 
     const settings = await getExhibitionSettings()
     const now = new Date()
+    // 마감 전에 업로드를 시작한 사람은 유예 시간 안에 화면을 다시 열어도 이어서 제출할 수 있다
+    const grace = await inDeadlineGrace(user, settings?.edit_close, now)
     res.json({
       entries: rows.map(stripSensitive),
-      can_edit: Boolean(settings) && within(now, settings.submit_open, settings.edit_close),
-      can_submit_files: filesWindowOpen(settings, now),
+      can_edit: (Boolean(settings) && within(now, settings.submit_open, settings.edit_close)) || grace,
+      can_submit_files: filesWindowOpen(settings, now) || grace,
+      in_grace: grace,
       files_open: settings ? settings.files_open || settings.submit_close : null,
       edit_close: settings?.edit_close ?? null,
       submit_close: settings?.submit_close ?? null,
