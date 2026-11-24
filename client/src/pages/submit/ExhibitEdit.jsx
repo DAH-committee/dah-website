@@ -10,7 +10,7 @@
 // readonly: 참가 유형·과목·이메일 — 서버가 변경을 무시하므로 클라도 자물쇠로 표시만.
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { ChevronRight, Plus } from 'lucide-react'
+import { Check, ChevronRight, Plus, Upload } from 'lucide-react'
 import Button from '../../components/common/Button'
 import {
   AccountStrip,
@@ -421,13 +421,14 @@ function ExhibitEdit() {
                         onClick={() => setSelectedId(entry.id)}
                         className="flex w-full cursor-pointer items-center justify-between gap-16 rounded-md border border-border-subtle bg-bg-panel p-20 text-left transition-colors duration-fast ease-out hover:border-border-strong"
                       >
-                        <span className="min-w-0 truncate text-body-m font-medium text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
-                        <span className="flex shrink-0 items-center gap-12">
-                          <span className={`inline-flex min-h-40 items-center justify-center rounded-sm px-12 text-body-m font-bold ${filesSubmitted ? 'bg-button-primary text-button-primaryText shadow-btn' : 'bg-state-error text-bg-base'}`}>
+                        <span className="flex min-w-0 flex-1 flex-col gap-4">
+                          <span className="break-keep text-body-m font-medium leading-snug text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
+                          <span className={`flex items-center gap-8 text-small-m font-semibold ${filesSubmitted ? 'text-state-success' : 'text-text-meta'}`}>
+                            {filesSubmitted ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
                             {filesSubmitted ? '제출' : '미제출'}
                           </span>
-                          <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                         </span>
+                        <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
                       </button>
                     </li>
                   )
