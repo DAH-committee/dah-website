@@ -18,7 +18,8 @@ const FOLDER_MIME = 'application/vnd.google-apps.folder'
 // 그래서 이 크기까지는 릴레이에 base64로 한 번에 보내고(INLINE), 더 큰 파일은 릴레이에서 Drive의
 // '이어 올리기 주소'만 받아 서버가 그 주소로 직접 조각(8MB)씩 올린다. 그러면 파일 크기가 릴레이를 거치지 않아
 // 30MB 한도가 사라진다. 이어 올리기 주소는 릴레이가 만든 계정 권한으로 열려 있어 토큰 없이 쓰인다.
-const INLINE_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_INLINE_UPLOAD_MB) || 20) * 1024 * 1024
+// base64로 한 번에 보내면 메모리를 파일 크기의 몇 배로 쓰므로 4MB가 넘으면 조각 올리기로 보낸다
+const INLINE_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_INLINE_UPLOAD_MB) || 4) * 1024 * 1024
 const CHUNK_BYTES = 32 * 256 * 1024 // 8MB, Drive가 요구하는 256KB의 배수
 const MAX_UPLOAD_BYTES = Math.max(1, Number(process.env.APPS_SCRIPT_MAX_UPLOAD_MB) || 500) * 1024 * 1024
 

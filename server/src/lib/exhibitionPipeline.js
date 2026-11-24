@@ -176,6 +176,30 @@ export function scheduleWebVersion(uploadId) {
   pumpWeb().catch(() => {})
 }
 
+/** 드라이브에 바로 저장했지만 접수에 붙지 않고 1시간 넘게 남은 업로드를 휴지통으로 옮긴다 */
+export async function trashOrphanDriveUploads({ olderThanMin = 60, limit = 20 } = {}) {
+  const { rows } = await query(
+    `SELECT id, drive_file_id FROM form_file_uploads
+      WHERE form_id IS NULL AND field_id = 'exhibition_original' AND storage = 'google-drive'
+        AND status = 'pending' AND drive_file_id IS NOT NULL AND created_at < now() - ($1::int * interval '1 minute')
+      ORDER BY id LIMIT $2`,
+    [olderThanMin, limit]
+  )
+  if (!rows.length) return { trashed: 0 }
+  const target = await exhibitionDriveConnection()
+  if (!target) return { trashed: 0 }
+  const drive = await driveFor(target.connection)
+  let trashed = 0
+  for (const r of rows) {
+    const t = await trashDriveFile(drive, r.drive_file_id)
+    if (t.ok) {
+      await query("UPDATE form_file_uploads SET status = 'deleted', drive_status = 'trashed', updated_at = now() WHERE id = $1", [r.id])
+      trashed++
+    }
+  }
+  return { trashed }
+}
+
 /** 10분 작업에서: 웹용 이미지가 아직 없는 원본을 업로드가 잠잠할 때 몇 장씩 채운다 */
 export async function backfillWebVersions({ limit = 8 } = {}) {
   const { rows } = await query(
@@ -739,6 +763,8 @@ export async function runAutoTasks({ now = new Date() } = {}) {
       }
     }
     // 웹 전시용 변환(webp)은 원본 저장소 정지로 자동 작업에서 뺐다. 마감 뒤 드라이브 원본으로 한 번에 만든다
+    // 드라이브에 올라갔지만 1시간이 지나도 어느 접수에도 붙지 않은 파일(연결 끊김으로 다시 올린 중복본)은 휴지통으로
+    if (activeUploads() === 0) out.orphans = await trashOrphanDriveUploads()
     return out
   } finally {
     autoRunning = false

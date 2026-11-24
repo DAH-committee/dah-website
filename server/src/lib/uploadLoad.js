@@ -4,7 +4,8 @@
 // 상한을 둔다. 상한을 넘는 요청은 거절하지 않고 앞사람이 끝날 때까지 줄을 세운다.
 
 const MB = 1024 * 1024
-const BUDGET = (Number(process.env.UPLOAD_INFLIGHT_MB) || 240) * MB // 동시에 메모리에 올릴 본문 합계
+// 무료 서버(512MB)에서 드라이브로 바로 보내는 동안 본문이 두세 배로 늘 수 있어 동시 업로드 합계를 120MB로 낮춘다
+const BUDGET = (Number(process.env.UPLOAD_INFLIGHT_MB) || 120) * MB // 동시에 메모리에 올릴 본문 합계
 const MAX_WAIT_MS = Number(process.env.UPLOAD_QUEUE_WAIT_MS) || 50_000 // 이보다 오래 기다리면 다시 시도 안내
 const UNKNOWN_SIZE = 20 * MB // content-length가 없을 때 잡는 크기
 
