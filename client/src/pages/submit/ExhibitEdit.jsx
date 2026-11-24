@@ -10,7 +10,7 @@
 // readonly: 참가 유형·과목·이메일 — 서버가 변경을 무시하므로 클라도 자물쇠로 표시만.
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Check, ChevronRight, Plus, Upload } from 'lucide-react'
+import { AlertCircle, Check, ChevronRight, Plus, Upload } from 'lucide-react'
 import Button from '../../components/common/Button'
 import {
   AccountStrip,
@@ -151,6 +151,12 @@ function EntryForm({ entry, canEdit, canSubmitFiles, exhibition, email, copy, sh
       // 파일이 있거나 이미 제출한 적이 있으면 파일 목록을 접수 내용과 함께 보낸다
       const sendFiles = canSubmitFiles && (originalFiles.length > 0 || hadFiles)
       if (sendFiles) fields.original_files = originalFiles
+      // 파일을 새로 올려 저장하면 재제출 필요 표시를 지운다
+      if (sendFiles && entry.fields?.needs_resubmit) {
+        const before = (entry.fields?.original_files || []).map((f) => f.url).sort().join('|')
+        const after = originalFiles.map((f) => f.url).sort().join('|')
+        if (before !== after) fields.needs_resubmit = ''
+      }
       // 소유 검증은 서버가 로그인 계정으로 한다 — 본문에 신원 정보를 싣지 않는다
       await api.put('/submit/exhibition', {
         id: entry.id,
@@ -415,6 +421,8 @@ function ExhibitEdit() {
               <ul className="flex flex-col gap-12">
                 {entries.map((entry) => {
                   const filesSubmitted = Array.isArray(entry.fields?.original_files) && entry.fields.original_files.length > 0
+                  // 운영위원회가 접수 시트의 needs_resubmit 칸에 표시한 접수(서버 오류로 파일이 빠진 경우)
+                  const needsResubmit = ['true', '1', 'y', 'yes', '필요'].includes(String(entry.fields?.needs_resubmit || '').trim().toLowerCase())
                   return (
                     <li key={entry.id} className="min-w-0">
                       <button
@@ -424,9 +432,9 @@ function ExhibitEdit() {
                       >
                         <span className="flex min-w-0 flex-1 flex-col gap-4">
                           <span className="break-keep text-body-m font-medium leading-snug text-text-pri">{entry.fields?.work_title || '(작품명 미입력)'}</span>
-                          <span className={`flex items-center gap-8 text-small-m font-semibold ${filesSubmitted ? 'text-state-success' : 'text-text-meta'}`}>
-                            {filesSubmitted ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
-                            {filesSubmitted ? '제출' : '미제출'}
+                          <span className={`flex items-center gap-8 text-small-m font-semibold ${needsResubmit ? 'text-state-error' : filesSubmitted ? 'text-state-success' : 'text-text-meta'}`}>
+                            {needsResubmit ? <AlertCircle size={16} aria-hidden="true" /> : filesSubmitted ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
+                            {needsResubmit ? '재제출 필요' : filesSubmitted ? '제출' : '미제출'}
                           </span>
                         </span>
                         <ChevronRight size={16} aria-hidden="true" className="shrink-0 text-text-meta" />
