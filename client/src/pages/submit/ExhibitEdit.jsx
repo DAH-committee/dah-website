@@ -32,6 +32,7 @@ import { api, useApi } from '../../hooks/useApi'
 import { exhibitionCopy } from '../../data/exhibitionCopy'
 import { useTitle } from '../../hooks/useTitle'
 import { usePublicAuth } from '../../hooks/usePublicAuth'
+import { displayFileName } from '../../utils/displayFileName'
 import { MemberRows, OriginalFilesField, PhoneInput } from './exhibitFormKit'
 import { EXHIBITION_SUFFIX, exhibitionFullTitle } from '../../data/exhibitionTitle'
 import { DESC_MAX, ENTRY_TYPE_LABEL, FIELD_IDS, collectFormErrors, formatKst, resolveOrdinal, scrollToFirstError, submitErrorMessage } from './exhibitFormShared'
@@ -56,7 +57,7 @@ function toForm(entry) {
 function toOriginalFiles(entry) {
   const list = entry.fields?.original_files
   return Array.isArray(list)
-    ? list.filter((f) => f && typeof f.url === 'string').map((f) => ({ url: f.url, name: f.name || '' }))
+    ? list.filter((f) => f && typeof f.url === 'string').map((f) => ({ url: f.url, name: displayFileName(f.name || '') }))
     : []
 }
 

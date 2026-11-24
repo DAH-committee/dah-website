@@ -10,6 +10,7 @@ import { QuestionCard, ShortInput } from '../../components/forms/respondent'
 import { ACCENT } from '../../styles/accents'
 import { api } from '../../hooks/useApi'
 import { formatPhone } from '../../utils/format'
+import { displayFileName } from '../../utils/displayFileName'
 import { formatKst, inputCls, labelCls } from './exhibitFormShared'
 
 // 53_DRIVE_STORAGE(전시회 확장): 원본 파일 확장자 허용목록. 서버가 최종 판정하지만,
@@ -266,13 +267,13 @@ export function OriginalFilesField({ files, onChange, course, onUploadingChange,
                 className="inline-flex min-w-0 items-center gap-8 truncate text-small-m text-text-sec underline underline-offset-4 hover:text-text-pri"
               >
                 <Paperclip size={15} aria-hidden="true" className="shrink-0" />
-                <span className="truncate">{f.name || f.url.split('/').pop()}</span>
+                <span className="truncate">{displayFileName(f.name) || '제출한 파일'}</span>
               </a>
               {!disabled && (
                 <button
                   type="button"
                   onClick={() => remove(idx)}
-                  aria-label={`${f.name || '파일'} 제거`}
+                  aria-label={`${displayFileName(f.name) || '제출한 파일'} 제거`}
                   className="inline-flex h-32 w-32 shrink-0 cursor-pointer items-center justify-center rounded-sm text-text-meta transition duration-fast ease-out hover:bg-glass-strong hover:text-text-pri"
                 >
                   <Trash2 size={16} aria-hidden="true" />
