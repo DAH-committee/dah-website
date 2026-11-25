@@ -1,6 +1,6 @@
 // 자동 생성: /annual-report/render 가 내보낸 쪽 목록. 쪽 이미지를 다시 구운 뒤 갱신한다.
 export const manifest = {
- "count": 100,
+ "count": 102,
  "chapters": [
   {
    "id": "about",
@@ -49,35 +49,35 @@ export const manifest = {
    "no": "07",
    "en": "Contests",
    "title": "공모전",
-   "page": 59
+   "page": 61
   },
   {
    "id": "brand",
    "no": "08",
    "en": "Branding",
    "title": "인스타그램과 브랜딩",
-   "page": 75
+   "page": 77
   },
   {
    "id": "outreach",
    "no": "09",
    "en": "Outreach",
    "title": "행사와 대외 활동",
-   "page": 79
+   "page": 81
   },
   {
    "id": "achievements",
    "no": "10",
    "en": "Achievements",
    "title": "학생 성과",
-   "page": 83
+   "page": 85
   },
   {
    "id": "clubs",
    "no": "11",
    "en": "Activities",
    "title": "전공 동아리",
-   "page": 91
+   "page": 93
   }
  ],
  "alts": [
@@ -138,8 +138,10 @@ export const manifest = {
   "프로젝트 전시회 수상작 항공사 리브랜딩, 내 돈이 내 편인 앱: 강릉페이 UX 개선 프로젝트",
   "시상식",
   "전시 포스터 설치 현장",
-  "2026 2학기 전시회",
+  "2026 2학기 전시회 One Star per House 개요",
+  "2026 2학기 전시회 작품과 참여",
   "2학기 접수와 작품 제출",
+  "2025년과 2026년 전시회 비교",
   "07 Contests 공모전",
   "공모전 전용 사이트",
   "신규 캐릭터 공모전 개요",

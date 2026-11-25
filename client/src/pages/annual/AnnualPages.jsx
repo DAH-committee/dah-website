@@ -20,6 +20,9 @@ import {
   exhibitionOps,
   exhibition262Schedule,
   exhibition262Stats,
+  exhibition262Facts,
+  exhibitionYears,
+  exhibitionGrowth,
   contests262,
   exhibitionArchive,
   exhibition261Facts,
@@ -1097,17 +1100,43 @@ export const pages = [
     ),
   },
   {
-    id: 'ex-262',
+    id: 'ex-262-intro',
     ch: 'exhibition',
-    alt: '2026 2학기 전시회',
+    alt: '2026 2학기 전시회 One Star per House 개요',
     render: () => (
       <>
-        <Head title="2026 2학기 전시회" sub="제19회 디지털인문예술전공 프로젝트 전시회" />
-        <Table head={['구분', '일정']} cols={['34%', '66%']} rows={exhibition262Schedule} small />
+        <Head title="One Star per House" sub="2026 2학기 제19회 디지털인문예술전공 프로젝트 전시회" />
+        <div className="ap-awone">
+          <div className="ap-aw__img">
+            <Img s="poster-awards/one-star-per-house.webp" alt="One Star per House 전시 포스터" />
+          </div>
+          <Table head={['구분', '내용']} cols={['26%', '74%']} rows={exhibition262Facts} small dense />
+        </div>
+        <H3>준비와 운영 일정</H3>
+        <Table head={['일정', '내용']} cols={['34%', '66%']} rows={exhibition262Schedule} small dense />
+      </>
+    ),
+  },
+  {
+    id: 'ex-262',
+    ch: 'exhibition',
+    alt: '2026 2학기 전시회 작품과 참여',
+    render: () => (
+      <>
+        <Head title="작품과 참여" sub="제19회 프로젝트 전시회 제출 작품 68점" />
+        <p className="ap-body">
+          접수 {exhibition262Stats.entries}건 가운데 {exhibition262Stats.total}점이 작품 파일까지 제출했습니다. 참여 학생 {exhibition262Stats.people}명 중 {exhibition262Stats.other}명이 다른 전공 학생입니다. 작품 {exhibition262Stats.links}점은 포스터 QR로 웹사이트와 영상을 바로 엽니다.
+        </p>
+        <Table
+          head={['과목', '작품', '참여']}
+          cols={['60%', '20%', '20%']}
+          rows={exhibition262Stats.courses.map(([c, n, p]) => [c, `${n}점`, `${p}명`])}
+          small
+        />
         <div className="ap-stats">
           <div>
             <b>{exhibition262Stats.total}점</b>
-            <span>접수 작품</span>
+            <span>제출 작품</span>
           </div>
           <div>
             <b>{exhibition262Stats.courses.length}개</b>
@@ -1122,12 +1151,6 @@ export const pages = [
             <span>팀 참가</span>
           </div>
         </div>
-        <Table
-          head={['과목', '작품', '참여']}
-          cols={['60%', '20%', '20%']}
-          rows={exhibition262Stats.courses.map(([c, n, p]) => [c, `${n}점`, `${p}명`])}
-          small
-        />
       </>
     ),
   },
@@ -1152,6 +1175,39 @@ export const pages = [
         />
         <Photo s="site/sheet-summary.webp" h={154} shot contain />
         <p className="ap-note">접수 관리 시트의 과목별 현황 탭 (2026.11.22)</p>
+      </>
+    ),
+  },
+
+  {
+    id: 'ex-years',
+    ch: 'exhibition',
+    alt: '2025년과 2026년 전시회 비교',
+    render: () => (
+      <>
+        <Head title="작년 대비 성장" sub="2025 1학기 제16회부터 2026 2학기 제19회까지" />
+        <div className="ap-stats" style={{ marginTop: 4 }}>
+          <div>
+            <b>149점</b>
+            <span>2026 연간 작품</span>
+          </div>
+          <div>
+            <b>+13.7%</b>
+            <span>연간 작품 증가</span>
+          </div>
+          <div>
+            <b>+9.3%</b>
+            <span>연간 접수 증가</span>
+          </div>
+          <div>
+            <b>+43.0%</b>
+            <span>2학기 다른 전공 학생</span>
+          </div>
+        </div>
+        <Table head={['학기', '전시', '접수', '작품', '부문', '참여']} cols={['17%', '33%', '12%', '12%', '12%', '14%']} rows={exhibitionYears} small dense />
+        <H3>작년 같은 학기 대비</H3>
+        <Table head={['항목', '2025', '2026', '증가']} cols={['34%', '18%', '18%', '30%']} rows={exhibitionGrowth} small />
+        <p className="ap-note">참여는 학기마다 학번 중복을 뺀 학생 수입니다. 출처: 학기별 전시 신청 응답과 심사채점표, 전공 웹사이트 전시회 접수 기록</p>
       </>
     ),
   },
