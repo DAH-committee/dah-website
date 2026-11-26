@@ -182,6 +182,21 @@ html[data-dah-easter-egg='on'] {
     overflow-wrap: anywhere;
   }
 
+  /* 고아와 과부 금지: 제목은 줄 길이를 고르게 나누고(balance), 본문은 마지막 줄에 한 어절만 남지 않게(pretty) 한다 */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  dd,
+  blockquote,
+  figcaption {
+    text-wrap: pretty;
+  }
+
   /* 규칙(컴포넌트 준수): flex·grid 자식은 min-width:auto 기본값 탓에 콘텐츠가 넘쳐
      가로 스크롤을 유발하므로 min-w-0 유틸을 붙인다. display 값 기반 전역 선택은
      CSS로 불가하여 여기서 강제하지 않는다. */
