@@ -12,7 +12,7 @@
 //
 // 수정 진입은 라우트가 아니라 ?mode=edit 쿼리다. 구글 로그인은 전체 페이지 이동이라 컴포넌트
 // state가 초기화되는데, 쿼리는 복귀 경로(next)에 그대로 실려 돌아온다.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import Button from '../../components/common/Button'
@@ -314,6 +314,9 @@ function FormPage() {
   // 공개 제출자 신원. 스태프 로그인(useAuth)과 다른 신원 클래스다(41_AUTH_CONTRACT)
   const { user, loading: authLoading, logout } = usePublicAuth()
   const [done, setDone] = useState(null)
+  useEffect(() => {
+    if (done) window.scrollTo?.({ top: 0 })
+  }, [done])
 
   const form = data?.form ?? null
   const win = data?.window ?? null
@@ -351,14 +354,17 @@ function FormPage() {
   return (
     <RespondentPage>
       {/* 안내문은 저장된 줄바꿈을 그대로 살린다. 마크다운 변환 금지 */}
-      <HeaderCard title={form.title_ko}>
-        {form.description_ko && (
-          <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec">
-            <AccountText text={form.description_ko} />
-          </p>
-        )}
-        <ScheduleInline rows={schedule} />
-      </HeaderCard>
+      {/* 제출을 마치면 안내 카드는 걷어 내고 완료 카드만 남긴다(구글 폼과 같은 흐름) */}
+      {!done && (
+        <HeaderCard title={form.title_ko}>
+          {form.description_ko && (
+            <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec">
+              <AccountText text={form.description_ko} />
+            </p>
+          )}
+          <ScheduleInline rows={schedule} />
+        </HeaderCard>
+      )}
 
       {editMode ? (
         authLoading ? (
