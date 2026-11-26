@@ -3,7 +3,8 @@
 //   제목 카드만 위쪽에 굵은 보라 선이 있고 나머지는 거의 무채색이다.
 //   입력은 밑줄 한 줄, 선택은 동그라미(라디오)와 네모(체크)다.
 // 색은 .reading-scope(index.css)가 다크 토큰을 읽기 표면 값으로 다시 연결해 주므로 토큰 클래스를 그대로 쓴다.
-import { AlertCircle, Check, LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AlertCircle, Check, Copy, LogOut } from 'lucide-react'
 import GoogleLoginButton from '../auth/GoogleLoginButton'
 
 const CARD = 'rounded-md border border-border-subtle bg-bg-panel'
@@ -34,6 +35,57 @@ export function HeaderCard({ title, children }) {
   )
 }
 
+// 계좌번호처럼 10자리 이상 이어진 숫자가 있는 안내는 놓치지 않게 프라이머리 색으로 강조하고, 숫자만 복사하는 아이콘을 붙인다
+const LONG_NUMBER = /\d{10,16}/
+
+function CopyNumber({ value }) {
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    if (!done) return undefined
+    const t = setTimeout(() => setDone(false), 1600)
+    return () => clearTimeout(t)
+  }, [done])
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = value
+      ta.setAttribute('readonly', '')
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      ta.remove()
+    }
+    setDone(true)
+  }
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={done ? '복사됨' : `${value} 복사`}
+      title={done ? '복사됨' : '숫자 복사'}
+      className="inline-flex h-32 w-32 shrink-0 items-center justify-center rounded-sm text-purple-primary transition-colors duration-fast ease-out hover:bg-purple-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-primary"
+    >
+      {done ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+    </button>
+  )
+}
+
+export function HintText({ hint }) {
+  const text = typeof hint === 'string' ? hint : null
+  const m = text ? text.match(LONG_NUMBER) : null
+  if (!m) return <span className="whitespace-pre-line text-small-m text-text-meta">{hint}</span>
+  return (
+    <span className="flex flex-wrap items-center gap-x-4 whitespace-pre-line break-keep text-body-m font-semibold text-purple-primary">
+      <span>{text}</span>
+      <CopyNumber value={m[0]} />
+    </span>
+  )
+}
+
 /** 질문 카드: 제목, 필수 별표, 설명, 입력, 오류 */
 export function QuestionCard({ label, required = false, hint, error, children, as: Tag = 'div', ...rest }) {
   return (
@@ -48,7 +100,7 @@ export function QuestionCard({ label, required = false, hint, error, children, a
           )}
         </span>
       )}
-      {hint && <span className="text-small-m text-text-meta">{hint}</span>}
+      {hint && <HintText hint={hint} />}
       {children}
       {error && (
         <span role="alert" className="flex items-start gap-8 text-small-m text-state-error">
