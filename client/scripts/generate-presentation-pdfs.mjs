@@ -241,5 +241,11 @@ try {
   cdp.close()
 } finally {
   await Promise.all([stopChild(preview), stopChild(chrome)])
-  rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 })
+  // Chrome이 늦게 쓰는 파일 때문에 임시 폴더 삭제가 실패해도 PDF 생성 결과에는 영향이 없다.
+  // 이 정리 실패로 작업 전체가 실패 처리되어 PDF 갱신 커밋이 막히지 않도록 경고만 남긴다.
+  try {
+    rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 })
+  } catch (error) {
+    console.warn(`임시 프로필 폴더를 지우지 못했습니다(무시): ${error.message}`)
+  }
 }
