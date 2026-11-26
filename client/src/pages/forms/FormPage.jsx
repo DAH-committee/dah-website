@@ -319,6 +319,8 @@ function FormPage() {
   const win = data?.window ?? null
   // 로그인 없이 받는 폼은 내 제출을 찾을 방법이 없으므로 '제출 내역 확인과 수정'을 보이지 않는다
   const canEdit = Boolean(win?.can_edit) && form?.settings?.require_google_auth !== false
+  // 설정에서 '구글 로그인 후 제출'을 끈 폼은 로그인하지 않은 사람에게도 문항을 바로 보여 준다
+  const loginRequired = form?.settings?.require_google_auth !== false
   useTitle(form?.title_ko)
 
   if (loading) {
@@ -430,13 +432,13 @@ function FormPage() {
             : '접수가 마감되어 새로 제출할 수 없습니다.'}
           {!beforeStart && canEdit && editEnd ? ` 제출한 내용 수정은 ${editEnd}까지 가능합니다.` : ''}
         </NoticeCard>
-      ) : authLoading ? (
+      ) : loginRequired && authLoading ? (
         <p className={statusCls} aria-live="polite">
           로그인 상태 확인 중
         </p>
-      ) : user ? (
+      ) : user || !loginRequired ? (
         <div key="account" className="page-fade flex min-w-0 flex-col gap-12">
-          <AccountStrip user={user} onLogout={logout} />
+          {user && <AccountStrip user={user} onLogout={logout} />}
           <ResponseForm
             fields={form.fields ?? []}
             submitLabel="제출"
