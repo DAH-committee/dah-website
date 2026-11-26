@@ -20,6 +20,7 @@ import GoogleLoginButton from '../../components/auth/GoogleLoginButton'
 import FormRenderer from '../../components/forms/FormRenderer'
 import {
   AccountStrip,
+  AccountText,
   HeaderCard,
   LoginCard,
   NoticeCard,
@@ -350,7 +351,9 @@ function FormPage() {
       {/* 안내문은 저장된 줄바꿈을 그대로 살린다. 마크다운 변환 금지 */}
       <HeaderCard title={form.title_ko}>
         {form.description_ko && (
-          <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec">{form.description_ko}</p>
+          <p className="whitespace-pre-line break-keep text-body-m leading-relaxed text-text-sec">
+            <AccountText text={form.description_ko} />
+          </p>
         )}
         <ScheduleInline rows={schedule} />
       </HeaderCard>

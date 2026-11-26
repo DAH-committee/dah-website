@@ -36,7 +36,7 @@ export function HeaderCard({ title, children }) {
 }
 
 // 계좌번호처럼 10자리 이상 이어진 숫자는 "은행 번호 예금주" 부분만 프라이머리 색으로 강조하고, 바로 뒤에 숫자만 복사하는 작은 아이콘을 붙인다
-const ACCOUNT = /(\S+\s)?(\d{10,16})(\s[^\s,.]+)?/
+const ACCOUNT = /([^\s(]+\s)?(\d{10,16})(\s[^\s,.)]+)?/
 
 function CopyNumber({ value }) {
   const [done, setDone] = useState(false)
@@ -74,14 +74,14 @@ function CopyNumber({ value }) {
   )
 }
 
-export function HintText({ hint }) {
-  const text = typeof hint === 'string' ? hint : null
-  const m = text ? text.match(ACCOUNT) : null
-  if (!m) return <span className="whitespace-pre-line text-small-m text-text-meta">{hint}</span>
+/** 글 안에 계좌번호가 있으면 그 부분만 강조하고 숫자 복사 아이콘을 붙인다. 폼 안내문과 문항 설명이 함께 쓴다 */
+export function AccountText({ text, className = '' }) {
+  const m = typeof text === 'string' ? text.match(ACCOUNT) : null
+  if (!m) return <span className={className}>{text}</span>
   const before = text.slice(0, m.index)
   const after = text.slice(m.index + m[0].length)
   return (
-    <span className="whitespace-pre-line break-keep text-small-m text-text-meta">
+    <span className={className}>
       {before}
       <span className="font-semibold text-purple-primary">{m[0]}</span>
       <CopyNumber value={m[2]} />
@@ -90,7 +90,11 @@ export function HintText({ hint }) {
   )
 }
 
-/** 질문 카드: 제목, 필수 별표, 설명, 입력, 오류 */
+export function HintText({ hint }) {
+  if (typeof hint !== 'string') return <span className="whitespace-pre-line text-small-m text-text-meta">{hint}</span>
+  return <AccountText text={hint} className="whitespace-pre-line break-keep text-small-m text-text-meta" />
+}
+
 export function QuestionCard({ label, required = false, hint, error, children, as: Tag = 'div', ...rest }) {
   return (
     <Tag className={`${CARD} flex min-w-0 flex-col gap-12 p-20 md:p-24 ${error ? '!border-state-error' : ''}`} {...rest}>
