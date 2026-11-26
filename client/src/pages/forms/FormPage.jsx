@@ -316,6 +316,8 @@ function FormPage() {
 
   const form = data?.form ?? null
   const win = data?.window ?? null
+  // 로그인 없이 받는 폼은 내 제출을 찾을 방법이 없으므로 '제출 내역 확인과 수정'을 보이지 않는다
+  const canEdit = Boolean(win?.can_edit) && form?.settings?.require_google_auth !== false
   useTitle(form?.title_ko)
 
   if (loading) {
@@ -364,7 +366,7 @@ function FormPage() {
             <EditPanel
               slug={slug}
               fields={form.fields ?? []}
-              canEdit={win.can_edit}
+              canEdit={canEdit}
               editEnd={editEnd}
               // 53_DRIVE_STORAGE: 저장 위치는 질문마다 field.storage에 담겨 온다.
               // 이 컨텍스트는 "어느 폼인가"와 "과목 질문이 무엇인가"만 알려준다.
@@ -388,7 +390,7 @@ function FormPage() {
           title="제출 완료"
           actions={
             <>
-              {win.can_edit && (
+              {canEdit && (
                 <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
                   제출 내역 확인과 수정
                 </Button>
@@ -400,14 +402,14 @@ function FormPage() {
           }
         >
           {done?.confirmation_ko || '제출이 접수되었습니다.'}
-          {win.can_edit ? ` 내용 수정은 제출에 사용한 구글 계정으로 로그인해 가능합니다${editEnd ? ` (수정 마감: ${editEnd})` : ''}.` : ''}
+          {canEdit ? ` 내용 수정은 제출에 사용한 구글 계정으로 로그인해 가능합니다${editEnd ? ` (수정 마감: ${editEnd})` : ''}.` : ''}
           <QuizResult quiz={done?.quiz} />
         </NoticeCard>
       ) : !win.can_submit ? (
         <NoticeCard
           title={beforeStart ? '접수 시작 전' : '접수 마감'}
           actions={
-            win.can_edit &&
+            canEdit &&
             !authLoading &&
             (user ? (
               <Button variant="secondary" href={`/forms/${slug}?mode=edit`}>
@@ -423,7 +425,7 @@ function FormPage() {
               ? `접수는 ${startAt}에 시작합니다.`
               : '접수 시작 일정이 아직 공지되지 않았습니다.'
             : '접수가 마감되어 새로 제출할 수 없습니다.'}
-          {!beforeStart && win.can_edit && editEnd ? ` 제출한 내용 수정은 ${editEnd}까지 가능합니다.` : ''}
+          {!beforeStart && canEdit && editEnd ? ` 제출한 내용 수정은 ${editEnd}까지 가능합니다.` : ''}
         </NoticeCard>
       ) : authLoading ? (
         <p className={statusCls} aria-live="polite">
@@ -443,7 +445,7 @@ function FormPage() {
               window.scrollTo?.({ top: 0 })
             }}
           />
-          {win.can_edit && (
+          {canEdit && (
             <div className="px-4">
               <TextButton onClick={() => (window.location.href = `/forms/${slug}?mode=edit`)}>제출 내역 확인과 수정</TextButton>
             </div>
