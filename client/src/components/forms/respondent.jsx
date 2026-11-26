@@ -35,8 +35,8 @@ export function HeaderCard({ title, children }) {
   )
 }
 
-// 계좌번호처럼 10자리 이상 이어진 숫자가 있는 안내는 놓치지 않게 프라이머리 색으로 강조하고, 숫자만 복사하는 아이콘을 붙인다
-const LONG_NUMBER = /\d{10,16}/
+// 계좌번호처럼 10자리 이상 이어진 숫자는 "은행 번호 예금주" 부분만 프라이머리 색으로 강조하고, 바로 뒤에 숫자만 복사하는 작은 아이콘을 붙인다
+const ACCOUNT = /(\S+\s)?(\d{10,16})(\s[^\s,.]+)?/
 
 function CopyNumber({ value }) {
   const [done, setDone] = useState(false)
@@ -67,21 +67,25 @@ function CopyNumber({ value }) {
       onClick={copy}
       aria-label={done ? '복사됨' : `${value} 복사`}
       title={done ? '복사됨' : '숫자 복사'}
-      className="inline-flex h-32 w-32 shrink-0 items-center justify-center rounded-sm text-purple-primary transition-colors duration-fast ease-out hover:bg-purple-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-primary"
+      className="ml-4 inline-flex h-20 w-20 items-center justify-center rounded-sm align-[-4px] text-purple-primary transition-colors duration-fast ease-out hover:bg-purple-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-primary"
     >
-      {done ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+      {done ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
     </button>
   )
 }
 
 export function HintText({ hint }) {
   const text = typeof hint === 'string' ? hint : null
-  const m = text ? text.match(LONG_NUMBER) : null
+  const m = text ? text.match(ACCOUNT) : null
   if (!m) return <span className="whitespace-pre-line text-small-m text-text-meta">{hint}</span>
+  const before = text.slice(0, m.index)
+  const after = text.slice(m.index + m[0].length)
   return (
-    <span className="flex flex-wrap items-center gap-x-4 whitespace-pre-line break-keep text-body-m font-semibold text-purple-primary">
-      <span>{text}</span>
-      <CopyNumber value={m[0]} />
+    <span className="whitespace-pre-line break-keep text-small-m text-text-meta">
+      {before}
+      <span className="font-semibold text-purple-primary">{m[0]}</span>
+      <CopyNumber value={m[2]} />
+      {after}
     </span>
   )
 }
