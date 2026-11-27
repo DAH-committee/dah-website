@@ -27,7 +27,7 @@ window.addEventListener('unhandledrejection', (e) => {
 
 
 // 점검 중에는 어느 주소로 들어와도 흰 화면 가운데에 점검 안내만 보인다. 점검이 끝나면 false로 돌린다
-const MAINTENANCE = true
+const MAINTENANCE = false
 
 function Maintenance() {
   const wrap = { position: 'fixed', inset: 0, background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center', wordBreak: 'keep-all', fontFamily: "'Pretendard Variable', Pretendard, system-ui, sans-serif", color: '#111111' }
