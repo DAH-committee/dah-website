@@ -11,6 +11,7 @@ import useContentVisibility from '../../hooks/useContentVisibility'
 import { cosmos } from '../../styles/tokens'
 import Container from './Container'
 import LangToggle from './LangToggle'
+import FloatingCta from './FloatingCta'
 import logoUrl from '../../assets/logo.svg'
 
 // 헤더 — KPC 문법. G8 IA 8메뉴, G9 fixed 포지셔닝, G14 관리 아이콘, G15 언어 전환 시프트 0.
@@ -348,17 +349,7 @@ function Header() {
               {t('actions.login')}
             </button>
           )}
-          {/* 모바일 접수 버튼: 햄버거 바로 왼쪽. 바에는 [로고][접수][햄버거]만 들어가고,
-              접수 버튼은 글자 길이가 고정이라 로그인 상태와 무관하게 겹치지 않는다. */}
-          {showSubmit && submitMode === 'header' && (
-            <Link
-              to="/submit"
-              className="inline-flex h-32 shrink-0 items-center gap-4 whitespace-nowrap rounded-sm bg-bg-invert px-12 text-small-m font-semibold text-text-invert transition-opacity duration-fast ease-out hover:opacity-90 lg:hidden"
-            >
-              <CalendarCheck size={14} aria-hidden="true" />
-              {t('actions.submitExhibition')}
-            </Link>
-          )}
+          {/* 모바일 접수 버튼은 헤더 바에 두지 않고 오른쪽 아래 원형 플로팅 버튼(FloatingCta)으로 띄운다 */}
           {/* Y1-2: 햄버거 — 우측 유틸의 마지막. lg 이상은 메가메뉴가 담당하므로 미노출 */}
           <button
             ref={burgerRef}
@@ -485,16 +476,13 @@ function Header() {
       )}
       {/* G9: fixed 헤더가 차지하던 자리를 본문에서 확보하는 스페이서 */}
       <div aria-hidden="true" className="h-header-s lg:h-header" />
-      {/* H10: 접수 버튼 플로팅 모드 (button_mode=floating) — 우하단 고정 */}
-      {showSubmit && submitMode === 'floating' && (
-        <Link
-          to="/submit"
-          className="fixed bottom-24 right-24 z-40 inline-flex h-48 items-center gap-8 rounded-sm bg-bg-invert px-24 text-body-m font-semibold text-text-invert shadow-btn transition-opacity duration-fast ease-out hover:opacity-90"
-        >
-          <CalendarCheck size={16} aria-hidden="true" />
-          {t('actions.submitExhibition')}
-        </Link>
-      )}
+      {/* 접수 플로팅: 모바일은 전시회 접수와 사이트에 띄운 신청 폼을 원형 버튼으로, 데스크탑은 전시회 플로팅 모드일 때만 */}
+      <FloatingCta
+        items={[
+          ...(showSubmit ? [{ key: 'exhibition-submit', to: '/submit', label: t('actions.submitExhibition'), desktop: submitMode === 'floating' }] : []),
+          ...(formCta ? [{ key: `form-${formCta.slug}`, to: `/forms/${formCta.slug}`, label: lang === 'en' ? formCta.button_label_en : formCta.button_label_ko }] : []),
+        ]}
+      />
     </>
   )
 }

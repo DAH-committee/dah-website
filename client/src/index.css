@@ -486,3 +486,13 @@ html[data-dah-easter-egg='on'] {
 @keyframes fm-card-out { 0%, 55% { background-color: #FFEA00; } 100% { background-color: transparent; } }
 .fm-flash { border-radius: 12px; box-shadow: 0 0 0 5px #FFEA00; transition: box-shadow 400ms ease; }
 .fm-flash > div:first-child { animation: fm-card-out 3.6s ease-out forwards; }
+
+/* 플로팅 접수 버튼 말풍선: 오른쪽에서 살짝 밀려 나오며 나타난다 */
+@keyframes fab-bubble-in {
+  from { opacity: 0; transform: translate(8px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
+}
+.fab-bubble { animation: fab-bubble-in 240ms cubic-bezier(0.2, 0, 0, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .fab-bubble { animation: none; }
+}

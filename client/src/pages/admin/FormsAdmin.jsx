@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Copy, EllipsisVertical, Link as LinkIcon, Pencil, Plus, Table2, Trash2 } from 'lucide-react'
+import { BarChart3, Copy, DoorClosed, DoorOpen, EllipsisVertical, EyeOff, Link as LinkIcon, Megaphone, Pencil, Plus, Table2, Trash2 } from 'lucide-react'
 import { useApi, api } from '../../hooks/useApi'
 import { useTitle } from '../../hooks/useTitle'
 import { formatKst } from '../submit/exhibitFormShared'
@@ -37,8 +37,8 @@ function periodOf(settings) {
   return `${start || '시작 미정'} 부터 ${end || '마감 미정'} 까지`
 }
 
-/** 더보기 메뉴: 복사본 만들기, 주소 복사, 삭제 */
-function RowMenu({ item, onCopyForm, onCopyLink, onRemove, busy }) {
+/** 더보기 메뉴: 현황 보기, 접수 열기와 닫기, 사이트 노출, 복사본 만들기, 주소 복사, 삭제 */
+function RowMenu({ item, onCopyForm, onCopyLink, onRemove, onToggleOpen, onToggleShow, busy }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   useEffect(() => {
@@ -56,6 +56,8 @@ function RowMenu({ item, onCopyForm, onCopyLink, onRemove, busy }) {
       document.removeEventListener('keydown', key)
     }
   }, [open])
+  const isOpen = formStatus(item.published, item.settings).key === 'open'
+  const shown = Boolean(item.settings?.show_button_in_header)
   const entry =
     'flex h-11 w-full cursor-pointer items-center gap-12 px-16 text-left text-small-m text-text-pri transition hover:bg-glass-strong disabled:cursor-default disabled:opacity-40'
   return (
@@ -66,6 +68,15 @@ function RowMenu({ item, onCopyForm, onCopyLink, onRemove, busy }) {
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-[calc(100%+4px)] z-20 w-[220px] overflow-hidden rounded-md border border-border-subtle bg-bg-panel shadow-card-glow">
+          <a role="menuitem" href={`/form/${item.id}/responses`} target="_blank" rel="noopener noreferrer" className={entry} onClick={() => setOpen(false)}>
+            <BarChart3 size={16} aria-hidden="true" /> 현황 보기
+          </a>
+          <button type="button" role="menuitem" disabled={busy} className={entry} onClick={() => { setOpen(false); onToggleOpen(item) }}>
+            {isOpen ? <DoorClosed size={16} aria-hidden="true" /> : <DoorOpen size={16} aria-hidden="true" />} {isOpen ? '접수 닫기' : '접수 열기'}
+          </button>
+          <button type="button" role="menuitem" disabled={busy} className={entry} onClick={() => { setOpen(false); onToggleShow(item) }}>
+            {shown ? <EyeOff size={16} aria-hidden="true" /> : <Megaphone size={16} aria-hidden="true" />} {shown ? '사이트에서 내리기' : '사이트에 띄우기'}
+          </button>
           <button type="button" role="menuitem" disabled={busy} className={entry} onClick={() => { setOpen(false); onCopyForm(item) }}>
             <Copy size={16} aria-hidden="true" /> 복사본 만들기
           </button>
@@ -129,6 +140,47 @@ function FormsAdmin() {
     }
   }
 
+  // 설정 일부만 바꿔 저장한다. 질문과 다른 설정은 그대로 둔다
+  const saveSettings = async (item, patch, extra = {}) => {
+    setBusy(true)
+    try {
+      const { item: full } = await api.get(`/admin/forms/${item.id}`)
+      await api.put(`/admin/forms/${item.id}`, { settings: { ...(full.settings || {}), ...patch }, ...extra })
+      refetch()
+      return true
+    } catch (err) {
+      await alertDialog({ title: '오류', message: err.hint ? `${err.message} (${err.hint})` : err.message })
+      return false
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // 접수 열기: 지금부터 받는다. 마감이 없거나 이미 지났으면 마감을 먼저 정하도록 수정 화면으로 보낸다
+  // 접수 닫기: 마감을 지금으로 당긴다
+  const toggleOpen = async (item) => {
+    const now = new Date()
+    if (formStatus(item.published, item.settings).key === 'open') {
+      if (!(await confirmDialog({ message: `"${item.title_ko}" 접수를 지금 닫을까요?\n마감 시각이 지금으로 바뀝니다.`, confirmLabel: '접수 닫기' }))) return
+      if (await saveSettings(item, { accept_end: now.toISOString() })) setMessage('접수를 닫았습니다')
+      return
+    }
+    const end = item.settings?.accept_end ? new Date(item.settings.accept_end) : null
+    if (!end || end <= now) {
+      await alertDialog({ message: '마감 시각이 없거나 이미 지났습니다. 수정 화면의 설정에서 마감을 먼저 정해 주세요.' })
+      navigate(`/admin/forms/${item.id}/edit`)
+      return
+    }
+    if (!(await confirmDialog({ message: `"${item.title_ko}" 접수를 지금 열까요?\n마감은 ${formatKst(item.settings.accept_end)}입니다.`, confirmLabel: '접수 열기' }))) return
+    if (await saveSettings(item, { accept_start: now.toISOString() }, { published: true })) setMessage('접수를 열었습니다')
+  }
+
+  // 사이트에 띄우기: 접수 기간 동안 헤더 버튼과 모바일 원형 플로팅 버튼으로 보인다
+  const toggleShow = async (item) => {
+    const shown = Boolean(item.settings?.show_button_in_header)
+    if (await saveSettings(item, { show_button_in_header: !shown })) setMessage(shown ? '사이트에서 내렸습니다' : '사이트에 띄웠습니다. 접수 기간에만 보입니다')
+  }
+
   const copyLink = async (item) => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/forms/${item.slug}`)
@@ -171,6 +223,7 @@ function FormsAdmin() {
                     <span className={`inline-flex h-32 items-center rounded-sm border px-12 text-small-m font-bold ${TONE[st.tone]}`}>{st.label}</span>
                     <span className="text-small-m text-text-meta">{CATEGORY_LABEL[item.category] || CATEGORY_LABEL.other}</span>
                     <span className="text-small-m font-semibold text-text-sec">응답 {item.response_count ?? 0}건</span>
+                    {item.settings?.show_button_in_header && <span className="text-small-m font-semibold text-purple-light">사이트 노출</span>}
                   </div>
                   <Link to={`/admin/forms/${item.id}/edit`} className="min-w-0 break-words text-body-l-m font-bold text-text-pri underline-offset-4 hover:underline md:text-body-l-d">
                     {item.title_ko}
@@ -184,7 +237,7 @@ function FormsAdmin() {
                   <a href={`/admin/forms/${item.id}/responses/sheet`} target="_blank" rel="noopener noreferrer" className={ROW_BTN}>
                     <Table2 size={16} aria-hidden="true" /> 응답 보기
                   </a>
-                  <RowMenu item={item} busy={busy} onCopyForm={copyForm} onCopyLink={copyLink} onRemove={remove} />
+                  <RowMenu item={item} busy={busy} onCopyForm={copyForm} onCopyLink={copyLink} onRemove={remove} onToggleOpen={toggleOpen} onToggleShow={toggleShow} />
                 </div>
               </li>
             )
