@@ -26,8 +26,9 @@ app.listen(PORT, async () => {
   await ensureHwpSchema() // 한글 파일(kind=hwp) 버전·암호화 저장 테이블
   await ensureMcpSchema()
   console.log('[dah-server] google drive 저장소 스키마 확인 완료')
-  // 전시회 자동 작업: 드라이브 재전송, 수정 마감 뒤 채점기준표와 교수님 공유. EXHIBIT_AUTO=off면 끈다
-  if (process.env.EXHIBIT_AUTO !== 'off') {
+  // 전시회 자동 작업: 드라이브 재전송, 수정 마감 뒤 채점기준표와 교수님 공유.
+  // 10분마다 DB를 깨워 무료 사용 시간을 다 써 버리므로 기본은 끈다. 접수 기간에만 EXHIBIT_AUTO=on으로 켠다
+  if (process.env.EXHIBIT_AUTO === 'on') {
     const tick = () => runAutoTasks().then((r) => {
       if (r?.sync?.synced || r?.sync?.failed || r?.rubrics || r?.share?.shared?.length) console.log('[exhibit-auto]', JSON.stringify(r))
     }).catch((err) => console.error('[exhibit-auto] 실패:', err.message))
