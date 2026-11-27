@@ -1,19 +1,7 @@
 name: Update presentation PDFs
 
+# 자동 실행(푸시마다, 6시간마다)은 끔. 푸시가 겹쳐 막히고 서버와 DB를 자주 깨워서 필요할 때 Actions에서 직접 실행한다
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'client/src/**'
-      - 'client/public/images/**'
-      - 'client/public/videos/**'
-      - 'client/scripts/generate-presentation-pdfs.mjs'
-      - 'client/scripts/presentation-pdfs.config.mjs'
-      - 'client/.env.pdf'
-      - 'client/package.json'
-      - 'client/package-lock.json'
-  schedule:
-    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
